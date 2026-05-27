@@ -6066,6 +6066,7 @@ function blemApply(canvas, cx, cy) {
   const avgR = trimmed.reduce((s, p) => s + p.r, 0) / trimmed.length;
   const avgG = trimmed.reduce((s, p) => s + p.g, 0) / trimmed.length;
   const avgB = trimmed.reduce((s, p) => s + p.b, 0) / trimmed.length;
+  console.log('sampled color:', Math.round(avgR), Math.round(avgG), Math.round(avgB), 'at canvas coords:', cx, cy, 'canvas size:', canvas.width, canvas.height);
 
   // Paint with soft cosine falloff — max opacity 0.40 (subtle, not a stamp)
   for (let dy = -r; dy <= r; dy++) {
@@ -6236,6 +6237,7 @@ let blemActive      = false;
 let blemSpaceDown   = false; // pan mode when spacebar held
 let blemPanDragging = false;
 let blemPanStart    = null;
+let blemDidClick    = false;
 
 function toolsBlemishHTML() {
   return `
@@ -6317,13 +6319,13 @@ function toolsBlemInit() {
       hc.style.cursor = 'grabbing';
       return;
     }
-    e._blemHandled = true;
+    blemDidClick = true;
   };
   hc._blemUp = (e) => {
     if (!blemActive) return;
     if (blemPanDragging) { blemPanDragging = false; return; }
-    if (!e._blemHandled) return;
-    // Convert screen coords to canvas pixel coords (accounts for zoom+pan via getBoundingClientRect)
+    if (!blemDidClick) return;
+    blemDidClick = false;
     const rect = hc.getBoundingClientRect();
     const scaleX = hc.width  / rect.width;
     const scaleY = hc.height / rect.height;

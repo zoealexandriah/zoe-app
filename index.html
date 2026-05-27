@@ -6372,7 +6372,11 @@ function toolsBlemInit() {
 function blemHeal(hc, cx, cy) {
   const ctx = hc.getContext('2d');
   const w = hc.width, h = hc.height;
-  const r = blemBrushSize;
+
+  // Scale brush radius to match canvas pixel density
+  // hero-canvas is drawn at screen size, so 1 canvas px = 1 screen px
+  // Use a fixed pixel radius that works at typical canvas sizes
+  const r = Math.max(4, Math.round(blemBrushSize * 0.5));
 
   // Save state for undo
   const snap = ctx.getImageData(0, 0, w, h);
@@ -6382,56 +6386,77 @@ function blemHeal(hc, cx, cy) {
   const imgData = ctx.getImageData(0, 0, w, h);
   const d = imgData.data;
 
-  // Sample surrounding ring
-  const innerR = r * 1.1;
-  const outerR = r * 1.6;
-  const samples = [];
+  // Get reference color AT the click point
+  const ri = (Math.round(cy) * w + Math.round(cx)) * 4;
+  const refR = d[ri], refG = d[ri+1], refB = d[ri+2];
+
+  // Sample a tight ring just outside the brush
+  const innerR = r * 1.05;
+  const outerR = r * 1.8;
   const scan = Math.ceil(outerR);
+  const samples = [];
+
   for (let dy = -scan; dy <= scan; dy++) {
     for (let dx = -scan; dx <= scan; dx++) {
       const dist = Math.sqrt(dx*dx + dy*dy);
       if (dist < innerR || dist > outerR) continue;
-      const px = cx + dx, py = cy + dy;
+      const px = Math.round(cx + dx);
+      const py = Math.round(cy + dy);
       if (px < 0 || px >= w || py < 0 || py >= h) continue;
       const pi = (py * w + px) * 4;
-      const lum = d[pi] * 0.299 + d[pi+1] * 0.587 + d[pi+2] * 0.114;
-      samples.push({ r: d[pi], g: d[pi+1], b: d[pi+2], lum });
+      const sr = d[pi], sg = d[pi+1], sb = d[pi+2];
+
+      // Only include pixels similar in color to the click point
+      // Threshold 80 allows some variation but rejects hair/background
+      const colorDiff = Math.abs(sr - refR) + Math.abs(sg - refG) + Math.abs(sb - refB);
+      if (colorDiff < 120) samples.push({ r: sr, g: sg, b: sb });
     }
   }
-  if (samples.length === 0) return;
 
-  // Sort by luminance, find median, then keep only samples within a tight
-  // luminance band around the median. This aggressively rejects dark
-  // background/hair and bright specular highlights regardless of their count.
-  samples.sort((a, b) => a.lum - b.lum);
-  const medLum = samples[Math.floor(samples.length / 2)].lum;
-  let pool = samples.filter(s => s.lum >= medLum * 0.55 && s.lum <= medLum * 1.45);
-  // Fallback if band is too narrow (e.g. very uniform region)
-  if (pool.length < 4) pool = samples.slice(
-    Math.floor(samples.length * 0.30),
-    samples.length - Math.floor(samples.length * 0.15)
-  );
+  // If not enough color-similar samples, fall back to all ring samples
+  let pool = samples;
+  if (pool.length < 6) {
+    pool = [];
+    for (let dy = -scan; dy <= scan; dy++) {
+      for (let dx = -scan; dx <= scan; dx++) {
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < innerR || dist > outerR) continue;
+        const px = Math.round(cx + dx);
+        const py = Math.round(cy + dy);
+        if (px < 0 || px >= w || py < 0 || py >= h) continue;
+        const pi = (py * w + px) * 4;
+        pool.push({ r: d[pi], g: d[pi+1], b: d[pi+2] });
+      }
+    }
+    // Sort and trim darkest/brightest 25%
+    pool.sort((a, b) => (a.r+a.g+a.b) - (b.r+b.g+b.b));
+    const trim = Math.floor(pool.length * 0.25);
+    pool = pool.slice(trim, pool.length - trim);
+  }
+
   if (pool.length === 0) return;
 
   const avgR = pool.reduce((s, p) => s + p.r, 0) / pool.length;
   const avgG = pool.reduce((s, p) => s + p.g, 0) / pool.length;
   const avgB = pool.reduce((s, p) => s + p.b, 0) / pool.length;
 
-  // Blend toward clean skin — cosine falloff, max 0.35 opacity (subtle per pass)
+  // Paint with soft cosine falloff — max 0.45 opacity
   for (let dy = -r; dy <= r; dy++) {
     for (let dx = -r; dx <= r; dx++) {
       const dist = Math.sqrt(dx*dx + dy*dy);
       if (dist > r) continue;
-      const px = cx + dx, py = cy + dy;
+      const px = Math.round(cx + dx);
+      const py = Math.round(cy + dy);
       if (px < 0 || px >= w || py < 0 || py >= h) continue;
       const t = dist / r;
-      const opacity = 0.35 * 0.5 * (1 + Math.cos(Math.PI * t));
+      const opacity = 0.45 * 0.5 * (1 + Math.cos(Math.PI * t));
       const pi = (py * w + px) * 4;
       d[pi]   = Math.round(d[pi]   * (1 - opacity) + avgR * opacity);
       d[pi+1] = Math.round(d[pi+1] * (1 - opacity) + avgG * opacity);
       d[pi+2] = Math.round(d[pi+2] * (1 - opacity) + avgB * opacity);
     }
   }
+
   ctx.putImageData(imgData, 0, 0);
 }
 

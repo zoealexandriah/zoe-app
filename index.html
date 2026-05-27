@@ -6006,70 +6006,67 @@ function blemUpdateSize(val) {
 
 // ── Core blemish algorithm ────────────────────────────────────────────────
 function blemApply(canvas, cx, cy) {
-  const ctx    = canvas.getContext('2d');
-  const r      = Math.round(blemState.brushSize * blemState.scale); // radius in canvas pixels
-  const w      = canvas.width;
-  const h      = canvas.height;
+  const ctx = canvas.getContext('2d');
+  const r   = Math.round(blemState.brushSize * blemState.scale);
+  const w   = canvas.width;
+  const h   = canvas.height;
 
-  // Save state for undo (cap at 10)
+  // Save history
   const snap = ctx.getImageData(0, 0, w, h);
-  if (blemState.history.length >= 10) blemState.history.shift();
+  if (blemState.history.length >= 15) blemState.history.shift();
   blemState.history.push(snap);
 
-  // Read current image data
   const imageData = ctx.getImageData(0, 0, w, h);
   const d = imageData.data;
+  function idx(x, y) { return (y * w + x) * 4; }
 
-  function idx(x, y) { return (y * w + x) * 4 }
+  // Sample ring: tight to the blemish edge — 1.1x to 1.6x radius
+  // This ensures we only sample clean skin immediately adjacent
+  const innerR = r * 1.1;
+  const outerR = r * 1.6;
 
-  // ── Sample ring of pixels just OUTSIDE the brush radius ──
-  // Wider ring for more representative average (task 3: subtler blend)
-  const innerR = r * 1.3;
-  const outerR = r * 2.2;
-  let sumR = 0, sumG = 0, sumB = 0, count = 0;
-
+  // Collect samples and sort to discard outliers (dark hair, bright highlights)
+  const samples = [];
   const scan = Math.ceil(outerR);
   for (let dy = -scan; dy <= scan; dy++) {
     for (let dx = -scan; dx <= scan; dx++) {
-      const dist = Math.sqrt(dx*dx + dy*dy);
+      const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < innerR || dist > outerR) continue;
       const px = cx + dx, py = cy + dy;
       if (px < 0 || px >= w || py < 0 || py >= h) continue;
       const i = idx(px, py);
-      sumR += d[i]; sumG += d[i+1]; sumB += d[i+2];
-      count++;
+      const lum = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
+      samples.push({ r: d[i], g: d[i+1], b: d[i+2], lum });
     }
   }
 
-  if (count === 0) return; // nothing to sample
+  if (samples.length === 0) return;
 
-  const avgR = sumR / count;
-  const avgG = sumG / count;
-  const avgB = sumB / count;
+  // Sort by luminosity and trim darkest 20% and brightest 20%
+  // This removes hair strands and specular highlights from the average
+  samples.sort((a, b) => a.lum - b.lum);
+  const trim = Math.floor(samples.length * 0.20);
+  const trimmed = samples.slice(trim, samples.length - trim);
+  if (trimmed.length === 0) return;
 
-  // ── Paint averaged color over blemish with feathered soft circle ──
+  const avgR = trimmed.reduce((s, p) => s + p.r, 0) / trimmed.length;
+  const avgG = trimmed.reduce((s, p) => s + p.g, 0) / trimmed.length;
+  const avgB = trimmed.reduce((s, p) => s + p.b, 0) / trimmed.length;
+
+  // Paint with soft cosine falloff — max opacity 0.40 (subtle, not a stamp)
   for (let dy = -r; dy <= r; dy++) {
     for (let dx = -r; dx <= r; dx++) {
-      const dist = Math.sqrt(dx*dx + dy*dy);
+      const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > r) continue;
       const px = cx + dx, py = cy + dy;
       if (px < 0 || px >= w || py < 0 || py >= h) continue;
-
-      // Feather: opacity peaks at center, falls to 0 at edge
-      // Smooth cosine falloff for natural blending
-      const t = dist / r; // 0 at center, 1 at edge
-      // Cosine falloff * max 0.65 opacity — subtler, more natural blend
-      const rawOpacity = 0.5 * (1 + Math.cos(Math.PI * t));
-      // Extend feather: softer at edges (1.3x feather radius)
-      const featherT = Math.min(1, t * 1.3);
-      const featherFactor = 0.5 * (1 + Math.cos(Math.PI * featherT));
-      const opacity = Math.min(rawOpacity, featherFactor) * 0.65;
-
+      const t = dist / r;
+      // Cosine falloff: full blend at center, zero at edge
+      const opacity = 0.40 * 0.5 * (1 + Math.cos(Math.PI * t));
       const i = idx(px, py);
       d[i]   = Math.round(d[i]   * (1 - opacity) + avgR * opacity);
       d[i+1] = Math.round(d[i+1] * (1 - opacity) + avgG * opacity);
       d[i+2] = Math.round(d[i+2] * (1 - opacity) + avgB * opacity);
-      // alpha unchanged
     }
   }
 

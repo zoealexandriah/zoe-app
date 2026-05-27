@@ -6366,7 +6366,7 @@ function blemHeal(hc, cx, cy) {
   const imgData = ctx.getImageData(0, 0, w, h);
   const d = imgData.data;
 
-  // 1. Sample surrounding ring for clean skin (trimmed mean, exclude hair/highlights)
+  // Sample surrounding ring
   const innerR = r * 1.1;
   const outerR = r * 1.6;
   const samples = [];
@@ -6383,36 +6383,25 @@ function blemHeal(hc, cx, cy) {
     }
   }
   if (samples.length === 0) return;
+
+  // Sort by luminance, find median, then keep only samples within a tight
+  // luminance band around the median. This aggressively rejects dark
+  // background/hair and bright specular highlights regardless of their count.
   samples.sort((a, b) => a.lum - b.lum);
-  const trim = Math.floor(samples.length * 0.20);
-  const trimmed = samples.slice(trim, samples.length - trim);
-  if (trimmed.length === 0) return;
-  const skinR = trimmed.reduce((s, p) => s + p.r, 0) / trimmed.length;
-  const skinG = trimmed.reduce((s, p) => s + p.g, 0) / trimmed.length;
-  const skinB = trimmed.reduce((s, p) => s + p.b, 0) / trimmed.length;
+  const medLum = samples[Math.floor(samples.length / 2)].lum;
+  let pool = samples.filter(s => s.lum >= medLum * 0.55 && s.lum <= medLum * 1.45);
+  // Fallback if band is too narrow (e.g. very uniform region)
+  if (pool.length < 4) pool = samples.slice(
+    Math.floor(samples.length * 0.30),
+    samples.length - Math.floor(samples.length * 0.15)
+  );
+  if (pool.length === 0) return;
 
-  // 2. Sample blemish area average
-  let blemR = 0, blemG = 0, blemB = 0, blemCnt = 0;
-  for (let dy = -r; dy <= r; dy++) {
-    for (let dx = -r; dx <= r; dx++) {
-      if (Math.sqrt(dx*dx + dy*dy) > r) continue;
-      const px = cx + dx, py = cy + dy;
-      if (px < 0 || px >= w || py < 0 || py >= h) continue;
-      const pi = (py * w + px) * 4;
-      blemR += d[pi]; blemG += d[pi+1]; blemB += d[pi+2]; blemCnt++;
-    }
-  }
-  if (blemCnt === 0) return;
-  blemR /= blemCnt; blemG /= blemCnt; blemB /= blemCnt;
+  const avgR = pool.reduce((s, p) => s + p.r, 0) / pool.length;
+  const avgG = pool.reduce((s, p) => s + p.g, 0) / pool.length;
+  const avgB = pool.reduce((s, p) => s + p.b, 0) / pool.length;
 
-  // 3. Tone shift: the delta between clean skin and blemish average.
-  // Applying a uniform shift to all blemish pixels preserves their relative
-  // texture (wrinkles, pores) while only correcting the color/tone offset.
-  const shiftR = skinR - blemR;
-  const shiftG = skinG - blemG;
-  const shiftB = skinB - blemB;
-
-  // 4. Apply shift with cosine falloff — texture is preserved, only tone corrects
+  // Blend toward clean skin — cosine falloff, max 0.35 opacity (subtle per pass)
   for (let dy = -r; dy <= r; dy++) {
     for (let dx = -r; dx <= r; dx++) {
       const dist = Math.sqrt(dx*dx + dy*dy);
@@ -6420,11 +6409,11 @@ function blemHeal(hc, cx, cy) {
       const px = cx + dx, py = cy + dy;
       if (px < 0 || px >= w || py < 0 || py >= h) continue;
       const t = dist / r;
-      const opacity = 0.55 * 0.5 * (1 + Math.cos(Math.PI * t));
+      const opacity = 0.35 * 0.5 * (1 + Math.cos(Math.PI * t));
       const pi = (py * w + px) * 4;
-      d[pi]   = Math.max(0, Math.min(255, Math.round(d[pi]   + shiftR * opacity)));
-      d[pi+1] = Math.max(0, Math.min(255, Math.round(d[pi+1] + shiftG * opacity)));
-      d[pi+2] = Math.max(0, Math.min(255, Math.round(d[pi+2] + shiftB * opacity)));
+      d[pi]   = Math.round(d[pi]   * (1 - opacity) + avgR * opacity);
+      d[pi+1] = Math.round(d[pi+1] * (1 - opacity) + avgG * opacity);
+      d[pi+2] = Math.round(d[pi+2] * (1 - opacity) + avgB * opacity);
     }
   }
   ctx.putImageData(imgData, 0, 0);

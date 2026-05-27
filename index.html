@@ -5947,7 +5947,15 @@ function blemUpdateSize(val) {
   document.addEventListener('DOMContentLoaded', () => {});
 
   function getWrap()   { return document.getElementById('blem-canvas-wrap') }
-  function getCanvas() { return document.getElementById('blemish-canvas') }
+  function getCanvas() {
+    // Use the main editor canvas for full-resolution blemish editing
+    const evCanvas = document.getElementById('ev-canvas');
+    if (evCanvas && evCanvas.width > 0) return evCanvas;
+    // Fallback to hero canvas
+    const heroCanvas = document.getElementById('hero-canvas');
+    if (heroCanvas && heroCanvas.width > 0) return heroCanvas;
+    return document.getElementById('blemish-canvas');
+  }
   function getCursor() { return document.getElementById('blem-cursor') }
 
   // Cursor follow

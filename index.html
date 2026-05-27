@@ -5976,13 +5976,20 @@ function blemUpdateSize(val) {
   document.addEventListener('click', e => {
     const canvas = getCanvas();
     if (!canvas || !document.getElementById('blemish-panel').classList.contains('active')) return;
+
     const rect = canvas.getBoundingClientRect();
-    const cx   = e.clientX - rect.left;
-    const cy   = e.clientY - rect.top;
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
     if (cx < 0 || cx > rect.width || cy < 0 || cy > rect.height) return;
-    // Scale coords to canvas pixel space
-    const x = Math.round(cx * (canvas.width  / rect.width));
-    const y = Math.round(cy * (canvas.height / rect.height));
+
+    // Correct coordinate mapping accounting for canvas natural size vs displayed size
+    const scaleX = canvas.naturalWidth  ? canvas.naturalWidth  / rect.width
+                                        : canvas.width  / rect.width;
+    const scaleY = canvas.naturalHeight ? canvas.naturalHeight / rect.height
+                                        : canvas.height / rect.height;
+    const x = Math.round(cx * scaleX);
+    const y = Math.round(cy * scaleY);
+
     blemApply(canvas, x, y);
     blemFlash(e.clientX - rect.left + canvas.getBoundingClientRect().left,
               e.clientY - rect.top  + canvas.getBoundingClientRect().top);
@@ -5997,8 +6004,15 @@ function blemUpdateSize(val) {
     const cx    = touch.clientX - rect.left;
     const cy    = touch.clientY - rect.top;
     if (cx < 0 || cx > rect.width || cy < 0 || cy > rect.height) return;
-    const x = Math.round(cx * (canvas.width  / rect.width));
-    const y = Math.round(cy * (canvas.height / rect.height));
+
+    // Correct coordinate mapping accounting for canvas natural size vs displayed size
+    const scaleX = canvas.naturalWidth  ? canvas.naturalWidth  / rect.width
+                                        : canvas.width  / rect.width;
+    const scaleY = canvas.naturalHeight ? canvas.naturalHeight / rect.height
+                                        : canvas.height / rect.height;
+    const x = Math.round(cx * scaleX);
+    const y = Math.round(cy * scaleY);
+
     blemApply(canvas, x, y);
     e.preventDefault();
   }, { passive: false });

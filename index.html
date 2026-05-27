@@ -6440,8 +6440,7 @@ function blemHeal(hc, cx, cy) {
   const avgG = pool.reduce((s, p) => s + p.g, 0) / pool.length;
   const avgB = pool.reduce((s, p) => s + p.b, 0) / pool.length;
 
-  // Paint with soft cosine falloff
-  // Then blend surrounding texture back in to avoid smooth/blurry look
+  // Paint with soft cosine falloff — max 0.45 opacity
   for (let dy = -r; dy <= r; dy++) {
     for (let dx = -r; dx <= r; dx++) {
       const dist = Math.sqrt(dx*dx + dy*dy);
@@ -6450,40 +6449,11 @@ function blemHeal(hc, cx, cy) {
       const py = Math.round(cy + dy);
       if (px < 0 || px >= w || py < 0 || py >= h) continue;
       const t = dist / r;
-      // Lower max opacity — subtle color correction only, preserve texture
-      const opacity = 0.28 * 0.5 * (1 + Math.cos(Math.PI * t));
+      const opacity = 0.45 * 0.5 * (1 + Math.cos(Math.PI * t));
       const pi = (py * w + px) * 4;
       d[pi]   = Math.round(d[pi]   * (1 - opacity) + avgR * opacity);
       d[pi+1] = Math.round(d[pi+1] * (1 - opacity) + avgG * opacity);
       d[pi+2] = Math.round(d[pi+2] * (1 - opacity) + avgB * opacity);
-    }
-  }
-
-  // Second pass: add subtle noise to break up the smoothness
-  // Sample texture from a nearby clean area and blend it in lightly
-  const texOffsetX = r * 2;  // sample texture from beside the blemish
-  for (let dy = -r; dy <= r; dy++) {
-    for (let dx = -r; dx <= r; dx++) {
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > r * 0.7) continue; // only center area needs texture
-      const px = Math.round(cx + dx);
-      const py = Math.round(cy + dy);
-      if (px < 0 || px >= w || py < 0 || py >= h) continue;
-      // Sample texture from offset position
-      const tpx = Math.min(w-1, Math.round(cx + dx + texOffsetX));
-      const tpy = Math.round(cy + dy);
-      if (tpx < 0 || tpx >= w || tpy < 0 || tpy >= h) continue;
-      const tpi = (tpy * w + tpx) * 4;
-      const pi  = (py  * w + px)  * 4;
-      // Only blend the luminance variation, not the color
-      const srcLum = d[pi]  * 0.299 + d[pi+1]  * 0.587 + d[pi+2]  * 0.114;
-      const texLum = d[tpi] * 0.299 + d[tpi+1] * 0.587 + d[tpi+2] * 0.114;
-      const lumDiff = texLum - srcLum;
-      const t2 = dist / (r * 0.7);
-      const texOpacity = 0.15 * 0.5 * (1 + Math.cos(Math.PI * t2));
-      d[pi]   = Math.max(0, Math.min(255, Math.round(d[pi]   + lumDiff * texOpacity)));
-      d[pi+1] = Math.max(0, Math.min(255, Math.round(d[pi+1] + lumDiff * texOpacity)));
-      d[pi+2] = Math.max(0, Math.min(255, Math.round(d[pi+2] + lumDiff * texOpacity)));
     }
   }
 

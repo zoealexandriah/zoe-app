@@ -6373,6 +6373,12 @@ function blemHeal(hc, cx, cy) {
   const ctx = hc.getContext('2d');
   const w = hc.width, h = hc.height;
 
+  // Adjust click coordinates to account for letterbox offset
+  // The image doesn't fill the full canvas — it's centered with padding
+  cx = Math.round(cx - (_origOffX || 0));
+  cy = Math.round(cy - (_origOffY || 0));
+  if (cx < 0 || cx >= _origW || cy < 0 || cy >= _origH) return;
+
   // Scale brush radius to match canvas pixel density
   // hero-canvas is drawn at screen size, so 1 canvas px = 1 screen px
   // Use a fixed pixel radius that works at typical canvas sizes

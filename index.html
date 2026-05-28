@@ -3845,9 +3845,6 @@ function buildAdjustments(state) {
     sharpen:     val('SHARPEN', false),
     clarity:     val('CLARITY', false),
     blur:        val('BLUR', false),
-    motion_blur: val('MOTION_BLUR', false),
-    halation:    val('HALATION', false),
-    halation_hue:val('HALATION_HUE', false),
     fade:        val('FADE', false),
     hue_shift: (() => { const t = state['HUE_SHIFT'] ?? 0.5; return (t - 0.5) * 360; })(),
     sat_reds:    val('SAT_REDS'),
@@ -4077,10 +4074,6 @@ function renderPhotoAdjusted(canvas, imgKey, tint, orbs, acc, warm, size, adj) {
 
   if(!isHero) for(let y=0;y<h;y+=2){ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,y,w,1);}
 
-  // Call per-channel HSL after all other adjustments
-  if (adj.sat_reds || adj.sat_oranges || adj.sat_greens || adj.sat_blues || adj.sat_purples || adj.hue_shift) {
-    applyPerChannelHSL(canvas, adj);
-  }
 }
 
 // ── PER-CHANNEL HSL ──────────────────────────────────
@@ -4790,11 +4783,11 @@ function applyPixelAdjustments(srcData, adj) {
 
     // ── PER-CHANNEL SATURATION with smooth overlap ──────────────────────
     const satAdjsList = [
-      { val: adj.sat_reds,    center: 0,   width: 60  },
-      { val: adj.sat_oranges, center: 30,  width: 50  },
-      { val: adj.sat_greens,  center: 120, width: 80  },
-      { val: adj.sat_blues,   center: 210, width: 80  },
-      { val: adj.sat_purples, center: 285, width: 80  },
+      { val: adj.sat_reds,    center: 0,   width: 80  },
+      { val: adj.sat_oranges, center: 30,  width: 70  },
+      { val: adj.sat_greens,  center: 120, width: 100 },
+      { val: adj.sat_blues,   center: 210, width: 100 },
+      { val: adj.sat_purples, center: 285, width: 100 },
     ];
     const hasPerChannel = satAdjsList.some(sa => sa.val && Math.abs(sa.val) > 0.005);
     if (hasPerChannel) {
@@ -4816,10 +4809,9 @@ function applyPixelAdjustments(srcData, adj) {
           // Smooth bell curve weight centered on this channel's hue
           let dist = Math.abs(ph - sa.center);
           if (dist > 180) dist = 360 - dist; // wrap around
-          // Cosine falloff — smooth edges, no hard cutoff
-          const weight = dist < sa.width / 2
-            ? 0.5 * (1 + Math.cos(Math.PI * dist / (sa.width / 2)))
-            : 0;
+          // Gaussian-style smooth falloff — no hard cutoff anywhere
+          const norm = dist / (sa.width / 2);
+          const weight = norm < 2.0 ? Math.exp(-norm * norm * 1.0) : 0;
           totalSatAdj += sa.val * weight;
         }
 

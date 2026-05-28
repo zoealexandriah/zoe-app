@@ -1820,216 +1820,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 
 /* ═══════════════════════════════════════════════════
-   BLEMISH TOOL — ZOË OS  (new rules only)
-═══════════════════════════════════════════════════ */
-#blemish-panel {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 5000;
-  background: rgba(6,4,12,0.94);
-  backdrop-filter: blur(16px);
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-#blemish-panel.active { display: flex }
-
-.blem-window {
-  background: #0d0b11;
-  border: 0.5px solid #2a2030;
-  border-radius: 3px;
-  overflow: hidden;
-  width: min(92vw, 820px);
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.80);
-}
-
-/* Retro titlebar */
-.blem-titlebar {
-  height: 28px;
-  flex-shrink: 0;
-  background: linear-gradient(to bottom, #cdb0ba, #b89aa4);
-  border-bottom: 0.5px solid rgba(140,100,110,0.35);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-}
-.blem-titlebar-text {
-  font-size: 9px;
-  letter-spacing: 0.20em;
-  color: #2a1a1e;
-  font-family: var(--mono);
-  font-weight: 500;
-}
-.blem-win-controls { display: flex; gap: 4px }
-.blem-win-btn {
-  width: 14px; height: 14px; border-radius: 0;
-  border: 0.5px solid rgba(90,55,65,0.45);
-  background: rgba(210,188,198,0.55);
-  color: #2a1a1e; font-size: 8px; font-weight: 500;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-family: var(--mono);
-}
-.blem-win-btn:hover { background: rgba(235,215,225,0.80) }
-
-/* Body */
-.blem-body {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* Canvas area */
-.blem-canvas-wrap {
-  flex: 1;
-  position: relative;
-  background: #100d14;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: none;
-}
-#blemish-canvas {
-  display: block;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-/* Brush cursor overlay */
-#blem-cursor {
-  position: absolute;
-  pointer-events: none;
-  border: 1.5px solid rgba(201,184,212,0.80);
-  border-radius: 50%;
-  box-shadow: 0 0 6px rgba(201,184,212,0.30);
-  transform: translate(-50%, -50%);
-  display: none;
-}
-
-/* Controls sidebar */
-.blem-sidebar {
-  width: 190px;
-  flex-shrink: 0;
-  background: #0d0b11;
-  border-left: 0.5px solid #2a2030;
-  display: flex;
-  flex-direction: column;
-  padding: 16px 14px;
-  gap: 18px;
-}
-.blem-instruction {
-  font-size: 8px;
-  letter-spacing: 0.16em;
-  color: rgba(201,184,212,0.55);
-  font-family: var(--mono);
-  line-height: 1.8;
-  padding: 8px 10px;
-  border: 0.5px solid #2a2030;
-  background: rgba(255,255,255,0.018);
-}
-.blem-section-label {
-  font-size: 7px;
-  letter-spacing: 0.28em;
-  color: rgba(175,162,200,0.40);
-  font-family: var(--mono);
-  margin-bottom: 8px;
-}
-.blem-slider-row {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.blem-slider-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.blem-slider-label {
-  font-size: 8px;
-  letter-spacing: 0.14em;
-  color: rgba(210,205,235,0.80);
-  font-family: var(--mono);
-}
-.blem-slider-val {
-  font-size: 8px;
-  letter-spacing: 0.08em;
-  color: rgba(175,168,210,0.50);
-  font-family: var(--mono);
-}
-#blem-size-range {
-  width: 100%;
-  height: 2px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: rgba(180,60,80,0.18);
-  border-radius: 100px;
-  outline: none;
-  cursor: pointer;
-}
-#blem-size-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  background: linear-gradient(135deg,#d4647a,#c0405a);
-  box-shadow: 0 0 8px rgba(192,64,90,0.62);
-  cursor: pointer;
-}
-#blem-size-range::-moz-range-thumb {
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  background: linear-gradient(135deg,#d4647a,#c0405a);
-  box-shadow: 0 0 8px rgba(192,64,90,0.62);
-  border: none; cursor: pointer;
-}
-
-/* Action buttons */
-.blem-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto }
-.blem-btn {
-  width: 100%;
-  padding: 8px 0;
-  font-size: 8.5px;
-  letter-spacing: 0.22em;
-  font-family: var(--mono);
-  border-radius: 100px;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.20s;
-}
-.blem-btn-ghost {
-  background: transparent;
-  border: 0.5px solid rgba(201,184,212,0.28);
-  color: rgba(201,184,212,0.72);
-}
-.blem-btn-ghost:hover { border-color: rgba(201,184,212,0.55); color: rgba(220,210,235,0.95) }
-.blem-btn-primary {
-  background: linear-gradient(135deg,#c0405a,#8a1a2e);
-  border: none;
-  color: rgba(255,255,255,0.96);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 14px rgba(138,26,46,0.40);
-}
-.blem-btn-primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 6px 20px rgba(138,26,46,0.52); transform: translateY(-1px) }
-
-/* Flash feedback */
-.blem-flash {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(201,184,212,0.22);
-  pointer-events: none;
-  animation: blem-flash-out 0.35s ease-out forwards;
-}
-@keyframes blem-flash-out {
-  0%   { transform: translate(-50%,-50%) scale(1); opacity: 0.7 }
-  100% { transform: translate(-50%,-50%) scale(1.8); opacity: 0 }
-}
-
-
-/* ═══════════════════════════════════════════════════
    TOOLS SIDE PANEL — ZOË OS  (new rules only)
 ═══════════════════════════════════════════════════ */
 #tools-side-panel {
@@ -2168,22 +1958,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   font-family: var(--mono); cursor: pointer; transition: all 0.18s; text-align: center;
 }
 .flip-btn:hover { border-color: rgba(201,184,212,0.55); color: rgba(220,210,240,0.95); background: rgba(201,184,212,0.07) }
-
-/* Blemish tool inside panel */
-#tools-blemish-canvas-wrap {
-  width: 100%; aspect-ratio: 4/3;
-  background: #100d14; position: relative;
-  overflow: hidden; cursor: none;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 12px;
-}
-#tools-blemish-canvas { max-width: 100%; max-height: 100%; display: block }
-#tools-blem-cursor {
-  position: absolute; pointer-events: none;
-  border: 1.5px solid rgba(201,184,212,0.80); border-radius: 50%;
-  box-shadow: 0 0 6px rgba(201,184,212,0.30);
-  transform: translate(-50%,-50%); display: none;
-}
 
 /* Tool action buttons */
 .tc-actions { display: flex; flex-direction: column; gap: 7px; margin-top: 10px }
@@ -2576,12 +2350,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 /* Fix 2: Default cursor on hero-canvas */
 #hero-canvas { cursor: crosshair !important }
-/* Blemish active: none only when blemish tool is active (set via JS) */
-#hero-canvas.blemish-active { cursor: none !important }
-/* Blemish cursor circle must be visible */
-#hero-blem-cursor { pointer-events: none !important }
-
-
 /* Fix 4: Ensure canvas containers clip rotated corners */
 .pv-canvas-area, #hero-body, .edit-view {
   overflow: hidden !important;
@@ -5833,274 +5601,6 @@ function colOpenPhotoInEditor(idx) {
 }
 
 
-// ═══════════════════════════════════════════════════════════════
-// BLEMISH REMOVAL TOOL — ZOË OS  (new code only)
-// ═══════════════════════════════════════════════════════════════
-
-const blemState = {
-  brushSize:   20,
-  history:     [],   // up to 10 ImageData snapshots
-  origData:    null, // original ImageData on open
-  scale:       1,    // canvas display scale vs natural size
-  offsetX:     0,    // canvas offset within wrap
-  offsetY:     0,
-};
-
-// ── Open the tool ─────────────────────────────────────────────────────────
-function blemOpen() {
-  // Require a loaded image
-  if (!userImage) {
-    showToast('OPEN A PHOTO FIRST');
-    return;
-  }
-
-  const panel  = document.getElementById('blemish-panel');
-  const canvas = document.getElementById('blemish-canvas');
-
-  panel.classList.add('active');
-
-  // Size canvas to the image (contained within the wrap)
-  requestAnimationFrame(() => {
-    const wrap = document.getElementById('blem-canvas-wrap');
-    const ww   = wrap.clientWidth  || 600;
-    const wh   = wrap.clientHeight || 460;
-    const iw   = userImage.naturalWidth;
-    const ih   = userImage.naturalHeight;
-    const scale = Math.min(ww / iw, wh / ih, 1);
-
-    canvas.width  = Math.round(iw * scale);
-    canvas.height = Math.round(ih * scale);
-    blemState.scale   = scale;
-    blemState.history = [];
-
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
-
-    // Capture original
-    blemState.origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  });
-}
-
-// ── Close without saving ──────────────────────────────────────────────────
-function blemClose() {
-  document.getElementById('blemish-panel').classList.remove('active');
-}
-
-// ── Done: write canvas back to hero-canvas and close ─────────────────────
-function blemDone() {
-  const src = document.getElementById('blemish-canvas');
-  const dst = document.getElementById('hero-canvas');
-  if (!dst || !src) { blemClose(); return; }
-
-  // Update _origPixels so slider adjustments start from blemish-removed image
-  const tmpCanvas = document.createElement('canvas');
-  tmpCanvas.width  = userImage.naturalWidth;
-  tmpCanvas.height = userImage.naturalHeight;
-  const tmpCtx = tmpCanvas.getContext('2d');
-  tmpCtx.drawImage(src, 0, 0, tmpCanvas.width, tmpCanvas.height);
-
-  // Re-capture original from the blemish-fixed version
-  const newImg = new Image();
-  newImg.onload = () => {
-    userImage = newImg;
-    loadImageToCanvas(dst, newImg);
-    showToast('BLEMISH REMOVAL APPLIED');
-  };
-  newImg.src = tmpCanvas.toDataURL('image/png');
-
-  blemClose();
-}
-
-// ── Undo ─────────────────────────────────────────────────────────────────
-function blemUndo() {
-  if (blemState.history.length === 0) { showToast('NOTHING TO UNDO'); return; }
-  const canvas = document.getElementById('blemish-canvas');
-  const ctx    = canvas.getContext('2d');
-  const prev   = blemState.history.pop();
-  ctx.putImageData(prev, 0, 0);
-}
-
-// ── Reset ─────────────────────────────────────────────────────────────────
-function blemReset() {
-  if (!blemState.origData) return;
-  const canvas = document.getElementById('blemish-canvas');
-  const ctx    = canvas.getContext('2d');
-  blemState.history = [];
-  ctx.putImageData(blemState.origData, 0, 0);
-  showToast('RESET');
-}
-
-// ── Brush size ────────────────────────────────────────────────────────────
-function blemUpdateSize(val) {
-  blemState.brushSize = parseInt(val);
-  document.getElementById('blem-size-display').textContent = val + 'px';
-  // Update cursor div if visible
-  const cur = document.getElementById('blem-cursor');
-  const sz  = blemState.brushSize * blemState.scale * 2;
-  cur.style.width  = sz + 'px';
-  cur.style.height = sz + 'px';
-}
-
-// ── Mouse / touch on canvas ───────────────────────────────────────────────
-(function blemInitEvents() {
-  // Wait for DOM
-  document.addEventListener('DOMContentLoaded', () => {});
-
-  function getWrap()   { return document.getElementById('blem-canvas-wrap') }
-  function getCanvas() { return document.getElementById('blemish-canvas') }
-  function getCursor() { return document.getElementById('blem-cursor') }
-
-  // Cursor follow
-  document.addEventListener('mousemove', e => {
-    const wrap = getWrap();
-    if (!wrap || !document.getElementById('blemish-panel').classList.contains('active')) return;
-    const rect = wrap.getBoundingClientRect();
-    const cx   = e.clientX - rect.left;
-    const cy   = e.clientY - rect.top;
-    const inBounds = cx >= 0 && cx <= rect.width && cy >= 0 && cy <= rect.height;
-    const cur  = getCursor();
-    if (!cur) return;
-    if (inBounds) {
-      const sz = blemState.brushSize * blemState.scale * 2;
-      cur.style.display = 'block';
-      cur.style.width   = sz + 'px';
-      cur.style.height  = sz + 'px';
-      cur.style.left    = cx + 'px';
-      cur.style.top     = cy + 'px';
-    } else {
-      cur.style.display = 'none';
-    }
-  });
-
-  // Click on canvas
-  document.addEventListener('click', e => {
-    const canvas = getCanvas();
-    if (!canvas || !document.getElementById('blemish-panel').classList.contains('active')) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const cx = e.clientX - rect.left;
-    const cy = e.clientY - rect.top;
-    if (cx < 0 || cx > rect.width || cy < 0 || cy > rect.height) return;
-
-    // Correct coordinate mapping accounting for canvas natural size vs displayed size
-    const scaleX = canvas.naturalWidth  ? canvas.naturalWidth  / rect.width
-                                        : canvas.width  / rect.width;
-    const scaleY = canvas.naturalHeight ? canvas.naturalHeight / rect.height
-                                        : canvas.height / rect.height;
-    const x = Math.round(cx * scaleX);
-    const y = Math.round(cy * scaleY);
-
-    blemApply(canvas, x, y);
-    blemFlash(e.clientX - rect.left + canvas.getBoundingClientRect().left,
-              e.clientY - rect.top  + canvas.getBoundingClientRect().top);
-  });
-
-  // Touch support
-  document.addEventListener('touchend', e => {
-    const canvas = getCanvas();
-    if (!canvas || !document.getElementById('blemish-panel').classList.contains('active')) return;
-    const touch = e.changedTouches[0];
-    const rect  = canvas.getBoundingClientRect();
-    const cx    = touch.clientX - rect.left;
-    const cy    = touch.clientY - rect.top;
-    if (cx < 0 || cx > rect.width || cy < 0 || cy > rect.height) return;
-
-    // Correct coordinate mapping accounting for canvas natural size vs displayed size
-    const scaleX = canvas.naturalWidth  ? canvas.naturalWidth  / rect.width
-                                        : canvas.width  / rect.width;
-    const scaleY = canvas.naturalHeight ? canvas.naturalHeight / rect.height
-                                        : canvas.height / rect.height;
-    const x = Math.round(cx * scaleX);
-    const y = Math.round(cy * scaleY);
-
-    blemApply(canvas, x, y);
-    e.preventDefault();
-  }, { passive: false });
-})();
-
-// ── Core blemish algorithm ────────────────────────────────────────────────
-function blemApply(canvas, cx, cy) {
-  const ctx = canvas.getContext('2d');
-  const r   = Math.round(blemState.brushSize * blemState.scale);
-  const w   = canvas.width;
-  const h   = canvas.height;
-
-  // Save history
-  const snap = ctx.getImageData(0, 0, w, h);
-  if (blemState.history.length >= 15) blemState.history.shift();
-  blemState.history.push(snap);
-
-  const imageData = ctx.getImageData(0, 0, w, h);
-  const d = imageData.data;
-  function idx(x, y) { return (y * w + x) * 4; }
-
-  // Sample ring: tight to the blemish edge — 1.1x to 1.6x radius
-  // This ensures we only sample clean skin immediately adjacent
-  const innerR = r * 1.1;
-  const outerR = r * 1.6;
-
-  // Collect samples and sort to discard outliers (dark hair, bright highlights)
-  const samples = [];
-  const scan = Math.ceil(outerR);
-  for (let dy = -scan; dy <= scan; dy++) {
-    for (let dx = -scan; dx <= scan; dx++) {
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < innerR || dist > outerR) continue;
-      const px = cx + dx, py = cy + dy;
-      if (px < 0 || px >= w || py < 0 || py >= h) continue;
-      const i = idx(px, py);
-      const lum = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
-      samples.push({ r: d[i], g: d[i+1], b: d[i+2], lum });
-    }
-  }
-
-  if (samples.length === 0) return;
-
-  // Sort by luminosity and trim darkest 20% and brightest 20%
-  // This removes hair strands and specular highlights from the average
-  samples.sort((a, b) => a.lum - b.lum);
-  const trim = Math.floor(samples.length * 0.20);
-  const trimmed = samples.slice(trim, samples.length - trim);
-  if (trimmed.length === 0) return;
-
-  const avgR = trimmed.reduce((s, p) => s + p.r, 0) / trimmed.length;
-  const avgG = trimmed.reduce((s, p) => s + p.g, 0) / trimmed.length;
-  const avgB = trimmed.reduce((s, p) => s + p.b, 0) / trimmed.length;
-  console.log('sampled color:', Math.round(avgR), Math.round(avgG), Math.round(avgB), 'at canvas coords:', cx, cy, 'canvas size:', canvas.width, canvas.height);
-
-  // Paint with soft cosine falloff — max opacity 0.40 (subtle, not a stamp)
-  for (let dy = -r; dy <= r; dy++) {
-    for (let dx = -r; dx <= r; dx++) {
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist > r) continue;
-      const px = cx + dx, py = cy + dy;
-      if (px < 0 || px >= w || py < 0 || py >= h) continue;
-      const t = dist / r;
-      // Cosine falloff: full blend at center, zero at edge
-      const opacity = 0.40 * 0.5 * (1 + Math.cos(Math.PI * t));
-      const i = idx(px, py);
-      d[i]   = Math.round(d[i]   * (1 - opacity) + avgR * opacity);
-      d[i+1] = Math.round(d[i+1] * (1 - opacity) + avgG * opacity);
-      d[i+2] = Math.round(d[i+2] * (1 - opacity) + avgB * opacity);
-    }
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-}
-
-// ── Visual flash feedback on tap ──────────────────────────────────────────
-function blemFlash(x, y) {
-  const wrap = document.getElementById('blem-canvas-wrap');
-  if (!wrap) return;
-  const flash = document.createElement('div');
-  flash.className = 'blem-flash';
-  const sz = blemState.brushSize * blemState.scale * 2;
-  flash.style.cssText = `left:${x}px;top:${y}px;width:${sz}px;height:${sz}px`;
-  wrap.appendChild(flash);
-  setTimeout(() => flash.remove(), 400);
-}
-
-
 // ═══════════════════════════════════════════════════════════════════════════
 // LOCALSTORAGE PERSISTENCE — ZOË OS
 // Keys: zoe_collections, zoe_uploads
@@ -6180,17 +5680,13 @@ function libLoadFromStorage() {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TOOLS SIDE PANEL — ZOË OS
-// Blemish (inline), Crop, Straighten, Flip
+// Crop, Straighten, Flip
 // ═══════════════════════════════════════════════════════════════════════════
 
 let toolsActiveTool = null;
 let toolsCropRatio  = 'FREEFORM';
 let toolsStraightenVal = 0;
 let toolsFlipH = false, toolsFlipV = false;
-const toolsBlemHistory = []; // undo stack for panel blemish
-let toolsBlemBrushSize = 20;
-let toolsBlemOrigData  = null;
-let toolsBlemScale     = 1;
 
 // ── Open / close tools panel ─────────────────────────────────────────────
 function toolsPanelOpen() {
@@ -6203,7 +5699,6 @@ function toolsPanelOpen() {
 
 function toolsPanelClose() {
   document.getElementById('tools-side-panel').classList.remove('active');
-  if (toolsActiveTool === 'blemish') toolsBlemCleanup();
   toolsActiveTool = null;
 }
 
@@ -6215,321 +5710,11 @@ function toolsSelectTool(name) {
   if (el) el.classList.add('active');
 
   const ctrl = document.getElementById('tools-controls');
-  if (name === 'blemish')    ctrl.innerHTML = toolsBlemishHTML();
   if (name === 'crop')       ctrl.innerHTML = toolsCropHTML();
   if (name === 'straighten') ctrl.innerHTML = toolsStraightenHTML();
   if (name === 'flip')       ctrl.innerHTML = toolsFlipHTML();
 
-  if (name === 'blemish')    toolsBlemInit();
   if (name === 'straighten') toolsStraightenInit();
-}
-
-// ── BLEMISH HTML + logic ──────────────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════
-// BLEMISH TOOL — Fix 4: Clean rebuild
-// ═══════════════════════════════════════════════════════════════════════════
-
-// State
-let blemBrushSize   = 18;
-let blemHistory     = [];   // up to 15 ImageData snapshots
-let blemOrigData    = null; // canvas state when blemish mode entered
-let blemActive      = false;
-let blemSpaceDown   = false; // pan mode when spacebar held
-let blemPanDragging = false;
-let blemPanStart    = null;
-let blemDidClick    = false;
-
-function toolsBlemishHTML() {
-  return `
-    <div class="tc-instruction" style="margin-bottom:8px;font-size:8px">_ CLICK IMAGE TO HEAL BLEMISH</div>
-    <div class="tc-slider-row">
-      <div class="tc-slider-top">
-        <span class="tc-slider-name">BRUSH SIZE</span>
-        <span class="tc-slider-val" id="tblem-size-val">${blemBrushSize}px</span>
-      </div>
-      <input type="range" class="tc-range" id="tblem-size" min="8" max="50" value="${blemBrushSize}"
-             oninput="toolsBlemSize(this.value)">
-    </div>
-    <div style="display:flex;gap:6px;margin-top:8px">
-      <div class="tc-btn tc-btn-ghost" style="flex:1" onclick="toolsBlemUndo()">UNDO</div>
-      <div class="tc-btn tc-btn-ghost" style="flex:1" onclick="toolsBlemReset()">RESET</div>
-      <div class="tc-btn tc-btn-primary" style="flex:1" onclick="toolsBlemDone()">DONE</div>
-    </div>`;
-}
-
-function toolsBlemInit() {
-  const hc = document.getElementById('hero-canvas');
-  if (!hc || !userImage) return;
-  blemActive = true;
-  blemHistory = [];
-  blemOrigData = hc.getContext('2d').getImageData(0, 0, hc.width, hc.height);
-
-  // Overlay canvas for cursor drawing only
-  let ov = document.getElementById('blem-cursor-overlay');
-  if (!ov) {
-    ov = document.createElement('canvas');
-    ov.id = 'blem-cursor-overlay';
-    ov.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:15';
-    const wrap = hc.parentElement;
-    if (wrap && wrap.style) wrap.style.overflow = 'hidden';
-    if (wrap) wrap.appendChild(ov);
-  }
-
-  function syncOv() {
-    const rect = hc.getBoundingClientRect();
-    const pRect = hc.parentElement.getBoundingClientRect();
-    ov.width  = Math.round(rect.width);
-    ov.height = Math.round(rect.height);
-    ov.style.width  = rect.width  + 'px';
-    ov.style.height = rect.height + 'px';
-    ov.style.left   = (rect.left - pRect.left) + 'px';
-    ov.style.top    = (rect.top  - pRect.top)  + 'px';
-  }
-
-  function drawCursor(mx, my) {
-    syncOv();
-    const c = ov.getContext('2d');
-    c.clearRect(0, 0, ov.width, ov.height);
-    const r = blemBrushSize / 2;
-    c.beginPath();
-    c.arc(mx, my, r, 0, Math.PI * 2);
-    c.strokeStyle = '#c9b8d4';
-    c.lineWidth = 1.5;
-    c.stroke();
-    c.beginPath(); c.arc(mx, my, 1.5, 0, Math.PI * 2);
-    c.fillStyle = 'rgba(201,184,212,0.80)'; c.fill();
-  }
-
-  hc._blemMove = (e) => {
-    if (!blemActive) return;
-    if (blemSpaceDown) { hc.style.cursor = 'grab'; return; }
-    hc.style.cursor = 'none';
-    const rect = hc.getBoundingClientRect();
-    drawCursor(e.clientX - rect.left, e.clientY - rect.top);
-  };
-  hc._blemLeave = () => {
-    const c = ov.getContext('2d');
-    c.clearRect(0, 0, ov.width, ov.height);
-  };
-  hc._blemDown = (e) => {
-    if (!blemActive) return;
-    if (blemSpaceDown) {
-      blemPanDragging = true;
-      blemPanStart = { x: e.clientX, y: e.clientY, px: zoomPanX, py: zoomPanY };
-      hc.style.cursor = 'grabbing';
-      return;
-    }
-    blemDidClick = true;
-  };
-  hc._blemUp = (e) => {
-    if (!blemActive) return;
-    if (blemPanDragging) { blemPanDragging = false; return; }
-    if (!blemDidClick) return;
-    blemDidClick = false;
-    const rect = hc.getBoundingClientRect();
-    const scaleX = hc.width  / rect.width;
-    const scaleY = hc.height / rect.height;
-    const cx = Math.round((e.clientX - rect.left) * scaleX);
-    const cy = Math.round((e.clientY - rect.top)  * scaleY);
-    blemHeal(hc, cx, cy);
-  };
-
-  document._blemKeyDown = (e) => {
-    if (e.code === 'Space' && blemActive) { blemSpaceDown = true; hc.style.cursor = 'grab'; e.preventDefault(); }
-  };
-  document._blemKeyUp = (e) => {
-    if (e.code === 'Space') { blemSpaceDown = false; if (blemActive) hc.style.cursor = 'none'; }
-  };
-  document._blemPanMove = (e) => {
-    if (!blemPanDragging || !blemPanStart) return;
-    zoomPanX = blemPanStart.px + (e.clientX - blemPanStart.x);
-    zoomPanY = blemPanStart.py + (e.clientY - blemPanStart.y);
-    zoomApply();
-  };
-  document._blemPanUp = () => { blemPanDragging = false; };
-
-  hc.removeEventListener('mousemove',  hc._blemMove);
-  hc.removeEventListener('mouseleave', hc._blemLeave);
-  hc.removeEventListener('mousedown',  hc._blemDown);
-  hc.removeEventListener('mouseup',    hc._blemUp);
-  document.removeEventListener('keydown',   document._blemKeyDown);
-  document.removeEventListener('keyup',     document._blemKeyUp);
-  document.removeEventListener('mousemove', document._blemPanMove);
-  document.removeEventListener('mouseup',   document._blemPanUp);
-  hc.addEventListener('mousemove',  hc._blemMove);
-  hc.addEventListener('mouseleave', hc._blemLeave);
-  hc.addEventListener('mousedown',  hc._blemDown);
-  hc.addEventListener('mouseup',    hc._blemUp);
-  document.addEventListener('keydown',   document._blemKeyDown);
-  document.addEventListener('keyup',     document._blemKeyUp);
-  document.addEventListener('mousemove', document._blemPanMove);
-  document.addEventListener('mouseup',   document._blemPanUp);
-
-  hc.classList.add('blemish-active');
-  hc.style.cursor = 'none';
-}
-
-function blemHeal(hc, cx, cy) {
-  const ctx = hc.getContext('2d');
-  const w = hc.width, h = hc.height;
-
-  // Adjust click coordinates to account for letterbox offset
-  // The image doesn't fill the full canvas — it's centered with padding
-  cx = Math.round(cx - (_origOffX || 0));
-  cy = Math.round(cy - (_origOffY || 0));
-  if (cx < 0 || cx >= _origW || cy < 0 || cy >= _origH) return;
-
-  // Scale brush radius to match canvas pixel density
-  // hero-canvas is drawn at screen size, so 1 canvas px = 1 screen px
-  // Use a fixed pixel radius that works at typical canvas sizes
-  const r = Math.max(4, Math.round(blemBrushSize * 0.5));
-
-  // Save state for undo
-  const snap = ctx.getImageData(0, 0, w, h);
-  blemHistory.push(snap);
-  if (blemHistory.length > 15) blemHistory.shift();
-
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const d = imgData.data;
-
-  // Get reference color AT the click point
-  const ri = (Math.round(cy) * w + Math.round(cx)) * 4;
-  const refR = d[ri], refG = d[ri+1], refB = d[ri+2];
-
-  // Sample a tight ring just outside the brush
-  const innerR = r * 1.05;
-  const outerR = r * 1.8;
-  const scan = Math.ceil(outerR);
-  const samples = [];
-
-  for (let dy = -scan; dy <= scan; dy++) {
-    for (let dx = -scan; dx <= scan; dx++) {
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < innerR || dist > outerR) continue;
-      const px = Math.round(cx + dx);
-      const py = Math.round(cy + dy);
-      if (px < 0 || px >= w || py < 0 || py >= h) continue;
-      const pi = (py * w + px) * 4;
-      const sr = d[pi], sg = d[pi+1], sb = d[pi+2];
-
-      // Only include pixels similar in color to the click point
-      // Threshold 80 allows some variation but rejects hair/background
-      const colorDiff = Math.abs(sr - refR) + Math.abs(sg - refG) + Math.abs(sb - refB);
-      if (colorDiff < 120) samples.push({ r: sr, g: sg, b: sb });
-    }
-  }
-
-  // If not enough color-similar samples, fall back to all ring samples
-  let pool = samples;
-  if (pool.length < 6) {
-    pool = [];
-    for (let dy = -scan; dy <= scan; dy++) {
-      for (let dx = -scan; dx <= scan; dx++) {
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < innerR || dist > outerR) continue;
-        const px = Math.round(cx + dx);
-        const py = Math.round(cy + dy);
-        if (px < 0 || px >= w || py < 0 || py >= h) continue;
-        const pi = (py * w + px) * 4;
-        pool.push({ r: d[pi], g: d[pi+1], b: d[pi+2] });
-      }
-    }
-    // Sort and trim darkest/brightest 25%
-    pool.sort((a, b) => (a.r+a.g+a.b) - (b.r+b.g+b.b));
-    const trim = Math.floor(pool.length * 0.25);
-    pool = pool.slice(trim, pool.length - trim);
-  }
-
-  if (pool.length === 0) return;
-
-  const avgR = pool.reduce((s, p) => s + p.r, 0) / pool.length;
-  const avgG = pool.reduce((s, p) => s + p.g, 0) / pool.length;
-  const avgB = pool.reduce((s, p) => s + p.b, 0) / pool.length;
-
-  // Paint with soft cosine falloff — max 0.45 opacity
-  for (let dy = -r; dy <= r; dy++) {
-    for (let dx = -r; dx <= r; dx++) {
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > r) continue;
-      const px = Math.round(cx + dx);
-      const py = Math.round(cy + dy);
-      if (px < 0 || px >= w || py < 0 || py >= h) continue;
-      const t = dist / r;
-      const opacity = 0.45 * 0.5 * (1 + Math.cos(Math.PI * t));
-      const pi = (py * w + px) * 4;
-      d[pi]   = Math.round(d[pi]   * (1 - opacity) + avgR * opacity);
-      d[pi+1] = Math.round(d[pi+1] * (1 - opacity) + avgG * opacity);
-      d[pi+2] = Math.round(d[pi+2] * (1 - opacity) + avgB * opacity);
-    }
-  }
-
-  ctx.putImageData(imgData, 0, 0);
-}
-
-function toolsBlemSize(v) {
-  blemBrushSize = parseInt(v);
-  const el = document.getElementById('tblem-size-val');
-  if (el) el.textContent = v + 'px';
-}
-
-function toolsBlemUndo() {
-  if (!blemHistory.length) { showToast('NOTHING TO UNDO'); return; }
-  const hc = document.getElementById('hero-canvas');
-  if (hc) hc.getContext('2d').putImageData(blemHistory.pop(), 0, 0);
-}
-
-function toolsBlemReset() {
-  if (!blemOrigData) return;
-  const hc = document.getElementById('hero-canvas');
-  if (hc) hc.getContext('2d').putImageData(blemOrigData, 0, 0);
-  blemHistory = [];
-  showToast('RESET');
-}
-
-function toolsBlemDone() {
-  const hc = document.getElementById('hero-canvas');
-  if (!hc || !userImage) { toolsBlemCleanup(); return; }
-  const tmp = document.createElement('canvas');
-  tmp.width = hc.width; tmp.height = hc.height;
-  tmp.getContext('2d').drawImage(hc, 0, 0);
-  const newImg = new Image();
-  newImg.onload = () => {
-    userImage = newImg; _origPixels = null;
-    captureOriginal(hc, newImg);
-    showToast('BLEMISH REMOVAL APPLIED');
-  };
-  newImg.src = tmp.toDataURL('image/png');
-  toolsBlemCleanup();
-}
-
-function toolsBlemCleanup() {
-  blemActive = false;
-  blemOrigData = null;
-  blemHistory = [];
-  const hc = document.getElementById('hero-canvas');
-  if (hc) {
-    hc.removeEventListener('mousemove',  hc._blemMove);
-    hc.removeEventListener('mouseleave', hc._blemLeave);
-    hc.removeEventListener('mousedown',  hc._blemDown);
-    hc.removeEventListener('mouseup',    hc._blemUp);
-    hc.classList.remove('blemish-active');
-    hc.style.cursor = 'crosshair';
-  }
-  document.removeEventListener('keydown',   document._blemKeyDown);
-  document.removeEventListener('keyup',     document._blemKeyUp);
-  document.removeEventListener('mousemove', document._blemPanMove);
-  document.removeEventListener('mouseup',   document._blemPanUp);
-  const ov = document.getElementById('blem-cursor-overlay');
-  if (ov) ov.remove();
-}
-
-// Legacy compatibility wrappers
-function toolsBlemApply(canvas, cx, cy) { blemHeal(canvas, cx, cy); }
-function toolsBlemApplyOnCanvas(canvas, cx, cy, br) {
-  const old = blemBrushSize;
-  if (br) blemBrushSize = br;
-  blemHeal(canvas, cx, cy);
-  blemBrushSize = old;
 }
 
 
@@ -6990,7 +6175,7 @@ function zoomApply() {
   if (el) el.textContent = pct + '%';
   hc.style.transform       = `scale(${zoomLevel}) translate(${zoomPanX}px,${zoomPanY}px)`;
   hc.style.transformOrigin = 'center center';
-  hc.style.cursor          = toolsActiveTool === 'blemish' ? 'none' : (zoomLevel > 1 ? 'grab' : 'default');
+  hc.style.cursor          = zoomLevel > 1 ? 'grab' : 'default';
 }
 
 function zoomIn()  { zoomLevel = Math.min(4.0, zoomLevel + 0.25); zoomApply(); }
@@ -7042,7 +6227,7 @@ function zoomFit() { zoomLevel = 1.0; zoomPanX = 0; zoomPanY = 0; zoomApply(); }
     const hc = document.getElementById('hero-canvas');
     if (!hc || e.target !== hc) return;
     if (zoomLevel > 1 && !panStart) hc.style.cursor = 'grab';
-    else if (zoomLevel <= 1 && !hc.classList.contains('blemish-active')) hc.style.cursor = 'crosshair';
+    else if (zoomLevel <= 1) hc.style.cursor = 'crosshair';
   });
 })();
 
@@ -7104,14 +6289,8 @@ function globalUndoRedoUpdate() {
 }
 
 // Hook global history push into relevant operations:
-// - when blemish applies
 // - when crop/flip/straighten applies
 // - when slider adjustments render
-const _origToolsBlemApplyOnCanvas = window.toolsBlemApplyOnCanvas;
-window.toolsBlemApplyOnCanvas = function(canvas, cx, cy, brushSize) {
-  globalHistoryPush();
-  _origToolsBlemApplyOnCanvas(canvas, cx, cy, brushSize);
-};
 const _origToolsCropApply = window.toolsCropApply;
 window.toolsCropApply = function() {
   globalHistoryPush();
@@ -7520,9 +6699,6 @@ function buildEditorToolsSection() {
 
   container.innerHTML = `
     <div class="et-section-header">TOOLS</div>
-    <div class="et-tool-row" id="et-blemish" onclick="etSelectTool('blemish')">
-      <span class="et-tool-icon">◎</span>BLEMISH REMOVAL
-    </div>
     <div class="et-tool-row" id="et-crop" onclick="etSelectTool('crop')">
       <span class="et-tool-icon">⊡</span>CROP
     </div>
@@ -7541,27 +6717,9 @@ function etSelectTool(name) {
   const ctrl = document.getElementById('et-tool-controls');
   if (!ctrl) return;
   ctrl.style.display = 'block';
-  if (name === 'blemish')    { ctrl.innerHTML = etBlemishHTML();    etBlemishInit(); }
   if (name === 'crop')       { ctrl.innerHTML = etCropHTML();       requestAnimationFrame(() => { if (userImage) toolsCropDraw(); }); }
   if (name === 'straighten') { ctrl.innerHTML = etStraightenHTML(); _straightenOrigImage = userImage; }
   if (name === 'flip')       { ctrl.innerHTML = etFlipHTML(); }
-}
-
-function etBlemishHTML() {
-  return toolsBlemishHTML();
-}
-
-function etBlemishInit() {
-  blemBrushSize = 18;
-  blemOrigData  = null;
-  blemHistory   = [];
-  toolsBlemInit();
-}
-
-function etBlemSize(v) {
-  toolsBlemSize(v);
-  const el2 = document.getElementById('et-blem-size-val');
-  if (el2) el2.textContent = v + 'px';
 }
 
 function etCropHTML() {
@@ -7730,13 +6888,6 @@ function globalReset() {
     buildEditorSliders(activePreset);
     buildEditorToolsSection();
   }
-
-  // Fix 3: Clear blemish state
-  toolsBlemOrigData = null;
-  toolsBlemHistory.length = 0;
-  if (hc) hc.classList.remove('blemish-active');
-  const cur = document.getElementById('hero-blem-cursor');
-  if (cur) cur.remove();
 
   // Fix 3: Clear crop overlay
   const cropOv = document.getElementById('crop-overlay-canvas');
@@ -8479,7 +7630,7 @@ window.renderLibrary = function() {
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-// FIXES 1–5: Blemish, Crop, BackToGallery, AutoSave, SaveToGallery, Export
+// FIXES 1–5: Crop, BackToGallery, AutoSave, SaveToGallery, Export
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ── Helper: get the active working canvas ────────────────────────────────
@@ -8491,87 +7642,11 @@ function getActiveCanvas() {
   return document.getElementById('hero-canvas');
 }
 
-// ── Fix 1: Blemish — patch etBlemishInit to use active canvas ───────────
-const _origEtBlemishInit = window.etBlemishInit || function(){};
-window.etBlemishInit = function() {
-  blemBrushSize = 18;
-  blemOrigData  = null;
-  blemHistory   = [];
-  // Use the active canvas (ev-canvas or hero-canvas)
-  const ac = getActiveCanvas();
-  if (!ac || !userImage) { showToast('_ OPEN A PHOTO FIRST'); return; }
-  blemActive = true;
-  blemHistory = [];
-  blemOrigData = ac.getContext('2d').getImageData(0, 0, ac.width, ac.height);
-
-  // Overlay canvas
-  let ov = document.getElementById('blem-cursor-overlay');
-  if (!ov) {
-    ov = document.createElement('canvas');
-    ov.id = 'blem-cursor-overlay';
-    ov.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:15;display:block';
-    const wrap = ac.parentElement;
-    if (wrap && wrap.style) wrap.style.overflow = 'hidden';
-    if (wrap) wrap.appendChild(ov);
-  }
-
-  function syncOv() {
-    const rect = ac.getBoundingClientRect();
-    const pRect = ac.parentElement.getBoundingClientRect();
-    ov.width  = Math.round(rect.width);
-    ov.height = Math.round(rect.height);
-    ov.style.width  = rect.width  + 'px';
-    ov.style.height = rect.height + 'px';
-    ov.style.left   = (rect.left - pRect.left) + 'px';
-    ov.style.top    = (rect.top  - pRect.top)  + 'px';
-  }
-
-  function drawCursor(mx, my) {
-    syncOv();
-    const c = ov.getContext('2d');
-    c.clearRect(0, 0, ov.width, ov.height);
-    const r = blemBrushSize / 2;
-    c.beginPath(); c.arc(mx, my, r, 0, Math.PI * 2);
-    c.strokeStyle = '#c9b8d4'; c.lineWidth = 1.5; c.stroke();
-    c.beginPath(); c.arc(mx, my, 1.5, 0, Math.PI * 2);
-    c.fillStyle = 'rgba(201,184,212,0.80)'; c.fill();
-  }
-
-  ac._blemMove = (e) => {
-    ac.style.cursor = 'none';
-    const rect = ac.getBoundingClientRect();
-    drawCursor(e.clientX - rect.left, e.clientY - rect.top);
-  };
-  ac._blemLeave = () => {
-    const c = ov.getContext('2d'); c.clearRect(0, 0, ov.width, ov.height);
-  };
-  ac._blemClick = (e) => {
-    const rect = ac.getBoundingClientRect();
-    const scaleX = ac.width / rect.width;
-    const scaleY = ac.height / rect.height;
-    const cx = Math.round((e.clientX - rect.left) * scaleX);
-    const cy = Math.round((e.clientY - rect.top)  * scaleY);
-    blemHeal(ac, cx, cy);
-  };
-  ac.removeEventListener('mousemove',  ac._blemMove);
-  ac.removeEventListener('mouseleave', ac._blemLeave);
-  ac.removeEventListener('click',      ac._blemClick);
-  ac.addEventListener('mousemove',  ac._blemMove);
-  ac.addEventListener('mouseleave', ac._blemLeave);
-  ac.addEventListener('click',      ac._blemClick);
-  ac.classList.add('blemish-active');
-};
-
-// Patch etSelectTool to use the new etBlemishInit
+// ── Fix 1: Crop — patch etSelectTool to use active canvas ────────────────
 const _origEtSelectTool = window.etSelectTool;
 window.etSelectTool = function(name) {
   _origEtSelectTool(name);
-  if (name === 'blemish') {
-    // Re-call the patched init (overrides the one in _origEtSelectTool)
-    window.etBlemishInit();
-  }
   if (name === 'crop') {
-    // Patch crop to use active canvas
     requestAnimationFrame(() => {
       const ac = getActiveCanvas();
       if (ac && userImage) toolsCropDrawOnCanvas(ac);
@@ -8755,47 +7830,6 @@ function applyHalation(canvas, intensity, hue, offX, offY, imgW, imgH) {
   ctx.restore();
 }
 
-// ── Fix 2: Blemish rewrite — subtle, no grey smear ───────────────────────
-window.blemHeal = function(hc, cx, cy) {
-  const ctx  = hc.getContext('2d');
-  const w    = hc.width, h = hc.height;
-  const radius = blemBrushSize;
-  const sampleRadius = Math.round(radius * 2.2);
-
-  // Save for undo
-  blemHistory.push(ctx.getImageData(0, 0, w, h));
-  if (blemHistory.length > 15) blemHistory.shift();
-
-  // Sample 32 points in a ring OUTSIDE the blemish area
-  const samples = [];
-  for (let i = 0; i < 32; i++) {
-    const angle = (i / 32) * Math.PI * 2;
-    const sx = Math.round(cx + Math.cos(angle) * sampleRadius);
-    const sy = Math.round(cy + Math.sin(angle) * sampleRadius);
-    if (sx < 0 || sx >= w || sy < 0 || sy >= h) continue;
-    const px = ctx.getImageData(sx, sy, 1, 1).data;
-    samples.push([px[0], px[1], px[2]]);
-  }
-  if (!samples.length) return;
-  const avg = samples.reduce((a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],[0,0,0])
-                     .map(v => Math.round(v / samples.length));
-
-  // Soft radial fill with very low alpha (max center opacity: 0.35)
-  for (let r = radius; r >= 0; r -= 0.5) {
-    const alpha = 0.04 * (1 - r / radius);
-    if (alpha < 0.001) continue;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${avg[0]},${avg[1]},${avg[2]},${alpha})`;
-    ctx.fill();
-  }
-};
-
-// ── Fix 3: Blemish zoom/pan awareness ────────────────────────────────────
-// The blemish click handler already uses getBoundingClientRect for coord translation.
-// Patch etBlemishInit to also show zoom level and handle Space+drag pan.
-// (getActiveCanvas + syncOv already handles zoom scaling of cursor)
-
 // ── Fix 4: Crop init — ensure overlay appears immediately ─────────────────
 // Patch etSelectTool crop case
 const _origEtSelectToolCrop = window.etSelectTool;
@@ -8937,44 +7971,6 @@ function hslSelectChannel(dot) {
 </script>
 
 
-  <!-- ── BLEMISH TOOL PANEL ── -->
-  <div id="blemish-panel">
-    <div class="blem-window">
-      <div class="blem-titlebar">
-        <span class="blem-titlebar-text">TOOLS · BLEMISH REMOVAL</span>
-        <div class="blem-win-controls">
-          <div class="blem-win-btn">_</div>
-          <div class="blem-win-btn">□</div>
-          <div class="blem-win-btn" onclick="blemClose()">✕</div>
-        </div>
-      </div>
-      <div class="blem-body">
-        <div class="blem-canvas-wrap" id="blem-canvas-wrap">
-          <canvas id="blemish-canvas"></canvas>
-          <div id="blem-cursor"></div>
-        </div>
-        <div class="blem-sidebar">
-          <div class="blem-instruction">_ TAP TO REMOVE<br>BLEMISH</div>
-          <div class="blem-slider-row">
-            <div class="blem-section-label">BRUSH</div>
-            <div class="blem-slider-top">
-              <span class="blem-slider-label">BRUSH SIZE</span>
-              <span class="blem-slider-val" id="blem-size-display">20px</span>
-            </div>
-            <input type="range" id="blem-size-range" min="10" max="60" value="20"
-                   oninput="blemUpdateSize(this.value)">
-          </div>
-          <div class="blem-actions">
-            <div class="blem-btn blem-btn-ghost" onclick="blemUndo()">UNDO</div>
-            <div class="blem-btn blem-btn-ghost" onclick="blemReset()">RESET</div>
-            <div class="blem-btn blem-btn-primary" onclick="blemDone()">DONE</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
   <!-- ── TOOLS SIDE PANEL ── -->
   <div id="tools-side-panel">
     <div class="tools-panel-titlebar">
@@ -8982,9 +7978,6 @@ function hslSelectChannel(dot) {
       <div class="tools-panel-close" onclick="toolsPanelClose()">✕</div>
     </div>
     <div class="tools-list">
-      <div class="tools-list-item" id="tl-blemish" onclick="toolsSelectTool('blemish')">
-        <span class="tools-list-icon">◎</span>BLEMISH REMOVAL
-      </div>
       <div class="tools-list-item" id="tl-crop" onclick="toolsSelectTool('crop')">
         <span class="tools-list-icon">⊡</span>CROP
       </div>

@@ -720,14 +720,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   min-height: 0;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  display: block !important;
-  column-count: 4;
-  column-gap: 6px;
+  display: flex !important;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 6px;
   padding: 10px;
   width: 100%;
   box-sizing: border-box;
   scrollbar-width: thin;
   scrollbar-color: rgba(200,168,232,0.12) transparent;
+}
+.lib-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
 }
 .library-grid::-webkit-scrollbar { width: 3px }
 .library-grid::-webkit-scrollbar-thumb { background: rgba(200,168,232,0.12); border-radius: 2px }
@@ -736,8 +744,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 
 .lib-photo {
   display: block;
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
   position: relative;
   width: 100%;
   margin-bottom: 6px;
@@ -5222,7 +5228,16 @@ function renderLibrary() {
   count.textContent = library.length + (library.length === 1 ? ' PHOTO' : ' PHOTOS');
   if (delBtn) delBtn.style.display = libSelected.length ? 'inline-flex' : 'none';
 
+  const NUM_COLS = 4;
+  const cols = Array.from({ length: NUM_COLS }, () => {
+    const col = document.createElement('div');
+    col.className = 'lib-col';
+    return col;
+  });
+
   grid.innerHTML = '';
+  cols.forEach(col => grid.appendChild(col));
+
   library.forEach((entry, idx) => {
     const cell = document.createElement('div');
     cell.className = 'lib-photo' + (libSelected.includes(idx) ? ' selected' : '');
@@ -5242,13 +5257,12 @@ function renderLibrary() {
       e.stopPropagation();
       toggleSelect(idx);
     });
-    // Click image → go to EDITOR tab with this image
     cell.addEventListener('click', (e) => {
       if (e.target.classList.contains('select-check') ||
           e.target.classList.contains('lib-photo-heart')) return;
       galleryOpenInEditor(idx);
     });
-    grid.appendChild(cell);
+    cols[idx % NUM_COLS].appendChild(cell);
   });
 }
 

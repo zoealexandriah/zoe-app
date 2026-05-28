@@ -7679,34 +7679,32 @@ function toolsCropDrawOnCanvas(hc) {
 }
 
 // ── Fix 2: editorBackToGallery — only switch tab, never load image ───────
-window.editorBackToGallery = function() {
-  // 1. Auto-save first
-  if (typeof editorAutoSave === 'function') editorAutoSave();
-  else autoSaveEdit();
-  // 2. Hide editor-view
-  const ev = document.getElementById('editor-view');
-  if (ev) ev.style.display = 'none';
-  const rc = document.getElementById('right-col');
-  if (rc) { rc.style.display = 'none'; rc.style.width = '0'; rc.style.minWidth = '0'; }
-  // 3. Show gallery — do NOT load any image
-  const hw = document.querySelector('.hero-win');
-  if (hw) hw.style.display = '';
-  // 4. Activate GALLERY nav item (visual only — no click events that load images)
-  document.querySelectorAll('.nav-item, .bn-item').forEach(n => n.classList.remove('active'));
-  [...document.querySelectorAll('.nav-item')].forEach(n => {
-    if ((n.querySelector('.nav-label')||{}).textContent.trim() === 'GALLERY')
-      n.classList.add('active');
+window.editorBackToGallery = function editorBackToGallery() {
+  // Switch to gallery tab using the same nav click path
+  const galleryNavItem = document.querySelector('.nav-item .nav-label');
+  const allNavItems = document.querySelectorAll('.nav-item');
+  let galleryNav = null;
+  allNavItems.forEach(el => {
+    const label = el.querySelector('.nav-label');
+    if (label && label.textContent.trim() === 'GALLERY') galleryNav = el;
   });
-  [...document.querySelectorAll('.bn-item')].forEach(n => {
-    if ((n.querySelector('.bn-label')||{}).textContent.trim() === 'GALLERY')
-      n.classList.add('active');
-  });
-  // 5. Show library view, hide others
-  hideCollectionsView && hideCollectionsView();
-  hidePresetsView && hidePresetsView();
-  hideFavoritesView && hideFavoritesView();
+
+  // Close any open lightbox or image preview first
+  const lightbox = document.getElementById('lightbox');
+  const imgPreview = document.getElementById('image-preview');
+  const editView = document.getElementById('edit-view');
   const libView = document.getElementById('library-view');
+  if (lightbox) { lightbox.style.display = 'none'; lightbox.classList.remove('active'); }
+  if (imgPreview) { imgPreview.style.display = 'none'; imgPreview.classList.remove('active'); }
+  if (editView) editView.classList.add('hidden');
   if (libView) libView.classList.remove('hidden');
+
+  // Switch to gallery tab
+  if (galleryNav) {
+    navClick(galleryNav);
+  } else {
+    switchToTab('GALLERY');
+  }
 };
 
 // ── Fix 3: editorAutoSave — always-complete auto-save ────────────────────

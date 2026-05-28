@@ -3704,20 +3704,21 @@ function attachSliderListeners(p) {
     }
 
     function updateSlider(t) {
+      const param = track.dataset.param; // read dynamically so channel switching works
       if (!sliderState[presetId]) sliderState[presetId] = {};
-      sliderState[presetId][paramName] = t;
+      sliderState[presetId][param] = t;
 
       const pct = Math.round(t * 100);
       const fill  = track.querySelector('.sl-fill');
       const thumb = track.querySelector('.sl-thumb');
-      const valEl = document.getElementById(`slv-${presetId}-${paramName}`);
+      const valEl = document.getElementById(`slv-${presetId}-${param}`);
       const row   = track.closest('.sl-row');
 
       if (fill)  fill.style.width = pct + '%';
       if (thumb) thumb.style.left  = pct + '%';
-      if (valEl) valEl.textContent = getSliderDisplay(paramName, t);
+      if (valEl) valEl.textContent = getSliderDisplay(param, t);
       if (row) {
-        const neutral = sliderConfig[paramName]?.[3] ?? true;
+        const neutral = sliderConfig[param]?.[3] ?? true;
         const isChanged = neutral ? Math.abs(t - 0.5) > 0.01 : t > 0.02;
         row.classList.toggle('changed', isChanged);
       }

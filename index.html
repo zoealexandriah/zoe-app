@@ -5170,10 +5170,15 @@ function renderWithAdjustments(canvas, adj) {
 // ── Load new image: capture original, render clean ────────────────────────
 function loadImageToCanvas(canvas, img) {
   if (!canvas || !img) return;
-  canvas.width  = canvas.offsetWidth  || 700;
-  canvas.height = canvas.offsetHeight || 480;
+  const dw = canvas.offsetWidth  || 700;
+  const dh = canvas.offsetHeight || 480;
+  // Render at 4× the display size (matching max zoom level), capped at the
+  // image's natural resolution so we never upscale beyond the source quality.
+  // CSS keeps the canvas at display size; CSS transform zoom then reveals the
+  // high-res pixels instead of scaling up a blurry low-res canvas.
+  canvas.width  = Math.min(img.naturalWidth,  Math.round(dw * 4));
+  canvas.height = Math.min(img.naturalHeight, Math.round(dh * 4));
   captureOriginal(canvas, img);
-  // Render clean (all sliders at zero)
   renderWithAdjustments(canvas, {});
 }
 

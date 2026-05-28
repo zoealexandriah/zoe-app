@@ -5202,17 +5202,15 @@ function handleMultiUpload(e) {
     reader.onload = ev => {
       const img = new Image();
       img.onload = () => {
-        library.push({ id: Date.now() + Math.random(), img, name: file.name, dataURL: ev.target.result });
+        library.unshift({ id: Date.now() + Math.random(), img, name: file.name, dataURL: ev.target.result });
         loaded++;
-        if (loaded === files.length) renderLibrary();
+        if (loaded === files.length) { renderLibrary(); libSaveToStorage(); }
       };
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
   });
   e.target.value = '';
-  // Persist after new uploads
-  setTimeout(libSaveToStorage, 500);
 }
 
 function renderLibrary() {
@@ -5281,6 +5279,7 @@ function toggleSelect(idx) {
 function deleteSelected() {
   libSelected.sort((a,b)=>b-a).forEach(i => library.splice(i,1));
   libSelected = [];
+  libSaveToStorage();
   renderLibrary();
   showToast('REMOVED FROM ARCHIVE');
 }
@@ -5709,27 +5708,53 @@ function colLoadFromStorage() {
   } catch(e) { /* fail silently */ }
 }
 
+// ── IndexedDB gallery persistence (replaces localStorage — no size limit) ─
+const _GALLERY_DB    = 'zoe-gallery';
+const _GALLERY_STORE = 'photos';
+let _galleryDB = null;
+
+function _dbOpen() {
+  return new Promise((resolve, reject) => {
+    if (_galleryDB) { resolve(_galleryDB); return; }
+    const req = indexedDB.open(_GALLERY_DB, 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(_GALLERY_STORE))
+        db.createObjectStore(_GALLERY_STORE, { keyPath: 'id' });
+    };
+    req.onsuccess = e => { _galleryDB = e.target.result; resolve(_galleryDB); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
 function libSaveToStorage() {
-  try {
-    const data = library.map(e => ({ id: e.id, name: e.name, dataURL: e.dataURL }));
-    localStorage.setItem('zoe_uploads', JSON.stringify(data));
-  } catch(e) { /* fail silently */ }
+  _dbOpen().then(db => {
+    const tx    = db.transaction(_GALLERY_STORE, 'readwrite');
+    const store = tx.objectStore(_GALLERY_STORE);
+    store.clear();
+    library.forEach((e, i) => store.put({ id: String(e.id), name: e.name, dataURL: e.dataURL, order: i }));
+  }).catch(() => {});
 }
 
 function libLoadFromStorage() {
-  try {
-    const raw = localStorage.getItem('zoe_uploads');
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    data.forEach(saved => {
-      const img = new Image();
-      img.onload = () => {
-        library.push({ id: saved.id || (Date.now() + Math.random()), img, name: saved.name, dataURL: saved.dataURL });
-        renderLibrary();
-      };
-      img.src = saved.dataURL;
-    });
-  } catch(e) { /* fail silently */ }
+  _dbOpen().then(db => {
+    const tx  = db.transaction(_GALLERY_STORE, 'readonly');
+    const req = tx.objectStore(_GALLERY_STORE).getAll();
+    req.onsuccess = () => {
+      const items = (req.result || []).sort((a, b) => a.order - b.order);
+      if (!items.length) return;
+      let loaded = 0;
+      items.forEach(saved => {
+        const img = new Image();
+        img.onload = () => {
+          library.push({ id: saved.id, img, name: saved.name, dataURL: saved.dataURL });
+          loaded++;
+          if (loaded === items.length) renderLibrary();
+        };
+        img.src = saved.dataURL;
+      });
+    };
+  }).catch(() => {});
 }
 
 
@@ -7501,11 +7526,10 @@ function editorLoadFile(input) {
   reader.onload = (e) => {
     const img = new Image();
     img.onload = () => {
-      library.push({ id: Date.now(), img, name: file.name, dataURL: e.target.result });
-      const idx = library.length - 1;
-      try { libSaveToStorage(); } catch(err) {}
+      library.unshift({ id: Date.now(), img, name: file.name, dataURL: e.target.result });
+      libSaveToStorage();
       renderLibrary();
-      galleryOpenInEditor(idx);
+      galleryOpenInEditor(0);
     };
     img.src = e.target.result;
   };
@@ -7552,8 +7576,8 @@ function editorSaveToGallery() {
   const name = 'EDIT_' + new Date().toISOString().slice(0,10) + '_' + Date.now() + '.jpg';
   const img  = new Image();
   img.onload = () => {
-    library.push({ id: Date.now(), img, name, dataURL });
-    try { libSaveToStorage(); } catch(e) {}
+    library.unshift({ id: Date.now(), img, name, dataURL });
+    libSaveToStorage();
     renderLibrary();
     showToast('_ SAVED TO GALLERY');
   };
@@ -7802,8 +7826,8 @@ window.editorSaveToGallery = function() {
   const name = 'ZOE_EDIT_' + Date.now();
   const img  = new Image();
   img.onload = () => {
-    library.push({ id: 'saved_' + Date.now(), img, name, dataURL });
-    try { libSaveToStorage(); } catch(e) {}
+    library.unshift({ id: 'saved_' + Date.now(), img, name, dataURL });
+    libSaveToStorage();
     renderLibrary();
     showToast('_ SAVED TO GALLERY');
   };

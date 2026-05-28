@@ -5693,7 +5693,7 @@ function colLoadFromStorage() {
 
 function libSaveToStorage() {
   try {
-    const data = library.map(e => ({ name: e.name, dataURL: e.dataURL }));
+    const data = library.map(e => ({ id: e.id, name: e.name, dataURL: e.dataURL }));
     localStorage.setItem('zoe_uploads', JSON.stringify(data));
   } catch(e) { /* fail silently */ }
 }
@@ -5706,7 +5706,7 @@ function libLoadFromStorage() {
     data.forEach(saved => {
       const img = new Image();
       img.onload = () => {
-        library.push({ id: Date.now() + Math.random(), img, name: saved.name, dataURL: saved.dataURL });
+        library.push({ id: saved.id || (Date.now() + Math.random()), img, name: saved.name, dataURL: saved.dataURL });
         renderLibrary();
       };
       img.src = saved.dataURL;
@@ -7031,7 +7031,9 @@ function favToggle(id) {
 function showFavoritesView() {
   const heroWin = document.querySelector('.hero-win');
   if (heroWin) heroWin.style.display = 'none';
-  document.getElementById('favorites-view').classList.add('active');
+  const favView = document.getElementById('favorites-view');
+  favView.style.display = 'flex'; // override the inline display:none set by switchToTab
+  favView.classList.add('active');
   renderFavoritesView();
 }
 
@@ -7398,7 +7400,7 @@ function galleryBatchDelete() {
   const sorted = [...libSelected].sort((a,b) => b-a);
   sorted.forEach(idx => library.splice(idx, 1));
   libSelected.length = 0;
-  try { localStorage.setItem('zoe_uploads', JSON.stringify(library.map(e => ({ name:e.name, dataURL:e.dataURL })))); } catch(e) {}
+  try { localStorage.setItem('zoe_uploads', JSON.stringify(library.map(e => ({ id:e.id, name:e.name, dataURL:e.dataURL })))); } catch(e) {}
   renderLibrary();
   galleryToggleSelectMode();
 }

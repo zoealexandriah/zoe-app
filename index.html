@@ -4572,9 +4572,11 @@ function captureOriginal(canvas, img) {
   const iw = img.naturalWidth, ih = img.naturalHeight;
   // At zoom > 1 the image is drawn larger than the canvas so only the zoomed
   // viewport is visible — this gives sharp detail without any CSS upscaling.
+  const dpr   = window.devicePixelRatio || 1;
   const zoom  = (typeof zoomLevel !== 'undefined') ? zoomLevel : 1;
-  const panX  = (typeof zoomPanX  !== 'undefined') ? zoomPanX  : 0;
-  const panY  = (typeof zoomPanY  !== 'undefined') ? zoomPanY  : 0;
+  // zoomPanX/Y are stored in CSS pixels; convert to canvas physical pixels
+  const panX  = (typeof zoomPanX  !== 'undefined') ? zoomPanX * dpr : 0;
+  const panY  = (typeof zoomPanY  !== 'undefined') ? zoomPanY * dpr : 0;
   const fitSc = Math.min(cw / iw, ch / ih);
   const sw = Math.round(iw * fitSc * zoom);
   const sh = Math.round(ih * fitSc * zoom);
@@ -5177,8 +5179,14 @@ function renderWithAdjustments(canvas, adj) {
 // ── Load new image: capture original, render clean ────────────────────────
 function loadImageToCanvas(canvas, img) {
   if (!canvas || !img) return;
-  canvas.width  = canvas.offsetWidth  || 700;
-  canvas.height = canvas.offsetHeight || 480;
+  const dpr = window.devicePixelRatio || 1;
+  const dw  = canvas.offsetWidth  || 700;
+  const dh  = canvas.offsetHeight || 480;
+  // Match the canvas buffer to physical pixels so it's sharp on HiDPI screens.
+  canvas.width  = Math.round(dw * dpr);
+  canvas.height = Math.round(dh * dpr);
+  canvas.style.width  = dw + 'px';
+  canvas.style.height = dh + 'px';
   captureOriginal(canvas, img);
   renderWithAdjustments(canvas, {});
 }
@@ -6295,8 +6303,9 @@ function zoomFit() { zoomLevel = 1.0; zoomPanX = 0; zoomPanY = 0; zoomApply(); }
     const hc = document.getElementById('hero-canvas');
     if (!hc) return;
     hc.style.cursor = 'grabbing';
-    // Fast live preview via CSS translate only — no canvas re-render during drag
-    hc.style.transform = `translate(${panOriginX + dx}px,${panOriginY + dy}px)`;
+    // Fast live preview: only the drag delta, since committed pan is already
+    // baked into the canvas content from the last zoomApply call
+    hc.style.transform = `translate(${dx}px,${dy}px)`;
   });
 
   document.addEventListener('mouseup', e => {

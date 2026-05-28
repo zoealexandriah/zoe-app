@@ -4565,25 +4565,32 @@ function captureOriginal(canvas, img) {
   const ctx = canvas.getContext('2d');
   const cw = canvas.width, ch = canvas.height;
 
-  // Clear canvas
   ctx.clearRect(0, 0, cw, ch);
   ctx.fillStyle = '#050310';
   ctx.fillRect(0, 0, cw, ch);
 
-  // Draw image contained (no crop)
   const iw = img.naturalWidth, ih = img.naturalHeight;
-  const scale = Math.min(cw / iw, ch / ih);
-  const sw = iw * scale, sh = ih * scale;
-  const dx = Math.round((cw - sw) / 2);
-  const dy = Math.round((ch - sh) / 2);
+  // At zoom > 1 the image is drawn larger than the canvas so only the zoomed
+  // viewport is visible — this gives sharp detail without any CSS upscaling.
+  const zoom  = (typeof zoomLevel !== 'undefined') ? zoomLevel : 1;
+  const panX  = (typeof zoomPanX  !== 'undefined') ? zoomPanX  : 0;
+  const panY  = (typeof zoomPanY  !== 'undefined') ? zoomPanY  : 0;
+  const fitSc = Math.min(cw / iw, ch / ih);
+  const sw = Math.round(iw * fitSc * zoom);
+  const sh = Math.round(ih * fitSc * zoom);
+  const dx = Math.round((cw - sw) / 2 + panX);
+  const dy = Math.round((ch - sh) / 2 + panY);
   ctx.drawImage(img, dx, dy, sw, sh);
 
-  // Capture just the image region
-  _origPixels = ctx.getImageData(dx, dy, Math.round(sw), Math.round(sh));
-  _origW  = Math.round(sw);
-  _origH  = Math.round(sh);
-  _origOffX = dx;
-  _origOffY = dy;
+  // Capture only the canvas-visible portion of the drawn image
+  const x0 = Math.max(0, dx),       y0 = Math.max(0, dy);
+  const x1 = Math.min(cw, dx + sw), y1 = Math.min(ch, dy + sh);
+  const capW = x1 - x0, capH = y1 - y0;
+  if (capW > 0 && capH > 0) {
+    _origPixels = ctx.getImageData(x0, y0, capW, capH);
+    _origW = capW; _origH = capH;
+    _origOffX = x0; _origOffY = y0;
+  }
 }
 
 // ── HSL helpers ───────────────────────────────────────────────────────────
@@ -5170,14 +5177,8 @@ function renderWithAdjustments(canvas, adj) {
 // ── Load new image: capture original, render clean ────────────────────────
 function loadImageToCanvas(canvas, img) {
   if (!canvas || !img) return;
-  const dw = canvas.offsetWidth  || 700;
-  const dh = canvas.offsetHeight || 480;
-  // Render at 4× the display size (matching max zoom level), capped at the
-  // image's natural resolution so we never upscale beyond the source quality.
-  // CSS keeps the canvas at display size; CSS transform zoom then reveals the
-  // high-res pixels instead of scaling up a blurry low-res canvas.
-  canvas.width  = Math.min(img.naturalWidth,  Math.round(dw * 4));
-  canvas.height = Math.min(img.naturalHeight, Math.round(dh * 4));
+  canvas.width  = canvas.offsetWidth  || 700;
+  canvas.height = canvas.offsetHeight || 480;
   captureOriginal(canvas, img);
   renderWithAdjustments(canvas, {});
 }
@@ -6247,15 +6248,24 @@ function zoomShowToolbar(show) {
   if (tb) tb.classList.toggle('active', show);
 }
 
+function _zoomRerender() {
+  const hc = document.getElementById('hero-canvas');
+  if (!hc || !userImage) return;
+  captureOriginal(hc, userImage);
+  const adj = (activePreset && sliderState[activePreset.id])
+    ? buildAdjustments(sliderState[activePreset.id]) : {};
+  renderWithAdjustments(hc, adj);
+}
+
 function zoomApply() {
   const hc = document.getElementById('hero-canvas');
   if (!hc) return;
   const pct = Math.round(zoomLevel * 100);
   const el  = document.getElementById('ctb-zoom');
   if (el) el.textContent = pct + '%';
-  hc.style.transform       = `scale(${zoomLevel}) translate(${zoomPanX}px,${zoomPanY}px)`;
-  hc.style.transformOrigin = 'center center';
-  hc.style.cursor          = zoomLevel > 1 ? 'grab' : 'default';
+  hc.style.transform = '';   // no CSS scaling — canvas content IS the zoom
+  hc.style.cursor = zoomLevel > 1 ? 'grab' : 'default';
+  _zoomRerender();
 }
 
 function zoomIn()  { zoomLevel = Math.min(4.0, zoomLevel + 0.25); zoomApply(); }
@@ -6264,14 +6274,12 @@ function zoomFit() { zoomLevel = 1.0; zoomPanX = 0; zoomPanY = 0; zoomApply(); }
 
 // Pan on drag when zoomed
 (function initZoomPan() {
-  // Fix 3: Pan via drag anywhere on canvas. Distinguish from tool clicks:
-  // pan = drag (mousemove > 4px), tool = click (no significant move)
   let panStart = null, panOriginX = 0, panOriginY = 0, panMoved = false;
 
   document.addEventListener('mousedown', e => {
     const hc = document.getElementById('hero-canvas');
     if (!hc || e.target !== hc) return;
-    if (zoomLevel <= 1.0) return; // only pan when zoomed
+    if (zoomLevel <= 1.0) return;
     panStart   = { x: e.clientX, y: e.clientY };
     panOriginX = zoomPanX;
     panOriginY = zoomPanY;
@@ -6285,20 +6293,21 @@ function zoomFit() { zoomLevel = 1.0; zoomPanX = 0; zoomPanY = 0; zoomApply(); }
     if (!panMoved && Math.sqrt(dx*dx+dy*dy) < 4) return;
     panMoved = true;
     const hc = document.getElementById('hero-canvas');
-    if (hc) hc.style.cursor = 'grabbing';
-    zoomPanX = panOriginX + dx;
-    zoomPanY = panOriginY + dy;
-    zoomApply();
+    if (!hc) return;
+    hc.style.cursor = 'grabbing';
+    // Fast live preview via CSS translate only — no canvas re-render during drag
+    hc.style.transform = `translate(${panOriginX + dx}px,${panOriginY + dy}px)`;
   });
 
   document.addEventListener('mouseup', e => {
-    if (panStart) {
-      const hc = document.getElementById('hero-canvas');
-      if (hc && panMoved) {
-        hc.style.cursor = zoomLevel > 1 ? 'grab' : 'crosshair';
-        // Prevent tool click from firing after pan
-        e.stopImmediatePropagation();
-      }
+    if (panStart && panMoved) {
+      const dx = e.clientX - panStart.x;
+      const dy = e.clientY - panStart.y;
+      zoomPanX = panOriginX + dx;
+      zoomPanY = panOriginY + dy;
+      // Commit: re-render canvas at final position (sharp, no CSS transform)
+      zoomApply();
+      e.stopImmediatePropagation();
     }
     panStart = null; panMoved = false;
   });

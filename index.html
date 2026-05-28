@@ -3587,6 +3587,7 @@ const sliderConfig = {
   HUE_SHIFT:   [-180.00, 180.00, '°', true],
   SAT_REDS:    [-1.00, 1.00, '', true],
   SAT_ORANGES: [-1.00, 1.00, '', true],
+  SAT_YELLOWS: [-1.00, 1.00, '', true],
   SAT_GREENS:  [-1.00, 1.00, '', true],
   SAT_BLUES:   [-1.00, 1.00, '', true],
   SAT_PURPLES: [-1.00, 1.00, '', true],
@@ -3757,6 +3758,44 @@ function attachSliderListeners(p) {
   });
 }
 
+function hslSelectChannel(dot) {
+  const presetId = dot.dataset.preset;
+  const channel  = dot.dataset.channel;
+
+  // Update active dot visual
+  document.querySelectorAll(`#hsl-channels-${presetId} .hsl-dot`)
+    .forEach(d => d.classList.remove('active'));
+  dot.classList.add('active');
+
+  // Update channel label
+  const label = document.getElementById('hsl-chan-label-' + presetId);
+  if (label) {
+    const names = { ALL:'ALL', SAT_REDS:'REDS', SAT_ORANGES:'ORANGES',
+      SAT_YELLOWS:'YELLOWS', SAT_GREENS:'GREENS',
+      SAT_BLUES:'BLUES', SAT_PURPLES:'PURPLES' };
+    label.textContent = 'HLS ' + (names[channel] || channel) + ' SETTINGS';
+  }
+
+  // Rewire SAT slider to the selected channel param
+  const satTrack = document.getElementById('hsl-sat-track-' + presetId);
+  if (!satTrack) return;
+
+  const newParam = channel === 'ALL' ? 'SATURATION' : channel;
+  satTrack.dataset.param = newParam;
+
+  // Update slider display to show current value for this channel
+  const t = (sliderState[presetId] || {})[newParam] ?? 0.5;
+  const fill  = satTrack.querySelector('.sl-fill');
+  const thumb = satTrack.querySelector('.sl-thumb');
+  const pct   = Math.round(t * 100);
+  if (fill)  fill.style.width = pct + '%';
+  if (thumb) thumb.style.left  = pct + '%';
+
+  // Update the value display — find it by its current data-param
+  const valEl = satTrack.parentElement.querySelector('.sl-val');
+  if (valEl) valEl.textContent = getSliderDisplay(newParam, t);
+}
+
 function resetSection(presetId, section) {
   const p = presets.find(x => x.id === presetId);
   if (!p || !sliderState[presetId]) return;
@@ -3850,6 +3889,7 @@ function buildAdjustments(state) {
     hue_shift: (() => { const t = state['HUE_SHIFT'] ?? 0.5; return (t - 0.5) * 360; })(),
     sat_reds:    val('SAT_REDS'),
     sat_oranges: val('SAT_ORANGES'),
+    sat_yellows: val('SAT_YELLOWS'),
     sat_greens:  val('SAT_GREENS'),
     sat_blues:   val('SAT_BLUES'),
     sat_purples: val('SAT_PURPLES'),
@@ -4786,6 +4826,7 @@ function applyPixelAdjustments(srcData, adj) {
     const satAdjsList = [
       { val: adj.sat_reds,    center: 0,   width: 80  },
       { val: adj.sat_oranges, center: 30,  width: 70  },
+      { val: adj.sat_yellows, center: 60,  width: 70  },
       { val: adj.sat_greens,  center: 120, width: 100 },
       { val: adj.sat_blues,   center: 210, width: 100 },
       { val: adj.sat_purples, center: 285, width: 100 },

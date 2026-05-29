@@ -839,6 +839,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 }
 .edit-back:hover { background:rgba(12,7,26,0.88); border-color:rgba(195,168,232,0.36); color:rgba(220,200,248,0.90) }
 #hero-canvas { width:100%; height:100%; display:block }
+/* When the preset strip is present, canvas fills remaining flex space */
+.edit-view #hero-canvas { flex:1; min-height:0; height:auto; }
+/* Bottom preset strip */
+.edit-view .looks-win { flex-shrink:0; border-top:0.5px solid var(--border); }
+/* Fixed-width cards so strip scrolls horizontally */
+.edit-view .look-card { width:96px; flex-shrink:0; }
 
 
 /* ═══════════════════════════════════════════════════
@@ -2964,6 +2970,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
               <div class="hero-tool-btn" onclick="triggerMultiUpload()">ADD MORE</div>
               <div class="hero-tool-btn" onclick="resetEdits()">RESET</div>
             </div>
+            <!-- ── Bottom preset strip ── -->
+            <div class="looks-win" id="looks-win-strip">
+              <div class="looks-strip" id="looks-strip"></div>
+            </div>
           </div>
 
           <input type="file" id="upload-input" accept="image/*"
@@ -4397,6 +4407,7 @@ window.addEventListener('load',()=>{
   buildQA();
   buildEditorSliders(presets[0]);
 
+  buildLooksStrip();
   // Staggered reveals
   setTimeout(()=>{ renderHero(); renderSidebar(); }, 200);
   setTimeout(()=>{ refreshEditor(presets[0]); }, 350);

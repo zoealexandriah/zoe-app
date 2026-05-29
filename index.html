@@ -4610,34 +4610,61 @@ async function captureOriginal(canvas, img) {
   const panX  = (typeof zoomPanX  !== 'undefined') ? zoomPanX * renderScale : 0;
   const panY  = (typeof zoomPanY  !== 'undefined') ? zoomPanY * renderScale : 0;
   const fitSc = Math.min(cw / iw, ch / ih);
-  const sw = Math.round(iw * fitSc * zoom);
-  const sh = Math.round(ih * fitSc * zoom);
-  const dx = Math.round((cw - sw) / 2 + panX);
-  const dy = Math.round((ch - sh) / 2 + panY);
+  const fitW  = Math.round(iw * fitSc);
+  const fitH  = Math.round(ih * fitSc);
 
-  // createImageBitmap with resizeQuality:'high' uses Lanczos resampling —
-  // far sharper than any drawImage downscale path.
-  try {
-    const bmp = await createImageBitmap(img, {
-      resizeWidth:   Math.max(1, sw),
-      resizeHeight:  Math.max(1, sh),
-      resizeQuality: 'high'
-    });
-    ctx.drawImage(bmp, dx, dy);
-    bmp.close();
-  } catch {
-    // Fallback for environments that don't support resize options
-    drawImageHQ(ctx, img, dx, dy, sw, sh);
+  if (zoom <= 1.0) {
+    // Fit whole image into canvas — normal view
+    const dx = Math.round((cw - fitW) / 2);
+    const dy = Math.round((ch - fitH) / 2);
+    try {
+      const bmp = await createImageBitmap(img, {
+        resizeWidth: Math.max(1, fitW),
+        resizeHeight: Math.max(1, fitH),
+        resizeQuality: 'high'
+      });
+      ctx.drawImage(bmp, dx, dy);
+      bmp.close();
+    } catch {
+      drawImageHQ(ctx, img, dx, dy, fitW, fitH);
+    }
+    _origOffX = Math.max(0, dx);
+    _origOffY = Math.max(0, dy);
+  } else {
+    // ZOOM: show cropped portion of source at native canvas resolution
+    // This gives crisp zoom because source pixels map 1:1 to canvas pixels
+    const vpW = iw / zoom;   // source pixel width of visible viewport
+    const vpH = ih / zoom;   // source pixel height of visible viewport
+    // Pan offset in source pixels
+    const pxPanX = panX / fitSc / zoom;
+    const pxPanY = panY / fitSc / zoom;
+    const cx = iw / 2 - pxPanX;
+    const cy = ih / 2 - pxPanY;
+    const sx = Math.max(0, Math.round(cx - vpW / 2));
+    const sy = Math.max(0, Math.round(cy - vpH / 2));
+    const sw = Math.min(Math.round(vpW), iw - sx);
+    const sh = Math.min(Math.round(vpH), ih - sy);
+    // Draw cropped source region filling the full canvas — no upscaling
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
+    ctx.imageSmoothingEnabled = true;
+    _origOffX = 0;
+    _origOffY = 0;
   }
 
-  // Capture only the canvas-visible portion of the drawn image
-  const x0 = Math.max(0, dx),       y0 = Math.max(0, dy);
-  const x1 = Math.min(cw, dx + sw), y1 = Math.min(ch, dy + sh);
-  const capW = x1 - x0, capH = y1 - y0;
-  if (capW > 0 && capH > 0) {
-    _origPixels = ctx.getImageData(x0, y0, capW, capH);
-    _origW = capW; _origH = capH;
-    _origOffX = x0; _origOffY = y0;
+  // Capture original pixels for adjustment pipeline
+  if (zoom <= 1.0) {
+    const x0 = Math.max(0, _origOffX), y0 = Math.max(0, _origOffY);
+    const x1 = Math.min(cw, _origOffX + fitW), y1 = Math.min(ch, _origOffY + fitH);
+    const capW = x1 - x0, capH = y1 - y0;
+    if (capW > 0 && capH > 0) {
+      _origPixels = ctx.getImageData(x0, y0, capW, capH);
+      _origW = capW; _origH = capH;
+    }
+  } else {
+    // Zoomed: full canvas is the image
+    _origPixels = ctx.getImageData(0, 0, cw, ch);
+    _origW = cw; _origH = ch;
   }
 }
 

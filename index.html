@@ -4560,6 +4560,38 @@ let _origH = 0;
 let _origOffX = 0;        // dx offset within canvas (letterbox)
 let _origOffY = 0;        // dy offset within canvas
 
+// ── High-quality drawImage: progressive halving for large downscales ────────
+function drawImageHQ(ctx, img, dx, dy, tw, th) {
+  const sw = img.naturalWidth || img.width;
+  const sh = img.naturalHeight || img.height;
+  // If downscaling by ≤2× in both dimensions, a single draw is fine
+  if (sw <= tw * 2 && sh <= th * 2) {
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, dx, dy, tw, th);
+    return;
+  }
+  // Progressive halving: each step halves towards target, preserving quality
+  let cur = document.createElement('canvas');
+  let cw = sw, ch = sh;
+  cur.width = cw; cur.height = ch;
+  cur.getContext('2d').drawImage(img, 0, 0);
+  while (cw > tw * 2 || ch > th * 2) {
+    const nw = Math.max(Math.ceil(cw / 2), tw);
+    const nh = Math.max(Math.ceil(ch / 2), th);
+    const tmp = document.createElement('canvas');
+    tmp.width = nw; tmp.height = nh;
+    const tc = tmp.getContext('2d');
+    tc.imageSmoothingEnabled = true;
+    tc.imageSmoothingQuality = 'high';
+    tc.drawImage(cur, 0, 0, nw, nh);
+    cur = tmp; cw = nw; ch = nh;
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(cur, dx, dy, tw, th);
+}
+
 // ── Capture original pixel data after drawing raw image to canvas ──────────
 function captureOriginal(canvas, img) {
   const ctx = canvas.getContext('2d');
@@ -4582,9 +4614,7 @@ function captureOriginal(canvas, img) {
   const sh = Math.round(ih * fitSc * zoom);
   const dx = Math.round((cw - sw) / 2 + panX);
   const dy = Math.round((ch - sh) / 2 + panY);
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(img, dx, dy, sw, sh);
+  drawImageHQ(ctx, img, dx, dy, sw, sh);
 
   // Capture only the canvas-visible portion of the drawn image
   const x0 = Math.max(0, dx),       y0 = Math.max(0, dy);

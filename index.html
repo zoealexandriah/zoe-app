@@ -5223,10 +5223,12 @@ function loadImageToCanvas(canvas, img) {
   }
   const dw = (rect.width  > 10 ? rect.width  : 800);
   const dh = (rect.height > 10 ? rect.height : 600);
-  // Match canvas buffer to physical pixels (dpr) — no extra multiplier.
-  // drawImageHQ handles progressive halving so a single-pass draw is sharp.
-  canvas.width  = Math.round(dw * dpr);
-  canvas.height = Math.round(dh * dpr);
+  // Render at 2× CSS size — GPU compositor's 2× downscale to display is
+  // sharper than any canvas drawImage. Cap at image natural size so we
+  // never upscale beyond source. drawImageHQ covers the remaining halving.
+  const mult = dpr * 2;
+  canvas.width  = Math.min(img.naturalWidth,  Math.round(dw * mult));
+  canvas.height = Math.min(img.naturalHeight, Math.round(dh * mult));
   canvas._cssW = dw;
   canvas._cssH = dh;
   captureOriginal(canvas, img);

@@ -4593,7 +4593,8 @@ function drawImageHQ(ctx, img, dx, dy, tw, th) {
 }
 
 // ── Capture original pixel data after drawing raw image to canvas ──────────
-function captureOriginal(canvas, img) {
+// Returns a Promise so callers can await before applying adjustments.
+async function captureOriginal(canvas, img) {
   const ctx = canvas.getContext('2d');
   const cw = canvas.width, ch = canvas.height;
 
@@ -4602,14 +4603,10 @@ function captureOriginal(canvas, img) {
   ctx.fillRect(0, 0, cw, ch);
 
   const iw = img.naturalWidth, ih = img.naturalHeight;
-  // At zoom > 1 the image is drawn larger than the canvas so only the zoomed
-  // viewport is visible — this gives sharp detail without any CSS upscaling.
   const zoom  = (typeof zoomLevel !== 'undefined') ? zoomLevel : 1;
-  // renderScale: canvas buffer pixels per CSS pixel.
   const dpr   = window.devicePixelRatio || 1;
   const cssW  = canvas._cssW || (canvas.width / dpr);
   const renderScale = canvas.width / cssW;
-  // zoomPanX/Y are in CSS pixels; convert to canvas coordinates.
   const panX  = (typeof zoomPanX  !== 'undefined') ? zoomPanX * renderScale : 0;
   const panY  = (typeof zoomPanY  !== 'undefined') ? zoomPanY * renderScale : 0;
   const fitSc = Math.min(cw / iw, ch / ih);
@@ -4617,7 +4614,21 @@ function captureOriginal(canvas, img) {
   const sh = Math.round(ih * fitSc * zoom);
   const dx = Math.round((cw - sw) / 2 + panX);
   const dy = Math.round((ch - sh) / 2 + panY);
-  drawImageHQ(ctx, img, dx, dy, sw, sh);
+
+  // createImageBitmap with resizeQuality:'high' uses Lanczos resampling —
+  // far sharper than any drawImage downscale path.
+  try {
+    const bmp = await createImageBitmap(img, {
+      resizeWidth:   Math.max(1, sw),
+      resizeHeight:  Math.max(1, sh),
+      resizeQuality: 'high'
+    });
+    ctx.drawImage(bmp, dx, dy);
+    bmp.close();
+  } catch {
+    // Fallback for environments that don't support resize options
+    drawImageHQ(ctx, img, dx, dy, sw, sh);
+  }
 
   // Capture only the canvas-visible portion of the drawn image
   const x0 = Math.max(0, dx),       y0 = Math.max(0, dy);
@@ -5212,26 +5223,22 @@ function renderWithAdjustments(canvas, adj) {
 }
 
 // ── Load new image: capture original, render clean ────────────────────────
-function loadImageToCanvas(canvas, img) {
+async function loadImageToCanvas(canvas, img) {
   if (!canvas || !img) return;
   const dpr = window.devicePixelRatio || 1;
-  // Measure the canvas itself (not the parent) so we get the actual display size.
   let rect = canvas.getBoundingClientRect();
-  // Fall back to parent if canvas hasn't been laid out yet.
   if (rect.width < 10 || rect.height < 10) {
     rect = (canvas.parentElement || canvas).getBoundingClientRect();
   }
   const dw = (rect.width  > 10 ? rect.width  : 800);
   const dh = (rect.height > 10 ? rect.height : 600);
-  // Render at 2× CSS size — GPU compositor's 2× downscale to display is
-  // sharper than any canvas drawImage. Cap at image natural size so we
-  // never upscale beyond source. drawImageHQ covers the remaining halving.
-  const mult = dpr * 2;
-  canvas.width  = Math.min(img.naturalWidth,  Math.round(dw * mult));
-  canvas.height = Math.min(img.naturalHeight, Math.round(dh * mult));
+  // Buffer at physical pixel resolution. Quality comes from Lanczos in
+  // captureOriginal (createImageBitmap resizeQuality:'high'), not buffer size.
+  canvas.width  = Math.round(dw * dpr);
+  canvas.height = Math.round(dh * dpr);
   canvas._cssW = dw;
   canvas._cssH = dh;
-  captureOriginal(canvas, img);
+  await captureOriginal(canvas, img);
   renderWithAdjustments(canvas, {});
 }
 
@@ -6265,7 +6272,7 @@ function toolsFlipApply(dir) {
   hc.getContext('2d').drawImage(tmp, 0, 0);
   // Capture new userImage
   const newImg = new Image();
-  newImg.onload = () => { userImage = newImg; _origPixels = null; captureOriginal(hc, newImg); showToast('FLIPPED'); };
+  newImg.onload = async () => { userImage = newImg; _origPixels = null; await captureOriginal(hc, newImg); showToast('FLIPPED'); };
   newImg.src = tmp.toDataURL();
 }
 
@@ -6298,10 +6305,10 @@ function zoomShowToolbar(show) {
   if (tb) tb.classList.toggle('active', show);
 }
 
-function _zoomRerender() {
+async function _zoomRerender() {
   const hc = document.getElementById('hero-canvas');
   if (!hc || !userImage) return;
-  captureOriginal(hc, userImage);
+  await captureOriginal(hc, userImage);
   const adj = (activePreset && sliderState[activePreset.id])
     ? buildAdjustments(sliderState[activePreset.id]) : {};
   renderWithAdjustments(hc, adj);
@@ -8021,9 +8028,9 @@ window.toolsFlipApply = function(dir) {
   ctx.restore();
   hc.getContext('2d').drawImage(tmp, 0, 0);
   const newImg = new Image();
-  newImg.onload = () => {
+  newImg.onload = async () => {
     userImage = newImg; _origPixels = null;
-    captureOriginal(hc, newImg);
+    await captureOriginal(hc, newImg);
     showToast('FLIPPED');
     if (typeof evRenderCanvas === 'function') {
       const ev = document.getElementById('editor-view');

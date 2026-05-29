@@ -4604,11 +4604,14 @@ function captureOriginal(canvas, img) {
   const iw = img.naturalWidth, ih = img.naturalHeight;
   // At zoom > 1 the image is drawn larger than the canvas so only the zoomed
   // viewport is visible — this gives sharp detail without any CSS upscaling.
-  const dpr   = window.devicePixelRatio || 1;
   const zoom  = (typeof zoomLevel !== 'undefined') ? zoomLevel : 1;
-  // zoomPanX/Y are stored in CSS pixels; convert to canvas physical pixels
-  const panX  = (typeof zoomPanX  !== 'undefined') ? zoomPanX * dpr : 0;
-  const panY  = (typeof zoomPanY  !== 'undefined') ? zoomPanY * dpr : 0;
+  // renderScale: canvas pixels per CSS pixel (includes both dpr and quality mult).
+  // canvas._cssW is set by loadImageToCanvas; fall back to dpr if not available.
+  const cssW  = canvas._cssW || (canvas.width / (window.devicePixelRatio || 1));
+  const renderScale = canvas.width / cssW;
+  // zoomPanX/Y are in CSS pixels; convert to canvas coordinates.
+  const panX  = (typeof zoomPanX  !== 'undefined') ? zoomPanX * renderScale : 0;
+  const panY  = (typeof zoomPanY  !== 'undefined') ? zoomPanY * renderScale : 0;
   const fitSc = Math.min(cw / iw, ch / ih);
   const sw = Math.round(iw * fitSc * zoom);
   const sh = Math.round(ih * fitSc * zoom);
@@ -5212,18 +5215,19 @@ function renderWithAdjustments(canvas, adj) {
 function loadImageToCanvas(canvas, img) {
   if (!canvas || !img) return;
   const dpr = window.devicePixelRatio || 1;
-  // Use the parent container to measure available space — canvas.offsetWidth
-  // can return 0 or stale values if the view just became visible.
   const parent = canvas.parentElement || canvas;
   const rect   = parent.getBoundingClientRect();
   const dw = (rect.width  > 10 ? rect.width  : canvas.offsetWidth)  || 800;
   const dh = (rect.height > 10 ? rect.height : canvas.offsetHeight) || 600;
-  // Physical pixels: match canvas buffer to screen pixels for HiDPI sharpness.
-  canvas.width  = Math.round(dw * dpr);
-  canvas.height = Math.round(dh * dpr);
-  // Do NOT set canvas.style.width/height — let CSS width:100%;height:100% fill
-  // the container. Pinning to a measured size can under-fill the container.
-  console.log('[ZOE DIAG] dpr='+dpr+' parent='+Math.round(dw)+'x'+Math.round(dh)+' buffer='+canvas.width+'x'+canvas.height+' img='+img.naturalWidth+'x'+img.naturalHeight+' zoom='+((typeof zoomLevel!=='undefined')?zoomLevel:'?'));
+  // Render at 2× CSS size so the GPU compositor's final downscale is the last
+  // step — this preserves far more detail than a single large canvas drawImage.
+  // Cap at natural image dimensions so we never upscale beyond source quality.
+  const mult = dpr * 2;
+  canvas.width  = Math.min(img.naturalWidth,  Math.round(dw * mult));
+  canvas.height = Math.min(img.naturalHeight, Math.round(dh * mult));
+  // Store CSS display dimensions so captureOriginal can correctly scale pan offsets.
+  canvas._cssW = dw;
+  canvas._cssH = dh;
   captureOriginal(canvas, img);
   renderWithAdjustments(canvas, {});
 }
@@ -6294,10 +6298,6 @@ function zoomShowToolbar(show) {
 function _zoomRerender() {
   const hc = document.getElementById('hero-canvas');
   if (!hc || !userImage) return;
-  const dpr=window.devicePixelRatio||1, iw=userImage.naturalWidth, ih=userImage.naturalHeight;
-  const fitSc=Math.min(hc.width/iw, hc.height/ih);
-  const sw=Math.round(iw*fitSc*zoomLevel), sh=Math.round(ih*fitSc*zoomLevel);
-  console.log('[ZOE ZOOM] zoom='+zoomLevel+' buf='+hc.width+'x'+hc.height+' draws='+sw+'x'+sh+' img='+iw+'x'+ih);
   captureOriginal(hc, userImage);
   const adj = (activePreset && sliderState[activePreset.id])
     ? buildAdjustments(sliderState[activePreset.id]) : {};

@@ -5253,18 +5253,36 @@ function renderWithAdjustments(canvas, adj) {
 async function loadImageToCanvas(canvas, img) {
   if (!canvas || !img) return;
   const dpr = window.devicePixelRatio || 1;
-  let rect = canvas.getBoundingClientRect();
-  if (rect.width < 10 || rect.height < 10) {
-    rect = (canvas.parentElement || canvas).getBoundingClientRect();
-  }
-  const dw = (rect.width  > 10 ? rect.width  : 800);
-  const dh = (rect.height > 10 ? rect.height : 600);
-  // Buffer at physical pixel resolution. Quality comes from Lanczos in
-  // captureOriginal (createImageBitmap resizeQuality:'high'), not buffer size.
-  canvas.width  = Math.round(dw * dpr);
-  canvas.height = Math.round(dh * dpr);
-  canvas._cssW = dw;
-  canvas._cssH = dh;
+
+  // Measure the container (edit-view) for layout purposes
+  const container = canvas.parentElement || canvas;
+  const cRect = container.getBoundingClientRect();
+  const conW = (cRect.width  > 10 ? cRect.width  : 800);
+  const conH = (cRect.height > 10 ? cRect.height : 600);
+
+  // Buffer matches the IMAGE's aspect ratio, capped so pixel ops stay fast.
+  // This avoids the landscape-buffer / portrait-photo mismatch that caused blur.
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const MAX_BUF = 1600;
+  const bufScale = Math.min(1, MAX_BUF / Math.max(iw, ih)) * dpr;
+  const bufW = Math.round(iw * bufScale);
+  const bufH = Math.round(ih * bufScale);
+  canvas.width  = bufW;
+  canvas.height = bufH;
+
+  // Fit the image-shaped canvas inside the container, maintaining aspect ratio.
+  // Override the stylesheet's width:100%;height:100% with exact CSS px values.
+  const fitSc = Math.min(conW / bufW, conH / bufH);
+  const cssW  = Math.round(bufW * fitSc);
+  const cssH  = Math.round(bufH * fitSc);
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  canvas.style.position = 'absolute';
+  canvas.style.left = Math.round((conW - cssW) / 2) + 'px';
+  canvas.style.top  = Math.round((conH - cssH) / 2) + 'px';
+
+  canvas._cssW = cssW;
+  canvas._cssH = cssH;
   await captureOriginal(canvas, img);
   renderWithAdjustments(canvas, {});
 }
@@ -5429,6 +5447,9 @@ function openEditor(idx) {
 function backToLibrary() {
   document.getElementById('edit-view').classList.add('hidden');
   document.getElementById('library-view').classList.remove('hidden');
+  // Reset canvas inline styles set by loadImageToCanvas
+  const hc = document.getElementById('hero-canvas');
+  if (hc) { hc.style.width = ''; hc.style.height = ''; hc.style.position = ''; hc.style.left = ''; hc.style.top = ''; }
   userImage  = null;
   editingIdx = -1;
   const looksWin = document.querySelector('.looks-win');

@@ -5193,6 +5193,7 @@ function loadImageToCanvas(canvas, img) {
   canvas.height = Math.round(dh * dpr);
   // Do NOT set canvas.style.width/height — let CSS width:100%;height:100% fill
   // the container. Pinning to a measured size can under-fill the container.
+  console.log('[ZOE DIAG] dpr='+dpr+' parent='+Math.round(dw)+'x'+Math.round(dh)+' buffer='+canvas.width+'x'+canvas.height+' img='+img.naturalWidth+'x'+img.naturalHeight);
   captureOriginal(canvas, img);
   renderWithAdjustments(canvas, {});
 }

@@ -4605,9 +4605,9 @@ function captureOriginal(canvas, img) {
   // At zoom > 1 the image is drawn larger than the canvas so only the zoomed
   // viewport is visible — this gives sharp detail without any CSS upscaling.
   const zoom  = (typeof zoomLevel !== 'undefined') ? zoomLevel : 1;
-  // renderScale: canvas pixels per CSS pixel (includes both dpr and quality mult).
-  // canvas._cssW is set by loadImageToCanvas; fall back to dpr if not available.
-  const cssW  = canvas._cssW || (canvas.width / (window.devicePixelRatio || 1));
+  // renderScale: canvas buffer pixels per CSS pixel.
+  const dpr   = window.devicePixelRatio || 1;
+  const cssW  = canvas._cssW || (canvas.width / dpr);
   const renderScale = canvas.width / cssW;
   // zoomPanX/Y are in CSS pixels; convert to canvas coordinates.
   const panX  = (typeof zoomPanX  !== 'undefined') ? zoomPanX * renderScale : 0;
@@ -5215,17 +5215,18 @@ function renderWithAdjustments(canvas, adj) {
 function loadImageToCanvas(canvas, img) {
   if (!canvas || !img) return;
   const dpr = window.devicePixelRatio || 1;
-  const parent = canvas.parentElement || canvas;
-  const rect   = parent.getBoundingClientRect();
-  const dw = (rect.width  > 10 ? rect.width  : canvas.offsetWidth)  || 800;
-  const dh = (rect.height > 10 ? rect.height : canvas.offsetHeight) || 600;
-  // Render at 2× CSS size so the GPU compositor's final downscale is the last
-  // step — this preserves far more detail than a single large canvas drawImage.
-  // Cap at natural image dimensions so we never upscale beyond source quality.
-  const mult = dpr * 2;
-  canvas.width  = Math.min(img.naturalWidth,  Math.round(dw * mult));
-  canvas.height = Math.min(img.naturalHeight, Math.round(dh * mult));
-  // Store CSS display dimensions so captureOriginal can correctly scale pan offsets.
+  // Measure the canvas itself (not the parent) so we get the actual display size.
+  let rect = canvas.getBoundingClientRect();
+  // Fall back to parent if canvas hasn't been laid out yet.
+  if (rect.width < 10 || rect.height < 10) {
+    rect = (canvas.parentElement || canvas).getBoundingClientRect();
+  }
+  const dw = (rect.width  > 10 ? rect.width  : 800);
+  const dh = (rect.height > 10 ? rect.height : 600);
+  // Match canvas buffer to physical pixels (dpr) — no extra multiplier.
+  // drawImageHQ handles progressive halving so a single-pass draw is sharp.
+  canvas.width  = Math.round(dw * dpr);
+  canvas.height = Math.round(dh * dpr);
   canvas._cssW = dw;
   canvas._cssH = dh;
   captureOriginal(canvas, img);

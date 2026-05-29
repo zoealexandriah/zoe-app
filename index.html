@@ -4582,6 +4582,8 @@ function captureOriginal(canvas, img) {
   const sh = Math.round(ih * fitSc * zoom);
   const dx = Math.round((cw - sw) / 2 + panX);
   const dy = Math.round((ch - sh) / 2 + panY);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, dx, dy, sw, sh);
 
   // Capture only the canvas-visible portion of the drawn image
@@ -5180,13 +5182,17 @@ function renderWithAdjustments(canvas, adj) {
 function loadImageToCanvas(canvas, img) {
   if (!canvas || !img) return;
   const dpr = window.devicePixelRatio || 1;
-  const dw  = canvas.offsetWidth  || 700;
-  const dh  = canvas.offsetHeight || 480;
-  // Match the canvas buffer to physical pixels so it's sharp on HiDPI screens.
+  // Use the parent container to measure available space — canvas.offsetWidth
+  // can return 0 or stale values if the view just became visible.
+  const parent = canvas.parentElement || canvas;
+  const rect   = parent.getBoundingClientRect();
+  const dw = (rect.width  > 10 ? rect.width  : canvas.offsetWidth)  || 800;
+  const dh = (rect.height > 10 ? rect.height : canvas.offsetHeight) || 600;
+  // Physical pixels: match canvas buffer to screen pixels for HiDPI sharpness.
   canvas.width  = Math.round(dw * dpr);
   canvas.height = Math.round(dh * dpr);
-  canvas.style.width  = dw + 'px';
-  canvas.style.height = dh + 'px';
+  // Do NOT set canvas.style.width/height — let CSS width:100%;height:100% fill
+  // the container. Pinning to a measured size can under-fill the container.
   captureOriginal(canvas, img);
   renderWithAdjustments(canvas, {});
 }
@@ -5344,8 +5350,6 @@ function openEditor(idx) {
   requestAnimationFrame(() => {
     const c = document.getElementById('hero-canvas');
     if (!c) return;
-    c.width  = c.offsetWidth  || 700;
-    c.height = c.offsetHeight || 480;
     loadImageToCanvas(c, savedCurrent ? userImage : entry.img);
   });
 }

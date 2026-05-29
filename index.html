@@ -3163,21 +3163,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
             </div>
             <div id="ev-preset-label" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:0.18em;color:rgba(201,184,212,0.35);font-family:var(--mono);pointer-events:none;white-space:nowrap"></div>
           </div>
-        
-
-</div>
-
-        <!-- Col 2: Preset list (220px) -->
-        <div style="width:220px;min-width:220px;max-width:220px;height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--surface);border-left:0.5px solid var(--border);">
-          <div style="height:36px;flex-shrink:0;display:flex;align-items:center;padding:0 12px;border-bottom:0.5px solid var(--border);font-size:9px;letter-spacing:0.20em;color:rgba(175,162,200,0.42);font-family:var(--mono)">_ PRESETS</div>
-          <div id="ev-cats" style="display:flex;flex-wrap:wrap;gap:4px;padding:8px;border-bottom:0.5px solid var(--border);flex-shrink:0">
-            <div class="pv-cat-btn active" onclick="evFilterCat(this,'ALL')">ALL</div>
-            <div class="pv-cat-btn" onclick="evFilterCat(this,'HOLOGRAPHIC')">HOLO</div>
-            <div class="pv-cat-btn" onclick="evFilterCat(this,'CHROME')">CHROME</div>
-            <div class="pv-cat-btn" onclick="evFilterCat(this,'CINEMATIC')">CINEMA</div>
-            <div class="pv-cat-btn" onclick="evFilterCat(this,'FILM')">FILM</div>
+          <!-- Bottom preset strip -->
+          <div style="height:158px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);overflow:hidden;">
+            <div id="ev-preset-list" style="height:100%;overflow-x:auto;display:flex;flex-direction:row;scrollbar-width:none;"></div>
           </div>
-          <div id="ev-preset-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0;scrollbar-width:thin;scrollbar-color:#c9b8d4 #1a1520"></div>
         </div>
 
         <!-- Col 3: Editor Suite (240px) -->
@@ -7413,18 +7402,19 @@ function evRenderPresets() {
   var list = document.getElementById('ev-preset-list');
   if (!list) return;
   list.innerHTML = '';
-  presets.filter(function(p){
-    return evCatFilter==='ALL' || (p.series||'').toUpperCase().indexOf(evCatFilter)>=0;
-  }).forEach(function(p){
+  presets.forEach(function(p){
     var card = document.createElement('div');
     var isActive = evActivePreset && evActivePreset.id===p.id;
-    card.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px;border-bottom:0.5px solid #1a1520;cursor:pointer;transition:background 0.16s'+(isActive?';border-left:2px solid '+(p.acc||'#c9b8d4')+';background:rgba(201,184,212,0.07)':';border-left:2px solid transparent');
-    card.innerHTML = '<canvas id="evt-'+p.id+'" width="40" height="40" style="flex-shrink:0;display:block"></canvas>'
-      +'<div style="flex:1;min-width:0"><div style="font-size:8px;letter-spacing:0.12em;color:rgba(220,210,240,0.82);font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name.toUpperCase()+'</div>'
-      +'<div style="font-size:6.5px;letter-spacing:0.12em;color:rgba(154,138,154,0.50);font-family:var(--mono);margin-top:2px">'+(p.series||'').toUpperCase()+'</div></div>';
+    card.style.cssText = 'width:96px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-right:0.5px solid var(--border);display:flex;flex-direction:column;transition:background 0.18s;'+(isActive?'background:rgba(201,184,212,0.07)':'');
+    card.innerHTML = '<canvas id="evt-'+p.id+'" width="96" height="112" style="width:96px;height:112px;display:block;flex-shrink:0;object-fit:cover;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
+      +'<div style="padding:5px 7px 6px;flex:1;">'
+      +'<div style="font-size:7.5px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.72')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name.toUpperCase()+'</div>'
+      +'<div style="font-size:6px;letter-spacing:0.10em;color:rgba(154,138,154,0.50);font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(p.series||'').toUpperCase()+'</div>'
+      +'</div>'
+      +(isActive?'<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,'+(p.acc||'#c9b8d4')+',transparent)"></div>':'');
     card.onclick = function(){ evActivePreset = p; evRenderPresets(); evRenderCanvas(); };
-    card.onmouseover = function(){ if(!isActive) this.style.background='rgba(201,184,212,0.04)'; };
-    card.onmouseout  = function(){ if(!isActive) this.style.background=''; };
+    card.onmouseover = function(){ if(!isActive){ this.style.background='rgba(201,184,212,0.05)'; var cv=this.querySelector('canvas'); if(cv) cv.style.transform='scale(1.05)'; } };
+    card.onmouseout  = function(){ if(!isActive){ this.style.background=''; var cv=this.querySelector('canvas'); if(cv) cv.style.transform=''; } };
     list.appendChild(card);
     requestAnimationFrame(function(){
       var c=document.getElementById('evt-'+p.id);

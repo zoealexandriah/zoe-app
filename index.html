@@ -3262,36 +3262,21 @@ Object.keys(IMG).forEach(getImg);
 // PRESETS
 // ══════════════════════════════════════
 const presets = [
-  { id:'halo',       num:'01', name:'Halo',       series:'HOLOGRAPHIC',  imgKey:'strip_halo',    heroKey:'hero_featured',
-    tint:'purple', orbs:[['#c890f0',0.38,0.52,0.40],['#e880d0',0.18,0.18,0.22]], acc:'#d4a8f8', warm:true,
-    sliders:{LIGHT:{EXPOSURE:'+0.35',CONTRAST:'+0.12',HIGHLIGHTS:'−0.25',SHADOWS:'+0.40',WHITES:'+0.00',BLACKS:'+0.00'},
-             COLOR:{TEMPERATURE:'+0.10',TINT:'+0.05',VIBRANCE:'+0.25',SATURATION:'+0.30'},
-             EFFECTS:{GLOW:'+0.45',GRAIN:'+0.15',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00'},HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}} },
-  { id:'cyberbloom', num:'02', name:'Cyber Bloom', series:'CHROME FLORAL',imgKey:'strip_flower',  heroKey:'strip_flower',
-    tint:'pink', orbs:[['#f060a8',0.32,0.48,0.36],['#c040c0',0.18,0.62,0.16]], acc:'#f898cc', warm:false,
-    sliders:{LIGHT:{EXPOSURE:'+0.10',CONTRAST:'+0.22',HIGHLIGHTS:'−0.18',SHADOWS:'+0.28',WHITES:'+0.00',BLACKS:'+0.00'},
-             COLOR:{TEMPERATURE:'−0.05',TINT:'+0.18',VIBRANCE:'+0.45',SATURATION:'+0.55'},
-             EFFECTS:{GLOW:'+0.30',GRAIN:'+0.08',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00'},HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}} },
-  { id:'vhs',        num:'03', name:'VHS Heaven',  series:'CINEMATIC',    imgKey:'strip_vhs',     heroKey:'strip_vhs',
-    tint:'blue', orbs:[['#6088f0',0.28,0.50,0.40],['#88d0ff',0.15,0.76,0.18]], acc:'#90c4ff', warm:false,
-    sliders:{LIGHT:{EXPOSURE:'−0.12',CONTRAST:'+0.28',HIGHLIGHTS:'−0.35',SHADOWS:'+0.52',WHITES:'+0.00',BLACKS:'+0.00'},
-             COLOR:{TEMPERATURE:'−0.22',TINT:'−0.08',VIBRANCE:'+0.18',SATURATION:'−0.10'},
-             EFFECTS:{GLOW:'+0.18',GRAIN:'+0.42',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00'},HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}} },
-  { id:'afterimage', num:'04', name:'Afterimage',  series:'FILM',         imgKey:'strip_after',   heroKey:'strip_after',
-    tint:'warm', orbs:[['#f07040',0.24,0.48,0.36],['#ffc080',0.14,0.20,0.20]], acc:'#ffb070', warm:true,
-    sliders:{LIGHT:{EXPOSURE:'+0.30',CONTRAST:'+0.14',HIGHLIGHTS:'−0.22',SHADOWS:'+0.38',WHITES:'+0.00',BLACKS:'+0.00'},
-             COLOR:{TEMPERATURE:'+0.28',TINT:'+0.10',VIBRANCE:'+0.15',SATURATION:'+0.18'},
-             EFFECTS:{GLOW:'+0.22',GRAIN:'+0.32',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00'},HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}} },
-  { id:'glass',      num:'05', name:'Glass Skin',  series:'SOFT CHROME',  imgKey:'strip_eyes',    heroKey:'strip_eyes',
-    tint:'purple', orbs:[['#c870d8',0.28,0.50,0.38],['#9048c8',0.16,0.28,0.24]], acc:'#e0a8f8', warm:false,
-    sliders:{LIGHT:{EXPOSURE:'+0.44',CONTRAST:'−0.08',HIGHLIGHTS:'−0.12',SHADOWS:'+0.32',WHITES:'+0.00',BLACKS:'+0.00'},
-             COLOR:{TEMPERATURE:'−0.08',TINT:'+0.05',VIBRANCE:'+0.12',SATURATION:'−0.15'},
-             EFFECTS:{GLOW:'+0.38',GRAIN:'+0.05',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00'},HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}} },
-  { id:'lucid',      num:'06', name:'Lucid Dream', series:'ETHEREAL',     imgKey:'strip_cupid',   heroKey:'strip_cupid',
-    tint:'pink', orbs:[['#e060c8',0.30,0.52,0.38],['#c848a8',0.18,0.30,0.26]], acc:'#f0b0e8', warm:true,
-    sliders:{LIGHT:{EXPOSURE:'+0.18',CONTRAST:'−0.04',HIGHLIGHTS:'−0.38',SHADOWS:'+0.48',WHITES:'+0.00',BLACKS:'+0.00'},
-             COLOR:{TEMPERATURE:'+0.14',TINT:'+0.20',VIBRANCE:'+0.28',SATURATION:'+0.22'},
-             EFFECTS:{GLOW:'+0.52',GRAIN:'+0.08',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00'},HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}} },
+  { id:'crimson', num:'01', name:'Crimson', series:'DARK VELVET',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'crimson', orbs:[['#cc2040',0.42,0.50,0.55],['#e05028',0.20,0.72,0.28]], acc:'#c04040', warm:true,
+    defaults:{
+      EXPOSURE:0.560, CONTRAST:0.710, HIGHLIGHTS:0.610, SHADOWS:0.640,
+      WHITES:0.500,   BLACKS:0.425,   TEMPERATURE:0.690, TINT:0.540,
+      VIBRANCE:0.610, SATURATION:0.560,
+      GLOW:0.08, GRAIN:0.15, SHARPEN:0.05, CLARITY:0.08, BLUR:0.0, FADE:0.0,
+      SAT_REDS:0.600, SAT_ORANGES:0.560, SAT_YELLOWS:0.500,
+      SAT_GREENS:0.500, SAT_BLUES:0.500, SAT_PURPLES:0.500, HUE_SHIFT:0.500
+    },
+    sliders:{LIGHT:{EXPOSURE:'+0.12',CONTRAST:'+0.42',HIGHLIGHTS:'+0.22',SHADOWS:'+0.28',WHITES:'+0.00',BLACKS:'−0.15'},
+             COLOR:{TEMPERATURE:'+0.38',TINT:'+0.08',VIBRANCE:'+0.22',SATURATION:'+0.12'},
+             EFFECTS:{GLOW:'+0.08',GRAIN:'+0.15',SHARPEN:'+0.05',CLARITY:'+0.08',BLUR:'+0.00',FADE:'+0.00'},
+             HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.20',SAT_ORANGES:'+0.12',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}} },
 ];
 
 // ══════════════════════════════════════
@@ -3315,7 +3300,7 @@ function renderPhoto(canvas, imgKey, tint, orbs, acc, warm, size){
   }
 
   // 2. Tonal grade (multiply)
-  const tintMap={purple:{r:130,g:72,b:195,a:isHero?0.24:0.30},pink:{r:195,g:55,b:135,a:isHero?0.20:0.25},blue:{r:35,g:72,b:195,a:isHero?0.28:0.33},warm:{r:175,g:95,b:35,a:isHero?0.16:0.20}};
+  const tintMap={purple:{r:130,g:72,b:195,a:isHero?0.24:0.30},pink:{r:195,g:55,b:135,a:isHero?0.20:0.25},blue:{r:35,g:72,b:195,a:isHero?0.28:0.33},warm:{r:175,g:95,b:35,a:isHero?0.16:0.20},crimson:{r:160,g:22,b:40,a:isHero?0.32:0.40}};
   const t=tintMap[tint]||tintMap.purple;
   ctx.globalCompositeOperation='multiply';
   ctx.fillStyle=`rgba(${t.r},${t.g},${t.b},${t.a})`;
@@ -3602,13 +3587,16 @@ const sliderConfig = {
 function initSliderState(p) {
   if (!sliderState[p.id]) sliderState[p.id] = {};
   const state = sliderState[p.id];
+  const defs = p.defaults || {};
   Object.entries(p.sliders||{}).forEach(([section, rows]) => {
     Object.entries(rows).forEach(([name]) => {
       if (state[name] === undefined) {
-        const cfg = sliderConfig[name];
-        // neutral_at_0.5 = true  → bipolar slider, zero = 0.5
-        // neutral_at_0.5 = false → effects slider, zero = 0.0
-        state[name] = (cfg && cfg[3] === false) ? 0.0 : 0.5;
+        if (defs[name] !== undefined) {
+          state[name] = defs[name];
+        } else {
+          const cfg = sliderConfig[name];
+          state[name] = (cfg && cfg[3] === false) ? 0.0 : 0.5;
+        }
       }
     });
   });

@@ -3264,7 +3264,7 @@ Object.keys(IMG).forEach(getImg);
 const presets = [
   { id:'crimson', num:'01', name:'Crimson', series:'DARK VELVET',
     imgKey:'strip_after', heroKey:'strip_after',
-    tint:'crimson', orbs:[['#cc2040',0.42,0.50,0.55],['#e05028',0.20,0.72,0.28]], acc:'#c04040', warm:true,
+    tint:'none', orbs:[], acc:'#c04040', warm:true,
     defaults:{
       EXPOSURE:0.560, CONTRAST:0.710, HIGHLIGHTS:0.610, SHADOWS:0.640,
       WHITES:0.500,   BLACKS:0.425,   TEMPERATURE:0.690, TINT:0.540,
@@ -3273,7 +3273,7 @@ const presets = [
       SAT_REDS:0.600, SAT_ORANGES:0.560, SAT_YELLOWS:0.500,
       SAT_GREENS:0.500, SAT_BLUES:0.500, SAT_PURPLES:0.500, HUE_SHIFT:0.500
     },
-    sliders:{LIGHT:{EXPOSURE:'+0.12',CONTRAST:'+0.42',HIGHLIGHTS:'+0.22',SHADOWS:'+0.28',WHITES:'+0.00',BLACKS:'−0.15'},
+    sliders:{LIGHT:{EXPOSURE:'+0.12',CONTRAST:'+0.42',HIGHLIGHTS:'+0.22',SHADOWS:'+0.28',WHITES:'+0.00',BLACKS:'-0.15'},
              COLOR:{TEMPERATURE:'+0.38',TINT:'+0.08',VIBRANCE:'+0.22',SATURATION:'+0.12'},
              EFFECTS:{GLOW:'+0.08',GRAIN:'+0.15',SHARPEN:'+0.05',CLARITY:'+0.08',BLUR:'+0.00',FADE:'+0.00'},
              HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.20',SAT_ORANGES:'+0.12',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}} },

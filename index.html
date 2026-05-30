@@ -3729,12 +3729,14 @@ function attachSliderListeners(p) {
     }
 
     track.addEventListener('mousedown', e => {
+      evHistoryPush(); // capture pre-drag state for undo
       dragging = true;
       track.classList.add('dragging');
       updateSlider(getT(e));
       e.preventDefault();
     });
     track.addEventListener('touchstart', e => {
+      evHistoryPush(); // capture pre-drag state for undo
       dragging = true;
       track.classList.add('dragging');
       updateSlider(getT(e));
@@ -3838,7 +3840,6 @@ function doRender(presetId) {
     const hc = document.getElementById('hero-canvas');
     if (hc) {
       fix2HistoryPush(presetId);
-      evHistoryPush();
       renderWithAdjustments(hc, adj);
       globalUndoRedoUpdate();
     }

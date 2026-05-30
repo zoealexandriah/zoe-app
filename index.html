@@ -7603,9 +7603,20 @@ function evRenderPresets() {
     card.onclick = function(){
       // Push history before changing preset
       evHistoryPush();
-      evActivePreset = p; applyPresetDefaults(p); presetIntensity=1.0;
+      // Set both evActivePreset AND activePreset — evRenderCanvas reads activePreset
+      evActivePreset = p; activePreset = p;
+      applyPresetDefaults(p); presetIntensity=1.0;
       document.querySelectorAll('.intensity-slider').forEach(function(el){el.value=100;});
       document.querySelectorAll('.intensity-val').forEach(function(el){el.textContent='100%';});
+      // Update atmosphere tab preset display
+      var nameEl = document.getElementById('es-preset-name');
+      var seriesEl = document.getElementById('es-preset-series');
+      var thumbEl = document.getElementById('es-preset-thumb');
+      if (nameEl) nameEl.textContent = p.name;
+      if (seriesEl) seriesEl.textContent = p.series;
+      if (thumbEl) { thumbEl.width=36; thumbEl.height=46; renderPhoto(thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
+      // Rebuild editor suite sliders for the new preset
+      buildEditorSliders(p);
       evRenderPresets(); evRenderCanvas();
     };
     card.onmouseover = function(){ if(!isActive){ this.style.background='rgba(201,184,212,0.05)'; var cv=this.querySelector('canvas'); if(cv) cv.style.transform='scale(1.05)'; } };

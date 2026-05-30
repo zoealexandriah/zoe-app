@@ -3160,8 +3160,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
           </div>
         </div>
 
-        <!-- Col 3: Editor Suite (240px) -->
-        <div style="width:240px;min-width:240px;max-width:240px;height:100%;overflow-y:auto;background:var(--surface);border-left:0.5px solid var(--border);scrollbar-width:thin;scrollbar-color:rgba(201,184,212,0.18) transparent">
+        <!-- Col 3: Editor Suite (300px) -->
+        <div style="width:300px;min-width:300px;max-width:300px;height:100%;overflow-y:auto;background:var(--surface);border-left:0.5px solid var(--border);scrollbar-width:thin;scrollbar-color:rgba(201,184,212,0.18) transparent">
           <div style="height:28px;flex-shrink:0;display:flex;align-items:center;padding:0 10px;background:linear-gradient(to bottom,#cdb0ba,#b89aa4);border-bottom:0.5px solid rgba(140,100,110,0.35);">
             <span style="font-size:9px;letter-spacing:0.18em;color:#2a1a1e;font-family:var(--mono);font-weight:500">EDITOR.SUITE</span>
           </div>
@@ -3838,6 +3838,7 @@ function doRender(presetId) {
     const hc = document.getElementById('hero-canvas');
     if (hc) {
       fix2HistoryPush(presetId);
+      evHistoryPush();
       renderWithAdjustments(hc, adj);
       globalUndoRedoUpdate();
     }
@@ -7020,50 +7021,72 @@ function fix2UpdateButtons() {
   globalUndoRedoUpdate(); // also update the old global buttons if present
 }
 
-// Override globalUndo to use fix2 history
-const _origGlobalUndo = window.globalUndo;
-window.globalUndo = function() {
-  if (fix2History.length === 0) return;
-  const hc = document.getElementById('hero-canvas');
-  if (!hc) return;
-  // Push current to future
-  const curCanvas = hc.getContext('2d').getImageData(0, 0, hc.width, hc.height);
-  const curPid    = activePreset ? activePreset.id : null;
-  const curSliders = curPid ? JSON.parse(JSON.stringify(sliderState[curPid] || {})) : {};
-  fix2Future.push({ canvasData: curCanvas, sliderSnap: curSliders, presetId: curPid });
-  // Restore previous
-  const prev = fix2History.pop();
-  hc.getContext('2d').putImageData(prev.canvasData, 0, 0);
-  if (prev.presetId && sliderState[prev.presetId] !== undefined) {
-    sliderState[prev.presetId] = prev.sliderSnap;
-    if (activePreset && activePreset.id === prev.presetId) {
-      buildEditorSliders(activePreset);
-      buildEditorToolsSection();
-    }
+// ── Slider-state–based edit history (works for both hero-canvas and ev-canvas) ──
+const evHistory = [];  // { presetId, sliders, intensity }
+const evFuture  = [];
+
+function evHistoryPush() {
+  const p = evActivePreset || activePreset;
+  if (!p) return;
+  evHistory.push({
+    presetId:  p.id,
+    sliders:   JSON.parse(JSON.stringify(sliderState[p.id] || {})),
+    intensity: presetIntensity
+  });
+  if (evHistory.length > 30) evHistory.shift();
+  evFuture.length = 0;
+  _evUpdateUndoRedoBtns();
+}
+
+function _evRestoreSnap(snap) {
+  const p = presets.find(x => x.id === snap.presetId);
+  if (p) {
+    evActivePreset = p; activePreset = p;
+    sliderState[p.id] = JSON.parse(JSON.stringify(snap.sliders || {}));
+    buildEditorSliders(p);
   }
+  presetIntensity = snap.intensity ?? 1.0;
+  document.querySelectorAll('.intensity-slider').forEach(el => { el.value = Math.round(presetIntensity * 100); });
+  document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = Math.round(presetIntensity * 100) + '%'; });
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+  const hc = document.getElementById('hero-canvas');
+  if (hc && userImage && p) renderWithAdjustments(hc, buildAdjustments(sliderState[p.id] || {}));
+  evRenderPresets();
+  _evUpdateUndoRedoBtns();
+}
+
+function _evUpdateUndoRedoBtns() {
+  ['ctb-undo','ev-undo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('disabled', evHistory.length === 0);
+  });
+  ['ctb-redo','ev-redo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('disabled', evFuture.length === 0);
+  });
   fix2UpdateButtons();
+}
+
+window.globalUndo = function() {
+  if (evHistory.length === 0) return;
+  const p = evActivePreset || activePreset;
+  evFuture.push({
+    presetId:  p ? p.id : null,
+    sliders:   p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
+    intensity: presetIntensity
+  });
+  _evRestoreSnap(evHistory.pop());
 };
 
-// Override globalRedo
-const _origGlobalRedo = window.globalRedo;
 window.globalRedo = function() {
-  if (fix2Future.length === 0) return;
-  const hc = document.getElementById('hero-canvas');
-  if (!hc) return;
-  const curCanvas  = hc.getContext('2d').getImageData(0, 0, hc.width, hc.height);
-  const curPid     = activePreset ? activePreset.id : null;
-  const curSliders = curPid ? JSON.parse(JSON.stringify(sliderState[curPid] || {})) : {};
-  fix2History.push({ canvasData: curCanvas, sliderSnap: curSliders, presetId: curPid });
-  const next = fix2Future.pop();
-  hc.getContext('2d').putImageData(next.canvasData, 0, 0);
-  if (next.presetId && sliderState[next.presetId] !== undefined) {
-    sliderState[next.presetId] = next.sliderSnap;
-    if (activePreset && activePreset.id === next.presetId) {
-      buildEditorSliders(activePreset);
-      buildEditorToolsSection();
-    }
-  }
-  fix2UpdateButtons();
+  if (evFuture.length === 0) return;
+  const p = evActivePreset || activePreset;
+  evHistory.push({
+    presetId:  p ? p.id : null,
+    sliders:   p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
+    intensity: presetIntensity
+  });
+  _evRestoreSnap(evFuture.pop());
 };
 
 // ── Fix 3: Global RESET ───────────────────────────────────────────────────
@@ -7423,6 +7446,30 @@ function evRenderCanvas() {
   }
 }
 
+// Render a preset thumbnail using the user's actual photo + preset adjustments.
+// Falls back to synthetic renderPhoto if no userImage is loaded.
+function renderPresetThumb(canvas, p) {
+  if (!canvas) return;
+  if (!userImage) {
+    renderPhoto(canvas, p.imgKey||'strip_halo', p.tint, p.orbs||[], p.acc, p.warm, 'thumb');
+    return;
+  }
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+  // Cover-fit the user's photo into the thumbnail
+  var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
+  var scale = Math.max(w / iw, h / ih);
+  var sw = iw * scale, sh = ih * scale;
+  ctx.drawImage(userImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
+  // Apply preset default adjustments
+  if (p.defaults) {
+    var adj = buildAdjustments(p.defaults);
+    var imageData = ctx.getImageData(0, 0, w, h);
+    var processed = applyPixelAdjustments(imageData, adj);
+    ctx.putImageData(new ImageData(processed, w, h), 0, 0);
+  }
+}
+
 function evRenderPresets() {
   var list = document.getElementById('ev-preset-list');
   if (!list) return;
@@ -7431,19 +7478,26 @@ function evRenderPresets() {
     var card = document.createElement('div');
     var isActive = evActivePreset && evActivePreset.id===p.id;
     card.style.cssText = 'width:96px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-right:0.5px solid var(--border);display:flex;flex-direction:column;transition:background 0.18s;'+(isActive?'background:rgba(201,184,212,0.07)':'');
-    card.innerHTML = '<canvas id="evt-'+p.id+'" width="96" height="112" style="width:96px;height:112px;display:block;flex-shrink:0;object-fit:cover;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
+    card.innerHTML = '<canvas id="evt-'+p.id+'" width="96" height="96" style="width:96px;height:96px;display:block;flex-shrink:0;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
       +'<div style="padding:5px 7px 6px;flex:1;">'
       +'<div style="font-size:7.5px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.72')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name.toUpperCase()+'</div>'
       +'<div style="font-size:6px;letter-spacing:0.10em;color:rgba(154,138,154,0.50);font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(p.series||'').toUpperCase()+'</div>'
       +'</div>'
       +(isActive?'<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,'+(p.acc||'#c9b8d4')+',transparent)"></div>':'');
-    card.onclick = function(){ evActivePreset = p; applyPresetDefaults(p); presetIntensity=1.0; document.querySelectorAll('.intensity-slider').forEach(function(el){el.value=100;}); document.querySelectorAll('.intensity-val').forEach(function(el){el.textContent='100%';}); evRenderPresets(); evRenderCanvas(); };
+    card.onclick = function(){
+      // Push history before changing preset
+      evHistoryPush();
+      evActivePreset = p; applyPresetDefaults(p); presetIntensity=1.0;
+      document.querySelectorAll('.intensity-slider').forEach(function(el){el.value=100;});
+      document.querySelectorAll('.intensity-val').forEach(function(el){el.textContent='100%';});
+      evRenderPresets(); evRenderCanvas();
+    };
     card.onmouseover = function(){ if(!isActive){ this.style.background='rgba(201,184,212,0.05)'; var cv=this.querySelector('canvas'); if(cv) cv.style.transform='scale(1.05)'; } };
     card.onmouseout  = function(){ if(!isActive){ this.style.background=''; var cv=this.querySelector('canvas'); if(cv) cv.style.transform=''; } };
     list.appendChild(card);
     requestAnimationFrame(function(){
-      var c=document.getElementById('evt-'+p.id);
-      if(c) renderPhoto(c, p.imgKey||'strip_halo', p.tint, p.orbs, p.acc, p.warm, 'thumb');
+      var c = document.getElementById('evt-'+p.id);
+      renderPresetThumb(c, p);
     });
   });
 }
@@ -7536,6 +7590,16 @@ function galleryOpenInEditor(idx) {
       presetIntensity   = typeof es.intensity === 'number' ? es.intensity : 1.0;
       document.querySelectorAll('.intensity-slider').forEach(el => { el.value = Math.round(presetIntensity * 100); });
       document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = Math.round(presetIntensity * 100) + '%'; });
+    }
+    // Load the ORIGINAL (pre-edit) image so adjustments aren't applied on top of a render
+    if (es.originalDataURL) {
+      const origImg = new Image();
+      origImg.onload = () => {
+        userImage = origImg;
+        if (typeof evRenderCanvas === 'function') evRenderCanvas();
+        evRenderPresets();
+      };
+      origImg.src = es.originalDataURL;
     }
   }
   // Switch to EDITOR nav
@@ -7750,9 +7814,10 @@ function editorSaveToGallery() {
   // Capture current edit state so it can be restored later
   const activeP = evActivePreset || activePreset;
   const editState = activeP ? {
-    presetId: activeP.id,
-    sliders:  JSON.parse(JSON.stringify(sliderState[activeP.id] || {})),
-    intensity: presetIntensity
+    presetId:        activeP.id,
+    sliders:         JSON.parse(JSON.stringify(sliderState[activeP.id] || {})),
+    intensity:       presetIntensity,
+    originalDataURL: userImage.src  // original un-edited source for continue-editing
   } : null;
   // Offscreen canvas at original dimensions
   const off = document.createElement('canvas');
@@ -8007,9 +8072,10 @@ window.editorSaveToGallery = function() {
   if (!hc) return;
   const activeP = evActivePreset || activePreset;
   const editState = activeP ? {
-    presetId:  activeP.id,
-    sliders:   JSON.parse(JSON.stringify(sliderState[activeP.id] || {})),
-    intensity: presetIntensity
+    presetId:        activeP.id,
+    sliders:         JSON.parse(JSON.stringify(sliderState[activeP.id] || {})),
+    intensity:       presetIntensity,
+    originalDataURL: userImage.src
   } : null;
   const off = document.createElement('canvas');
   off.width  = userImage.naturalWidth  || hc.width;

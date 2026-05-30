@@ -3161,57 +3161,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
         </div>
 
         <!-- Col 3: Editor Suite (240px) -->
-        <div style="width:240px;min-width:240px;max-width:240px;height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--surface);border-left:0.5px solid var(--border);">
-          <!-- Header -->
-          <div style="height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;background:linear-gradient(to bottom,#cdb0ba,#b89aa4);border-bottom:0.5px solid rgba(140,100,110,0.35);">
-            <span style="font-size:9px;letter-spacing:0.18em;color:#2a1a1e;font-family:var(--mono);font-weight:500">EDITING SUITE</span>
+        <div style="width:240px;min-width:240px;max-width:240px;height:100%;overflow-y:auto;background:var(--surface);border-left:0.5px solid var(--border);scrollbar-width:thin;scrollbar-color:rgba(201,184,212,0.18) transparent">
+          <div style="height:28px;flex-shrink:0;display:flex;align-items:center;padding:0 10px;background:linear-gradient(to bottom,#cdb0ba,#b89aa4);border-bottom:0.5px solid rgba(140,100,110,0.35);">
+            <span style="font-size:9px;letter-spacing:0.18em;color:#2a1a1e;font-family:var(--mono);font-weight:500">EDITOR.SUITE</span>
           </div>
-          <!-- Tabs -->
-          <div style="display:flex;flex-shrink:0;border-bottom:0.5px solid var(--border);background:rgba(0,0,0,0.12);">
-            <div class="ev-suite-tab active" data-tab="atmosphere" onclick="evSwitchTab('atmosphere')">ATMOSPHERE</div>
-            <div class="ev-suite-tab" data-tab="color" onclick="evSwitchTab('color')">COLOR</div>
-            <div class="ev-suite-tab" data-tab="details" onclick="evSwitchTab('details')">DETAILS</div>
-            <div class="ev-suite-tab" data-tab="effects" onclick="evSwitchTab('effects')">EFFECTS</div>
-          </div>
-          <!-- Tab panels -->
-          <div style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(201,184,212,0.18) transparent;">
-            <!-- ATMOSPHERE -->
-            <div id="ev-tab-atmosphere">
-              <!-- Current preset card (display only) -->
-              <div id="ev-suite-preset" style="margin:10px 10px 0;border:0.5px solid var(--border);border-radius:3px;padding:7px 8px;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.22);">
-                <canvas id="ev-suite-thumb" width="36" height="36" style="flex-shrink:0;border-radius:2px;display:block"></canvas>
-                <div style="min-width:0;">
-                  <div id="ev-suite-name" style="font-size:8px;letter-spacing:0.12em;color:rgba(220,210,240,0.90);font-family:var(--mono);font-weight:500">—</div>
-                  <div id="ev-suite-series" style="font-size:6.5px;letter-spacing:0.12em;color:rgba(154,138,154,0.55);font-family:var(--mono);margin-top:2px">NO PRESET</div>
-                </div>
-              </div>
-              <!-- Intensity slider -->
-              <div style="padding:10px 12px 6px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-                  <span style="font-size:7.5px;letter-spacing:0.18em;color:rgba(175,162,200,0.55);font-family:var(--mono)">INTENSITY</span>
-                  <span id="ev-intensity-val" class="intensity-val" style="font-size:7.5px;letter-spacing:0.14em;color:rgba(201,184,212,0.80);font-family:var(--mono)">100%</span>
-                </div>
-                <input type="range" id="ev-intensity" class="intensity-slider" min="0" max="100" value="100" style="width:100%;accent-color:#c04040;cursor:pointer;">
-              </div>
-              <!-- Atmosphere sliders: GLOW, GRAIN, BLUR, FADE -->
-              <div id="ev-atmo-sliders" style="padding-top:4px;"></div>
-            </div>
-            <!-- COLOR -->
-            <div id="ev-tab-color" style="display:none;">
-              <div id="ev-color-sliders"></div>
-            </div>
-            <!-- DETAILS -->
-            <div id="ev-tab-details" style="display:none;">
-              <div id="ev-details-sliders"></div>
-            </div>
-            <!-- EFFECTS -->
-            <div id="ev-tab-effects" style="display:none;">
-              <div id="ev-effects-sliders"></div>
-            </div>
-          </div>
-          <!-- Hidden: keep for backward-compat with other code -->
-          <div id="ev-sliders" style="display:none"></div>
-          <div id="ev-tools" style="display:none"></div>
+          <div id="ev-sliders"></div>
+          <div id="ev-tools"></div>
           <div id="editor-sliders" style="display:none"></div>
           <div id="editor-tools-section" style="display:none"></div>
         </div>
@@ -7500,70 +7455,19 @@ function evFilterCat(btn, cat) {
   evRenderPresets();
 }
 
-function evSwitchTab(tab) {
-  document.querySelectorAll('.ev-suite-tab').forEach(function(t) {
-    t.classList.toggle('active', t.dataset.tab === tab);
-  });
-  ['atmosphere','color','details','effects'].forEach(function(t) {
-    var el = document.getElementById('ev-tab-' + t);
-    if (el) el.style.display = (t === tab) ? '' : 'none';
-  });
-}
-
-function buildSliderRows(presetId, params) {
-  const state = sliderState[presetId] || {};
-  return params.map(function(name) {
-    const t = state[name] !== undefined ? state[name]
-            : (sliderConfig[name] && sliderConfig[name][3] === false ? 0.0 : 0.5);
-    const pct = Math.round(t * 100);
-    const disp = getSliderDisplay(name, t);
-    return `<div class="sl-row">
-      <span class="sl-name">${name}</span>
-      <div class="sl-track" data-preset="${presetId}" data-param="${name}">
-        <div class="sl-fill" style="width:${pct}%"></div>
-        <div class="sl-thumb" style="left:${pct}%"></div>
-      </div>
-      <span class="sl-val" id="slv-${presetId}-${name}">${disp}</span>
-    </div>`;
-  }).join('');
-}
-
-function evUpdateSuiteCard(p) {
-  var nameEl   = document.getElementById('ev-suite-name');
-  var seriesEl = document.getElementById('ev-suite-series');
-  var thumb    = document.getElementById('ev-suite-thumb');
-  if (nameEl)   nameEl.textContent   = p ? p.name.toUpperCase() : '—';
-  if (seriesEl) seriesEl.textContent = p ? (p.series||'').toUpperCase() : 'NO PRESET';
-  if (thumb && p) {
-    requestAnimationFrame(function() {
-      renderPhoto(thumb, p.imgKey||'strip_halo', p.tint, p.orbs||[], p.acc, p.warm, 'thumb');
-    });
-  }
-}
-
 function evBuildSliders() {
-  var p = evActivePreset || activePreset;
-  if (!p) return;
-  var pid = p.id;
-
-  // Atmosphere: GLOW, GRAIN, BLUR, FADE
-  var atmoEl = document.getElementById('ev-atmo-sliders');
-  if (atmoEl) { atmoEl.innerHTML = buildSliderRows(pid, ['GLOW','GRAIN','BLUR','FADE']); }
-
-  // Color: TEMPERATURE, TINT, VIBRANCE, SATURATION
-  var colorEl = document.getElementById('ev-color-sliders');
-  if (colorEl) { colorEl.innerHTML = buildSliderRows(pid, ['TEMPERATURE','TINT','VIBRANCE','SATURATION']); }
-
-  // Details: SHARPEN, CLARITY, FADE (+ EXPOSURE, CONTRAST, HIGHLIGHTS, SHADOWS)
-  var detailEl = document.getElementById('ev-details-sliders');
-  if (detailEl) { detailEl.innerHTML = buildSliderRows(pid, ['SHARPEN','CLARITY','EXPOSURE','CONTRAST','HIGHLIGHTS','SHADOWS','WHITES','BLACKS']); }
-
-  // Effects: HSL
-  var fxEl = document.getElementById('ev-effects-sliders');
-  if (fxEl) { fxEl.innerHTML = buildSliderRows(pid, ['HUE_SHIFT','SAT_REDS','SAT_ORANGES','SAT_YELLOWS','SAT_GREENS','SAT_BLUES','SAT_PURPLES']); }
-
-  attachSliderListeners(p);
-  evUpdateSuiteCard(p);
+  var sc = document.getElementById('ev-sliders');
+  var tc = document.getElementById('ev-tools');
+  if (sc && activePreset) {
+    buildEditorSliders(activePreset);
+    var src2 = document.getElementById('editor-sliders');
+    if (src2) { sc.innerHTML = src2.innerHTML; attachSliderListeners(activePreset); }
+  }
+  if (tc) {
+    buildEditorToolsSection();
+    var src3 = document.getElementById('editor-tools-section');
+    if (src3) tc.innerHTML = src3.innerHTML;
+  }
 }
 
 function evUpdateUndoRedo() {

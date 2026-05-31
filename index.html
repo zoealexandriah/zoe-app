@@ -6126,6 +6126,8 @@ function openEditor(idx) {
   activePresetForEdit = null;
   activePreset   = null;
   evActivePreset = null;
+  evHistory.length = 0;
+  evFuture.length  = 0;
 
   // Fix 2: Check for saved edit state in localStorage
   const savedSliders = entry && entry.id ?
@@ -7856,8 +7858,10 @@ function globalReset() {
     evRenderCanvas();
   }
   // Fix 7: Clear active preset highlight in ev-preset-list
-  activePreset   = null;
-  evActivePreset = null;
+  activePreset     = null;
+  evActivePreset   = null;
+  evHistory.length = 0;
+  evFuture.length  = 0;
   document.querySelectorAll('.ed3-preset-card, [data-preset-id]').forEach(c => c.classList.remove('active'));
   // Also clear ev-preset-label
   const _resetLbl = document.getElementById('ev-preset-label');

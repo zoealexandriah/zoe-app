@@ -3392,6 +3392,7 @@ const presets = [
     id:'violette', num:'05', name:'Violette', series:'FILM',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#9b7fc4', warm:false,
+    halationHue: 270,
     splitTone:{
       shadows:    {r:62,  g:55,  b:148, a:0.30},
       midtones:   {r:128, g:112, b:140, a:0.03},
@@ -3408,12 +3409,12 @@ const presets = [
       HUE_GREENS:0.500, HUE_BLUES:0.506, HUE_PURPLES:0.500,
       LUM_REDS:0.500, LUM_ORANGES:0.500, LUM_YELLOWS:0.500,
       LUM_GREENS:0.452, LUM_BLUES:0.500, LUM_PURPLES:0.500,
-      VIGNETTE:0.18
+      VIGNETTE:0.18, HALATION:0.10
     },
     sliders:{
       LIGHT:{EXPOSURE:'-0.04',CONTRAST:'+0.24',HIGHLIGHTS:'-0.08',SHADOWS:'+0.11',WHITES:'+0.00',BLACKS:'+0.11'},
       COLOR:{TEMPERATURE:'+0.01',TINT:'+0.01',VIBRANCE:'+0.07',SATURATION:'+0.02'},
-      EFFECTS:{GLOW:'+0.10',GRAIN:'+0.22',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.08'},
+      EFFECTS:{GLOW:'+0.10',GRAIN:'+0.22',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.08',HALATION:'+0.10'},
       HSL:{HUE_SHIFT:'+2°',SAT_REDS:'+0.02',SAT_ORANGES:'+0.00',SAT_YELLOWS:'-0.18',SAT_GREENS:'-0.12',SAT_BLUES:'+0.06',SAT_PURPLES:'+0.20'}
     }
   },
@@ -4266,6 +4267,7 @@ function doRender(presetId) {
   const state = sliderState[presetId] || {};
   const adj   = buildAdjustments(state);
   if (p.splitTone) adj.split_tone = p.splitTone;
+  if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
 
   // Update hero canvas if user has image loaded
   if (userImage && activePreset && activePreset.id === presetId) {
@@ -4343,6 +4345,7 @@ function buildAdjustments(state) {
     lum_purples: val('LUM_PURPLES'),
     vignette:    val('VIGNETTE', false),
     halation:    val('HALATION', false),
+    halation_hue: 0,
     split_tone:  null,
       };
 }
@@ -5848,7 +5851,7 @@ function renderWithAdjustments(canvas, adj) {
   if ((adj.glow || 0) > 0.01) {
     applyGlow(canvas, adj.glow, _origOffX, _origOffY, _origW, _origH);
   }
-  if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, _origOffX, _origOffY, _origW, _origH);
+  if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, _origOffX, _origOffY, _origW, _origH);
   // Vignette
   if ((adj.vignette || 0) > 0.01) {
     applyVignette(canvas, adj.vignette, _origOffX, _origOffY, _origW, _origH);

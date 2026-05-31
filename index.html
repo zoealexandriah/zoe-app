@@ -4343,8 +4343,8 @@ function buildAdjustments(state) {
     lum_greens:  val('LUM_GREENS'),
     lum_blues:   val('LUM_BLUES'),
     lum_purples: val('LUM_PURPLES'),
-    vignette:    val('VIGNETTE', false),
-    halation:    val('HALATION', false),
+    vignette:    (state['VIGNETTE'] !== undefined ? state['VIGNETTE'] : 0),
+    halation:    (state['HALATION'] !== undefined ? state['HALATION'] : 0),
     halation_hue: 0,
     split_tone:  null,
       };

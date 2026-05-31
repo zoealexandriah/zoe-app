@@ -5745,7 +5745,7 @@ function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH) {
   ctx.restore();
 }
 
-function applyHalation(canvas, amount, offX, offY, imgW, imgH) {
+function applyHalation(canvas, amount, hue, offX, offY, imgW, imgH) {
   if (amount < 0.005) return;
   const ctx = canvas.getContext('2d');
   const imageData = ctx.getImageData(offX, offY, imgW, imgH);

@@ -7855,27 +7855,22 @@ function globalReset() {
   // Fix 3: Clear flip state
   _flipPreState = null;
 
-  // Fix 7: Sync ev-sliders in editor-view if open
-  const _evView = document.getElementById('editor-view');
-  if (activePreset && _evView && _evView.style.display === 'flex') {
-    buildEditorSliders(activePreset);
-    const _evS = document.getElementById('editor-sliders');
-    const _evSEl = document.getElementById('ev-sliders');
-    if (_evS && _evSEl) {
-      _evSEl.innerHTML = _evS.innerHTML;
-      if (typeof attachSliderListeners === 'function') attachSliderListeners(activePreset);
-    }
-    buildEditorToolsSection();
-    const _evT = document.getElementById('editor-tools-section');
-    const _evTEl = document.getElementById('ev-tools');
-    if (_evT && _evTEl) _evTEl.innerHTML = _evT.innerHTML;
-    evRenderCanvas();
-  }
-  // Fix 7: Clear active preset highlight in ev-preset-list
+  // Clear preset FIRST so evRenderCanvas sees null and draws clean image
   activePreset     = null;
   evActivePreset   = null;
   evHistory.length = 0;
   evFuture.length  = 0;
+
+  // Fix 7: Sync ev-sliders and re-render ev-canvas AFTER preset is cleared
+  const _evView = document.getElementById('editor-view');
+  if (_evView && _evView.style.display === 'flex') {
+    if (userImage) {
+      const hc2 = document.getElementById('hero-canvas');
+      if (hc2) loadImageToCanvas(hc2, userImage);
+    }
+    evRenderCanvas();
+    evRenderPresets();
+  }
   document.querySelectorAll('.ed3-preset-card, [data-preset-id]').forEach(c => c.classList.remove('active'));
   // Also clear ev-preset-label
   const _resetLbl = document.getElementById('ev-preset-label');

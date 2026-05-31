@@ -4405,7 +4405,7 @@ function renderPhotoAdjusted(canvas, imgKey, tint, orbs, acc, warm, size, adj) {
   if (Math.abs(temp) > 0.01) {
     ctx.globalCompositeOperation = 'multiply';
     if (temp > 0) {
-      ctx.fillStyle = `rgba(255,${Math.round(235-temp*30)},${Math.round(200-temp*60)},${temp*0.28})`;
+      ctx.fillStyle = `rgba(255,${Math.round(242-temp*18)},${Math.round(210-temp*80)},${temp*0.26})`;
     } else {
       ctx.fillStyle = `rgba(${Math.round(200+temp*60)},${Math.round(220+temp*20)},255,${Math.abs(temp)*0.28})`;
     }

@@ -7755,11 +7755,15 @@ function _evRestoreSnap(snap) {
   presetIntensity = snap.intensity ?? 1.0;
   document.querySelectorAll('.intensity-slider').forEach(el => { el.value = Math.round(presetIntensity * 100); });
   document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = Math.round(presetIntensity * 100) + '%'; });
-  if (typeof evRenderCanvas === 'function') evRenderCanvas();
-  const hc = document.getElementById('hero-canvas');
-  if (hc && userImage) {
-    if (p) renderWithAdjustments(hc, buildAdjustments(sliderState[p.id] || {}));
-    else { const ctx = hc.getContext('2d'); ctx.drawImage(userImage, 0, 0, hc.width, hc.height); }
+  if (p) {
+    if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    const hc = document.getElementById('hero-canvas');
+    if (hc && userImage) renderWithAdjustments(hc, buildAdjustments(sliderState[p.id] || {}));
+  } else {
+    // No preset — reload image from scratch to guarantee clean state
+    const hc = document.getElementById('hero-canvas');
+    if (hc && userImage) loadImageToCanvas(hc, userImage);
+    if (typeof evRenderCanvas === 'function') evRenderCanvas();
   }
   evRenderPresets();
   _evUpdateUndoRedoBtns();

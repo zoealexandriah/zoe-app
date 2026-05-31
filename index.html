@@ -7830,15 +7830,17 @@ function evRenderCanvas() {
   canvas.style.transform = 'scale('+evZoomLevel+') translate('+evPanX+'px,'+evPanY+'px)';
   var ctx = canvas.getContext('2d');
   ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
-  // Apply active preset tint
+  // Apply active preset tint (skip if tint:'none' or unrecognised)
   if (evActivePreset) {
     var p = evActivePreset;
     var tintMap = { purple:{r:130,g:72,b:195}, pink:{r:195,g:55,b:135}, blue:{r:35,g:72,b:195}, warm:{r:175,g:95,b:35} };
-    var t = tintMap[p.tint] || tintMap.purple;
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.fillStyle = 'rgba('+t.r+','+t.g+','+t.b+',0.25)';
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.globalCompositeOperation = 'source-over';
+    var t = tintMap[p.tint];
+    if (t) {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = 'rgba('+t.r+','+t.g+','+t.b+',0.25)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.globalCompositeOperation = 'source-over';
+    }
     (p.orbs||[]).forEach(function(o){
       var gx=canvas.width*o[2],gy=canvas.height*0.44,gr=Math.max(canvas.width,canvas.height)*o[3];
       var g=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);

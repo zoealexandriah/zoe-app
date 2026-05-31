@@ -4940,10 +4940,10 @@ function applyLookToUserImage(presetId) {
   document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = '100%'; });
 
   refreshEditor(p);
-  const _builtAdj = buildAdjustments(sliderState[p.id] || {});
-  if (p.splitTone) _builtAdj.split_tone = p.splitTone;
-  if (p.halationHue !== undefined) _builtAdj.halation_hue = p.halationHue;
-  renderHeroUser(_builtAdj);
+  const _applyAdj = buildAdjustments(sliderState[p.id] || {});
+  if (p.splitTone) _applyAdj.split_tone = p.splitTone;
+  if (p.halationHue !== undefined) _applyAdj.halation_hue = p.halationHue;
+  renderHeroUser(_applyAdj);
   showToast(p.name.toUpperCase() + ' — APPLIED');
 }
 
@@ -8053,6 +8053,10 @@ function evRenderCanvas() {
     if ((adj.sharpen || 0) > 0.01) applySharpness(canvas, adj.sharpen, 0, 0, canvas.width, canvas.height);
     if ((adj.blur   || 0) > 0.01) applyBlur(canvas, adj.blur, 0, 0, canvas.width, canvas.height);
     if ((adj.glow   || 0) > 0.01) applyGlow(canvas, adj.glow, 0, 0, canvas.width, canvas.height);
+    if (activePreset && activePreset.splitTone) adj.split_tone = activePreset.splitTone;
+    if (activePreset && activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
+    if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
+    if ((adj.vignette || 0) > 0.01) applyVignette(canvas, adj.vignette, 0, 0, canvas.width, canvas.height);
   }
 }
 

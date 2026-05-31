@@ -4400,18 +4400,7 @@ function renderPhotoAdjusted(canvas, imgKey, tint, orbs, acc, warm, size, adj) {
     ctx.globalCompositeOperation='source-over';
   }
 
-  // 6. Temperature — warm/cool color grade
-  const temp = adj.temperature || 0;
-  if (Math.abs(temp) > 0.01) {
-    ctx.globalCompositeOperation = 'multiply';
-    if (temp > 0) {
-      ctx.fillStyle = `rgba(255,${Math.round(242-temp*18)},${Math.round(210-temp*80)},${temp*0.26})`;
-    } else {
-      ctx.fillStyle = `rgba(${Math.round(200+temp*60)},${Math.round(220+temp*20)},255,${Math.abs(temp)*0.28})`;
-    }
-    ctx.fillRect(0,0,w,h);
-    ctx.globalCompositeOperation = 'source-over';
-  }
+  // 6. Temperature — handled per-pixel in imageData pass
 
   // 7. Saturation — desaturate via luminosity blend
   const sat = adj.saturation || 0;
@@ -5254,10 +5243,11 @@ function applyPixelAdjustments(srcData, adj) {
     }
 
     // ── TEMPERATURE ──────────────────────────────────────────────────────
-    // Warm (+): R up, B down. Cool (-): R down, B up. G untouched.
+    // Warm (+): R up, G slight up, B down. Cool (-): R down, B up.
     if (temp !== 0) {
-      r = Math.min(255, Math.max(0, r + temp * 20));
-      b = Math.min(255, Math.max(0, b - temp * 20));
+      r = Math.min(255, Math.max(0, r + temp * 28));
+      g = Math.min(255, Math.max(0, g + temp * 8));
+      b = Math.min(255, Math.max(0, b - temp * 32));
     }
 
     // ── TINT ─────────────────────────────────────────────────────────────

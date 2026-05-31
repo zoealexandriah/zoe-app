@@ -5188,11 +5188,21 @@ function applyPixelAdjustments(srcData, adj) {
     if (hl !== 0) {
       const lum = 0.299*r + 0.587*g + 0.114*b;
       if (lum > 180) {
-        const strength = hl * (lum - 180) / 75;
-        const f = 1 + strength;
-        r = Math.min(255, Math.max(0, r * f));
-        g = Math.min(255, Math.max(0, g * f));
-        b = Math.min(255, Math.max(0, b * f));
+        const weight = (lum - 180) / 75;
+        if (hl < 0) {
+          // Recovery: blend toward luminosity-neutral (pull to grey, preserve ratio)
+          const pull = Math.abs(hl) * weight;
+          const neutral = lum;
+          r = Math.min(255, Math.max(0, r + pull * (neutral - r)));
+          g = Math.min(255, Math.max(0, g + pull * (neutral - g)));
+          b = Math.min(255, Math.max(0, b + pull * (neutral - b)));
+        } else {
+          // Boost: push toward white
+          const push = hl * weight;
+          r = Math.min(255, Math.max(0, r + push * (255 - r)));
+          g = Math.min(255, Math.max(0, g + push * (255 - g)));
+          b = Math.min(255, Math.max(0, b + push * (255 - b)));
+        }
       }
     }
 

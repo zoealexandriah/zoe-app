@@ -6124,6 +6124,8 @@ function openEditor(idx) {
   const entry = library[idx];
   editAdj    = {};
   activePresetForEdit = null;
+  activePreset   = null;
+  evActivePreset = null;
 
   // Fix 2: Check for saved edit state in localStorage
   const savedSliders = entry && entry.id ?
@@ -8133,7 +8135,7 @@ function evRenderCanvas() {
     if (lbl) lbl.textContent = '_ '+p.name.toUpperCase()+'.EXE';
   }
   // Apply slider adjustments + effects (Fix 6)
-  if (activePreset && sliderState[activePreset.id]) {
+  if (activePreset && sliderState[activePreset.id] && Object.keys(sliderState[activePreset.id]).length > 0) {
     var adj = buildAdjustments(sliderState[activePreset.id]);
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var processed = applyPixelAdjustments(origData, adj);

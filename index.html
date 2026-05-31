@@ -6152,14 +6152,8 @@ function openEditor(idx) {
     refreshEditor(activePreset);
   }
 
-  if (savedCurrent) {
-    // Load the edited version as the working image
-    const editedImg = new Image();
-    editedImg.onload = () => { userImage = editedImg; };
-    editedImg.src = savedCurrent;
-  } else {
-    userImage = entry.img;
-  }
+  // Always load from original — never start from a saved edited state
+  userImage = entry.img;
 
   document.getElementById('library-view').classList.add('hidden');
   document.getElementById('edit-view').classList.remove('hidden');
@@ -6170,7 +6164,7 @@ function openEditor(idx) {
   requestAnimationFrame(() => {
     const c = document.getElementById('hero-canvas');
     if (!c) return;
-    loadImageToCanvas(c, savedCurrent ? userImage : entry.img);
+    loadImageToCanvas(c, entry.img);
   });
 }
 
@@ -8627,15 +8621,11 @@ function autoSaveEdit() {
   if (!userImage || editingIdx === undefined || editingIdx < 0) return;
   const entry = library[editingIdx];
   if (!entry) return;
-  const hc = document.getElementById('hero-canvas');
-  if (!hc) return;
-  const currentDataURL = hc.toDataURL('image/jpeg', 0.88);
+  // Only persist slider state — never save edited pixels as the working image
   try {
-    localStorage.setItem('zoe_edit_' + entry.id + '_current', currentDataURL);
     if (!localStorage.getItem('zoe_edit_' + entry.id + '_original')) {
       localStorage.setItem('zoe_edit_' + entry.id + '_original', entry.dataURL);
     }
-    // Also store slider state
     if (activePreset && sliderState[activePreset.id]) {
       localStorage.setItem('zoe_edit_' + entry.id + '_sliders',
         JSON.stringify({ presetId: activePreset.id, state: sliderState[activePreset.id] }));

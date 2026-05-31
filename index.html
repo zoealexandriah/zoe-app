@@ -4944,6 +4944,8 @@ function applyLookToUserImage(presetId) {
     // No user image — fall back to selectLook
     selectLook(presetId); return;
   }
+  // Push before-state so undo can return to clean image
+  evHistoryPush();
   // Update look card selection
   document.querySelectorAll('.look-card').forEach(el => el.classList.remove('selected'));
   const card = document.getElementById('lc-' + presetId);
@@ -7727,10 +7729,9 @@ const evFuture  = [];
 
 function evHistoryPush() {
   const p = evActivePreset || activePreset;
-  if (!p) return;
   evHistory.push({
-    presetId:  p.id,
-    sliders:   JSON.parse(JSON.stringify(sliderState[p.id] || {})),
+    presetId:  p ? p.id : null,
+    sliders:   p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
     intensity: presetIntensity
   });
   if (evHistory.length > 30) evHistory.shift();
@@ -7739,18 +7740,27 @@ function evHistoryPush() {
 }
 
 function _evRestoreSnap(snap) {
-  const p = presets.find(x => x.id === snap.presetId);
+  const p = snap.presetId ? presets.find(x => x.id === snap.presetId) : null;
   if (p) {
     evActivePreset = p; activePreset = p;
     sliderState[p.id] = JSON.parse(JSON.stringify(snap.sliders || {}));
     buildEditorSliders(p);
+  } else {
+    // Restore to clean / no-preset state
+    evActivePreset = null; activePreset = null;
+    document.querySelectorAll('.ed3-preset-card, [data-preset-id]').forEach(c => c.classList.remove('active'));
+    const lbl = document.getElementById('ev-preset-label');
+    if (lbl) lbl.textContent = '';
   }
   presetIntensity = snap.intensity ?? 1.0;
   document.querySelectorAll('.intensity-slider').forEach(el => { el.value = Math.round(presetIntensity * 100); });
   document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = Math.round(presetIntensity * 100) + '%'; });
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
   const hc = document.getElementById('hero-canvas');
-  if (hc && userImage && p) renderWithAdjustments(hc, buildAdjustments(sliderState[p.id] || {}));
+  if (hc && userImage) {
+    if (p) renderWithAdjustments(hc, buildAdjustments(sliderState[p.id] || {}));
+    else { const ctx = hc.getContext('2d'); ctx.drawImage(userImage, 0, 0, hc.width, hc.height); }
+  }
   evRenderPresets();
   _evUpdateUndoRedoBtns();
 }

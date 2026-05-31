@@ -3393,6 +3393,12 @@ const presets = [
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#9b7fc4', warm:false,
     halationHue: 270,
+    curve:{
+      master: [[0,12],[60,58],[128,133],[200,198],[255,248]],
+      r:      [[0,8],[100,108],[180,188],[255,252]],
+      g:      [[0,5],[128,125],[255,246]],
+      b:      [[0,24],[70,88],[150,142],[220,208],[255,230]]
+    },
     splitTone:{
       shadows:    {r:58,  g:50,  b:152, a:0.36},
       midtones:   {r:165, g:118, b:155, a:0.22},
@@ -4268,6 +4274,7 @@ function doRender(presetId) {
   const adj   = buildAdjustments(state);
   if (p.splitTone) adj.split_tone = p.splitTone;
   if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
+  if (p.curve) adj.curve = p.curve;
 
   // Update hero canvas if user has image loaded
   if (userImage && activePreset && activePreset.id === presetId) {
@@ -4943,6 +4950,7 @@ function applyLookToUserImage(presetId) {
   const _applyAdj = buildAdjustments(sliderState[p.id] || {});
   if (p.splitTone) _applyAdj.split_tone = p.splitTone;
   if (p.halationHue !== undefined) _applyAdj.halation_hue = p.halationHue;
+  if (p.curve) _applyAdj.curve = p.curve;
   renderHeroUser(_applyAdj);
   showToast(p.name.toUpperCase() + ' — APPLIED');
 }
@@ -5720,6 +5728,81 @@ function applyBlur(canvas, amount, offX, offY, imgW, imgH) {
 }
 
 
+// ══════════════════════════════════════════════════════════════════════════
+// TONE CURVE ENGINE — monotone cubic spline, per-channel LUT mapping
+// ══════════════════════════════════════════════════════════════════════════
+
+function buildCurveLUT(points) {
+  // points: [[inputX, outputY], ...] in 0–255 space
+  // Returns Uint8Array[256] lookup table via Fritsch-Carlson monotone cubic spline
+  if (!points || points.length < 2) {
+    const id = new Uint8Array(256);
+    for (let i = 0; i < 256; i++) id[i] = i;
+    return id;
+  }
+  const pts = [...points].sort((a, b) => a[0] - b[0]);
+  const n = pts.length;
+  const xs = pts.map(p => p[0]);
+  const ys = pts.map(p => p[1]);
+
+  // Secant slopes
+  const delta = [];
+  for (let i = 0; i < n - 1; i++) delta[i] = (ys[i+1] - ys[i]) / (xs[i+1] - xs[i]);
+
+  // Tangents (Fritsch-Carlson init)
+  const m = new Array(n);
+  m[0] = delta[0];
+  m[n-1] = delta[n-2];
+  for (let i = 1; i < n - 1; i++) m[i] = (delta[i-1] + delta[i]) / 2;
+
+  // Enforce monotonicity
+  for (let i = 0; i < n - 1; i++) {
+    if (Math.abs(delta[i]) < 1e-10) { m[i] = 0; m[i+1] = 0; continue; }
+    const a = m[i] / delta[i], b = m[i+1] / delta[i];
+    const h = a*a + b*b;
+    if (h > 9) { const t = 3 / Math.sqrt(h); m[i] = t*a*delta[i]; m[i+1] = t*b*delta[i]; }
+  }
+
+  // Sample LUT
+  const lut = new Uint8Array(256);
+  for (let xi = 0; xi < 256; xi++) {
+    if (xi <= xs[0])       { lut[xi] = Math.min(255, Math.max(0, Math.round(ys[0]))); continue; }
+    if (xi >= xs[n-1])     { lut[xi] = Math.min(255, Math.max(0, Math.round(ys[n-1]))); continue; }
+    let seg = 0;
+    while (seg < n - 2 && xi > xs[seg+1]) seg++;
+    const x0 = xs[seg], x1 = xs[seg+1], y0 = ys[seg], y1 = ys[seg+1];
+    const dx = x1 - x0, t = (xi - x0) / dx, t2 = t*t, t3 = t2*t;
+    const v = (2*t3 - 3*t2 + 1)*y0 + (t3 - 2*t2 + t)*dx*m[seg]
+            + (-2*t3 + 3*t2)*y1   + (t3 - t2)*dx*m[seg+1];
+    lut[xi] = Math.min(255, Math.max(0, Math.round(v)));
+  }
+  return lut;
+}
+
+function applyCurveLUTs(canvas, curve, offX, offY, imgW, imgH) {
+  if (!curve) return;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(offX, offY, imgW, imgH);
+  const d = imageData.data;
+
+  const mLUT = curve.master ? buildCurveLUT(curve.master) : null;
+  const rLUT = curve.r     ? buildCurveLUT(curve.r)      : null;
+  const gLUT = curve.g     ? buildCurveLUT(curve.g)      : null;
+  const bLUT = curve.b     ? buildCurveLUT(curve.b)      : null;
+
+  for (let i = 0; i < d.length; i += 4) {
+    let r = d[i], g = d[i+1], b = d[i+2];
+    // Master curve: applied equally to all channels (overall tone response)
+    if (mLUT) { r = mLUT[r]; g = mLUT[g]; b = mLUT[b]; }
+    // Per-channel curves: color character of the film stock
+    if (rLUT) r = rLUT[r];
+    if (gLUT) g = gLUT[g];
+    if (bLUT) b = bLUT[b];
+    d[i] = r; d[i+1] = g; d[i+2] = b;
+  }
+  ctx.putImageData(imageData, offX, offY);
+}
+
 // ── Apply glow/bloom via offscreen canvas blur composite ──────────────────
 function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH) {
   if (glowAmt < 0.01) return;
@@ -5841,6 +5924,9 @@ function renderWithAdjustments(canvas, adj) {
 
   // Write to canvas at the correct offset
   ctx.putImageData(processed, _origOffX, _origOffY);
+
+  // TONE CURVE: per-channel spline LUT applied after pixel adjustments
+  if (adj.curve) applyCurveLUTs(canvas, adj.curve, _origOffX, _origOffY, _origW, _origH);
 
   // SHARPEN: unsharp mask via offscreen blur composite
   if ((adj.sharpen || 0) > 0.01) {
@@ -8049,6 +8135,7 @@ function evRenderCanvas() {
       }
     }
     ctx.putImageData(new ImageData(processed, canvas.width, canvas.height), 0, 0);
+    if (activePreset && activePreset.curve) applyCurveLUTs(canvas, activePreset.curve, 0, 0, canvas.width, canvas.height);
     // Apply canvas-composited effects
     if ((adj.sharpen || 0) > 0.01) applySharpness(canvas, adj.sharpen, 0, 0, canvas.width, canvas.height);
     if ((adj.blur   || 0) > 0.01) applyBlur(canvas, adj.blur, 0, 0, canvas.width, canvas.height);

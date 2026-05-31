@@ -7820,13 +7820,8 @@ function globalReset() {
 
   // Fix 3: Reset ALL sliders to exact zero (not just those in preset)
   if (activePreset) {
-    // Build fresh state with all sliders at zero
-    const freshState = {};
-    Object.keys(sliderConfig).forEach(name => {
-      const cfg = sliderConfig[name];
-      freshState[name] = (cfg && cfg[3] === false) ? 0.0 : 0.5;
-    });
-    sliderState[activePreset.id] = freshState;
+    // Clear state entirely — empty object means no preset applied, _hasState = false
+    sliderState[activePreset.id] = {};
     // Rebuild slider UI with zero positions
     buildEditorSliders(activePreset);
     buildEditorToolsSection();
@@ -7861,6 +7856,7 @@ function globalReset() {
     evRenderCanvas();
   }
   // Fix 7: Clear active preset highlight in ev-preset-list
+  activePreset   = null;
   evActivePreset = null;
   document.querySelectorAll('.ed3-preset-card, [data-preset-id]').forEach(c => c.classList.remove('active'));
   // Also clear ev-preset-label

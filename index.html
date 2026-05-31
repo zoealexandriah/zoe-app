@@ -3420,10 +3420,10 @@ const presets = [
       highlights: {r:255, g:240, b:200, a:0.16}
     },
     curve:{
-      master: [[0,22],[64,78],[128,138],[200,200],[255,250]],
-      r:      [[0,14],[128,138],[255,252]],
-      g:      [[0,10],[128,130],[255,246]],
-      b:      [[0,8], [128,126],[255,242]]
+      master: [[0,10],[64,66],[128,132],[200,198],[255,248]],
+      r:      [[0,10],[128,134],[255,252]],
+      g:      [[0,6],[128,128],[255,244]],
+      b:      [[0,4],[128,120],[255,236]]
     },
     defaults:{
       EXPOSURE:0.525, CONTRAST:0.580, HIGHLIGHTS:0.468, SHADOWS:0.558,
@@ -8279,12 +8279,15 @@ function renderPresetThumb(canvas, p) {
   var scale = Math.max(w / iw, h / ih);
   var sw = iw * scale, sh = ih * scale;
   ctx.drawImage(userImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
-  // Apply preset default adjustments
+  // Apply preset default adjustments + curve + splitTone so thumbnail matches full render
   if (p.defaults) {
     var adj = buildAdjustments(p.defaults);
+    if (p.splitTone) adj.split_tone = p.splitTone;
+    if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
     var imageData = ctx.getImageData(0, 0, w, h);
     var processed = applyPixelAdjustments(imageData, adj);
     ctx.putImageData(new ImageData(processed, w, h), 0, 0);
+    if (p.curve) applyCurveLUTs(canvas, p.curve, 0, 0, w, h);
   }
 }
 

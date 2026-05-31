@@ -4940,7 +4940,10 @@ function applyLookToUserImage(presetId) {
   document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = '100%'; });
 
   refreshEditor(p);
-  renderHeroUser();
+  const _builtAdj = buildAdjustments(sliderState[p.id] || {});
+  if (p.splitTone) _builtAdj.split_tone = p.splitTone;
+  if (p.halationHue !== undefined) _builtAdj.halation_hue = p.halationHue;
+  renderHeroUser(_builtAdj);
   showToast(p.name.toUpperCase() + ' — APPLIED');
 }
 

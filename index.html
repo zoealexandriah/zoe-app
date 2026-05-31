@@ -4918,6 +4918,8 @@ function loadUserImage(file) {
       // Clear any previous edit state
       editAdj = {};
       activePresetForEdit = null;
+      activePreset = null;
+      evActivePreset = null;
       activateEditMode();
     };
     img.src = ev.target.result;
@@ -8152,13 +8154,14 @@ function evRenderCanvas() {
       }
     }
     ctx.putImageData(new ImageData(processed, canvas.width, canvas.height), 0, 0);
-    if (activePreset && activePreset.curve) applyCurveLUTs(canvas, activePreset.curve, 0, 0, canvas.width, canvas.height);
+    const _hasState = activePreset && sliderState[activePreset.id] && Object.keys(sliderState[activePreset.id]).length > 0;
+    if (_hasState && activePreset.curve) applyCurveLUTs(canvas, activePreset.curve, 0, 0, canvas.width, canvas.height);
     // Apply canvas-composited effects
     if ((adj.sharpen || 0) > 0.01) applySharpness(canvas, adj.sharpen, 0, 0, canvas.width, canvas.height);
     if ((adj.blur   || 0) > 0.01) applyBlur(canvas, adj.blur, 0, 0, canvas.width, canvas.height);
     if ((adj.glow   || 0) > 0.01) applyGlow(canvas, adj.glow, 0, 0, canvas.width, canvas.height);
-    if (activePreset && activePreset.splitTone) adj.split_tone = activePreset.splitTone;
-    if (activePreset && activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
+    if (_hasState && activePreset.splitTone) adj.split_tone = activePreset.splitTone;
+    if (_hasState && activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
     if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
     if ((adj.vignette || 0) > 0.01) applyVignette(canvas, adj.vignette, 0, 0, canvas.width, canvas.height);
   }

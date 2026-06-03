@@ -3596,6 +3596,7 @@ const presets = [
     id:'ezza', num:'09', name:'Ezza', series:'FILM',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#8c4a2a', warm:true,
+    defaultIntensity: 0.80,
     skinLift: 0.13,
     colorGlow: 0.08,
     splitTone:{
@@ -3613,7 +3614,7 @@ const presets = [
       EXPOSURE:0.445, CONTRAST:0.635, HIGHLIGHTS:0.470, SHADOWS:0.550,
       WHITES:0.500, BLACKS:0.475, TEMPERATURE:0.612, TINT:0.510,
       VIBRANCE:0.550, SATURATION:0.528,
-      GLOW:0.0, GRAIN:0.38, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.02,
+      GLOW:0.0, GRAIN:0.36, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.02,
       SAT_REDS:0.530, SAT_ORANGES:0.515, SAT_YELLOWS:0.498,
       SAT_GREENS:0.462, SAT_BLUES:0.465, SAT_PURPLES:0.475, HUE_SHIFT:0.499,
       HUE_REDS:0.500, HUE_ORANGES:0.496, HUE_YELLOWS:0.500,
@@ -3625,7 +3626,7 @@ const presets = [
     sliders:{
       LIGHT:{EXPOSURE:'-0.17',CONTRAST:'+0.29',HIGHLIGHTS:'-0.07',SHADOWS:'+0.10',WHITES:'-0.00',BLACKS:'-0.06'},
       COLOR:{TEMPERATURE:'+0.24',TINT:'+0.02',VIBRANCE:'+0.12',SATURATION:'+0.08'},
-      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.38',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.02',HALATION:'+0.00'},
+      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.36',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.02',HALATION:'+0.00'},
       HSL:{HUE_SHIFT:'-1°',SAT_REDS:'+0.10',SAT_ORANGES:'+0.06',SAT_YELLOWS:'-0.00',SAT_GREENS:'-0.08',SAT_BLUES:'-0.07',SAT_PURPLES:'-0.05'}
     }
   },
@@ -5078,9 +5079,9 @@ function applyLookToUserImage(presetId) {
   // Reset edit adjustments when changing look, then load preset defaults
   editAdj = {};
   applyPresetDefaults(p);
-  presetIntensity = 1.0;
-  document.querySelectorAll('.intensity-slider').forEach(el => { el.value = 100; });
-  document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = '100%'; });
+  presetIntensity = (p.defaultIntensity !== undefined) ? p.defaultIntensity : 1.0;
+  document.querySelectorAll('.intensity-slider').forEach(el => { el.value = Math.round(presetIntensity * 100); });
+  document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = Math.round(presetIntensity * 100) + '%'; });
 
   refreshEditor(p);
   const _applyAdj = buildAdjustments(sliderState[p.id] || {});

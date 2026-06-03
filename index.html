@@ -4462,6 +4462,9 @@ function buildAdjustments(state) {
     halation:    (state['HALATION'] !== undefined ? state['HALATION'] : 0),
     halation_hue: 0,
     split_tone:  null,
+    hueTempZones: null,
+    colorGlow:   0,
+    skinLift:    0,
       };
 }
 
@@ -5063,6 +5066,9 @@ function applyLookToUserImage(presetId) {
   if (p.splitTone) _applyAdj.split_tone = p.splitTone;
   if (p.halationHue !== undefined) _applyAdj.halation_hue = p.halationHue;
   if (p.curve) _applyAdj.curve = p.curve;
+  if (p.hueTempZones) _applyAdj.hueTempZones = p.hueTempZones;
+  if (p.colorGlow !== undefined) _applyAdj.colorGlow = p.colorGlow;
+  if (p.skinLift !== undefined) _applyAdj.skinLift = p.skinLift;
   renderHeroUser(_applyAdj);
   showToast(p.name.toUpperCase() + ' — APPLIED');
 }
@@ -5391,6 +5397,33 @@ function applyPixelAdjustments(srcData, adj) {
       b = Math.min(255, Math.max(0, b - temp * 32));
     }
 
+    // ── HUE-TARGETED TEMPERATURE SHIFT ──────────────────────────────────
+    // Warm/cool shift applied only to pixels within specified hue ranges.
+    // Preset defines: hueTempZones:[{center, halfWidth, warm}]
+    if (adj.hueTempZones && adj.hueTempZones.length > 0) {
+      const rn_ht=r/255, gn_ht=g/255, bn_ht=b/255;
+      const cmx_ht=Math.max(rn_ht,gn_ht,bn_ht), cmn_ht=Math.min(rn_ht,gn_ht,bn_ht);
+      const dlt_ht=cmx_ht-cmn_ht;
+      if (dlt_ht > 0.01) {
+        let ph_ht=0;
+        if (cmx_ht===rn_ht) ph_ht=60*(((gn_ht-bn_ht)/dlt_ht)%6);
+        else if (cmx_ht===gn_ht) ph_ht=60*((bn_ht-rn_ht)/dlt_ht+2);
+        else ph_ht=60*((rn_ht-gn_ht)/dlt_ht+4);
+        ph_ht=(ph_ht+360)%360;
+        for (const zone of adj.hueTempZones) {
+          let zd=Math.abs(ph_ht-zone.center); if (zd>180) zd=360-zd;
+          if (zd >= zone.halfWidth) continue;
+          const zw=Math.pow(1-zd/zone.halfWidth, 1.5);
+          const zWarm=zone.warm*zw;
+          if (Math.abs(zWarm)>0.001) {
+            r=Math.min(255,Math.max(0,r+zWarm*28));
+            g=Math.min(255,Math.max(0,g+zWarm*8));
+            b=Math.min(255,Math.max(0,b-zWarm*32));
+          }
+        }
+      }
+    }
+
     // ── TINT ─────────────────────────────────────────────────────────────
     // Magenta (+): R up, G down. Green (-): G up, R down.
     if (tint !== 0) {
@@ -5542,6 +5575,7 @@ function applyPixelAdjustments(srcData, adj) {
         if (denom2 < 0.001) { out[i]=r; out[i+1]=g; out[i+2]=b; out[i+3]=src[i+3]; continue; }
         const ss2 = dlt/denom2;
 
+        const colorGlow = adj.colorGlow || 0;
         let totalSatAdj = 0, totalHueAdj = 0, totalLumAdj = 0;
         for (const ch of channelList) {
           let dist = Math.abs(ph - ch.center);
@@ -5549,7 +5583,16 @@ function applyPixelAdjustments(srcData, adj) {
           const norm = dist / (ch.width / 2);
           const weight = norm < 2.0 ? Math.exp(-norm * norm * 1.0) : 0;
           if (weight < 0.001) continue;
-          if (ch.sat && Math.abs(ch.sat) > 0.005) totalSatAdj += ch.sat * weight;
+          if (ch.sat && Math.abs(ch.sat) > 0.005) {
+            let satContrib = ch.sat * weight;
+            // colorGlow: concentrate positive saturation boost in upper midtones (lum ~0.62)
+            // creates wet/bronzed glow on bright skin — shadows stay rich, highlights pop
+            if (colorGlow > 0.001 && ch.sat > 0) {
+              const glowBell = Math.exp(-Math.pow((ll2 - 0.62) / 0.16, 2));
+              satContrib *= (1 - colorGlow) + colorGlow * glowBell * 2.5;
+            }
+            totalSatAdj += satContrib;
+          }
           if (ch.hue && Math.abs(ch.hue) > 0.1)   totalHueAdj += ch.hue * weight;
           if (ch.lum && Math.abs(ch.lum) > 0.005) totalLumAdj += ch.lum * weight;
         }
@@ -5568,6 +5611,55 @@ function applyPixelAdjustments(srcData, adj) {
         else if (newHue<300) {r3=x3;g3=0; b3=c3;}
         else                 {r3=c3;g3=0; b3=x3;}
         r=Math.round((r3+m3)*255); g=Math.round((g3+m3)*255); b=Math.round((b3+m3)*255);
+      }
+    }
+
+    // ── SKIN LIFT — midtone luminance boost on orange/skin hue band ─────
+    // Brightens pixels in hue 10–50° (skin tones) only in the 0.35–0.75
+    // luminance band. Creates the luminous, non-flat quality on bronzed skin
+    // without affecting shadows or blowing highlights.
+    const skinLift = adj.skinLift || 0;
+    if (skinLift > 0.001) {
+      const rn_sl=r/255, gn_sl=g/255, bn_sl=b/255;
+      const cmx_sl=Math.max(rn_sl,gn_sl,bn_sl), cmn_sl=Math.min(rn_sl,gn_sl,bn_sl);
+      const dlt_sl=cmx_sl-cmn_sl;
+      if (dlt_sl > 0.01) {
+        let ph_sl=0;
+        if (cmx_sl===rn_sl) ph_sl=60*(((gn_sl-bn_sl)/dlt_sl)%6);
+        else if (cmx_sl===gn_sl) ph_sl=60*((bn_sl-rn_sl)/dlt_sl+2);
+        else ph_sl=60*((rn_sl-gn_sl)/dlt_sl+4);
+        ph_sl=(ph_sl+360)%360;
+        let hd_sl=Math.abs(ph_sl-30); if (hd_sl>180) hd_sl=360-hd_sl;
+        if (hd_sl < 42) {
+          const ll_sl=(cmx_sl+cmn_sl)/2;
+          // Only midtones: bell peaking at lum 0.55
+          const lumW_sl=Math.exp(-Math.pow((ll_sl-0.55)/0.18,2));
+          // Only if in midtone band (0.35–0.75)
+          if (ll_sl > 0.32 && ll_sl < 0.78) {
+            const hueW_sl=Math.max(0,1-hd_sl/42);
+            const lift=skinLift*lumW_sl*hueW_sl;
+            if (lift > 0.002) {
+              const denom_sl=1-Math.abs(2*ll_sl-1);
+              if (denom_sl > 0.001) {
+                const ss_sl=dlt_sl/denom_sl;
+                const newLL=Math.min(0.92, ll_sl+lift*0.28);
+                const c_sl=(1-Math.abs(2*newLL-1))*ss_sl;
+                const x_sl=c_sl*(1-Math.abs((ph_sl/60)%2-1));
+                const m_sl=newLL-c_sl/2;
+                let r_sl=0,g_sl=0,b_sl=0;
+                if      (ph_sl<60)  {r_sl=c_sl;g_sl=x_sl;b_sl=0;}
+                else if (ph_sl<120) {r_sl=x_sl;g_sl=c_sl;b_sl=0;}
+                else if (ph_sl<180) {r_sl=0;   g_sl=c_sl;b_sl=x_sl;}
+                else if (ph_sl<240) {r_sl=0;   g_sl=x_sl;b_sl=c_sl;}
+                else if (ph_sl<300) {r_sl=x_sl;g_sl=0;   b_sl=c_sl;}
+                else                {r_sl=c_sl;g_sl=0;   b_sl=x_sl;}
+                r=Math.round((r_sl+m_sl)*255);
+                g=Math.round((g_sl+m_sl)*255);
+                b=Math.round((b_sl+m_sl)*255);
+              }
+            }
+          }
+        }
       }
     }
 
@@ -8237,6 +8329,12 @@ function evRenderCanvas() {
   // Apply slider adjustments + effects (Fix 6)
   if (activePreset && sliderState[activePreset.id] && Object.keys(sliderState[activePreset.id]).length > 0) {
     var adj = buildAdjustments(sliderState[activePreset.id]);
+    // Inject preset-level engine params before pixel processing
+    if (activePreset.hueTempZones) adj.hueTempZones = activePreset.hueTempZones;
+    if (activePreset.colorGlow !== undefined) adj.colorGlow = activePreset.colorGlow;
+    if (activePreset.skinLift !== undefined) adj.skinLift = activePreset.skinLift;
+    if (activePreset.splitTone) adj.split_tone = activePreset.splitTone;
+    if (activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var processed = applyPixelAdjustments(origData, adj);
     // Blend with original based on presetIntensity (0 = original, 1 = full effect)

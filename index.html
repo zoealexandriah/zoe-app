@@ -2655,6 +2655,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .batch-bar-btn:hover { border-color: rgba(200,168,228,0.55); color: rgba(232,216,250,0.95); }
 .batch-bar-btn.danger { color: rgba(210,80,100,0.75); border-color: rgba(210,80,100,0.25); }
 .batch-bar-btn.danger:hover { color: rgba(230,80,100,0.95); border-color: rgba(210,80,100,0.55); }
+.lib-photo-edited-dot {
+  position: absolute; bottom: 6px; right: 6px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(200,168,228,0.85); pointer-events: none;
+}
 #gallery-delete-confirm {
   font-size: 8px; letter-spacing: 0.14em; color: rgba(232,216,250,0.85);
   font-family: var(--mono); display: none;
@@ -2952,6 +2957,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
               <span id="gallery-delete-confirm" style="display:none"></span>
               <div class="batch-bar-btn danger" onclick="galleryBatchDeleteConfirm()">DELETE</div>
               <div class="batch-bar-btn" onclick="galleryBatchMoveToCollection()">MOVE TO COLLECTION</div>
+              <div class="batch-bar-btn" id="gallery-copy-edit-btn" onclick="galleryCopyEditFromSelection()" style="display:none">COPY EDIT</div>
               <div class="batch-bar-btn" id="gallery-paste-edits-btn" onclick="galleryPasteEdits()" style="display:none">PASTE EDITS</div>
               <div class="batch-bar-btn" onclick="galleryToggleSelectMode()">CANCEL</div>
             </div>
@@ -8723,6 +8729,14 @@ function galleryToggleSelectMode() {
 function galleryUpdateBatchCount() {
   const el = document.getElementById('gallery-selected-count');
   if (el) el.textContent = libSelected.length + ' SELECTED';
+  // Show COPY EDIT only when exactly 1 selected photo has saved edits
+  const copyBtn = document.getElementById('gallery-copy-edit-btn');
+  if (copyBtn) {
+    const canCopy = libSelected.length === 1 &&
+      library[libSelected[0]] &&
+      !!localStorage.getItem('zoe_edit_' + library[libSelected[0]].id + '_sliders');
+    copyBtn.style.display = canCopy ? 'inline-flex' : 'none';
+  }
 }
 
 // Patch toggleSelect to also update batch count
@@ -9020,29 +9034,38 @@ function galleryPasteEdits() {
   galleryToggleSelectMode && galleryToggleSelectMode();
 }
 
-// ── Fix 5: Add COPY EDITS to gallery cells that have edits ──────────────
-// Patch renderLibrary to add copy-edits button for edited images
+// ── Fix 5: Add COPY EDIT button + edited dot to gallery cells that have edits ──
 const _origRenderLibrary = window.renderLibrary;
 window.renderLibrary = function() {
   _origRenderLibrary();
-  // After render, add copy-edits buttons to cells with stored edits
   const grid = document.getElementById('library-grid');
   if (!grid) return;
   grid.querySelectorAll('.lib-photo').forEach((cell, idx) => {
     const entry = library[idx];
     if (!entry) return;
     try {
-      const hasEdits = localStorage.getItem('zoe_edit_' + entry.id + '_current');
+      // Check _sliders (covers both editor-saved and batch-pasted edits)
+      const hasEdits = localStorage.getItem('zoe_edit_' + entry.id + '_sliders');
       if (hasEdits) {
         const btn = document.createElement('div');
         btn.className = 'gallery-copy-edits-btn';
-        btn.textContent = 'COPY EDITS';
+        btn.textContent = 'COPY EDIT';
         btn.onclick = (e) => { e.stopPropagation(); galleryCopyEdits(entry.id); };
         cell.appendChild(btn);
+        const dot = document.createElement('div');
+        dot.className = 'lib-photo-edited-dot';
+        cell.appendChild(dot);
       }
     } catch(e) {}
   });
 };
+
+function galleryCopyEditFromSelection() {
+  if (libSelected.length !== 1) return;
+  const entry = library[libSelected[0]];
+  if (!entry) return;
+  galleryCopyEdits(entry.id);
+}
 
 
 // ═══════════════════════════════════════════════════════════════════════════

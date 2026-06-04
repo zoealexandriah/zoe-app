@@ -9304,29 +9304,7 @@ window.toolsFlipApply = function(dir) {
   newImg.src = tmp.toDataURL();
 };
 
-// ── Fix 9: Export at original resolution ─────────────────────────────────
-window.exportDownload = function() {
-  if (!userImage) { showToast('NO IMAGE TO EXPORT'); return; }
-  const hc  = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
-  if (!hc)  { showToast('NO CANVAS'); return; }
-  const fn  = (document.getElementById('exp-filename') || {}).value || 'ZOE_EDIT';
-  const mime = expFmt === 'png' ? 'image/png' : 'image/jpeg';
-  const ext  = expFmt === 'png' ? '.png' : '.jpg';
-  const rawQ = parseInt((document.getElementById('exp-quality') || {}).value || 92);
-  const q    = expFmt === 'png' ? 1.0 : Math.max(0.92, rawQ / 100); // min 0.92 for JPG
-  const off  = document.createElement('canvas');
-  off.width  = userImage.naturalWidth  || hc.width;
-  off.height = userImage.naturalHeight || hc.height;
-  const ctx  = off.getContext('2d');
-  if (expFmt === 'jpg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,off.width,off.height); }
-  ctx.drawImage(hc, 0, 0, hc.width, hc.height, 0, 0, off.width, off.height);
-  const a = document.createElement('a');
-  a.download = fn + ext;
-  a.href = off.toDataURL(mime, q);
-  a.click();
-  exportModalClose && exportModalClose();
-  showToast('EXPORTING…');
-};
+// (second window.exportDownload removed — first full-pipeline version at line 9118 is authoritative)
 
 // ── Fix 1: Copy edits — enhance existing galleryCopyEdits with COPY EDITS btn ──
 // The COPY EDITS btn is added via the renderLibrary patch already.

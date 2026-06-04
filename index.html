@@ -8944,9 +8944,10 @@ function autoSaveEdit() {
     if (!localStorage.getItem('zoe_edit_' + entry.id + '_original')) {
       localStorage.setItem('zoe_edit_' + entry.id + '_original', entry.dataURL);
     }
-    if (activePreset && sliderState[activePreset.id]) {
+    const _asp = activePreset || evActivePreset;
+    if (_asp && sliderState[_asp.id]) {
       localStorage.setItem('zoe_edit_' + entry.id + '_sliders',
-        JSON.stringify({ presetId: activePreset.id, state: sliderState[activePreset.id] }));
+        JSON.stringify({ presetId: _asp.id, state: sliderState[_asp.id] }));
     }
   } catch(e) {}
 }
@@ -9159,9 +9160,10 @@ window.editorAutoSave = function() {
     if (!localStorage.getItem('zoe_edit_' + entry.id + '_original')) {
       localStorage.setItem('zoe_edit_' + entry.id + '_original', entry.dataURL);
     }
-    if (activePreset && sliderState[activePreset.id]) {
+    const _asp = activePreset || evActivePreset;
+    if (_asp && sliderState[_asp.id]) {
       localStorage.setItem('zoe_edit_' + entry.id + '_sliders',
-        JSON.stringify({ presetId: activePreset.id, state: sliderState[activePreset.id] }));
+        JSON.stringify({ presetId: _asp.id, state: sliderState[_asp.id] }));
     }
   } catch(e) {}
 };

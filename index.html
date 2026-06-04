@@ -8734,10 +8734,20 @@ function galleryUpdateBatchCount() {
   if (copyBtn) copyBtn.style.display = libSelected.length === 1 ? 'inline-flex' : 'none';
 }
 
-// Patch toggleSelect to also update batch count
+// Patch toggleSelect to also update batch count + auto-enter select mode
 const _origToggleSelect = window.toggleSelect;
 window.toggleSelect = function(idx) {
   if (_origToggleSelect) _origToggleSelect(idx);
+  // Auto-enter select mode when first dot is tapped
+  if (!gallerySelectMode && libSelected.length > 0) {
+    gallerySelectMode = true;
+    const btn  = document.getElementById('gallery-select-btn');
+    const bar  = document.getElementById('gallery-batch-bar');
+    const grid = document.getElementById('library-grid');
+    if (btn)  btn.classList.add('active');
+    if (bar)  bar.classList.add('active');
+    if (grid) grid.classList.add('gallery-select-mode');
+  }
   galleryUpdateBatchCount();
 };
 
@@ -8961,6 +8971,13 @@ function scheduleAutoSave() {
 const _origDoRenderAS = window.doRender;
 window.doRender = function(presetId) {
   _origDoRenderAS(presetId);
+  scheduleAutoSave();
+};
+
+// Patch evRenderCanvas to also trigger auto-save (EV editor path bypasses doRender)
+const _origEvRenderCanvasAS = window.evRenderCanvas;
+window.evRenderCanvas = function() {
+  if (_origEvRenderCanvasAS) _origEvRenderCanvasAS.apply(this, arguments);
   scheduleAutoSave();
 };
 

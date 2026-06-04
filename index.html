@@ -8729,14 +8729,9 @@ function galleryToggleSelectMode() {
 function galleryUpdateBatchCount() {
   const el = document.getElementById('gallery-selected-count');
   if (el) el.textContent = libSelected.length + ' SELECTED';
-  // Show COPY EDIT only when exactly 1 selected photo has saved edits
+  // Show COPY EDIT whenever exactly 1 photo is selected
   const copyBtn = document.getElementById('gallery-copy-edit-btn');
-  if (copyBtn) {
-    const canCopy = libSelected.length === 1 &&
-      library[libSelected[0]] &&
-      !!localStorage.getItem('zoe_edit_' + library[libSelected[0]].id + '_sliders');
-    copyBtn.style.display = canCopy ? 'inline-flex' : 'none';
-  }
+  if (copyBtn) copyBtn.style.display = libSelected.length === 1 ? 'inline-flex' : 'none';
 }
 
 // Patch toggleSelect to also update batch count
@@ -9064,6 +9059,8 @@ function galleryCopyEditFromSelection() {
   if (libSelected.length !== 1) return;
   const entry = library[libSelected[0]];
   if (!entry) return;
+  const hasEdits = localStorage.getItem('zoe_edit_' + entry.id + '_sliders');
+  if (!hasEdits) { showToast('_ OPEN THIS PHOTO IN EDITOR FIRST'); return; }
   galleryCopyEdits(entry.id);
 }
 

@@ -3876,7 +3876,7 @@ const presets = [
     },
     curve:{
       master: [[0,0],[64,66],[128,132],[192,190],[255,252]],
-      r:      [[0,1],[128,132],[255,252]],
+      r:      [[0,0],[128,132],[255,252]],
       g:      [[0,0],[128,129],[255,249]],
       b:      [[0,0],[128,124],[255,244]]
     },
@@ -5704,7 +5704,7 @@ function applyPixelAdjustments(srcData, adj) {
           const weight = norm < 2.0 ? Math.exp(-norm * norm * 1.0) : 0;
           if (weight < 0.001) continue;
           if (ch.sat && Math.abs(ch.sat) > 0.005) {
-            let satContrib = ch.sat * weight;
+            let satContrib = ch.sat * weight * 0.7;
             // colorGlow: concentrate positive saturation boost in upper midtones (lum ~0.62)
             // creates wet/bronzed glow on bright skin — shadows stay rich, highlights pop
             if (colorGlow > 0.001 && ch.sat > 0) {

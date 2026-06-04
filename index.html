@@ -8263,7 +8263,7 @@ document.addEventListener('click', e => {
 
 
 // ── Export modal ──────────────────────────────────────────────────────────
-let expFmt = 'jpg';
+let expFmt = 'png';
 
 function exportModalOpen() {
   const modal = document.getElementById('export-modal');
@@ -8276,10 +8276,10 @@ function exportModalOpen() {
     String(d.getDate()).padStart(2,'0');
   const fn = document.getElementById('exp-filename');
   if (fn) fn.value = 'ZOE_EDIT_' + ds;
-  expFmt = 'jpg';
-  document.getElementById('exp-fmt-jpg').classList.add('active');
-  document.getElementById('exp-fmt-png').classList.remove('active');
-  document.getElementById('exp-quality-row').style.display = 'block';
+  expFmt = 'png';
+  document.getElementById('exp-fmt-jpg').classList.remove('active');
+  document.getElementById('exp-fmt-png').classList.add('active');
+  document.getElementById('exp-quality-row').style.display = 'none';
 }
 
 function exportModalClose() {
@@ -9118,65 +9118,71 @@ window.editorSaveToGallery = function() {
 window.exportDownload = function() {
   if (!userImage) { showToast('NO IMAGE TO EXPORT'); return; }
   const fn   = (document.getElementById('exp-filename') || {}).value || 'ZOE_EDIT';
-  const q    = parseInt((document.getElementById('exp-quality') || {}).value || 90) / 100;
+  const rawQ = parseInt((document.getElementById('exp-quality') || {}).value || 95);
   const mime = expFmt === 'png' ? 'image/png' : 'image/jpeg';
   const ext  = expFmt === 'png' ? '.png' : '.jpg';
+  const q    = expFmt === 'png' ? 1.0 : Math.max(0.95, rawQ / 100);
 
   const iw = userImage.naturalWidth;
   const ih = userImage.naturalHeight;
-  const off = document.createElement('canvas');
-  off.width  = iw;
-  off.height = ih;
-  const ctx = off.getContext('2d');
-
-  if (expFmt === 'jpg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, iw, ih); }
-
-  // Draw original image at full native resolution
-  ctx.drawImage(userImage, 0, 0, iw, ih);
-
-  // Re-run the full render pipeline at full resolution
-  const p = activePreset || evActivePreset;
-  const hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
-
-  if (hasPreset) {
-    const adj = buildAdjustments(sliderState[p.id]);
-    if (p.hueTempZones)            adj.hueTempZones  = p.hueTempZones;
-    if (p.colorGlow  !== undefined) adj.colorGlow    = p.colorGlow;
-    if (p.skinLift   !== undefined) adj.skinLift     = p.skinLift;
-    if (p.splitTone)                adj.split_tone   = p.splitTone;
-    if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
-
-    // Pixel adjustments at full resolution
-    const origData = ctx.getImageData(0, 0, iw, ih);
-    let processed  = applyPixelAdjustments(origData, adj);
-
-    // Blend with original per presetIntensity
-    const intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
-    if (intensity < 0.999) {
-      const od = origData.data;
-      for (let i = 0; i < processed.length; i += 4) {
-        processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
-        processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
-        processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
-      }
-    }
-    ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
-
-    // Canvas post-processing at full resolution
-    if (p.curve)                      applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
-    if ((adj.sharpen  || 0) > 0.01)   applySharpness(off, adj.sharpen,  0, 0, iw, ih);
-    if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, iw, ih);
-    if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, iw, ih);
-    if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
-    if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, iw, ih);
-  }
-
-  const a = document.createElement('a');
-  a.download = fn + ext;
-  a.href = off.toDataURL(mime, q);
-  a.click();
   exportModalClose();
-  showToast('EXPORTING AT FULL RESOLUTION…');
+  showToast('RENDERING ' + iw + '×' + ih + '…');
+
+  // Defer heavy work so toast renders first
+  setTimeout(function() {
+    const off = document.createElement('canvas');
+    off.width  = iw;
+    off.height = ih;
+    const ctx = off.getContext('2d');
+
+    if (expFmt === 'jpg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, iw, ih); }
+
+    // Draw original image at full native resolution
+    ctx.drawImage(userImage, 0, 0, iw, ih);
+
+    // Re-run the full render pipeline at full resolution
+    const p = activePreset || evActivePreset;
+    const hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
+
+    if (hasPreset) {
+      const adj = buildAdjustments(sliderState[p.id]);
+      if (p.hueTempZones)             adj.hueTempZones  = p.hueTempZones;
+      if (p.colorGlow  !== undefined)  adj.colorGlow    = p.colorGlow;
+      if (p.skinLift   !== undefined)  adj.skinLift     = p.skinLift;
+      if (p.splitTone)                 adj.split_tone   = p.splitTone;
+      if (p.halationHue !== undefined)  adj.halation_hue = p.halationHue;
+
+      // Pixel adjustments at full resolution
+      const origData = ctx.getImageData(0, 0, iw, ih);
+      let processed  = applyPixelAdjustments(origData, adj);
+
+      // Blend with original per presetIntensity
+      const intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
+      if (intensity < 0.999) {
+        const od = origData.data;
+        for (let i = 0; i < processed.length; i += 4) {
+          processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
+          processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
+          processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
+        }
+      }
+      ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+
+      // Canvas post-processing at full resolution
+      if (p.curve)                      applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
+      if ((adj.sharpen  || 0) > 0.01)   applySharpness(off, adj.sharpen,  0, 0, iw, ih);
+      if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, iw, ih);
+      if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, iw, ih);
+      if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
+      if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, iw, ih);
+    }
+
+    const a = document.createElement('a');
+    a.download = fn + ext;
+    a.href = off.toDataURL(mime, q);
+    a.click();
+    showToast('SAVED — ' + iw + '×' + ih);
+  }, 80);
 };
 
 
@@ -9443,9 +9449,9 @@ function hslSelectChannel(dot) {
         <div id="exp-quality-row">
           <div style="display:flex;justify-content:space-between;margin-bottom:6px">
             <span style="font-size:9px;letter-spacing:0.10em;color:rgba(210,205,235,0.80);font-family:var(--mono)">QUALITY</span>
-            <span id="exp-quality-val" style="font-size:9px;color:rgba(175,168,210,0.50);font-family:var(--mono)">90</span>
+            <span id="exp-quality-val" style="font-size:9px;color:rgba(175,168,210,0.50);font-family:var(--mono)">95</span>
           </div>
-          <input type="range" class="tc-range" id="exp-quality" min="1" max="100" value="90" oninput="document.getElementById('exp-quality-val').textContent=this.value">
+          <input type="range" class="tc-range" id="exp-quality" min="1" max="100" value="95" oninput="document.getElementById('exp-quality-val').textContent=this.value">
         </div>
         <!-- Filename -->
         <div>

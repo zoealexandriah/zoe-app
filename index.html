@@ -3856,6 +3856,44 @@ const presets = [
       HSL:{HUE_SHIFT:'-0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
     }
   },
+  {
+    id:'clrwater', num:'19', name:'Clr.Water', series:'CINEMATIC',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#d4651a', warm:true,
+    skinLift: 0.14,
+    colorGlow: 0.06,
+    hueTempZones: [{ center: 26, halfWidth: 22, warm: 0.07 }],
+    splitTone:{
+      shadows:    {r:28,  g:18,  b:8,   a:0.07},
+      midtones:   {r:220, g:188, b:148, a:0.04},
+      highlights: {r:255, g:242, b:215, a:0.07}
+    },
+    curve:{
+      master: [[0,0],[64,66],[128,132],[192,190],[255,252]],
+      r:      [[0,1],[128,132],[255,252]],
+      g:      [[0,0],[128,129],[255,249]],
+      b:      [[0,0],[128,124],[255,244]]
+    },
+    defaults:{
+      EXPOSURE:0.538, CONTRAST:0.562, HIGHLIGHTS:0.445, SHADOWS:0.558,
+      WHITES:0.492, BLACKS:0.498, TEMPERATURE:0.568, TINT:0.500,
+      VIBRANCE:0.585, SATURATION:0.535,
+      GLOW:0.0, GRAIN:0.09, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.0,
+      SAT_REDS:0.522, SAT_ORANGES:0.535, SAT_YELLOWS:0.518,
+      SAT_GREENS:0.510, SAT_BLUES:0.558, SAT_PURPLES:0.498, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.498, HUE_YELLOWS:0.500,
+      HUE_GREENS:0.494, HUE_BLUES:0.482, HUE_PURPLES:0.500,
+      LUM_REDS:0.508, LUM_ORANGES:0.514, LUM_YELLOWS:0.506,
+      LUM_GREENS:0.494, LUM_BLUES:0.522, LUM_PURPLES:0.496,
+      VIGNETTE:0.0, HALATION:0.0
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'+0.08',CONTRAST:'+0.12',HIGHLIGHTS:'-0.11',SHADOWS:'+0.12',WHITES:'-0.02',BLACKS:'-0.00'},
+      COLOR:{TEMPERATURE:'+0.14',TINT:'+0.00',VIBRANCE:'+0.17',SATURATION:'+0.07'},
+      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.09',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00',HALATION:'+0.00'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.04',SAT_ORANGES:'+0.07',SAT_YELLOWS:'+0.04',SAT_GREENS:'+0.02',SAT_BLUES:'+0.12',SAT_PURPLES:'-0.00'}
+    }
+  },
 ];
 
 // ══════════════════════════════════════

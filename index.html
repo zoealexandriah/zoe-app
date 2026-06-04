@@ -8295,24 +8295,10 @@ function expSetFmt(fmt) {
 }
 
 function exportDownload() {
-  // Fix 8: export only the image, not the UI background
-  const hc = document.getElementById('hero-canvas') || document.getElementById('ev-canvas');
-  if (!hc || !userImage) { showToast('NO IMAGE TO EXPORT'); return; }
-  const fn  = (document.getElementById('exp-filename') || {}).value || 'ZOE_EDIT';
-  const q   = parseInt((document.getElementById('exp-quality') || {}).value || 90) / 100;
-  const mime = expFmt === 'png' ? 'image/png' : 'image/jpeg';
-  const ext  = expFmt === 'png' ? '.png' : '.jpg';
-  // Offscreen canvas at original image dimensions
-  const off = document.createElement('canvas');
-  off.width  = userImage.naturalWidth  || hc.width;
-  off.height = userImage.naturalHeight || hc.height;
-  off.getContext('2d').drawImage(hc, 0, 0, hc.width, hc.height, 0, 0, off.width, off.height);
-  const a = document.createElement('a');
-  a.download = fn + ext;
-  a.href = off.toDataURL(mime, q);
-  a.click();
-  exportModalClose();
-  showToast('EXPORTING…');
+  // Delegate to full-resolution re-render export
+  if (window.exportDownload && window.exportDownload !== exportDownload) {
+    window.exportDownload();
+  }
 }
 
 // Close on backdrop click
@@ -9128,30 +9114,69 @@ window.editorSaveToGallery = function() {
   img.src = dataURL;
 };
 
-// ── Fix 5: exportDownload — original resolution, no chrome ───────────────
+// ── Fix 5: exportDownload — full-resolution re-render, no upscaling ─────────
 window.exportDownload = function() {
   if (!userImage) { showToast('NO IMAGE TO EXPORT'); return; }
-  const hc = getActiveCanvas();
-  if (!hc) { showToast('NO CANVAS'); return; }
   const fn   = (document.getElementById('exp-filename') || {}).value || 'ZOE_EDIT';
   const q    = parseInt((document.getElementById('exp-quality') || {}).value || 90) / 100;
   const mime = expFmt === 'png' ? 'image/png' : 'image/jpeg';
   const ext  = expFmt === 'png' ? '.png' : '.jpg';
-  const off  = document.createElement('canvas');
-  off.width  = userImage.naturalWidth  || hc.width;
-  off.height = userImage.naturalHeight || hc.height;
-  const ctx  = off.getContext('2d');
-  if (expFmt === 'jpg') {
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, off.width, off.height);
+
+  const iw = userImage.naturalWidth;
+  const ih = userImage.naturalHeight;
+  const off = document.createElement('canvas');
+  off.width  = iw;
+  off.height = ih;
+  const ctx = off.getContext('2d');
+
+  if (expFmt === 'jpg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, iw, ih); }
+
+  // Draw original image at full native resolution
+  ctx.drawImage(userImage, 0, 0, iw, ih);
+
+  // Re-run the full render pipeline at full resolution
+  const p = activePreset || evActivePreset;
+  const hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
+
+  if (hasPreset) {
+    const adj = buildAdjustments(sliderState[p.id]);
+    if (p.hueTempZones)            adj.hueTempZones  = p.hueTempZones;
+    if (p.colorGlow  !== undefined) adj.colorGlow    = p.colorGlow;
+    if (p.skinLift   !== undefined) adj.skinLift     = p.skinLift;
+    if (p.splitTone)                adj.split_tone   = p.splitTone;
+    if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
+
+    // Pixel adjustments at full resolution
+    const origData = ctx.getImageData(0, 0, iw, ih);
+    let processed  = applyPixelAdjustments(origData, adj);
+
+    // Blend with original per presetIntensity
+    const intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
+    if (intensity < 0.999) {
+      const od = origData.data;
+      for (let i = 0; i < processed.length; i += 4) {
+        processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
+        processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
+        processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
+      }
+    }
+    ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+
+    // Canvas post-processing at full resolution
+    if (p.curve)                      applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
+    if ((adj.sharpen  || 0) > 0.01)   applySharpness(off, adj.sharpen,  0, 0, iw, ih);
+    if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, iw, ih);
+    if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, iw, ih);
+    if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
+    if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, iw, ih);
   }
-  ctx.drawImage(hc, 0, 0, hc.width, hc.height, 0, 0, off.width, off.height);
+
   const a = document.createElement('a');
   a.download = fn + ext;
   a.href = off.toDataURL(mime, q);
   a.click();
   exportModalClose();
-  showToast('EXPORTING…');
+  showToast('EXPORTING AT FULL RESOLUTION…');
 };
 
 

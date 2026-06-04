@@ -7746,11 +7746,17 @@ function pvBackToPresets() {
 }
 
 function pvExport() {
-  const canvas = document.getElementById('pv-canvas');
-  if (!canvas) return;
+  if (!userImage || !pvActivePreset) return;
+  const iw = userImage.naturalWidth, ih = userImage.naturalHeight;
+  const off = document.createElement('canvas');
+  off.width = iw; off.height = ih;
+  const ctx = off.getContext('2d');
+  ctx.drawImage(userImage, 0, 0, iw, ih);
+  applyPixelEdits(off, buildAdj(pvActivePreset));
+  applyVignette(off, buildAdj(pvActivePreset).vignette, 0, 0, iw, ih);
   const link = document.createElement('a');
   link.download = (pvActivePreset ? pvActivePreset.name : 'zoe') + '_edited.png';
-  link.href = canvas.toDataURL('image/png');
+  link.href = off.toDataURL('image/png');
   link.click();
   showToast('EXPORTING…');
 }

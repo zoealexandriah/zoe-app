@@ -2976,8 +2976,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex-shrink: 0;
     font-size: 8px;
   }
-  /* Hide toolbar while ADJUST panel is open — gives photo ~40px more space */
-  #editor-view.adjust-open #ev-toolbar { display: none !important; }
+  /* In ADJUST mode keep toolbar but hide everything except undo/redo/reset/back */
+  #editor-view.adjust-open #ev-toolbar { display: flex !important; overflow: hidden !important; }
+  #editor-view.adjust-open #ev-toolbar > *:not(#editor-back-btn):not(#ev-undo):not(#ev-redo):not(#ev-reset-btn) { display: none !important; }
   #ev-adjust-close {
     display: none !important;
     position: absolute !important;
@@ -3319,6 +3320,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div id="gallery-batch-bar">
               <span id="gallery-selected-count">0 SELECTED</span>
               <span id="gallery-delete-confirm" style="display:none"></span>
+              <div class="batch-bar-btn" onclick="gallerySelectAll()">SELECT ALL</div>
               <div class="batch-bar-btn danger" onclick="galleryBatchDeleteConfirm()">DELETE</div>
               <div class="batch-bar-btn" onclick="galleryBatchMoveToCollection()">MOVE TO COLLECTION</div>
               <div class="batch-bar-btn" id="gallery-copy-edit-btn" onclick="galleryCopyEditFromSelection()" style="display:none">COPY EDIT</div>
@@ -4886,6 +4888,10 @@ function evAdjustSubTab(name) {
   if (panelTab) {
     var tabEl = document.querySelector('.es-tab[data-tab="'+panelTab+'"]');
     if (tabEl) esTab(tabEl);
+  }
+  // Auto-select the specific tool so only crop OR flip controls show
+  if (name === 'crop' || name === 'flip') {
+    setTimeout(function(){ if (typeof etSelectTool === 'function') etSelectTool(name); }, 60);
   }
 }
 
@@ -8624,7 +8630,9 @@ window.globalRedo = function() {
 
 // ── Fix 3: Global RESET ───────────────────────────────────────────────────
 function globalReset() {
-  if (!userImage || !_origPixels) { showToast('NOTHING TO RESET'); return; }
+  var _evViewR = document.getElementById('editor-view');
+  var _evOpenR = _evViewR && _evViewR.style.display === 'flex';
+  if (!userImage || (!_evOpenR && !_origPixels)) { showToast('NOTHING TO RESET'); return; }
   const hc = document.getElementById('hero-canvas');
   // Push current state to history (reset is undoable)
   if (hc && activePreset) fix2HistoryPush(activePreset.id);
@@ -8689,6 +8697,7 @@ function globalReset() {
     }
     evRenderCanvas();
     evRenderPresets();
+    evBuildSliders(); // re-render sliders at zero after reset
   }
   document.querySelectorAll('.ed3-preset-card, [data-preset-id]').forEach(c => c.classList.remove('active'));
   // Also clear ev-preset-label
@@ -9116,7 +9125,10 @@ function evRenderPresets() {
     if (!c) return;
     var ctx = c.getContext('2d');
     if (userImage) {
-      ctx.drawImage(userImage, 0, 0, c.width, c.height);
+      var _iw = userImage.naturalWidth, _ih = userImage.naturalHeight;
+      var _sc = Math.max(c.width / _iw, c.height / _ih);
+      var _sw = _iw * _sc, _sh = _ih * _sc;
+      ctx.drawImage(userImage, (c.width - _sw) / 2, (c.height - _sh) / 2, _sw, _sh);
     } else {
       ctx.fillStyle = '#100d14'; ctx.fillRect(0, 0, c.width, c.height);
     }
@@ -9356,6 +9368,21 @@ function galleryToggleSelectMode() {
     const conf = document.getElementById('gallery-delete-confirm');
     if (conf) conf.style.display = 'none';
   }
+  galleryUpdateBatchCount();
+}
+
+function gallerySelectAll() {
+  if (!gallerySelectMode) {
+    gallerySelectMode = true;
+    const btn  = document.getElementById('gallery-select-btn');
+    const bar  = document.getElementById('gallery-batch-bar');
+    const grid = document.getElementById('library-grid');
+    if (btn)  btn.classList.add('active');
+    if (bar)  bar.classList.add('active');
+    if (grid) grid.classList.add('gallery-select-mode');
+  }
+  libSelected = library.map(function(_, i){ return i; });
+  renderLibrary();
   galleryUpdateBatchCount();
 }
 
@@ -10122,6 +10149,23 @@ window.etSelectTool = function(name) {
         }
         toolsCropDrawRect(ov);
         toolsCropBindDrag(ov, ac);
+        // Add touch support for mobile crop drag
+        function _tcTouch(e) {
+          if (!e.touches || !e.touches[0]) return;
+          var r = ov.getBoundingClientRect();
+          return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+        }
+        ov.addEventListener('touchstart', function(e) {
+          var t = _tcTouch(e); if (!t) return;
+          ov.onmousedown({ clientX: t.clientX, clientY: t.clientY, stopPropagation: function(){} });
+          e.preventDefault();
+        }, { passive: false });
+        ov.addEventListener('touchmove', function(e) {
+          var t = _tcTouch(e); if (!t) return;
+          ov.onmousemove({ clientX: t.clientX, clientY: t.clientY });
+          e.preventDefault();
+        }, { passive: false });
+        ov.addEventListener('touchend', function() { ov.onmouseup && ov.onmouseup(); }, { passive: true });
       }
     }, 0);
   }

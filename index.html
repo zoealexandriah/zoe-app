@@ -3043,21 +3043,27 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .ev-mnav-btn.active { color: rgba(220,200,245,0.95) !important; }
   .ev-mnav-btn svg { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
 
-  /* Slider containers: vertical scrollable list */
+  /* Slider containers: compact vertical scroll */
   #es-atmosphere-sliders,
   #es-color-sliders,
+  #es-hsl-sliders,
   #es-details-sliders {
     display: flex !important;
     flex-direction: column !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
-    max-height: 220px !important;
+    max-height: 180px !important;
     height: auto !important;
     flex-wrap: nowrap !important;
   }
 
-  /* Each slider: full-width two-row layout — name+value on top, track below */
+  /* HSL hidden by default; shown when hsl-active class is on suite */
+  #es-hsl-sliders { display: none !important; }
+  #ev-editor-suite.hsl-active #es-hsl-sliders { display: flex !important; flex-direction: column !important; max-height: 180px !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
+  #ev-editor-suite.hsl-active #es-color-sliders { display: none !important; }
+
+  /* Each slider: compact two-row (name+val / track) */
   .sl-row {
     display: grid !important;
     grid-template-columns: 1fr auto !important;
@@ -3071,15 +3077,15 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     height: auto !important;
     border-right: none !important;
     border-bottom: 0.5px solid var(--border) !important;
-    padding: 10px 16px 12px !important;
-    gap: 8px 0 !important;
+    padding: 7px 16px 7px !important;
+    gap: 5px 0 !important;
     box-sizing: border-box !important;
     align-items: center !important;
     justify-content: unset !important;
   }
   .sl-row .sl-name { grid-area: name !important; font-size: 9px !important; letter-spacing: 0.14em !important; color: rgba(201,184,212,0.55) !important; align-self: center !important; }
   .sl-row .sl-val  { grid-area: val  !important; font-size: 9px !important; letter-spacing: 0.10em !important; align-self: center !important; }
-  .sl-track { grid-area: track !important; width: 100% !important; height: 36px !important; flex-shrink: unset !important; }
+  .sl-track { grid-area: track !important; width: 100% !important; height: 32px !important; flex-shrink: unset !important; }
   .slider-section-title, .sl-reset-btn { display: none !important; }
 
   /* HSL dot row: horizontal across top of HSL panel */
@@ -3514,9 +3520,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
             <div id="es-atmosphere-sliders"></div>
           </div>
-          <!-- COLOR panel: TEMPERATURE TINT VIBRANCE SATURATION + HSL -->
+          <!-- COLOR panel: TEMPERATURE TINT VIBRANCE SATURATION -->
           <div class="es-tab-panel" id="es-panel-color">
             <div id="es-color-sliders"></div>
+            <div id="es-hsl-sliders"></div>
           </div>
           <!-- DETAILS panel: EXPOSURE CONTRAST HIGHLIGHTS SHADOWS WHITES BLACKS SHARPEN CLARITY -->
           <div class="es-tab-panel" id="es-panel-details">
@@ -4584,14 +4591,17 @@ function buildEditorSliders(p) {
     return;
   }
 
-  let atmHtml = '', colHtml = '', detHtml = '';
+  let atmHtml = '', colHtml = '', hslHtml = '', detHtml = '';
+  const hslContainer = document.getElementById('es-hsl-sliders');
 
   Object.entries(p.sliders||{}).forEach(([section, rows]) => {
     const sectionHtml = buildSectionHTML(p, section, rows, state);
     if (section === 'EFFECTS') {
       atmHtml += sectionHtml;
-    } else if (section === 'COLOR' || section === 'HSL') {
+    } else if (section === 'COLOR') {
       colHtml += sectionHtml;
+    } else if (section === 'HSL') {
+      hslHtml += sectionHtml;
     } else if (section === 'LIGHT') {
       detHtml += sectionHtml;
     }
@@ -4599,6 +4609,7 @@ function buildEditorSliders(p) {
 
   atmContainer.innerHTML = atmHtml;
   colContainer.innerHTML = colHtml;
+  if (hslContainer) hslContainer.innerHTML = hslHtml;
   detContainer.innerHTML = detHtml;
   attachSliderListeners(p);
 }
@@ -4666,76 +4677,67 @@ function buildSectionHTML(p, section, rows, state) {
   return html;
 }
 
+// ── Slider drag: global delegation — document listeners registered ONCE ──
+var _slDragTrack = null, _slDragPreset = null;
+
+function _slApplyDrag(e) {
+  if (!_slDragTrack) return;
+  if (!document.contains(_slDragTrack)) { _slDragTrack = null; return; }
+  var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  var rect  = _slDragTrack.getBoundingClientRect();
+  var t     = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  var param = _slDragTrack.dataset.param;
+  var pid   = _slDragTrack.dataset.preset;
+  if (!sliderState[pid]) sliderState[pid] = {};
+  sliderState[pid][param] = t;
+  var pct   = Math.round(t * 100);
+  var fill  = _slDragTrack.querySelector('.sl-fill');
+  var thumb = _slDragTrack.querySelector('.sl-thumb');
+  var valEl = document.getElementById('slv-'+pid+'-'+param);
+  var row   = _slDragTrack.closest('.sl-row');
+  if (fill)  fill.style.width  = pct + '%';
+  if (thumb) thumb.style.left  = pct + '%';
+  if (valEl) valEl.textContent = getSliderDisplay(param, t);
+  if (row) {
+    var neutral = (sliderConfig[param] || [null,null,null,true])[3] !== false;
+    row.classList.toggle('changed', neutral ? Math.abs(t-0.5) > 0.01 : t > 0.02);
+  }
+  _slDragPreset = pid;
+  scheduleRender(pid);
+}
+function _slEndDrag() {
+  if (_slDragTrack) _slDragTrack.classList.remove('dragging');
+  window._slDragging = false;
+  var pid = _slDragPreset;
+  _slDragTrack = null; _slDragPreset = null;
+  if (pid) scheduleRender(pid);
+}
+document.addEventListener('mousemove', _slApplyDrag);
+document.addEventListener('touchmove', function(e){ if (_slDragTrack){ _slApplyDrag(e); e.preventDefault(); } }, {passive:false});
+document.addEventListener('mouseup',  _slEndDrag);
+document.addEventListener('touchend', _slEndDrag);
+
 function attachSliderListeners(p) {
-  const tracks = document.querySelectorAll('.sl-track[data-preset]');
-  tracks.forEach(track => {
-    const paramName = track.dataset.param;
-    const presetId  = track.dataset.preset;
-
-    let dragging = false;
-
-    function getT(e) {
-      const rect = track.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    }
-
-    function updateSlider(t) {
-      const param = track.dataset.param; // read dynamically so channel switching works
-      if (!sliderState[presetId]) sliderState[presetId] = {};
-      sliderState[presetId][param] = t;
-
-      const pct = Math.round(t * 100);
-      const fill  = track.querySelector('.sl-fill');
-      const thumb = track.querySelector('.sl-thumb');
-      const valEl = document.getElementById(`slv-${presetId}-${param}`);
-      const row   = track.closest('.sl-row');
-
-      if (fill)  fill.style.width = pct + '%';
-      if (thumb) thumb.style.left  = pct + '%';
-      if (valEl) valEl.textContent = getSliderDisplay(param, t);
-      if (row) {
-        const neutral = sliderConfig[param]?.[3] ?? true;
-        const isChanged = neutral ? Math.abs(t - 0.5) > 0.01 : t > 0.02;
-        row.classList.toggle('changed', isChanged);
-      }
-
-      // Live re-render on editor canvas & hero canvas
-      scheduleRender(presetId);
-    }
-
-    track.addEventListener('mousedown', e => {
-      evHistoryPush(); // capture pre-drag state for undo
-      dragging = true; window._slDragging = true;
+  var tracks = document.querySelectorAll('.sl-track[data-preset]');
+  tracks.forEach(function(track) {
+    if (track._slAttached) return; // prevent duplicate listeners on rebuild
+    track._slAttached = true;
+    track.addEventListener('mousedown', function(e) {
+      evHistoryPush();
+      _slDragTrack = track; _slDragPreset = track.dataset.preset;
+      window._slDragging = true;
       track.classList.add('dragging');
-      updateSlider(getT(e));
+      _slApplyDrag(e);
       e.preventDefault();
     });
-    track.addEventListener('touchstart', e => {
-      evHistoryPush(); // capture pre-drag state for undo
-      dragging = true; window._slDragging = true;
+    track.addEventListener('touchstart', function(e) {
+      evHistoryPush();
+      _slDragTrack = track; _slDragPreset = track.dataset.preset;
+      window._slDragging = true;
       track.classList.add('dragging');
-      updateSlider(getT(e));
+      _slApplyDrag(e);
       e.preventDefault();
     }, {passive:false});
-
-    document.addEventListener('mousemove', e => {
-      if (!dragging) return;
-      updateSlider(getT(e));
-    });
-    document.addEventListener('touchmove', e => {
-      if (!dragging) return;
-      updateSlider(getT(e));
-    }, {passive:false});
-
-    const stopDrag = () => {
-      if (!dragging) return;
-      dragging = false; window._slDragging = false;
-      track.classList.remove('dragging');
-      scheduleRender(presetId); // full-quality render on release
-    };
-    document.addEventListener('mouseup',   stopDrag);
-    document.addEventListener('touchend',  stopDrag);
   });
 }
 
@@ -4785,18 +4787,23 @@ function evMobileNavToggle(name) {
 }
 
 function evAdjustSubTab(name) {
-  // Map sub-tab names to existing panel tabs
   var panelMap = {
-    'light':   'details',    // LIGHT   → exposure, contrast, highlights, shadows
-    'color':   'color',      // COLOR   → temperature, tint, vibrance, saturation
-    'hsl':     'color',      // HSL     → hsl channels (same panel, scroll down)
-    'details': 'atmosphere', // DETAILS → glow, grain, fade, haze, sharpen
-    'crop':    'tools',      // CROP    → tools panel
-    'flip':    'tools'       // FLIP    → tools panel
+    'light':   'details',
+    'color':   'color',
+    'hsl':     'color',
+    'details': 'atmosphere',
+    'crop':    'tools',
+    'flip':    'tools'
   };
   document.querySelectorAll('.ev-subnav-btn').forEach(function(b){ b.classList.remove('active'); });
   var btn = document.querySelector('.ev-subnav-btn[data-tab="'+name+'"]');
   if (btn) btn.classList.add('active');
+  // HSL vs COLOR: toggle which slider container is visible
+  var suite = document.getElementById('ev-editor-suite');
+  if (suite) {
+    if (name === 'hsl') { suite.classList.add('hsl-active'); }
+    else { suite.classList.remove('hsl-active'); }
+  }
   var panelTab = panelMap[name];
   if (panelTab) {
     var tabEl = document.querySelector('.es-tab[data-tab="'+panelTab+'"]');

@@ -2918,17 +2918,20 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* ── Editor view: stack canvas over sliders ── */
   #editor-view { flex-direction: column !important; }
 
-  /* Canvas column: fixed height, full width */
+  /* Canvas column: fixed height, full width (no strip below) */
   #editor-view > div:first-child {
     flex: none !important;
     width: 100% !important;
-    height: 58vh !important;
+    height: 50vh !important;
   }
 
-  /* Preset strip: slightly taller for thumb tap */
-  #editor-view > div:first-child > div:last-child {
-    height: 108px !important;
-    -webkit-overflow-scrolling: touch;
+  /* Hide EDITOR.SUITE titlebar on mobile — tabs are the visual header */
+  #ev-suite-titlebar { display: none !important; }
+
+  /* Preset strip: compact height for mobile tap */
+  #ev-preset-strip {
+    height: 96px !important;
+    flex-shrink: 0 !important;
   }
 
   /* Sliders column: full-width scrollable panel */
@@ -3315,16 +3318,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
             <div id="ev-preset-label" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:0.18em;color:rgba(201,184,212,0.35);font-family:var(--mono);pointer-events:none;white-space:nowrap"></div>
           </div>
-          <!-- Bottom preset strip -->
-          <div style="height:128px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);overflow-x:auto;overflow-y:hidden;">
-            <div id="ev-preset-list" style="height:100%;display:flex;flex-direction:row;width:max-content;"></div>
-          </div>
         </div>
 
         <!-- Col 3: Editor Suite (300px) -->
         <div style="width:300px;min-width:300px;max-width:300px;height:100%;display:flex;flex-direction:column;background:var(--surface);border-left:0.5px solid var(--border);">
           <!-- Title bar -->
-          <div style="height:28px;flex-shrink:0;display:flex;align-items:center;padding:0 10px;background:linear-gradient(to bottom,#cdb0ba,#b89aa4);border-bottom:0.5px solid rgba(140,100,110,0.35);">
+          <div id="ev-suite-titlebar" style="height:28px;flex-shrink:0;display:flex;align-items:center;padding:0 10px;background:linear-gradient(to bottom,#cdb0ba,#b89aa4);border-bottom:0.5px solid rgba(140,100,110,0.35);">
             <span style="font-size:9px;letter-spacing:0.18em;color:#2a1a1e;font-family:var(--mono);font-weight:500">EDITOR.SUITE</span>
           </div>
           <!-- Tab nav -->
@@ -3333,6 +3332,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div class="es-tab" data-tab="color" onclick="esTab(this)">COLOR</div>
             <div class="es-tab" data-tab="details" onclick="esTab(this)">DETAILS</div>
             <div class="es-tab" data-tab="tools" onclick="esTab(this)">TOOLS</div>
+          </div>
+          <!-- Preset strip (below tabs, above panels) -->
+          <div id="ev-preset-strip" style="height:128px;flex-shrink:0;border-bottom:0.5px solid var(--border);background:var(--surface);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;">
+            <div id="ev-preset-list" style="height:100%;display:flex;flex-direction:row;width:max-content;"></div>
           </div>
           <!-- ATMOSPHERE panel: active preset display + GLOW GRAIN FADE HAZE -->
           <div class="es-tab-panel active" id="es-panel-atmosphere">

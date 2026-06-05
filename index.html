@@ -9060,6 +9060,12 @@ window.renderLibrary = function() {
       // Check _sliders (covers both editor-saved and batch-pasted edits)
       const hasEdits = localStorage.getItem('zoe_edit_' + entry.id + '_sliders');
       if (hasEdits) {
+        // Show edited thumbnail if a rendered version exists
+        const currentURL = localStorage.getItem('zoe_edit_' + entry.id + '_current');
+        if (currentURL) {
+          const thumbImg = cell.querySelector('img');
+          if (thumbImg) thumbImg.src = currentURL;
+        }
         const btn = document.createElement('div');
         btn.className = 'gallery-copy-edits-btn';
         btn.textContent = 'COPY EDIT';
@@ -9185,10 +9191,11 @@ window.editorAutoSave = function() {
   } catch(e) {}
 };
 
-// Patch all nav switches to save editor state before switching
+// Patch all nav switches to save editor state + rendered thumbnail before switching
 const _origSwitchToTab = window.switchToTab;
 window.switchToTab = function(label) {
   autoSaveEdit();
+  if (typeof window.editorAutoSave === 'function') window.editorAutoSave();
   if (_origSwitchToTab) _origSwitchToTab.call(this, label);
 };
 

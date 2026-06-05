@@ -9023,22 +9023,78 @@ function galleryCopyEdits(imageId) {
   }
 }
 
+function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
+  const p = presets.find(x => x.id === presetId);
+  if (!p) { onDone && onDone(); return; }
+  const srcURL = (entry.editState && entry.editState.originalDataURL) || entry.dataURL;
+  const src = new Image();
+  src.onload = () => {
+    const MAX = 800;
+    const scale = Math.min(MAX / src.naturalWidth, MAX / src.naturalHeight, 1);
+    const w = Math.max(1, Math.round(src.naturalWidth  * scale));
+    const h = Math.max(1, Math.round(src.naturalHeight * scale));
+    const off = document.createElement('canvas');
+    off.width = w; off.height = h;
+    const ctx = off.getContext('2d');
+    ctx.drawImage(src, 0, 0, w, h);
+    const adj = buildAdjustments(sliders);
+    if (p.hueTempZones)              adj.hueTempZones  = p.hueTempZones;
+    if (p.colorGlow  !== undefined)  adj.colorGlow     = p.colorGlow;
+    if (p.skinLift   !== undefined)  adj.skinLift      = p.skinLift;
+    if (p.splitTone)                 adj.split_tone    = p.splitTone;
+    if (p.halationHue !== undefined) adj.halation_hue  = p.halationHue;
+    const origData = ctx.getImageData(0, 0, w, h);
+    let processed  = applyPixelAdjustments(origData, adj);
+    if (intensity < 0.999) {
+      const od = origData.data;
+      for (let i = 0; i < processed.length; i += 4) {
+        processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
+        processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
+        processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
+      }
+    }
+    ctx.putImageData(new ImageData(processed, w, h), 0, 0);
+    if (p.curve)                      applyCurveLUTs(off, p.curve,      0, 0, w, h);
+    if ((adj.sharpen  || 0) > 0.01)   applySharpness(off, adj.sharpen,  0, 0, w, h);
+    if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, w, h);
+    if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, w, h);
+    if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, w, h);
+    if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
+    entry.dataURL = off.toDataURL('image/jpeg', 0.90);
+    const img = new Image();
+    img.onload = () => { entry.img = img; onDone && onDone(); };
+    img.src = entry.dataURL;
+  };
+  src.onerror = () => { onDone && onDone(); };
+  src.src = srcURL;
+}
+
 function galleryPasteEdits() {
   if (!window.copiedEdits || !libSelected.length) return;
   const { presetId, state } = window.copiedEdits;
-  let count = 0;
+  const targets = [];
   libSelected.forEach(idx => {
     const entry = library[idx];
     if (!entry) return;
     const originalDataURL = (entry.editState && entry.editState.originalDataURL)
       ? entry.editState.originalDataURL : entry.dataURL;
     entry.editState = { presetId, sliders: { ...state }, intensity: 1.0, originalDataURL };
-    count++;
+    targets.push(entry);
   });
-  libSaveToStorage();
-  showToast('_ EDITS APPLIED TO ' + count + ' PHOTO' + (count===1?'':'S'));
+  if (!targets.length) return;
+  showToast('_ RENDERING ' + targets.length + ' PHOTO' + (targets.length===1?'':'S') + '…');
+  let done = 0;
+  targets.forEach(entry => {
+    _renderBatchThumbnail(entry, presetId, state, 1.0, () => {
+      done++;
+      if (done === targets.length) {
+        libSaveToStorage();
+        renderLibrary();
+        showToast('_ EDITS APPLIED TO ' + targets.length + ' PHOTO' + (targets.length===1?'':'S'));
+      }
+    });
+  });
   libSelected.length = 0;
-  renderLibrary();
   galleryToggleSelectMode && galleryToggleSelectMode();
 }
 

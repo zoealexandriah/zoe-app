@@ -6886,10 +6886,6 @@ function openEditor(idx) {
   evFuture.length  = 0;
   // Clear all cached slider values so previous photo's edits don't carry over
   Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
-  // Clear slider DOM so stale values from a previous session don't show
-  ['es-atmosphere-sliders','es-color-sliders','es-hsl-sliders','es-details-sliders'].forEach(function(cid){
-    var el = document.getElementById(cid); if (el) el.innerHTML = '';
-  });
 
   // Fix 2: Check for saved edit state in localStorage
   const savedSliders = entry && entry.id ?
@@ -9150,10 +9146,25 @@ function evFilterCat(btn, cat) {
 function evBuildSliders() {
   var sc = document.getElementById('ev-sliders');
   var tc = document.getElementById('ev-tools');
-  if (sc && activePreset) {
+  if (activePreset) {
     buildEditorSliders(activePreset);
-    var src2 = document.getElementById('editor-sliders');
-    if (src2) { sc.innerHTML = src2.innerHTML; attachSliderListeners(activePreset); }
+    if (sc) {
+      var src2 = document.getElementById('editor-sliders');
+      if (src2) { sc.innerHTML = src2.innerHTML; attachSliderListeners(activePreset); }
+    }
+  } else {
+    // No preset selected — rebuild existing slider DOM with zeroed state so
+    // stale values from the previous session don't show
+    var existingTrack = document.querySelector(
+      '#es-details-sliders .sl-track[data-preset],' +
+      '#es-color-sliders .sl-track[data-preset],' +
+      '#es-atmosphere-sliders .sl-track[data-preset]'
+    );
+    if (existingTrack) {
+      var _pid = existingTrack.dataset.preset;
+      var _p0  = presets.find(function(x){ return x.id === _pid; });
+      if (_p0) buildEditorSliders(_p0); // sliderState[_pid] was cleared → shows zeros
+    }
   }
   if (tc) {
     buildEditorToolsSection();

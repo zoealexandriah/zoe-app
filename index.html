@@ -6907,6 +6907,18 @@ function openEditor(idx) {
   evFuture.length  = 0;
   // Clear all cached slider values so previous photo's edits don't carry over
   Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
+  // Immediately reset slider DOM to zero so stale values never flash on screen.
+  // Find whichever preset is currently rendered, or fall back to presets[0].
+  (function(){
+    var _t = document.querySelector(
+      '#es-details-sliders .sl-track[data-preset],' +
+      '#es-color-sliders .sl-track[data-preset],' +
+      '#es-atmosphere-sliders .sl-track[data-preset]'
+    );
+    var _rp = (_t && presets.find(function(x){ return x.id === _t.dataset.preset; }))
+              || (presets && presets[0]);
+    if (_rp) { sliderState[_rp.id] = {}; buildEditorSliders(_rp); }
+  })();
 
   // Fix 2: Check for saved edit state in localStorage
   const savedSliders = entry && entry.id ?

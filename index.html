@@ -1660,6 +1660,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   color: rgba(175,162,200,0.45); font-family: var(--mono);
 }
 
+/* Collection delete button */
+.col-delete-btn {
+  position: absolute; top: 6px; right: 6px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,0.60); border: 0.5px solid rgba(201,184,212,0.15);
+  color: rgba(220,200,230,0.65); font-size: 9px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; opacity: 0; transition: opacity 0.15s;
+}
+.col-card:hover .col-delete-btn { opacity: 1; }
+@media (max-width: 768px) { .col-delete-btn { opacity: 1; } }
+
 /* New collection inline name input */
 .col-name-input {
   background: transparent;
@@ -2948,20 +2960,22 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   /* Editor toolbar: scrollable, no wrap */
   #ev-toolbar {
-    height: 44px !important;
-    min-height: 44px !important;
+    height: 40px !important;
+    min-height: 40px !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
     gap: 4px !important;
     padding: 0 8px !important;
   }
   .ctb-btn {
-    min-height: 32px;
+    min-height: 28px;
     padding: 0 8px;
     white-space: nowrap;
     flex-shrink: 0;
     font-size: 8px;
   }
+  /* Hide toolbar while ADJUST panel is open — gives photo ~40px more space */
+  #editor-view.adjust-open #ev-toolbar { display: none !important; }
 
   /* Sliders: bigger touch target */
   .sl-track { height: 32px; touch-action: none; }
@@ -3016,7 +3030,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-mobile-nav {
     display: flex !important;
     flex-direction: row !important;
-    height: 58px !important;
+    height: 52px !important;
     flex-shrink: 0 !important;
     border-top: 0.5px solid var(--border) !important;
     background: rgba(7,5,16,0.98) !important;
@@ -3053,7 +3067,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     overflow-x: hidden !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
-    max-height: 180px !important;
+    max-height: 150px !important;
     height: auto !important;
     flex-wrap: nowrap !important;
     contain: layout style !important;
@@ -3141,7 +3155,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     overflow-x: auto !important;
     overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch;
-    height: 44px !important;
+    height: 38px !important;
     flex-shrink: 0 !important;
     border-bottom: 0.5px solid var(--border) !important;
     background: rgba(7,5,16,0.98) !important;
@@ -3578,6 +3592,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
       </div>
 
+
+      <!-- ── Delete Collection Confirmation ── -->
+      <div id="col-delete-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;">
+        <div style="background:#0e0b18;border:0.5px solid rgba(201,184,212,0.18);border-radius:4px;padding:24px;width:300px;font-family:var(--mono);">
+          <div style="font-size:10px;letter-spacing:0.22em;color:rgba(220,210,240,0.90);margin-bottom:8px;">DELETE COLLECTION</div>
+          <div style="font-size:8px;letter-spacing:0.14em;color:rgba(175,162,200,0.60);line-height:1.7;margin-bottom:20px;">Are you sure? This cannot be undone.</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div id="col-delete-confirm-btn" style="cursor:pointer;padding:9px;text-align:center;font-size:8px;letter-spacing:0.18em;color:rgba(255,255,255,0.88);background:#7a1a2a;border-radius:2px;">DELETE COLLECTION</div>
+            <div onclick="document.getElementById('col-delete-modal').style.display='none'" style="cursor:pointer;padding:9px;text-align:center;font-size:8px;letter-spacing:0.18em;color:rgba(175,162,200,0.45);">CANCEL</div>
+          </div>
+        </div>
+      </div>
 
       <!-- ── Replace Photo Save Prompt ── -->
       <div id="replace-photo-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;">
@@ -4799,12 +4825,15 @@ function evMobileNavToggle(name) {
   } else if (name === 'adjust') {
     // ADJUST = sub-nav + sliders
     strip.classList.remove('visible');
+    var edView = document.getElementById('editor-view');
     if (isSame && suite.classList.contains('open')) {
       suite.classList.remove('open');
       if (subnav) subnav.style.display = 'none';
+      if (edView) edView.classList.remove('adjust-open');
     } else {
       suite.classList.add('open');
       if (subnav) subnav.style.display = 'flex';
+      if (edView) edView.classList.add('adjust-open');
       var btn = document.querySelector('.ev-mnav-btn[data-tab="adjust"]');
       if (btn) btn.classList.add('active');
       evAdjustSubTab('light'); // default to LIGHT sub-tab
@@ -4840,8 +4869,10 @@ function evAdjustSubTab(name) {
 function evAdjustBack() {
   var suite  = document.getElementById('ev-editor-suite');
   var subnav = document.getElementById('ev-adjust-subnav');
+  var edView = document.getElementById('editor-view');
   suite.classList.remove('open');
   if (subnav) subnav.style.display = 'none';
+  if (edView) edView.classList.remove('adjust-open');
   document.querySelectorAll('.ev-mnav-btn').forEach(function(b){ b.classList.remove('active'); });
 }
 
@@ -6927,9 +6958,7 @@ function initUploadDrop() {
 // ═══════════════════════════════════════════════════════════════
 
 // State
-const collections = [
-  { id: 'col_favorites', name: 'FAVORITES', photos: [], created: '05 · 22 · 2026' }
-];
+const collections = [];
 let colActiveId     = null;   // which collection is open in L2
 let colSelectedIdxs = [];     // selected photo indices in L2
 let colLbIdx        = 0;      // lightbox current index
@@ -7012,19 +7041,35 @@ function colRenderGrid() {
       : `<div class="col-card-cover-empty">◫</div>`;
 
     const count = col.photos.length;
-    const countLabel = count === 0 ? 'EMPTY' : count + (count === 1 ? ' PHOTO' : ' PHOTOS');
+    const countLabel = count + (count === 1 ? ' PHOTO' : ' PHOTOS');
 
     card.innerHTML = `
       <div class="col-card-cover">${coverHTML}</div>
       <div class="col-card-meta">
         <div class="col-card-name" id="col-card-name-${col.id}" ondblclick="event.stopPropagation();colStartRename(this,'${col.id}')" style="cursor:text">${col.name}</div>
-        <div class="col-card-info">
-          <span>${countLabel}</span>
-          <span>${col.created}</span>
-        </div>
-      </div>`;
+        <div class="col-card-info"><span>${countLabel}</span></div>
+      </div>
+      <button class="col-delete-btn" onclick="event.stopPropagation();colConfirmDelete('${col.id}')" title="Delete">✕</button>`;
     grid.appendChild(card);
   });
+}
+
+// ── Delete collection ─────────────────────────────────────────────────────
+function colConfirmDelete(id) {
+  var modal = document.getElementById('col-delete-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  document.getElementById('col-delete-confirm-btn').onclick = function() {
+    colDeleteCollection(id);
+    modal.style.display = 'none';
+  };
+}
+function colDeleteCollection(id) {
+  var idx = collections.findIndex(function(c){ return c.id === id; });
+  if (idx === -1) return;
+  collections.splice(idx, 1);
+  colSaveToStorage();
+  colRenderGrid();
 }
 
 // ── New collection ────────────────────────────────────────────────────────

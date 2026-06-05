@@ -2918,15 +2918,23 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* ── Editor view: stack canvas over sliders ── */
   #editor-view { flex-direction: column !important; }
 
-  /* Canvas column: fixed height, full width (no strip below) */
+  /* Canvas column: takes all remaining vertical space */
   #editor-view > div:first-child {
-    flex: none !important;
+    flex: 1 !important;
     width: 100% !important;
-    height: 50vh !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
 
   /* Hide EDITOR.SUITE titlebar on mobile — tabs are the visual header */
   #ev-suite-titlebar { display: none !important; }
+
+  /* Hide active preset display (redundant with strip) */
+  #es-active-preset { display: none !important; }
+
+  /* Intensity row: hidden by default, shown via double-tap */
+  #es-intensity-row { display: none !important; }
+  #es-intensity-row.visible { display: block !important; }
 
   /* Preset strip: compact height for mobile tap */
   #ev-preset-strip {
@@ -2934,16 +2942,78 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex-shrink: 0 !important;
   }
 
-  /* Sliders column: full-width scrollable panel */
+  /* Editor suite panel: compact fixed panel at bottom */
   #editor-view > div:last-child {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    flex: 1 !important;
+    flex: none !important;
     border-left: none !important;
     border-top: 0.5px solid var(--border);
-    overflow-y: auto;
+    overflow-y: visible !important;
+  }
+
+  /* Slider panels: horizontal scroll */
+  .es-tab-panel {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    height: 90px !important;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Each slider = a vertical column card */
+  .sl-row {
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    min-width: 108px !important;
+    max-width: 108px !important;
+    height: 100% !important;
+    border-right: 0.5px solid var(--border) !important;
+    border-bottom: none !important;
+    padding: 8px 10px !important;
+    gap: 5px !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
+  }
+  .sl-track {
+    width: 100% !important;
+    height: 30px !important;
+    flex-shrink: 0 !important;
+  }
+  /* Section headers & reset clutter — hide in horizontal mode */
+  .slider-section-title, .sl-reset-btn { display: none !important; }
+
+  /* HSL dot picker: rotate to column for color tab */
+  .hsl-channels {
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    min-width: 50px !important;
+    height: 100% !important;
+    padding: 6px 4px !important;
+    gap: 4px !important;
+    border-right: 0.5px solid var(--border);
+    justify-content: center !important;
+    align-items: center !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box !important;
+  }
+  .hsl-dot { width: 15px !important; height: 15px !important; }
+  .hsl-channel-label { display: none !important; }
+
+  /* Mobile toolbar: show only ← GALLERY, UNDO, REDO, EXPORT, SAVE */
+  #ev-toolbar > div:not(#editor-back-btn):not(#ev-undo):not(#ev-redo):not(#ev-export-btn):not(#save-to-gallery-btn) {
+    display: none !important;
+  }
+  #ev-toolbar {
+    gap: 4px !important;
+    justify-content: flex-start !important;
+    padding: 0 10px !important;
   }
 
   /* Editor toolbar: scrollable, no wrap */
@@ -3303,7 +3373,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div class="ctb-btn" onclick="evZoomFit()" style="display:inline-flex;align-items:center">FIT</div>
             <div style="width:1px;height:16px;background:var(--border);flex-shrink:0"></div>
             <div class="ctb-btn" onclick="editorReplacePhoto()" style="display:inline-flex;align-items:center">⟳ REPLACE</div>
-            <div class="ctb-btn" onclick="exportModalOpen()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">↑ EXPORT</div>
+            <div class="ctb-btn" id="ev-export-btn" onclick="exportModalOpen()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">↑ EXPORT</div>
             <div class="ctb-btn" id="save-to-gallery-btn" onclick="editorSaveToGallery()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">↓ SAVE TO GALLERY</div>
           </div>
           <!-- Canvas area -->
@@ -3346,7 +3416,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 <div class="es-preset-series" id="es-preset-series"></div>
               </div>
             </div>
-            <div style="padding:10px 12px 8px;border-bottom:0.5px solid var(--border);flex-shrink:0;">
+            <div id="es-intensity-row" style="padding:10px 12px 8px;border-bottom:0.5px solid var(--border);flex-shrink:0;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <span style="font-size:7.5px;letter-spacing:0.18em;color:var(--text-dim);font-family:var(--font-mono);">INTENSITY</span>
                 <span class="intensity-val" style="font-size:7.5px;letter-spacing:0.14em;color:var(--text-mid);font-family:var(--font-mono);">100%</span>
@@ -8534,6 +8604,7 @@ let evActivePreset = null;
 let evZoomLevel   = 1.0;
 let evPanX = 0, evPanY = 0;
 let evPanning = false, evPanStart = null;
+let _evLastTap = 0, _evLastTapId = null; // double-tap tracking for preset strip
 
 function evInit() {
   // Render canvas
@@ -8558,11 +8629,20 @@ function evRenderCanvas() {
   var dpr = Math.min(window.devicePixelRatio || 1, 2);
   var aw = area.clientWidth || 500, ah = area.clientHeight || 400;
   var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
-  var scale = Math.min(aw/iw, ah/ih, 1);
-  var cssW = Math.round(iw * scale);
-  var cssH = Math.round(ih * scale);
-  canvas.width  = Math.round(cssW * dpr);
-  canvas.height = Math.round(cssH * dpr);
+  var baseScale = Math.min(aw/iw, ah/ih, 1);
+  var cssW = Math.round(iw * baseScale);
+  var cssH = Math.round(ih * baseScale);
+  // Render buffer at zoom-aware resolution so zooming stays sharp
+  var MAX_CANVAS_SIDE = 1200;
+  var zoomFactor = Math.max(evZoomLevel || 1, 1);
+  var renderScale = Math.min(
+    baseScale * zoomFactor * dpr,
+    1,
+    MAX_CANVAS_SIDE / iw,
+    MAX_CANVAS_SIDE / ih
+  );
+  canvas.width  = Math.round(iw * renderScale);
+  canvas.height = Math.round(ih * renderScale);
   canvas.style.width  = cssW + 'px';
   canvas.style.height = cssH + 'px';
   canvas.style.transform = 'scale('+evZoomLevel+') translate('+evPanX+'px,'+evPanY+'px)';
@@ -8719,6 +8799,14 @@ function evRenderPresets() {
       +'</div>'
       +(isActive?'<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,'+(p.acc||'#c9b8d4')+',transparent)"></div>':'');
     card.onclick = function(){
+      var _now = Date.now();
+      // Double-tap on active preset → toggle intensity row
+      if (isActive && _now - _evLastTap < 360 && _evLastTapId === p.id) {
+        var _ir = document.getElementById('es-intensity-row');
+        if (_ir) _ir.classList.toggle('visible');
+        _evLastTap = 0; return;
+      }
+      _evLastTap = _now; _evLastTapId = p.id;
       // Push history before changing preset
       evHistoryPush();
       // Set both evActivePreset AND activePreset — evRenderCanvas reads activePreset
@@ -8851,8 +8939,14 @@ document.addEventListener('mouseup', function(){
     }
   }, {passive:true});
 
+  var _pinchRenderTimer = null;
   document.addEventListener('touchend', function(){
     _pinchDist0 = 0; _touchPanStart = null;
+    // Re-render at zoom-appropriate resolution after pinch gesture ends
+    clearTimeout(_pinchRenderTimer);
+    _pinchRenderTimer = setTimeout(function(){
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    }, 120);
   }, {passive:true});
 })();
 

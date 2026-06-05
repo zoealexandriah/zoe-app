@@ -2906,16 +2906,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
   .sidebar { display: none !important; }
 
-  /* ── Gallery: 2 columns ── */
+  /* ── Gallery: 2 columns with thin even hairlines ── */
   .library-grid {
     flex-wrap: wrap !important;
-    padding: 4px !important;
-    gap: 4px !important;
+    padding: 0 !important;
+    gap: 2px !important;
   }
   .lib-col {
-    flex: 0 0 calc(50% - 2px) !important;
-    width: calc(50% - 2px) !important;
+    flex: 0 0 calc(50% - 1px) !important;
+    width: calc(50% - 1px) !important;
+    gap: 2px !important;
   }
+  .lib-photo { margin-bottom: 0 !important; }
 
   /* ── Gallery toolbar touch sizing ── */
   .library-toolbar { height: 44px !important; padding: 0 10px; }
@@ -6882,6 +6884,8 @@ function openEditor(idx) {
   evActivePreset = null;
   evHistory.length = 0;
   evFuture.length  = 0;
+  // Clear all cached slider values so previous photo's edits don't carry over
+  Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
 
   // Fix 2: Check for saved edit state in localStorage
   const savedSliders = entry && entry.id ?
@@ -7046,7 +7050,7 @@ function colRenderGrid() {
     card.innerHTML = `
       <div class="col-card-cover">${coverHTML}</div>
       <div class="col-card-meta">
-        <div class="col-card-name" id="col-card-name-${col.id}" ondblclick="event.stopPropagation();colStartRename(this,'${col.id}')" style="cursor:text">${col.name}</div>
+        <div class="col-card-name" id="col-card-name-${col.id}" ondblclick="event.stopPropagation();colStartRename(this,'${col.id}')" ontouchend="colTapName(this,'${col.id}')" style="cursor:text">${col.name}</div>
         <div class="col-card-info"><span>${countLabel}</span></div>
       </div>
       <button class="col-delete-btn" onclick="event.stopPropagation();colConfirmDelete('${col.id}')" title="Delete">✕</button>`;
@@ -7082,24 +7086,34 @@ function colNewCollection() {
   const newCol = { id, name: 'UNTITLED', photos: [], created: `${m} · ${d} · ${y}` };
   collections.push(newCol);
   colRenderGrid();
-  // Focus the new card's name for inline rename
-  requestAnimationFrame(() => {
-    const nameEl = document.getElementById('col-card-name-' + id);
-    if (!nameEl) return;
-    nameEl.contentEditable = 'true';
-    nameEl.focus();
-    // Select all text
-    const range = document.createRange();
-    range.selectNodeContents(nameEl);
-    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
-    nameEl.onblur = () => {
-      const newName = nameEl.textContent.trim().toUpperCase() || 'UNTITLED';
-      newCol.name = newName;
-      nameEl.contentEditable = 'false';
-      colRenderGrid();
-    };
-    nameEl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); nameEl.blur(); } };
-  });
+  // Sync focus (not rAF) so iOS keyboard fires within the user gesture
+  const nameEl = document.getElementById('col-card-name-' + id);
+  if (!nameEl) return;
+  nameEl.contentEditable = 'true';
+  nameEl.focus();
+  const range = document.createRange();
+  range.selectNodeContents(nameEl);
+  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  nameEl.onblur = () => {
+    const newName = nameEl.textContent.trim().toUpperCase() || 'UNTITLED';
+    newCol.name = newName;
+    nameEl.contentEditable = 'false';
+    colRenderGrid();
+  };
+  nameEl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); nameEl.blur(); } };
+}
+
+// ── Double-tap to rename (mobile) ─────────────────────────────────────────
+var _colTapTime = 0, _colTapId = null;
+function colTapName(el, id) {
+  var now = Date.now();
+  if (_colTapId === id && now - _colTapTime < 360) {
+    _colTapTime = 0; _colTapId = null;
+    event.stopPropagation();
+    colStartRename(el, id);
+  } else {
+    _colTapTime = now; _colTapId = id;
+  }
 }
 
 // ── Open a collection (Level 2) ───────────────────────────────────────────
@@ -8852,8 +8866,9 @@ let evPanning = false, evPanStart = null;
 let _evLastTap = 0, _evLastTapId = null;
 
 function evInit() {
-  // Reset zoom/pan so image isn't cut off on re-entry
+  // Reset zoom/pan and active preset so stale effects aren't applied to a new photo
   evZoomLevel = 1; evPanX = 0; evPanY = 0;
+  evActivePreset = null; activePreset = null;
   // Render canvas
   evRenderCanvas();
   // Populate preset list

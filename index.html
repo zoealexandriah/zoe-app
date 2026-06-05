@@ -9185,7 +9185,12 @@ window.editorAutoSave = function() {
   } catch(e) {}
 };
 
-// Patch all nav switches to call editorAutoSave before switching
+// Patch all nav switches to save editor state before switching
+const _origSwitchToTab = window.switchToTab;
+window.switchToTab = function(label) {
+  autoSaveEdit();
+  if (_origSwitchToTab) _origSwitchToTab.call(this, label);
+};
 
 // ── Fix 4: editorSaveToGallery — save at original resolution ─────────────
 window.editorSaveToGallery = function() {

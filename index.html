@@ -8949,17 +8949,18 @@ function autoSaveEdit() {
   if (!userImage || editingIdx === undefined || editingIdx < 0) return;
   const entry = library[editingIdx];
   if (!entry) return;
-  // Only persist slider state — never save edited pixels as the working image
-  try {
-    if (!localStorage.getItem('zoe_edit_' + entry.id + '_original')) {
-      localStorage.setItem('zoe_edit_' + entry.id + '_original', entry.dataURL);
-    }
-    const _asp = activePreset || evActivePreset;
-    if (_asp && sliderState[_asp.id]) {
-      localStorage.setItem('zoe_edit_' + entry.id + '_sliders',
-        JSON.stringify({ presetId: _asp.id, state: sliderState[_asp.id] }));
-    }
-  } catch(e) {}
+  const _asp = activePreset || evActivePreset;
+  if (!_asp) return;
+  // Update editState on the library entry directly
+  const originalDataURL = entry.editState?.originalDataURL || entry.dataURL;
+  entry.editState = {
+    presetId:        _asp.id,
+    sliders:         JSON.parse(JSON.stringify(sliderState[_asp.id] || {})),
+    intensity:       presetIntensity,
+    originalDataURL: originalDataURL
+  };
+  // Persist to IndexedDB
+  libSaveToStorage();
 }
 
 function scheduleAutoSave() {
@@ -8983,7 +8984,8 @@ window.evRenderCanvas = function() {
 
 // ── Fix 4: Back to gallery ───────────────────────────────────────────────
 function editorBackToGallery() {
-  // Auto-save current state
+  // Flush auto-save immediately before navigating
+  clearTimeout(_autoSaveTimer);
   autoSaveEdit();
   // Navigate to gallery
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -8991,14 +8993,12 @@ function editorBackToGallery() {
     .find(n => (n.querySelector('.nav-label')||{}).textContent.trim() === 'GALLERY');
   if (galleryNav) {
     galleryNav.classList.add('active');
-    // Hide editor-view, show hero-win
     const ev = document.getElementById('editor-view');
     if (ev) ev.style.display = 'none';
     const rc = document.getElementById('right-col');
     if (rc) { rc.style.display = 'none'; rc.style.width = '0'; rc.style.minWidth = '0'; }
     const hw = document.querySelector('.hero-win');
     if (hw) hw.style.display = '';
-    // Trigger the full nav logic via click
     hideCollectionsView && hideCollectionsView();
     hidePresetsView && hidePresetsView();
     hideFavoritesView && hideFavoritesView();

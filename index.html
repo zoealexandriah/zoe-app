@@ -4590,14 +4590,14 @@ function attachSliderListeners(p) {
 
     track.addEventListener('mousedown', e => {
       evHistoryPush(); // capture pre-drag state for undo
-      dragging = true;
+      dragging = true; window._slDragging = true;
       track.classList.add('dragging');
       updateSlider(getT(e));
       e.preventDefault();
     });
     track.addEventListener('touchstart', e => {
       evHistoryPush(); // capture pre-drag state for undo
-      dragging = true;
+      dragging = true; window._slDragging = true;
       track.classList.add('dragging');
       updateSlider(getT(e));
       e.preventDefault();
@@ -4614,8 +4614,9 @@ function attachSliderListeners(p) {
 
     const stopDrag = () => {
       if (!dragging) return;
-      dragging = false;
+      dragging = false; window._slDragging = false;
       track.classList.remove('dragging');
+      scheduleRender(presetId); // full-quality render on release
     };
     document.addEventListener('mouseup',   stopDrag);
     document.addEventListener('touchend',  stopDrag);
@@ -4690,11 +4691,12 @@ function renderRawWithAdj(canvas, imgKey, adj, size) {
 }
 
 
-// ── Render scheduler: debounce canvas redraws ──
-let renderTimer = null;
+// ── Render scheduler: throttle to one render per animation frame ──
+let renderTimer = null, _renderPid = null;
 function scheduleRender(presetId) {
-  clearTimeout(renderTimer);
-  renderTimer = setTimeout(() => doRender(presetId), 16);
+  _renderPid = presetId;
+  if (renderTimer) return;
+  renderTimer = requestAnimationFrame(() => { renderTimer = null; doRender(_renderPid); });
 }
 
 function doRender(presetId) {
@@ -8610,7 +8612,7 @@ function evRenderCanvas() {
   var canvas = document.getElementById('ev-canvas');
   var area   = document.getElementById('ev-canvas-area');
   if (!canvas || !area || !userImage) return;
-  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var dpr = window._slDragging ? 1 : Math.min(window.devicePixelRatio || 1, 2);
   var aw = area.clientWidth || 500, ah = area.clientHeight || 400;
   var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
   var baseScale = Math.min(aw/iw, ah/ih, 1);

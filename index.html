@@ -2958,6 +2958,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
               <div class="batch-bar-btn" onclick="galleryBatchMoveToCollection()">MOVE TO COLLECTION</div>
               <div class="batch-bar-btn" id="gallery-copy-edit-btn" onclick="galleryCopyEditFromSelection()" style="display:none">COPY EDIT</div>
               <div class="batch-bar-btn" id="gallery-paste-edits-btn" onclick="galleryPasteEdits()" style="display:none">PASTE EDITS</div>
+              <div class="batch-bar-btn" onclick="galleryExportSelected()">EXPORT ALL</div>
               <div class="batch-bar-btn" onclick="galleryToggleSelectMode()">CANCEL</div>
             </div>
             <div class="library-grid" id="library-grid"></div>
@@ -9104,6 +9105,80 @@ function galleryPasteEdits() {
   });
   libSelected.length = 0;
   galleryToggleSelectMode && galleryToggleSelectMode();
+}
+
+// ── Batch export ─────────────────────────────────────────────────────────────
+function _exportEntry(entry, onDone) {
+  const name = (entry.name || 'ZOE_EXPORT').replace(/\.[^.]+$/, '');
+  if (!entry.editState || !entry.editState.presetId) {
+    const a = document.createElement('a');
+    a.download = name + '.jpg';
+    a.href = entry.dataURL;
+    a.click();
+    setTimeout(onDone, 150);
+    return;
+  }
+  const p         = presets.find(x => x.id === entry.editState.presetId);
+  const srcURL    = entry.editState.originalDataURL || entry.dataURL;
+  const intensity = entry.editState.intensity || 1.0;
+  const sliders   = entry.editState.sliders   || {};
+  const src = new Image();
+  src.onload = () => {
+    const iw = src.naturalWidth, ih = src.naturalHeight;
+    const off = document.createElement('canvas');
+    off.width = iw; off.height = ih;
+    const ctx = off.getContext('2d');
+    ctx.drawImage(src, 0, 0, iw, ih);
+    if (p) {
+      const adj = buildAdjustments(sliders);
+      if (p.hueTempZones)              adj.hueTempZones  = p.hueTempZones;
+      if (p.colorGlow  !== undefined)  adj.colorGlow     = p.colorGlow;
+      if (p.skinLift   !== undefined)  adj.skinLift      = p.skinLift;
+      if (p.splitTone)                 adj.split_tone    = p.splitTone;
+      if (p.halationHue !== undefined) adj.halation_hue  = p.halationHue;
+      const origData = ctx.getImageData(0, 0, iw, ih);
+      let processed  = applyPixelAdjustments(origData, adj);
+      if (intensity < 0.999) {
+        const od = origData.data;
+        for (let i = 0; i < processed.length; i += 4) {
+          processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
+          processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
+          processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
+        }
+      }
+      ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+      if (p.curve)                      applyCurveLUTs(off, p.curve,      0, 0, iw, ih);
+      if ((adj.sharpen  || 0) > 0.01)   applySharpness(off, adj.sharpen,  0, 0, iw, ih);
+      if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, iw, ih);
+      if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, iw, ih);
+      if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
+      if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, iw, ih);
+    }
+    const a = document.createElement('a');
+    a.download = name + '.jpg';
+    a.href = off.toDataURL('image/jpeg', 0.95);
+    a.click();
+    setTimeout(onDone, 150);
+  };
+  src.onerror = () => setTimeout(onDone, 150);
+  src.src = srcURL;
+}
+
+function galleryExportSelected() {
+  const selected = libSelected.slice();
+  if (!selected.length) return;
+  showToast('EXPORTING ' + selected.length + ' PHOTO' + (selected.length === 1 ? '' : 'S') + '…');
+  let i = 0;
+  function next() {
+    if (i >= selected.length) {
+      showToast('EXPORTED ' + selected.length + ' PHOTO' + (selected.length === 1 ? '' : 'S'));
+      return;
+    }
+    const entry = library[selected[i++]];
+    if (!entry) { next(); return; }
+    _exportEntry(entry, next);
+  }
+  next();
 }
 
 // ── Fix 5: Add COPY EDIT button + edited dot to gallery cells that have edits ──

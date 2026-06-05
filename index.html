@@ -32,7 +32,8 @@
     0 1px 0 rgba(255,255,255,0.05) inset,
     0 0 0 0.5px rgba(200,168,232,0.06) inset;
 }
-html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:var(--font-ui);user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:var(--font-ui);user-select:none;-webkit-tap-highlight-color:transparent}
+button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.gallery-open-btn,.select-check{touch-action:manipulation}
 
 /* ══════════════════════════════════════
    AMBIENT BACKGROUND
@@ -2855,6 +2856,132 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   padding: 2px 12px 6px;
   text-align: center;
 }
+
+/* ══════════════════════════════════════
+   MOBILE — 768px and below
+══════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── App shell ── */
+  .app { grid-template-rows: 0px 1fr 60px; }
+  .topbar { display: none; }
+
+  /* ── Bottom nav: full-width icon+label tabs ── */
+  .bottomnav {
+    padding-bottom: env(safe-area-inset-bottom);
+    justify-content: stretch;
+  }
+  .bn-item {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 4px;
+    height: 100%;
+    border-right: none;
+  }
+  .bn-item.active::before {
+    top: 0; left: 10%; right: 10%;
+    height: 1.5px; bottom: auto;
+  }
+  .bn-label { font-size: 8px; letter-spacing: 0.14em; }
+  .zicon { width: 20px; height: 20px; }
+
+  /* ── Content: hide desktop sidebar, full-width center ── */
+  .content {
+    grid-template-columns: 1fr;
+    padding: 6px;
+  }
+  .sidebar { display: none !important; }
+
+  /* ── Gallery: 2 columns ── */
+  .library-grid {
+    flex-wrap: wrap !important;
+    padding: 4px !important;
+    gap: 4px !important;
+  }
+  .lib-col {
+    flex: 0 0 calc(50% - 2px) !important;
+    width: calc(50% - 2px) !important;
+  }
+
+  /* ── Gallery toolbar touch sizing ── */
+  .library-toolbar { height: 44px !important; padding: 0 10px; }
+  #gallery-select-btn, .lib-btn { padding: 8px 12px; font-size: 8px; }
+  #gallery-batch-bar { padding: 10px 12px; gap: 8px; }
+  .batch-bar-btn { padding: 8px 10px; font-size: 8px; }
+
+  /* ── Hero win: drop decorative titlebar ── */
+  .win-titlebar { display: none; }
+  .hero-win { border-radius: 4px; }
+
+  /* ── Editor view: stack canvas over sliders ── */
+  #editor-view { flex-direction: column !important; }
+
+  /* Canvas column: fixed height, full width */
+  #editor-view > div:first-child {
+    flex: none !important;
+    width: 100% !important;
+    height: 58vh !important;
+  }
+
+  /* Preset strip: slightly taller for thumb tap */
+  #editor-view > div:first-child > div:last-child {
+    height: 108px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Sliders column: full-width scrollable panel */
+  #editor-view > div:last-child {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+    border-left: none !important;
+    border-top: 0.5px solid var(--border);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Editor toolbar: scrollable, no wrap */
+  #ev-toolbar {
+    height: 44px !important;
+    min-height: 44px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px !important;
+    padding: 0 8px !important;
+  }
+  .ctb-btn {
+    min-height: 32px;
+    padding: 0 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 8px;
+  }
+
+  /* Sliders: bigger touch target */
+  .sl-track { height: 32px; touch-action: none; }
+  .sl-thumb { width: 16px; height: 16px; }
+
+  /* Canvas: disable browser scroll/zoom interference */
+  #ev-canvas, #hero-canvas { touch-action: none; }
+
+  /* Collections 2-col */
+  .col-l2-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  /* Modals full-width */
+  .export-modal-box, .mtc-window { width: 92vw; max-width: 92vw; }
+
+  /* Bigger heart + select dots for tap */
+  .lib-photo-heart, .select-check, .gallery-select-dot {
+    width: 28px !important; height: 28px !important;
+    font-size: 12px !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -5102,7 +5229,7 @@ window.addEventListener('load',()=>{
 });
 
 initUploadDrop();
-  window.addEventListener('resize',()=>{ drawBg(); resizeParticles(); if(!userImage) renderHero(); });
+  window.addEventListener('resize',()=>{ drawBg(); resizeParticles(); if(!userImage) renderHero(); if(library.length) renderLibrary(); });
 
 // ══════════════════════════════════════════════════════
 // USER IMAGE UPLOAD + FULL-SIZE LIVE EDITING
@@ -6373,7 +6500,7 @@ function renderLibrary() {
   count.textContent = library.length + (library.length === 1 ? ' PHOTO' : ' PHOTOS');
   if (delBtn) delBtn.style.display = libSelected.length ? 'inline-flex' : 'none';
 
-  const NUM_COLS = 4;
+  const NUM_COLS = window.innerWidth <= 768 ? 2 : 4;
   const cols = Array.from({ length: NUM_COLS }, () => {
     const col = document.createElement('div');
     col.className = 'lib-col';

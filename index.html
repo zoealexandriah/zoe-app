@@ -2996,9 +2996,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     display: none !important;
   }
 
-  /* Slider panels: inactive stay hidden; active scrolls horizontally */
+  /* EDITOR.SUITE titlebar: hide on mobile (tabs serve as header) */
+  #editor-view > div:last-child > div:first-child { display: none !important; }
+
+  /* Inactive panels stay hidden */
   .es-tab-panel:not(.active) { display: none !important; }
-  .es-tab-panel.active {
+  /* Active panel: compact, no overflow so it doesn't crowd canvas */
+  .es-tab-panel.active { flex: none !important; overflow: hidden !important; }
+
+  /* Slider containers scroll horizontally — targeted by ID to avoid cascade issues */
+  #es-atmosphere-sliders,
+  #es-color-sliders,
+  #es-details-sliders {
     display: flex !important;
     flex-direction: row !important;
     overflow-x: auto !important;
@@ -3015,7 +3024,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex-shrink: 0 !important;
     min-width: 108px !important;
     max-width: 108px !important;
-    height: 100% !important;
+    height: 90px !important;
     border-right: 0.5px solid var(--border) !important;
     border-bottom: none !important;
     padding: 8px 10px !important;
@@ -3027,22 +3036,21 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .sl-track { width: 100% !important; height: 30px !important; flex-shrink: 0 !important; }
   .slider-section-title, .sl-reset-btn { display: none !important; }
 
-  /* HSL color dots: column for the color tab */
+  /* HSL color dots: stack vertically as a compact column */
   .hsl-channels {
     flex-direction: column !important;
     flex-shrink: 0 !important;
     min-width: 50px !important;
-    height: 100% !important;
+    height: 90px !important;
     padding: 6px 4px !important;
     gap: 4px !important;
     border-right: 0.5px solid var(--border);
     justify-content: center !important;
     align-items: center !important;
-    overflow-y: auto !important;
+    overflow-y: hidden !important;
     box-sizing: border-box !important;
-    -webkit-overflow-scrolling: touch;
   }
-  .hsl-dot { width: 15px !important; height: 15px !important; }
+  .hsl-dot { width: 14px !important; height: 14px !important; }
   .hsl-channel-label { display: none !important; }
 }
 </style>
@@ -3468,10 +3476,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   <!-- BOTTOM NAV -->
   <div class="bottomnav">
     <div class="bn-item active" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="bn-label">GALLERY</span></div>
-    <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="4" y="11" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="11" width="5.5" height="5.5" rx="0.8"/></svg></span><span class="bn-label">COLLECTIONS</span></div>
-    <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="3" x2="10" y2="4.5"/><line x1="10" y1="15.5" x2="10" y2="17"/><line x1="3" y1="10" x2="4.5" y2="10"/><line x1="15.5" y1="10" x2="17" y2="10"/></svg></span><span class="bn-label">PRESETS</span></div>
     <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M4 16l2-6 8-8 4 4-8 8-6 2z"/><line x1="12" y1="4" x2="16" y2="8"/></svg></span><span class="bn-label">EDITOR</span></div>
     <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 15.5C10 15.5 3.5 11 3.5 6.5a3 3 0 0 1 6.5-1 3 3 0 0 1 6.5 1C16.5 11 10 15.5 10 15.5z"/></svg></span><span class="bn-label">FAVORITES</span></div>
+    <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="4" y="11" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="11" width="5.5" height="5.5" rx="0.8"/></svg></span><span class="bn-label">COLLECTIONS</span></div>
     <div class="bn-right">
       <span class="bn-wave">~⌇~</span>
       <span class="bn-status" id="bn-status">STATUS: ONLINE</span>
@@ -8614,6 +8621,9 @@ function evRenderCanvas() {
   canvas.height = Math.round(ih * renderScale);
   canvas.style.width  = cssW + 'px';
   canvas.style.height = cssH + 'px';
+  canvas.style.position = '';
+  canvas.style.left = '';
+  canvas.style.top  = '';
   canvas.style.transform = 'scale('+evZoomLevel+') translate('+evPanX+'px,'+evPanY+'px)';
   var ctx = canvas.getContext('2d');
   ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);

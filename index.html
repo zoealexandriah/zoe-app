@@ -2981,6 +2981,23 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     width: 28px !important; height: 28px !important;
     font-size: 12px !important;
   }
+
+  /* Hide STATUS cluster — no room on mobile */
+  .bn-right { display: none !important; }
+
+  /* Nav labels: clip gracefully, center */
+  .bn-label {
+    font-size: 7px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+    text-align: center !important;
+    letter-spacing: 0.10em !important;
+  }
+
+  /* Presets browse: 2 columns */
+  .pv-grid { grid-template-columns: repeat(2, 1fr) !important; }
 }
 </style>
 </head>

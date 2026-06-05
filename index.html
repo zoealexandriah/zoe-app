@@ -2984,6 +2984,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   /* ── Editor: mobile-specific overrides ── */
 
+  /* Hide STATUS cluster from bottom nav */
+  .bn-right { display: none !important; }
+
   /* Hide the active-preset display row (redundant with strip) */
   #es-active-preset { display: none !important; }
 
@@ -8747,16 +8750,19 @@ function renderPresetThumb(canvas, p) {
   }
   var ctx = canvas.getContext('2d');
   var w = canvas.width, h = canvas.height;
-  // Cover-fit the user's photo into the thumbnail
+  // Cover-fit the user's photo into the thumbnail (w/h are buffer pixels, may be DPR-scaled)
   var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
   var scale = Math.max(w / iw, h / ih);
   var sw = iw * scale, sh = ih * scale;
   ctx.drawImage(userImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
-  // Apply preset default adjustments + curve + splitTone so thumbnail matches full render
+  // Apply preset adjustments so thumbnail matches full render
   if (p.defaults) {
     var adj = buildAdjustments(p.defaults);
     if (p.splitTone) adj.split_tone = p.splitTone;
     if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
+    if (p.hueTempZones) adj.hueTempZones = p.hueTempZones;
+    if (p.colorGlow !== undefined) adj.colorGlow = p.colorGlow;
+    if (p.skinLift !== undefined) adj.skinLift = p.skinLift;
     var imageData = ctx.getImageData(0, 0, w, h);
     var processed = applyPixelAdjustments(imageData, adj);
     ctx.putImageData(new ImageData(processed, w, h), 0, 0);
@@ -8772,7 +8778,8 @@ function evRenderPresets() {
     var card = document.createElement('div');
     var isActive = evActivePreset && evActivePreset.id===p.id;
     card.style.cssText = 'width:96px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-right:0.5px solid var(--border);display:flex;flex-direction:column;transition:background 0.18s;'+(isActive?'background:rgba(201,184,212,0.07)':'');
-    card.innerHTML = '<canvas id="evt-'+p.id+'" width="96" height="96" style="width:96px;height:96px;display:block;flex-shrink:0;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
+    var _tdpr=Math.min(window.devicePixelRatio||1,2);
+    card.innerHTML = '<canvas id="evt-'+p.id+'" width="'+(96*_tdpr)+'" height="'+(96*_tdpr)+'" style="width:96px;height:96px;display:block;flex-shrink:0;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
       +'<div style="padding:5px 7px 6px;flex:1;">'
       +'<div style="font-size:7.5px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.72')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name.toUpperCase()+'</div>'
       +'<div style="font-size:6px;letter-spacing:0.10em;color:rgba(154,138,154,0.50);font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(p.series||'').toUpperCase()+'</div>'
@@ -8860,7 +8867,14 @@ function evApplyZoom() {
   window.doRender = function(pid){
     _orig(pid);
     var ev=document.getElementById('editor-view');
-    if(ev && ev.style.display==='flex') evRenderCanvas();
+    if(ev && ev.style.display==='flex'){
+      // Ensure activePreset is set so evRenderCanvas applies adjustments
+      if(!activePreset && pid){
+        var _p=presets.find(function(x){return x.id===pid;});
+        if(_p){activePreset=_p; evActivePreset=_p;}
+      }
+      evRenderCanvas();
+    }
   };
 })();
 

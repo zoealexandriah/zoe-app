@@ -3056,6 +3056,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     max-height: 180px !important;
     height: auto !important;
     flex-wrap: nowrap !important;
+    contain: layout style !important;
   }
 
   /* HSL hidden by default; shown when hsl-active class is on suite */
@@ -8827,7 +8828,7 @@ function evRenderCanvas() {
   var canvas = document.getElementById('ev-canvas');
   var area   = document.getElementById('ev-canvas-area');
   if (!canvas || !area || !userImage) return;
-  var dpr = window._slDragging ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+  var dpr = window._slDragging ? 0.5 : Math.min(window.devicePixelRatio || 1, 2);
   var aw = area.clientWidth || 500, ah = area.clientHeight || 400;
   var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
   var baseScale = Math.min(aw/iw, ah/ih, 1);
@@ -9078,19 +9079,20 @@ function evApplyZoom() {
   if(el) el.textContent=Math.round(evZoomLevel*100)+'%';
 }
 
-// Re-render ev-canvas on slider changes
+// Re-render ev-canvas on slider changes; skip hero canvas render when editor is open
 (function(){
   var _orig = window.doRender;
   window.doRender = function(pid){
-    _orig(pid);
-    var ev=document.getElementById('editor-view');
-    if(ev && ev.style.display==='flex'){
-      // Ensure activePreset is set so evRenderCanvas applies adjustments
-      if(!activePreset && pid){
-        var _p=presets.find(function(x){return x.id===pid;});
-        if(_p){activePreset=_p; evActivePreset=_p;}
+    var ev = document.getElementById('editor-view');
+    if (ev && ev.style.display === 'flex') {
+      // Editor open: ONLY render editor canvas — skipping hero canvas saves ~50% render time
+      if (!activePreset && pid) {
+        var _p = presets.find(function(x){ return x.id === pid; });
+        if (_p) { activePreset = _p; evActivePreset = _p; }
       }
       evRenderCanvas();
+    } else {
+      _orig(pid); // Not in editor: run normal hero/preview render
     }
   };
 })();

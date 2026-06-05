@@ -9068,7 +9068,6 @@ function evRenderPresets() {
     evHistoryPush();
     evActivePreset = null; activePreset = null;
     presetIntensity = 1.0;
-    Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
     var nameEl = document.getElementById('es-preset-name');
     var seriesEl = document.getElementById('es-preset-series');
     if (nameEl) nameEl.textContent = '— NO PRESET —';

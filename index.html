@@ -9013,18 +9013,14 @@ window.copiedEdits = null;
 function galleryCopyEdits(imageId) {
   const entry = library.find(e => e.id == imageId);
   if (!entry) return;
-  try {
-    const storedSliders = localStorage.getItem('zoe_edit_' + imageId + '_sliders');
-    if (storedSliders) {
-      window.copiedEdits = JSON.parse(storedSliders);
-      showToast('_ EDITS COPIED');
-      // Show paste button in batch bar
-      const pasteBtn = document.getElementById('gallery-paste-edits-btn');
-      if (pasteBtn) pasteBtn.style.display = 'inline-flex';
-    } else {
-      showToast('_ NO EDITS ON THIS IMAGE');
-    }
-  } catch(e) { showToast('_ NO EDITS FOUND'); }
+  if (entry.editState && entry.editState.presetId) {
+    window.copiedEdits = { presetId: entry.editState.presetId, state: entry.editState.sliders };
+    showToast('_ EDITS COPIED');
+    const pasteBtn = document.getElementById('gallery-paste-edits-btn');
+    if (pasteBtn) pasteBtn.style.display = 'inline-flex';
+  } else {
+    showToast('_ NO EDITS ON THIS IMAGE');
+  }
 }
 
 function galleryPasteEdits() {
@@ -9034,15 +9030,12 @@ function galleryPasteEdits() {
   libSelected.forEach(idx => {
     const entry = library[idx];
     if (!entry) return;
-    // Store slider state for this image
-    try {
-      localStorage.setItem('zoe_edit_' + entry.id + '_sliders',
-        JSON.stringify({ presetId, state }));
-      // Apply edits to get current dataURL
-      // (simplified: just copy the state, full render would need to open editor)
-      count++;
-    } catch(e) {}
+    const originalDataURL = (entry.editState && entry.editState.originalDataURL)
+      ? entry.editState.originalDataURL : entry.dataURL;
+    entry.editState = { presetId, sliders: { ...state }, intensity: 1.0, originalDataURL };
+    count++;
   });
+  libSaveToStorage();
   showToast('_ EDITS APPLIED TO ' + count + ' PHOTO' + (count===1?'':'S'));
   libSelected.length = 0;
   renderLibrary();
@@ -9059,15 +9052,8 @@ window.renderLibrary = function() {
     const entry = library[idx];
     if (!entry) return;
     try {
-      // Check _sliders (covers both editor-saved and batch-pasted edits)
-      const hasEdits = localStorage.getItem('zoe_edit_' + entry.id + '_sliders');
+      const hasEdits = entry.editState && entry.editState.presetId;
       if (hasEdits) {
-        // Show edited thumbnail if a rendered version exists
-        const currentURL = localStorage.getItem('zoe_edit_' + entry.id + '_current');
-        if (currentURL) {
-          const thumbImg = cell.querySelector('img');
-          if (thumbImg) thumbImg.src = currentURL;
-        }
         const btn = document.createElement('div');
         btn.className = 'gallery-copy-edits-btn';
         btn.textContent = 'COPY EDIT';
@@ -9085,7 +9071,7 @@ function galleryCopyEditFromSelection() {
   if (libSelected.length !== 1) return;
   const entry = library[libSelected[0]];
   if (!entry) return;
-  const hasEdits = localStorage.getItem('zoe_edit_' + entry.id + '_sliders');
+  const hasEdits = entry.editState && entry.editState.presetId;
   if (!hasEdits) { showToast('_ OPEN THIS PHOTO IN EDITOR FIRST'); return; }
   galleryCopyEdits(entry.id);
 }

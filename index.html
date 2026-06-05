@@ -2930,7 +2930,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   /* Preset strip: compact height for mobile tap */
   #ev-preset-strip {
-    height: 96px !important;
+    height: 90px !important;
     flex-shrink: 0 !important;
   }
 
@@ -3334,7 +3334,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div class="es-tab" data-tab="tools" onclick="esTab(this)">TOOLS</div>
           </div>
           <!-- Preset strip (below tabs, above panels) -->
-          <div id="ev-preset-strip" style="height:128px;flex-shrink:0;border-bottom:0.5px solid var(--border);background:var(--surface);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;">
+          <div id="ev-preset-strip" style="height:96px;flex-shrink:0;border-bottom:0.5px solid var(--border);background:var(--surface);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;">
             <div id="ev-preset-list" style="height:100%;display:flex;flex-direction:row;width:max-content;"></div>
           </div>
           <!-- ATMOSPHERE panel: active preset display + GLOW GRAIN FADE HAZE -->
@@ -3425,10 +3425,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   <!-- BOTTOM NAV -->
   <div class="bottomnav">
     <div class="bn-item active" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="bn-label">GALLERY</span></div>
-    <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="4" y="11" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="11" width="5.5" height="5.5" rx="0.8"/></svg></span><span class="bn-label">COLLECTIONS</span></div>
-    <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="3" x2="10" y2="4.5"/><line x1="10" y1="15.5" x2="10" y2="17"/><line x1="3" y1="10" x2="4.5" y2="10"/><line x1="15.5" y1="10" x2="17" y2="10"/></svg></span><span class="bn-label">PRESETS</span></div>
     <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M4 16l2-6 8-8 4 4-8 8-6 2z"/><line x1="12" y1="4" x2="16" y2="8"/></svg></span><span class="bn-label">EDITOR</span></div>
     <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 15.5C10 15.5 3.5 11 3.5 6.5a3 3 0 0 1 6.5-1 3 3 0 0 1 6.5 1C16.5 11 10 15.5 10 15.5z"/></svg></span><span class="bn-label">FAVORITES</span></div>
+    <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="4" y="11" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="11" width="5.5" height="5.5" rx="0.8"/></svg></span><span class="bn-label">COLLECTIONS</span></div>
     <div class="bn-right">
       <span class="bn-wave">~⌇~</span>
       <span class="bn-status" id="bn-status">STATUS: ONLINE</span>
@@ -8556,11 +8555,16 @@ function evRenderCanvas() {
   var canvas = document.getElementById('ev-canvas');
   var area   = document.getElementById('ev-canvas-area');
   if (!canvas || !area || !userImage) return;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
   var aw = area.clientWidth || 500, ah = area.clientHeight || 400;
   var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
   var scale = Math.min(aw/iw, ah/ih, 1);
-  canvas.width  = Math.round(iw * scale);
-  canvas.height = Math.round(ih * scale);
+  var cssW = Math.round(iw * scale);
+  var cssH = Math.round(ih * scale);
+  canvas.width  = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
   canvas.style.transform = 'scale('+evZoomLevel+') translate('+evPanX+'px,'+evPanY+'px)';
   var ctx = canvas.getContext('2d');
   ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
@@ -8708,11 +8712,10 @@ function evRenderPresets() {
   presets.forEach(function(p){
     var card = document.createElement('div');
     var isActive = evActivePreset && evActivePreset.id===p.id;
-    card.style.cssText = 'width:96px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-right:0.5px solid var(--border);display:flex;flex-direction:column;transition:background 0.18s;'+(isActive?'background:rgba(201,184,212,0.07)':'');
-    card.innerHTML = '<canvas id="evt-'+p.id+'" width="96" height="96" style="width:96px;height:96px;display:block;flex-shrink:0;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
-      +'<div style="padding:5px 7px 6px;flex:1;">'
-      +'<div style="font-size:7.5px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.72')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name.toUpperCase()+'</div>'
-      +'<div style="font-size:6px;letter-spacing:0.10em;color:rgba(154,138,154,0.50);font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(p.series||'').toUpperCase()+'</div>'
+    card.style.cssText = 'width:96px;height:96px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-right:0.5px solid var(--border);transition:background 0.18s;'+(isActive?'background:rgba(201,184,212,0.07)':'');
+    card.innerHTML = '<canvas id="evt-'+p.id+'" width="96" height="96" style="width:96px;height:96px;display:block;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
+      +'<div style="position:absolute;bottom:0;left:0;right:0;padding:4px 6px 5px;background:linear-gradient(to bottom,transparent,rgba(0,0,0,0.60));pointer-events:none;">'
+      +'<div style="font-size:6.5px;letter-spacing:0.10em;color:rgba(255,255,255,'+(isActive?'0.90':'0.45')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name.toUpperCase()+'</div>'
       +'</div>'
       +(isActive?'<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,'+(p.acc||'#c9b8d4')+',transparent)"></div>':'');
     card.onclick = function(){
@@ -8811,6 +8814,47 @@ document.addEventListener('mouseup', function(){
     if(c) c.style.cursor=evZoomLevel>1?'grab':'crosshair';
   }
 });
+
+// Pinch-to-zoom + touch-pan for ev-canvas (mobile)
+(function(){
+  var _pinchDist0 = 0, _pinchZoom0 = 1;
+  var _touchPanStart = null;
+
+  function _pinchDist(e) {
+    var dx = e.touches[0].clientX - e.touches[1].clientX;
+    var dy = e.touches[0].clientY - e.touches[1].clientY;
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+
+  document.addEventListener('touchstart', function(e){
+    var c = document.getElementById('ev-canvas');
+    if (!c || e.target !== c) return;
+    if (e.touches.length === 2) {
+      _pinchDist0 = _pinchDist(e);
+      _pinchZoom0 = evZoomLevel;
+    } else if (e.touches.length === 1 && evZoomLevel > 1) {
+      _touchPanStart = { x: e.touches[0].clientX - evPanX, y: e.touches[0].clientY - evPanY };
+    }
+  }, {passive:true});
+
+  document.addEventListener('touchmove', function(e){
+    var c = document.getElementById('ev-canvas');
+    if (!c || e.target !== c) return;
+    if (e.touches.length === 2 && _pinchDist0 > 0) {
+      var newZoom = Math.max(0.5, Math.min(4, _pinchZoom0 * _pinchDist(e) / _pinchDist0));
+      evZoomLevel = newZoom;
+      evApplyZoom();
+    } else if (e.touches.length === 1 && _touchPanStart && evZoomLevel > 1) {
+      evPanX = e.touches[0].clientX - _touchPanStart.x;
+      evPanY = e.touches[0].clientY - _touchPanStart.y;
+      evApplyZoom();
+    }
+  }, {passive:true});
+
+  document.addEventListener('touchend', function(){
+    _pinchDist0 = 0; _touchPanStart = null;
+  }, {passive:true});
+})();
 
 
 // ═══════════════════════════════════════════════════════════════════════════

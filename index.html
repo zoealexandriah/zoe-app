@@ -9136,10 +9136,12 @@ function toolsCropDrawOnCanvas(hc) {
   toolsCropBindDrag(ov, hc);
 }
 
-// ── Fix 2: editorBackToGallery — only switch tab, never load image ───────
+// ── Fix 2: editorBackToGallery — save first, then navigate ───────────────
 window.editorBackToGallery = function editorBackToGallery() {
-  // Switch to gallery tab using the same nav click path
-  const galleryNavItem = document.querySelector('.nav-item .nav-label');
+  // Save edit state BEFORE any navigation or DOM changes
+  autoSaveEdit();
+  if (typeof window.editorAutoSave === 'function') window.editorAutoSave();
+
   const allNavItems = document.querySelectorAll('.nav-item');
   let galleryNav = null;
   allNavItems.forEach(el => {
@@ -9147,7 +9149,6 @@ window.editorBackToGallery = function editorBackToGallery() {
     if (label && label.textContent.trim() === 'GALLERY') galleryNav = el;
   });
 
-  // Close any open lightbox or image preview first
   const lightbox = document.getElementById('lightbox');
   const imgPreview = document.getElementById('image-preview');
   const editView = document.getElementById('edit-view');
@@ -9157,7 +9158,6 @@ window.editorBackToGallery = function editorBackToGallery() {
   if (editView) editView.classList.add('hidden');
   if (libView) libView.classList.remove('hidden');
 
-  // Switch to gallery tab
   if (galleryNav) {
     navClick(galleryNav);
   } else {
@@ -9191,7 +9191,15 @@ window.editorAutoSave = function() {
   } catch(e) {}
 };
 
-// Patch all nav switches to save editor state + rendered thumbnail before switching
+// Patch backToLibrary (← GALLERY hero button) to save before resetting state
+const _origBackToLibrary = window.backToLibrary;
+window.backToLibrary = function() {
+  autoSaveEdit();
+  if (typeof window.editorAutoSave === 'function') window.editorAutoSave();
+  if (_origBackToLibrary) _origBackToLibrary.call(this);
+};
+
+// Patch nav switches to save before switching
 const _origSwitchToTab = window.switchToTab;
 window.switchToTab = function(label) {
   autoSaveEdit();

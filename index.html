@@ -2638,7 +2638,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   gap: 10px;
   padding: 8px 14px;
   background: rgba(8,6,14,0.95);
-  border-top: 0.5px solid rgba(200,168,232,0.12);
+  border-bottom: 0.5px solid rgba(200,168,232,0.12);
   flex-shrink: 0;
   font-family: var(--mono);
 }
@@ -2951,7 +2951,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
                      onclick="deleteSelected()" style="display:none">✕ REMOVE</div>
               </div>
             </div>
-            <div class="library-grid" id="library-grid"></div>
             <div id="gallery-batch-bar">
               <span id="gallery-selected-count">0 SELECTED</span>
               <span id="gallery-delete-confirm" style="display:none"></span>
@@ -2961,6 +2960,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
               <div class="batch-bar-btn" id="gallery-paste-edits-btn" onclick="galleryPasteEdits()" style="display:none">PASTE EDITS</div>
               <div class="batch-bar-btn" onclick="galleryToggleSelectMode()">CANCEL</div>
             </div>
+            <div class="library-grid" id="library-grid"></div>
             <input type="file" id="multi-upload-input" accept="image/*"
                    multiple style="display:none" onchange="handleMultiUpload(event)">
           </div>
@@ -8683,6 +8683,14 @@ function galleryOpenInEditor(idx) {
       presetIntensity   = typeof es.intensity === 'number' ? es.intensity : 1.0;
       document.querySelectorAll('.intensity-slider').forEach(el => { el.value = Math.round(presetIntensity * 100); });
       document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = Math.round(presetIntensity * 100) + '%'; });
+      // Update atmosphere tab preset display
+      const _nameEl   = document.getElementById('es-preset-name');
+      const _seriesEl = document.getElementById('es-preset-series');
+      const _thumbEl  = document.getElementById('es-preset-thumb');
+      if (_nameEl)   _nameEl.textContent   = p.name;
+      if (_seriesEl) _seriesEl.textContent = p.series;
+      if (_thumbEl)  { _thumbEl.width=36; _thumbEl.height=46; renderPhoto(_thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
+      buildEditorSliders(p);
     }
     // Load the ORIGINAL (pre-edit) image so adjustments aren't applied on top of a render
     if (es.originalDataURL) {

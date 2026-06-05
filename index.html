@@ -9124,11 +9124,26 @@ function toolsCropDrawOnCanvas(hc) {
   toolsCropBindDrag(ov, hc);
 }
 
-// ── Fix 2: editorBackToGallery — save first, then navigate ───────────────
+// ── Fix 2: editorBackToGallery — save + update thumbnail, then navigate ──
 window.editorBackToGallery = function editorBackToGallery() {
-  // Flush autosave timer immediately
   clearTimeout(_autoSaveTimer);
   autoSaveEdit();
+
+  // Render current edited canvas into the library thumbnail
+  const hc = document.getElementById('ev-canvas');
+  const _entry = (editingIdx >= 0) ? library[editingIdx] : null;
+  if (hc && hc.width > 0 && _entry) {
+    const off = document.createElement('canvas');
+    off.width = hc.width; off.height = hc.height;
+    off.getContext('2d').drawImage(hc, 0, 0);
+    _entry.dataURL = off.toDataURL('image/jpeg', 0.92);
+    const img = new Image();
+    img.onload = () => { _entry.img = img; libSaveToStorage(); renderLibrary(); };
+    img.src = _entry.dataURL;
+  } else {
+    libSaveToStorage();
+    renderLibrary();
+  }
 
   const allNavItems = document.querySelectorAll('.nav-item');
   let galleryNav = null;
@@ -9136,12 +9151,10 @@ window.editorBackToGallery = function editorBackToGallery() {
     const label = el.querySelector('.nav-label');
     if (label && label.textContent.trim() === 'GALLERY') galleryNav = el;
   });
-
   const editView = document.getElementById('edit-view');
   const libView  = document.getElementById('library-view');
   if (editView) editView.classList.add('hidden');
   if (libView)  libView.classList.remove('hidden');
-
   if (galleryNav) navClick(galleryNav);
   else switchToTab('GALLERY');
 };
@@ -9154,7 +9167,7 @@ window.backToLibrary = function() {
   if (_origBackToLibrary) _origBackToLibrary.call(this);
 };
 
-// Patch switchToTab to save before switching away from editor
+// Patch switchToTab to save before switching, refresh gallery on arrival
 const _origSwitchToTab = window.switchToTab;
 window.switchToTab = function(label) {
   if (label !== 'EDITOR') {
@@ -9162,6 +9175,7 @@ window.switchToTab = function(label) {
     autoSaveEdit();
   }
   if (_origSwitchToTab) _origSwitchToTab.call(this, label);
+  if (label === 'GALLERY') renderLibrary();
 };
 
 // ── Fix 4: editorSaveToGallery — save at original resolution ─────────────

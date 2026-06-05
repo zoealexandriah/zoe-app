@@ -6886,6 +6886,10 @@ function openEditor(idx) {
   evFuture.length  = 0;
   // Clear all cached slider values so previous photo's edits don't carry over
   Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
+  // Clear slider DOM so stale values from a previous session don't show
+  ['es-atmosphere-sliders','es-color-sliders','es-hsl-sliders','es-details-sliders'].forEach(function(cid){
+    var el = document.getElementById(cid); if (el) el.innerHTML = '';
+  });
 
   // Fix 2: Check for saved edit state in localStorage
   const savedSliders = entry && entry.id ?
@@ -9274,7 +9278,7 @@ function galleryOpenInEditor(idx) {
       origImg.src = es.originalDataURL;
     }
   }
-  // Switch to EDITOR nav
+  // Switch to EDITOR nav (sidebar)
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const editorNav = [...document.querySelectorAll('.nav-item')]
     .find(n => (n.querySelector('.nav-label')||{}).textContent.trim() === 'EDITOR');
@@ -9282,6 +9286,11 @@ function galleryOpenInEditor(idx) {
     editorNav.classList.add('active');
     editorNav.click();
   }
+  // Switch to EDITOR on mobile bottom nav
+  document.querySelectorAll('.bn-item').forEach(n => n.classList.remove('active'));
+  const editorBnItem = [...document.querySelectorAll('.bn-item')]
+    .find(n => (n.querySelector('.bn-label')||{}).textContent.trim() === 'EDITOR');
+  if (editorBnItem) editorBnItem.classList.add('active');
 }
 
 // ── Fix 5: SELECT mode ───────────────────────────────────────────────────
@@ -9757,8 +9766,10 @@ window.renderLibrary = function() {
   _origRenderLibrary();
   const grid = document.getElementById('library-grid');
   if (!grid) return;
-  grid.querySelectorAll('.lib-photo').forEach((cell, idx) => {
-    const entry = library[idx];
+  grid.querySelectorAll('.lib-photo').forEach((cell) => {
+    const checkEl = cell.querySelector('.select-check');
+    const idx = checkEl ? parseInt(checkEl.dataset.idx, 10) : -1;
+    const entry = (!isNaN(idx) && idx >= 0) ? library[idx] : null;
     if (!entry) return;
     try {
       const hasEdits = entry.editState && entry.editState.presetId;

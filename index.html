@@ -2918,29 +2918,30 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* ── Editor view: stack canvas over sliders ── */
   #editor-view { flex-direction: column !important; }
 
-  /* Canvas column: fixed height, full width */
+  /* Canvas column: grows to fill whatever the editor suite doesn't take */
   #editor-view > div:first-child {
-    flex: none !important;
+    flex: 1 !important;
     width: 100% !important;
-    height: 58vh !important;
+    min-height: 0 !important;
   }
 
-  /* Preset strip: slightly taller for thumb tap */
-  #editor-view > div:first-child > div:last-child {
+  /* Preset strip: hidden by default; PRESETS icon in mobile nav toggles it */
+  #ev-preset-strip { display: none !important; }
+  #ev-preset-strip.visible {
+    display: block !important;
     height: 108px !important;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Sliders column: full-width scrollable panel */
+  /* Editor suite: only takes the height it needs (mobile nav + optional slider) */
   #editor-view > div:last-child {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    flex: 1 !important;
+    flex: none !important;
     border-left: none !important;
-    border-top: 0.5px solid var(--border);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    border-top: none !important;
+    overflow: visible !important;
   }
 
   /* Editor toolbar: scrollable, no wrap */
@@ -3002,10 +3003,43 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* EDITOR.SUITE titlebar: hide on mobile (tabs serve as header) */
   #editor-view > div:last-child > div:first-child { display: none !important; }
 
-  /* Inactive panels stay hidden */
-  .es-tab-panel:not(.active) { display: none !important; }
-  /* Active panel: compact, no overflow so it doesn't crowd canvas */
-  .es-tab-panel.active { flex: none !important; overflow: hidden !important; }
+  /* All panels hidden; only the active one shows when suite is open */
+  .es-tab-panel { display: none !important; }
+  #ev-editor-suite.open .es-tab-panel.active { display: flex !important; flex: none !important; overflow: hidden !important; }
+
+  /* Hide text tabs — mobile nav replaces them */
+  .es-tabs { display: none !important; }
+
+  /* Mobile category nav */
+  #ev-mobile-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    height: 58px !important;
+    flex-shrink: 0 !important;
+    border-top: 0.5px solid var(--border) !important;
+    background: rgba(7,5,16,0.98) !important;
+  }
+  .ev-mnav-btn {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    color: rgba(201,184,212,0.35) !important;
+    font-size: 6px !important;
+    letter-spacing: 0.14em !important;
+    font-family: var(--mono) !important;
+    padding: 0 2px !important;
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+    transition: color 0.15s !important;
+  }
+  .ev-mnav-btn.active { color: rgba(220,200,245,0.95) !important; }
+  .ev-mnav-btn svg { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
 
   /* Slider containers scroll horizontally — targeted by ID to avoid cascade issues */
   #es-atmosphere-sliders,
@@ -3373,13 +3407,13 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div id="ev-preset-label" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:0.18em;color:rgba(201,184,212,0.35);font-family:var(--mono);pointer-events:none;white-space:nowrap"></div>
           </div>
           <!-- Bottom preset strip -->
-          <div style="height:128px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);overflow-x:auto;overflow-y:hidden;">
+          <div id="ev-preset-strip" style="height:128px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);overflow-x:auto;overflow-y:hidden;">
             <div id="ev-preset-list" style="height:100%;display:flex;flex-direction:row;width:max-content;"></div>
           </div>
         </div>
 
         <!-- Col 3: Editor Suite (300px) -->
-        <div style="width:300px;min-width:300px;max-width:300px;height:100%;display:flex;flex-direction:column;background:var(--surface);border-left:0.5px solid var(--border);">
+        <div id="ev-editor-suite" style="width:300px;min-width:300px;max-width:300px;height:100%;display:flex;flex-direction:column;background:var(--surface);border-left:0.5px solid var(--border);">
           <!-- Title bar -->
           <div style="height:28px;flex-shrink:0;display:flex;align-items:center;padding:0 10px;background:linear-gradient(to bottom,#cdb0ba,#b89aa4);border-bottom:0.5px solid rgba(140,100,110,0.35);">
             <span style="font-size:9px;letter-spacing:0.18em;color:#2a1a1e;font-family:var(--mono);font-weight:500">EDITOR.SUITE</span>
@@ -3425,6 +3459,29 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div id="ev-sliders" style="display:none"></div>
           <div id="editor-sliders" style="display:none"></div>
           <div id="editor-tools-section" style="display:none"></div>
+          <!-- Mobile category nav (hidden on desktop via CSS) -->
+          <div id="ev-mobile-nav" style="display:none">
+            <button class="ev-mnav-btn" data-tab="presets" onclick="evMobileNavToggle('presets')">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5.5" height="5.5" rx="0.5"/><rect x="11.5" y="3" width="5.5" height="5.5" rx="0.5"/><rect x="3" y="11.5" width="5.5" height="5.5" rx="0.5"/><rect x="11.5" y="11.5" width="5.5" height="5.5" rx="0.5"/></svg>
+              <span>PRESETS</span>
+            </button>
+            <button class="ev-mnav-btn" data-tab="atmosphere" onclick="evMobileNavToggle('atmosphere')">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="3"/><path d="M10 2v2.5M10 15.5V18M2 10h2.5M15.5 10H18M4.9 4.9l1.8 1.8M13.3 13.3l1.8 1.8M4.9 15.1l1.8-1.8M13.3 6.7l1.8-1.8"/></svg>
+              <span>ATMOS</span>
+            </button>
+            <button class="ev-mnav-btn" data-tab="color" onclick="evMobileNavToggle('color')">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><path d="M10 3a7 7 0 0 1 0 14z" fill="currentColor" stroke="none" opacity="0.6"/></svg>
+              <span>COLOR</span>
+            </button>
+            <button class="ev-mnav-btn" data-tab="details" onclick="evMobileNavToggle('details')">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="3" y1="7" x2="17" y2="7"/><circle cx="7" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="3" y1="13" x2="17" y2="13"/><circle cx="13" cy="13" r="2.2" fill="currentColor" stroke="none"/></svg>
+              <span>DETAILS</span>
+            </button>
+            <button class="ev-mnav-btn" data-tab="tools" onclick="evMobileNavToggle('tools')">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 3v12h12"/><path d="M3 5h12v12"/></svg>
+              <span>TOOLS</span>
+            </button>
+          </div>
         </div>
 
       </div>
@@ -4629,6 +4686,37 @@ function esTab(el) {
   el.classList.add('active');
   const panel = document.getElementById('es-panel-' + el.dataset.tab);
   if (panel) panel.classList.add('active');
+}
+
+function evMobileNavToggle(name) {
+  var suite = document.getElementById('ev-editor-suite');
+  var strip = document.getElementById('ev-preset-strip');
+  var btns  = document.querySelectorAll('.ev-mnav-btn');
+  var active = document.querySelector('.ev-mnav-btn.active');
+  var isSame = active && active.dataset.tab === name;
+
+  btns.forEach(function(b){ b.classList.remove('active'); });
+
+  if (name === 'presets') {
+    suite.classList.remove('open');
+    if (isSame && strip.classList.contains('visible')) {
+      strip.classList.remove('visible');
+    } else {
+      strip.classList.add('visible');
+      document.querySelector('.ev-mnav-btn[data-tab="presets"]').classList.add('active');
+    }
+  } else {
+    strip.classList.remove('visible');
+    if (isSame && suite.classList.contains('open')) {
+      suite.classList.remove('open');
+    } else {
+      suite.classList.add('open');
+      var tabEl = document.querySelector('.es-tab[data-tab="'+name+'"]');
+      if (tabEl) esTab(tabEl);
+      var btn = document.querySelector('.ev-mnav-btn[data-tab="'+name+'"]');
+      if (btn) btn.classList.add('active');
+    }
+  }
 }
 
 function hslSelectChannel(dot) {

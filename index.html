@@ -3007,7 +3007,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   /* All panels hidden; only the active one shows when suite is open */
   .es-tab-panel { display: none !important; }
-  #ev-editor-suite.open .es-tab-panel.active { display: flex !important; flex: none !important; overflow: hidden !important; }
+  #ev-editor-suite.open .es-tab-panel.active { display: flex !important; flex: none !important; overflow: visible !important; }
 
   /* Hide text tabs — mobile nav replaces them */
   .es-tabs { display: none !important; }
@@ -3043,54 +3043,113 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .ev-mnav-btn.active { color: rgba(220,200,245,0.95) !important; }
   .ev-mnav-btn svg { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
 
-  /* Slider containers scroll horizontally — targeted by ID to avoid cascade issues */
+  /* Slider containers: vertical scrollable list */
   #es-atmosphere-sliders,
   #es-color-sliders,
   #es-details-sliders {
     display: flex !important;
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-height: 220px !important;
+    height: auto !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Each slider: full-width two-row layout — name+value on top, track below */
+  .sl-row {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-rows: auto auto !important;
+    grid-template-areas: "name val" "track track" !important;
+    flex-direction: unset !important;
+    flex-shrink: unset !important;
+    min-width: unset !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    border-right: none !important;
+    border-bottom: 0.5px solid var(--border) !important;
+    padding: 10px 16px 12px !important;
+    gap: 8px 0 !important;
+    box-sizing: border-box !important;
+    align-items: center !important;
+    justify-content: unset !important;
+  }
+  .sl-row .sl-name { grid-area: name !important; font-size: 9px !important; letter-spacing: 0.14em !important; color: rgba(201,184,212,0.55) !important; align-self: center !important; }
+  .sl-row .sl-val  { grid-area: val  !important; font-size: 9px !important; letter-spacing: 0.10em !important; align-self: center !important; }
+  .sl-track { grid-area: track !important; width: 100% !important; height: 36px !important; flex-shrink: unset !important; }
+  .slider-section-title, .sl-reset-btn { display: none !important; }
+
+  /* HSL dot row: horizontal across top of HSL panel */
+  .hsl-channels {
+    flex-direction: row !important;
+    flex-shrink: 0 !important;
+    min-width: unset !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 10px 16px !important;
+    gap: 10px !important;
+    border-bottom: 0.5px solid var(--border) !important;
+    border-right: none !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box !important;
+  }
+  .hsl-dot { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
+  .hsl-channel-label { display: block !important; font-size: 7px !important; letter-spacing: 0.12em !important; padding: 4px 16px 2px !important; color: rgba(201,184,212,0.45) !important; }
+
+  /* Adjust sub-nav */
+  #ev-adjust-subnav {
     flex-direction: row !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
-    flex-wrap: nowrap !important;
-    align-items: stretch !important;
-    height: 90px !important;
     -webkit-overflow-scrolling: touch;
-  }
-
-  /* Each slider = a column card you swipe through */
-  .sl-row {
-    flex-direction: column !important;
+    height: 44px !important;
     flex-shrink: 0 !important;
-    min-width: 108px !important;
-    max-width: 108px !important;
-    height: 90px !important;
-    border-right: 0.5px solid var(--border) !important;
-    border-bottom: none !important;
-    padding: 8px 10px !important;
-    gap: 4px !important;
-    justify-content: center !important;
+    border-bottom: 0.5px solid var(--border) !important;
+    background: rgba(7,5,16,0.98) !important;
     align-items: stretch !important;
-    box-sizing: border-box !important;
+    gap: 0 !important;
   }
-  .sl-track { width: 100% !important; height: 30px !important; flex-shrink: 0 !important; }
-  .slider-section-title, .sl-reset-btn { display: none !important; }
-
-  /* HSL color dots: stack vertically as a compact column */
-  .hsl-channels {
-    flex-direction: column !important;
+  .ev-subnav-back {
     flex-shrink: 0 !important;
-    min-width: 50px !important;
-    height: 90px !important;
-    padding: 6px 4px !important;
-    gap: 4px !important;
-    border-right: 0.5px solid var(--border);
-    justify-content: center !important;
-    align-items: center !important;
-    overflow-y: hidden !important;
-    box-sizing: border-box !important;
+    padding: 0 14px !important;
+    background: none !important;
+    border: none !important;
+    border-right: 0.5px solid var(--border) !important;
+    color: rgba(201,184,212,0.55) !important;
+    font-size: 8px !important;
+    letter-spacing: 0.12em !important;
+    font-family: var(--mono) !important;
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
   }
-  .hsl-dot { width: 14px !important; height: 14px !important; }
-  .hsl-channel-label { display: none !important; }
+  .ev-subnav-btn {
+    flex-shrink: 0 !important;
+    padding: 0 16px !important;
+    background: none !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    color: rgba(201,184,212,0.38) !important;
+    font-size: 7.5px !important;
+    letter-spacing: 0.18em !important;
+    font-family: var(--mono) !important;
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    transition: color 0.15s !important;
+  }
+  .ev-subnav-btn.active {
+    color: rgba(220,200,245,0.92) !important;
+    border-bottom-color: rgba(200,168,232,0.65) !important;
+  }
 }
 </style>
 </head>
@@ -3427,6 +3486,16 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div class="es-tab" data-tab="details" onclick="esTab(this)">DETAILS</div>
             <div class="es-tab" data-tab="tools" onclick="esTab(this)">TOOLS</div>
           </div>
+          <!-- Adjust sub-nav: visible when ADJUST is active (mobile only) -->
+          <div id="ev-adjust-subnav" style="display:none">
+            <button class="ev-subnav-back" onclick="evAdjustBack()">← BACK</button>
+            <button class="ev-subnav-btn active" data-tab="light" onclick="evAdjustSubTab('light')">LIGHT</button>
+            <button class="ev-subnav-btn" data-tab="color" onclick="evAdjustSubTab('color')">COLOR</button>
+            <button class="ev-subnav-btn" data-tab="hsl" onclick="evAdjustSubTab('hsl')">HSL</button>
+            <button class="ev-subnav-btn" data-tab="details" onclick="evAdjustSubTab('details')">DETAILS</button>
+            <button class="ev-subnav-btn" data-tab="crop" onclick="evAdjustSubTab('crop')">CROP</button>
+            <button class="ev-subnav-btn" data-tab="flip" onclick="evAdjustSubTab('flip')">FLIP</button>
+          </div>
           <!-- ATMOSPHERE panel: active preset display + GLOW GRAIN FADE HAZE -->
           <div class="es-tab-panel active" id="es-panel-atmosphere">
             <div class="es-preset-display" id="es-active-preset">
@@ -3461,27 +3530,15 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div id="ev-sliders" style="display:none"></div>
           <div id="editor-sliders" style="display:none"></div>
           <div id="editor-tools-section" style="display:none"></div>
-          <!-- Mobile category nav (hidden on desktop via CSS) -->
+          <!-- Mobile nav: two primary categories (hidden on desktop) -->
           <div id="ev-mobile-nav" style="display:none">
-            <button class="ev-mnav-btn" data-tab="presets" onclick="evMobileNavToggle('presets')">
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5.5" height="5.5" rx="0.5"/><rect x="11.5" y="3" width="5.5" height="5.5" rx="0.5"/><rect x="3" y="11.5" width="5.5" height="5.5" rx="0.5"/><rect x="11.5" y="11.5" width="5.5" height="5.5" rx="0.5"/></svg>
-              <span>PRESETS</span>
-            </button>
             <button class="ev-mnav-btn" data-tab="atmosphere" onclick="evMobileNavToggle('atmosphere')">
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="3"/><path d="M10 2v2.5M10 15.5V18M2 10h2.5M15.5 10H18M4.9 4.9l1.8 1.8M13.3 13.3l1.8 1.8M4.9 15.1l1.8-1.8M13.3 6.7l1.8-1.8"/></svg>
-              <span>ATMOS</span>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5.5" height="5.5" rx="0.5"/><rect x="11.5" y="3" width="5.5" height="5.5" rx="0.5"/><rect x="3" y="11.5" width="5.5" height="5.5" rx="0.5"/><rect x="11.5" y="11.5" width="5.5" height="5.5" rx="0.5"/></svg>
+              <span>ATMOSPHERE</span>
             </button>
-            <button class="ev-mnav-btn" data-tab="color" onclick="evMobileNavToggle('color')">
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><path d="M10 3a7 7 0 0 1 0 14z" fill="currentColor" stroke="none" opacity="0.6"/></svg>
-              <span>COLOR</span>
-            </button>
-            <button class="ev-mnav-btn" data-tab="details" onclick="evMobileNavToggle('details')">
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="3" y1="7" x2="17" y2="7"/><circle cx="7" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="3" y1="13" x2="17" y2="13"/><circle cx="13" cy="13" r="2.2" fill="currentColor" stroke="none"/></svg>
-              <span>DETAILS</span>
-            </button>
-            <button class="ev-mnav-btn" data-tab="tools" onclick="evMobileNavToggle('tools')">
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 3v12h12"/><path d="M3 5h12v12"/></svg>
-              <span>TOOLS</span>
+            <button class="ev-mnav-btn" data-tab="adjust" onclick="evMobileNavToggle('adjust')">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="3" y1="6" x2="17" y2="6"/><circle cx="8" cy="6" r="2.2" fill="currentColor" stroke="none"/><line x1="3" y1="14" x2="17" y2="14"/><circle cx="13" cy="14" r="2.2" fill="currentColor" stroke="none"/></svg>
+              <span>ADJUST</span>
             </button>
           </div>
         </div>
@@ -4691,34 +4748,68 @@ function esTab(el) {
 }
 
 function evMobileNavToggle(name) {
-  var suite = document.getElementById('ev-editor-suite');
-  var strip = document.getElementById('ev-preset-strip');
-  var btns  = document.querySelectorAll('.ev-mnav-btn');
+  var suite  = document.getElementById('ev-editor-suite');
+  var strip  = document.getElementById('ev-preset-strip');
+  var subnav = document.getElementById('ev-adjust-subnav');
+  var btns   = document.querySelectorAll('.ev-mnav-btn');
   var active = document.querySelector('.ev-mnav-btn.active');
   var isSame = active && active.dataset.tab === name;
 
   btns.forEach(function(b){ b.classList.remove('active'); });
 
-  if (name === 'presets') {
+  if (name === 'atmosphere') {
+    // ATMOSPHERE = preset thumbnail strip
     suite.classList.remove('open');
+    if (subnav) subnav.style.display = 'none';
     if (isSame && strip.classList.contains('visible')) {
       strip.classList.remove('visible');
     } else {
       strip.classList.add('visible');
-      document.querySelector('.ev-mnav-btn[data-tab="presets"]').classList.add('active');
+      var btn = document.querySelector('.ev-mnav-btn[data-tab="atmosphere"]');
+      if (btn) btn.classList.add('active');
     }
-  } else {
+  } else if (name === 'adjust') {
+    // ADJUST = sub-nav + sliders
     strip.classList.remove('visible');
     if (isSame && suite.classList.contains('open')) {
       suite.classList.remove('open');
+      if (subnav) subnav.style.display = 'none';
     } else {
       suite.classList.add('open');
-      var tabEl = document.querySelector('.es-tab[data-tab="'+name+'"]');
-      if (tabEl) esTab(tabEl);
-      var btn = document.querySelector('.ev-mnav-btn[data-tab="'+name+'"]');
+      if (subnav) subnav.style.display = 'flex';
+      var btn = document.querySelector('.ev-mnav-btn[data-tab="adjust"]');
       if (btn) btn.classList.add('active');
+      evAdjustSubTab('light'); // default to LIGHT sub-tab
     }
   }
+}
+
+function evAdjustSubTab(name) {
+  // Map sub-tab names to existing panel tabs
+  var panelMap = {
+    'light':   'details',    // LIGHT   → exposure, contrast, highlights, shadows
+    'color':   'color',      // COLOR   → temperature, tint, vibrance, saturation
+    'hsl':     'color',      // HSL     → hsl channels (same panel, scroll down)
+    'details': 'atmosphere', // DETAILS → glow, grain, fade, haze, sharpen
+    'crop':    'tools',      // CROP    → tools panel
+    'flip':    'tools'       // FLIP    → tools panel
+  };
+  document.querySelectorAll('.ev-subnav-btn').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.querySelector('.ev-subnav-btn[data-tab="'+name+'"]');
+  if (btn) btn.classList.add('active');
+  var panelTab = panelMap[name];
+  if (panelTab) {
+    var tabEl = document.querySelector('.es-tab[data-tab="'+panelTab+'"]');
+    if (tabEl) esTab(tabEl);
+  }
+}
+
+function evAdjustBack() {
+  var suite  = document.getElementById('ev-editor-suite');
+  var subnav = document.getElementById('ev-adjust-subnav');
+  suite.classList.remove('open');
+  if (subnav) subnav.style.display = 'none';
+  document.querySelectorAll('.ev-mnav-btn').forEach(function(b){ b.classList.remove('active'); });
 }
 
 function hslSelectChannel(dot) {

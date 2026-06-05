@@ -8951,15 +8951,17 @@ function autoSaveEdit() {
   if (!entry) return;
   const _asp = activePreset || evActivePreset;
   if (!_asp) return;
-  // Update editState on the library entry directly
-  const originalDataURL = entry.editState?.originalDataURL || entry.dataURL;
+  // Preserve original — first time only
+  const originalDataURL = (entry.editState && entry.editState.originalDataURL)
+    ? entry.editState.originalDataURL
+    : entry.dataURL;
+  // Write directly to library entry so galleryOpenInEditor can restore it
   entry.editState = {
     presetId:        _asp.id,
     sliders:         JSON.parse(JSON.stringify(sliderState[_asp.id] || {})),
     intensity:       presetIntensity,
     originalDataURL: originalDataURL
   };
-  // Persist to IndexedDB
   libSaveToStorage();
 }
 
@@ -9138,9 +9140,9 @@ function toolsCropDrawOnCanvas(hc) {
 
 // ── Fix 2: editorBackToGallery — save first, then navigate ───────────────
 window.editorBackToGallery = function editorBackToGallery() {
-  // Save edit state BEFORE any navigation or DOM changes
+  // Flush autosave timer immediately
+  clearTimeout(_autoSaveTimer);
   autoSaveEdit();
-  if (typeof window.editorAutoSave === 'function') window.editorAutoSave();
 
   const allNavItems = document.querySelectorAll('.nav-item');
   let galleryNav = null;
@@ -9149,61 +9151,30 @@ window.editorBackToGallery = function editorBackToGallery() {
     if (label && label.textContent.trim() === 'GALLERY') galleryNav = el;
   });
 
-  const lightbox = document.getElementById('lightbox');
-  const imgPreview = document.getElementById('image-preview');
   const editView = document.getElementById('edit-view');
-  const libView = document.getElementById('library-view');
-  if (lightbox) { lightbox.style.display = 'none'; lightbox.classList.remove('active'); }
-  if (imgPreview) { imgPreview.style.display = 'none'; imgPreview.classList.remove('active'); }
+  const libView  = document.getElementById('library-view');
   if (editView) editView.classList.add('hidden');
-  if (libView) libView.classList.remove('hidden');
+  if (libView)  libView.classList.remove('hidden');
 
-  if (galleryNav) {
-    navClick(galleryNav);
-  } else {
-    switchToTab('GALLERY');
-  }
-};
-
-// ── Fix 3: editorAutoSave — always-complete auto-save ────────────────────
-window.editorAutoSave = function() {
-  if (!userImage || editingIdx === undefined || editingIdx < 0) return;
-  const entry = library[editingIdx];
-  if (!entry) return;
-  const hc = getActiveCanvas();
-  if (!hc || hc.width < 1) return;
-  // Offscreen at original dims
-  const off = document.createElement('canvas');
-  off.width  = userImage.naturalWidth  || hc.width;
-  off.height = userImage.naturalHeight || hc.height;
-  off.getContext('2d').drawImage(hc, 0, 0, hc.width, hc.height, 0, 0, off.width, off.height);
-  const dataURL = off.toDataURL('image/jpeg', 0.95);
-  try {
-    localStorage.setItem('zoe_edit_' + entry.id + '_current', dataURL);
-    if (!localStorage.getItem('zoe_edit_' + entry.id + '_original')) {
-      localStorage.setItem('zoe_edit_' + entry.id + '_original', entry.dataURL);
-    }
-    const _asp = activePreset || evActivePreset;
-    if (_asp && sliderState[_asp.id]) {
-      localStorage.setItem('zoe_edit_' + entry.id + '_sliders',
-        JSON.stringify({ presetId: _asp.id, state: sliderState[_asp.id] }));
-    }
-  } catch(e) {}
+  if (galleryNav) navClick(galleryNav);
+  else switchToTab('GALLERY');
 };
 
 // Patch backToLibrary (← GALLERY hero button) to save before resetting state
 const _origBackToLibrary = window.backToLibrary;
 window.backToLibrary = function() {
+  clearTimeout(_autoSaveTimer);
   autoSaveEdit();
-  if (typeof window.editorAutoSave === 'function') window.editorAutoSave();
   if (_origBackToLibrary) _origBackToLibrary.call(this);
 };
 
-// Patch nav switches to save before switching
+// Patch switchToTab to save before switching away from editor
 const _origSwitchToTab = window.switchToTab;
 window.switchToTab = function(label) {
-  autoSaveEdit();
-  if (typeof window.editorAutoSave === 'function') window.editorAutoSave();
+  if (label !== 'EDITOR') {
+    clearTimeout(_autoSaveTimer);
+    autoSaveEdit();
+  }
   if (_origSwitchToTab) _origSwitchToTab.call(this, label);
 };
 

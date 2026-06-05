@@ -2953,8 +2953,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     overflow-y: visible !important;
   }
 
-  /* Slider panels: horizontal scroll */
-  .es-tab-panel {
+  /* Slider panels: inactive stay hidden, active = horizontal scroll */
+  .es-tab-panel:not(.active) { display: none !important; }
+  .es-tab-panel.active {
     display: flex !important;
     flex-direction: row !important;
     overflow-x: auto !important;

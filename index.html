@@ -9828,26 +9828,12 @@ function toolsCropDrawOnCanvas(hc) {
   toolsCropBindDrag(ov, hc);
 }
 
-// ── Fix 2: editorBackToGallery — save + update thumbnail, then navigate ──
+// ── Fix 2: editorBackToGallery — save edit state, then navigate ──
 window.editorBackToGallery = function editorBackToGallery() {
   clearTimeout(_autoSaveTimer);
   autoSaveEdit();
-
-  // Render current edited canvas into the library thumbnail
-  const hc = document.getElementById('ev-canvas');
-  const _entry = (editingIdx >= 0) ? library[editingIdx] : null;
-  if (hc && hc.width > 0 && _entry) {
-    const off = document.createElement('canvas');
-    off.width = hc.width; off.height = hc.height;
-    off.getContext('2d').drawImage(hc, 0, 0);
-    _entry.dataURL = off.toDataURL('image/jpeg', 0.92);
-    const img = new Image();
-    img.onload = () => { _entry.img = img; libSaveToStorage(); renderLibrary(); };
-    img.src = _entry.dataURL;
-  } else {
-    libSaveToStorage();
-    renderLibrary();
-  }
+  libSaveToStorage();
+  renderLibrary();
 
   const allNavItems = document.querySelectorAll('.nav-item');
   let galleryNav = null;

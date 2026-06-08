@@ -2167,6 +2167,21 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   background: rgba(201,184,212,0.12); border-color: #c9b8d4;
   color: #c9b8d4;
 }
+/* Preset strip category filter buttons */
+.ev-cat-btn {
+  padding: 3px 12px; border-radius: 100px; flex-shrink: 0;
+  border: 0.5px solid transparent; background: transparent;
+  font-size: 8px; letter-spacing: 0.16em; color: rgba(185,175,215,0.45);
+  font-family: var(--mono); cursor: pointer; transition: all 0.15s;
+  white-space: nowrap; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.ev-cat-btn:hover { color: rgba(220,210,240,0.80); }
+.ev-cat-btn.active {
+  background: rgba(201,184,212,0.13); border-color: rgba(201,184,212,0.35);
+  color: rgba(220,205,250,0.95);
+}
+#ev-cats::-webkit-scrollbar { display: none; }
 .ev-suite-tab {
   flex: 1; text-align: center; padding: 7px 0 6px;
   font-size: 7px; letter-spacing: 0.16em; color: rgba(175,162,200,0.45);
@@ -2994,8 +3009,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* Preset strip: hidden by default; PRESETS icon in mobile nav toggles it */
   #ev-preset-strip { display: none !important; }
   #ev-preset-strip.visible {
-    display: block !important;
-    height: 132px !important;
+    display: flex !important;
+    height: 164px !important;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -3743,8 +3758,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div id="ev-preset-label" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:0.18em;color:rgba(201,184,212,0.35);font-family:var(--mono);pointer-events:none;white-space:nowrap"></div>
           </div>
           <!-- Bottom preset strip -->
-          <div id="ev-preset-strip" style="height:128px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);overflow-x:auto;overflow-y:visible;">
-            <div id="ev-preset-list" style="height:100%;display:flex;flex-direction:row;width:max-content;"></div>
+          <div id="ev-preset-strip" style="height:160px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;">
+            <!-- Category filter row -->
+            <div id="ev-cats" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+              <div class="ev-cat-btn active" onclick="evFilterCat(this,'ALL')">ALL</div>
+              <div class="ev-cat-btn" onclick="evFilterCat(this,'FILM')">FILM</div>
+              <div class="ev-cat-btn" onclick="evFilterCat(this,'CINEMATIC')">CINEMATIC</div>
+              <div class="ev-cat-btn" onclick="evFilterCat(this,'ETHEREAL')">ETHEREAL</div>
+            </div>
+            <!-- Thumbnail scroll row -->
+            <div style="flex:1;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;">
+              <div id="ev-preset-list" style="height:100%;display:flex;flex-direction:row;width:max-content;"></div>
+            </div>
           </div>
         </div>
 
@@ -9446,6 +9471,7 @@ function evRenderPresets() {
   });
 
   presets.forEach(function(p){
+    if (evCatFilter && evCatFilter !== 'ALL' && (p.series||'').toUpperCase() !== evCatFilter) return;
     var card = document.createElement('div');
     var isActive = evActivePreset && evActivePreset.id===p.id;
     card.style.cssText = 'width:96px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-right:0.5px solid var(--border);display:flex;flex-direction:column;transition:background 0.18s;'+(isActive?'background:rgba(201,184,212,0.07)':'');
@@ -9495,7 +9521,7 @@ function evRenderPresets() {
 
 function evFilterCat(btn, cat) {
   evCatFilter = cat;
-  document.querySelectorAll('#ev-cats .pv-cat-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('#ev-cats .ev-cat-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
   evRenderPresets();
 }

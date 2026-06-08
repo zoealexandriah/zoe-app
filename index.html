@@ -33,7 +33,7 @@
     0 0 0 0.5px rgba(200,168,232,0.06) inset;
 }
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:var(--font-ui);user-select:none;-webkit-tap-highlight-color:transparent}
-button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.gallery-open-btn,.select-check{touch-action:manipulation}
+button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.gallery-open-btn{touch-action:manipulation}
 
 /* ══════════════════════════════════════
    AMBIENT BACKGROUND
@@ -794,40 +794,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .lib-photo.selected::after {
   content:''; position:absolute; inset:0; z-index:3;
   border:2px solid rgba(200,168,232,0.82);
-}
-.select-check, .gallery-select-dot {
-  position: absolute !important;
-  top: 6px !important;
-  right: 6px !important;
-  bottom: auto !important;
-  left: auto !important;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(232,216,250,0.6);
-  background: rgba(8,6,14,0.5);
-  cursor: pointer;
-  z-index: 10;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 8px;
-  color: rgba(200,168,228,0.6);
-  opacity: 0;
-}
-.lib-photo:hover .select-check,
-.lib-photo:hover .gallery-select-dot,
-.select-check.selected,
-.gallery-select-dot.selected { opacity: 1; }
-.select-check.selected,
-.gallery-select-dot.selected {
-  background: rgba(180,148,228,0.9);
-  border-color: rgba(180,148,228,1);
-}
-.lib-photo.selected .select-check {
-  background:rgba(200,168,232,0.88); border-color:rgba(200,168,232,0.88);
-  color:#08041a; font-size:9px;
 }
 
 /* Edit view */
@@ -2500,18 +2466,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 
 
-/* ── Fix 5: SELECT mode batch bar ── */
-.gallery-select-mode .select-check,
-.gallery-select-mode .gallery-select-dot { opacity: 1 !important; }
-#gallery-select-btn {
-  padding: 4px 10px; border-radius: 2px;
-  border: 0.5px solid rgba(200,168,232,0.25); background: transparent;
-  font-size: 8px; letter-spacing: 0.18em; color: rgba(200,168,228,0.75);
-  font-family: var(--mono); cursor: pointer; transition: all 0.16s;
-}
-#gallery-select-btn:hover, #gallery-select-btn.active {
-  background: rgba(180,148,228,0.12); border-color: rgba(200,168,228,0.55);
-}
 #gallery-batch-bar {
   display: none;
   align-items: center;
@@ -2978,11 +2932,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* Modals full-width */
   .export-modal-box, .mtc-window { width: 92vw; max-width: 92vw; }
 
-  /* Bigger select dots for tap */
-  .select-check, .gallery-select-dot {
-    width: 28px !important; height: 28px !important;
-    font-size: 12px !important;
-  }
 
   /* ── Editor: mobile-specific overrides ── */
 
@@ -3258,7 +3207,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 <span class="lib-count" id="lib-count">0 PHOTOS</span>
               </div>
               <div class="lib-toolbar-right">
-                <div id="gallery-select-btn" onclick="galleryToggleSelectMode()">SELECT</div>
                 <div class="lib-btn" onclick="triggerMultiUpload()">↑ ADD MORE</div>
                 <div class="lib-btn lib-btn-danger" id="lib-delete-btn"
                      onclick="deleteSelected()" style="display:none">✕ REMOVE</div>
@@ -6855,17 +6803,12 @@ function renderLibrary() {
   library.forEach((entry, idx) => {
     const cell = document.createElement('div');
     cell.className = 'lib-photo' + (libSelected.includes(idx) ? ' selected' : '');
+    cell.dataset.idx = idx;
     cell.innerHTML = `
       <img src="${entry.dataURL}" alt="${entry.name}" loading="lazy">
       <div class="lib-photo-overlay"></div>
-      <div class="select-check${libSelected.includes(idx)?' selected':''}" data-idx="${idx}">${libSelected.includes(idx) ? '✓' : ''}</div>
     `;
-    cell.querySelector('.select-check').addEventListener('click', e => {
-      e.stopPropagation();
-      toggleSelect(idx);
-    });
     cell.addEventListener('click', function(e) {
-      if (e.target.classList.contains('select-check')) return;
       var now = Date.now();
       if (window._galLastTapIdx === idx && now - window._galLastTapTime < 350) {
         // Double-tap: open in editor
@@ -9861,8 +9804,7 @@ window.renderLibrary = function() {
   const grid = document.getElementById('library-grid');
   if (!grid) return;
   grid.querySelectorAll('.lib-photo').forEach((cell) => {
-    const checkEl = cell.querySelector('.select-check');
-    const idx = checkEl ? parseInt(checkEl.dataset.idx, 10) : -1;
+    const idx = parseInt(cell.dataset.idx, 10);
     const entry = (!isNaN(idx) && idx >= 0) ? library[idx] : null;
     if (!entry) return;
     try {

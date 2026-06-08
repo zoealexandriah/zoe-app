@@ -7643,7 +7643,7 @@ function toolsCropBindDrag(ov, hc) {
       if (ci===5){ h+=dy; }                              // bottom edge
       if (ci===6){ x+=dx; w-=dx; }                      // left edge
       if (ci===7){ w+=dx; }                              // right edge
-      if (w > 20 && h > 20) cropRect = { x:Math.max(0,x), y:Math.max(0,y), w, h };
+      if (w > 20 && h > 20) { var _fx=Math.max(0,x), _fy=Math.max(0,y); cropRect = { x:_fx, y:_fy, w:Math.min(w, hc.width-_fx), h:Math.min(h, hc.height-_fy) }; }
     } else {
       // Locked ratio: move only (ratio handles resize proportionally from corner)
       const ci = cropDragging.idx;
@@ -7656,7 +7656,7 @@ function toolsCropBindDrag(ov, hc) {
         if (ci===0){ x = sr.x+sr.w-newW; y = sr.y+sr.h-newH; }
         if (ci===1){ y = sr.y+sr.h-newH; }
         if (ci===2){ x = sr.x+sr.w-newW; }
-        if (newW > 20 && newH > 20) cropRect = { x:Math.max(0,x), y:Math.max(0,y), w:newW, h:newH };
+        if (newW > 20 && newH > 20) { var _rx=Math.max(0,x), _ry=Math.max(0,y); cropRect = { x:_rx, y:_ry, w:Math.min(newW, hc.width-_rx), h:Math.min(newH, hc.height-_ry) }; }
       } else {
         cropRect.x = Math.max(0, Math.min(hc.width  - cropRect.w, sr.x + dx));
         cropRect.y = Math.max(0, Math.min(hc.height - cropRect.h, sr.y + dy));
@@ -10194,7 +10194,7 @@ window.etSelectTool = function(name) {
             var scale = _pinchDist(e) / _cropPinch0.dist;
             var sr = _cropPinch0.rect;
             var cx = sr.x + sr.w / 2, cy = sr.y + sr.h / 2;
-            var nw = Math.max(30, sr.w * scale), nh = Math.max(30, sr.h * scale);
+            var nw = Math.max(30, Math.min(ac.width, sr.w * scale)), nh = Math.max(30, Math.min(ac.height, sr.h * scale));
             // Clamp to canvas bounds
             var nx = Math.max(0, Math.min(ac.width  - nw, cx - nw / 2));
             var ny = Math.max(0, Math.min(ac.height - nh, cy - nh / 2));

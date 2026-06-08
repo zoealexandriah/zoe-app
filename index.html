@@ -7478,6 +7478,7 @@ function libLoadFromStorage() {
 
 let toolsActiveTool = null;
 let toolsCropRatio  = 'FREEFORM';
+var _etCropDefaultTab = 'straighten'; // which tab etCropHTML starts on; reset after each use
 let toolsStraightenVal = 0;
 let toolsFlipH = false, toolsFlipV = false;
 
@@ -8559,13 +8560,14 @@ function etCropHTML() {
     <path d="M30 17L34 22L29 24" stroke-width="2"/>
   </svg>`;
 
+  const _st = _etCropDefaultTab || 'straighten'; _etCropDefaultTab = 'straighten';
   return `<div class="crop-ui">
     <div class="crop-subtabs">
-      <button class="crop-subtab active" onclick="cropSelectSubTab(this,'straighten')">STRAIGHTEN</button>
-      <button class="crop-subtab" onclick="cropSelectSubTab(this,'ratio')">RATIO</button>
-      <button class="crop-subtab" onclick="cropSelectSubTab(this,'transform')">TRANSFORM</button>
+      <button class="crop-subtab${_st==='straighten'?' active':''}" onclick="cropSelectSubTab(this,'straighten')">STRAIGHTEN</button>
+      <button class="crop-subtab${_st==='ratio'?' active':''}" onclick="cropSelectSubTab(this,'ratio')">RATIO</button>
+      <button class="crop-subtab${_st==='transform'?' active':''}" onclick="cropSelectSubTab(this,'transform')">TRANSFORM</button>
     </div>
-    <div class="crop-sub-content" id="crop-sub-straighten">
+    <div class="crop-sub-content" id="crop-sub-straighten"${_st!=='straighten'?' style="display:none"':''}>
       <div class="crop-sub-row" style="margin-top:10px">
         <span class="crop-sub-label">Amount</span>
         <span class="crop-sub-val" id="crop-straighten-val">0.00</span>
@@ -8574,10 +8576,10 @@ function etCropHTML() {
              min="-45" max="45" step="0.1" value="0"
              oninput="cropStraightenPreview(this.value)">
     </div>
-    <div class="crop-sub-content" id="crop-sub-ratio" style="display:none;padding-left:4px;padding-right:4px">
+    <div class="crop-sub-content" id="crop-sub-ratio" style="display:${_st==='ratio'?'block':'none'};padding-left:4px;padding-right:4px">
       <div class="crop-ratios">${ratioBtns}</div>
     </div>
-    <div class="crop-sub-content" id="crop-sub-transform" style="display:none">
+    <div class="crop-sub-content" id="crop-sub-transform" style="display:${_st==='transform'?'':'none'}">
       <div class="crop-transform-icons">
         <div class="crop-transform-icon-btn" onclick="toolsFlipApply('h')">
           <div class="crop-transform-icon-box">${flipHSvg}</div>
@@ -10415,10 +10417,12 @@ window.galleryCopyEdits = function(imageId) {
       ac.parentElement.appendChild(ov);
       ov.width  = ac.width;
       ov.height = ac.height;
-      ov.style.width  = ac.clientWidth  + 'px';
-      ov.style.height = ac.clientHeight + 'px';
-      ov.style.left   = ac.offsetLeft   + 'px';
-      ov.style.top    = ac.offsetTop    + 'px';
+      var _acW = ac.clientWidth, _acH = ac.clientHeight;
+      var _arW = ac.parentElement.clientWidth, _arH = ac.parentElement.clientHeight;
+      ov.style.width  = _acW + 'px';
+      ov.style.height = _acH + 'px';
+      ov.style.left   = Math.round((_arW - _acW) / 2) + 'px';
+      ov.style.top    = Math.round((_arH - _acH) / 2) + 'px';
       // Init crop rect respecting current ratio
       var cw = ac.width, ch = ac.height;
       var bw = cw * 0.8, bh = ch * 0.8;
@@ -10600,13 +10604,15 @@ function cropSelectSubTab(btn, tab) {
     // Re-sync overlay size/position to current canvas state, then show
     var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
     if (ov && ac && ac.width > 0) {
-      // Use layout dimensions (offsetLeft/clientWidth) to match 200ms wrapper and avoid zoom distortion
+      // Center overlay over canvas using explicit area math — immune to transforms/offsetLeft quirks
       ov.width  = ac.width;
       ov.height = ac.height;
-      ov.style.width  = ac.clientWidth  + 'px';
-      ov.style.height = ac.clientHeight + 'px';
-      ov.style.left   = ac.offsetLeft   + 'px';
-      ov.style.top    = ac.offsetTop    + 'px';
+      var _acW2 = ac.clientWidth, _acH2 = ac.clientHeight;
+      var _arW2 = ac.parentElement.clientWidth, _arH2 = ac.parentElement.clientHeight;
+      ov.style.width  = _acW2 + 'px';
+      ov.style.height = _acH2 + 'px';
+      ov.style.left   = Math.round((_arW2 - _acW2) / 2) + 'px';
+      ov.style.top    = Math.round((_arH2 - _acH2) / 2) + 'px';
       // Re-init cropRect if missing or if it exceeds current canvas bounds (e.g. after rotation)
       if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
           || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
@@ -10687,13 +10693,8 @@ function cropRotate90(dir) {
         var _o = document.getElementById('crop-overlay-canvas'); if(_o) _o.remove();
         cropRect = null;
         if (typeof window.etSelectTool === 'function') {
+          _etCropDefaultTab = 'transform'; // etCropHTML will open on TRANSFORM, no flash
           window.etSelectTool('crop');
-          // Return to TRANSFORM tab after the crop UI re-renders (200ms + buffer)
-          setTimeout(function() {
-            document.querySelectorAll('.crop-subtab').forEach(function(t) {
-              if (t.textContent.trim() === 'TRANSFORM') t.click();
-            });
-          }, 260);
         }
       }, 100);
     } else { loadImageToCanvas(hc, newImg); }

@@ -9667,52 +9667,55 @@ document.addEventListener('mouseup', function(){
 
 // ── Fix 3: Open image in EDITOR tab ──────────────────────────────────────
 function galleryOpenInEditor(idx) {
-  openEditor(idx);
-  // Restore saved edit state if this photo has one
-  const entry = library[idx];
-  if (entry && entry.editState) {
-    const es = entry.editState;
-    const p  = presets.find(x => x.id === es.presetId);
+  var entry = library[idx];
+  if (!entry) return;
+  // Set up globals
+  editingIdx = idx;
+  userImage  = entry.img;
+  evHistory.length = 0;
+  evFuture.length  = 0;
+  Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
+  evActivePreset = null; activePreset = null;
+  // Hide gallery, show new editor
+  var lv = document.getElementById('library-view');
+  if (lv) lv.classList.add('hidden');
+  switchToTab('EDITOR');
+  // Update mobile bottom nav active state
+  document.querySelectorAll('.bn-item').forEach(function(n){ n.classList.remove('active'); });
+  var editorBnItem = Array.from(document.querySelectorAll('.bn-item'))
+    .find(function(n){ return (n.querySelector('.bn-label')||{}).textContent.trim() === 'EDITOR'; });
+  if (editorBnItem) editorBnItem.classList.add('active');
+  // Restore saved edit state AFTER evInit (switchToTab calls evInit which resets preset)
+  if (entry.editState) {
+    var es = entry.editState;
+    var p  = presets.find(function(x){ return x.id === es.presetId; });
     if (p) {
-      evActivePreset = p;
-      activePreset   = p;
+      evActivePreset = p; activePreset = p;
       sliderState[p.id] = JSON.parse(JSON.stringify(es.sliders || {}));
       presetIntensity   = typeof es.intensity === 'number' ? es.intensity : 1.0;
-      document.querySelectorAll('.intensity-slider').forEach(el => { el.value = Math.round(presetIntensity * 100); });
-      document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = Math.round(presetIntensity * 100) + '%'; });
-      // Update atmosphere tab preset display
-      const _nameEl   = document.getElementById('es-preset-name');
-      const _seriesEl = document.getElementById('es-preset-series');
-      const _thumbEl  = document.getElementById('es-preset-thumb');
+      document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = Math.round(presetIntensity * 100); });
+      document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = Math.round(presetIntensity * 100) + '%'; });
+      var _nameEl   = document.getElementById('es-preset-name');
+      var _seriesEl = document.getElementById('es-preset-series');
+      var _thumbEl  = document.getElementById('es-preset-thumb');
       if (_nameEl)   _nameEl.textContent   = p.name;
       if (_seriesEl) _seriesEl.textContent = p.series;
       if (_thumbEl)  { _thumbEl.width=36; _thumbEl.height=46; renderPhoto(_thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
       buildEditorSliders(p);
     }
-    // Load the ORIGINAL (pre-edit) image so adjustments aren't applied on top of a render
     if (es.originalDataURL) {
-      const origImg = new Image();
-      origImg.onload = () => {
+      var origImg = new Image();
+      origImg.onload = function() {
         userImage = origImg;
         if (typeof evRenderCanvas === 'function') evRenderCanvas();
         evRenderPresets();
       };
       origImg.src = es.originalDataURL;
+    } else {
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+      evRenderPresets();
     }
   }
-  // Switch to EDITOR nav (sidebar)
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const editorNav = [...document.querySelectorAll('.nav-item')]
-    .find(n => (n.querySelector('.nav-label')||{}).textContent.trim() === 'EDITOR');
-  if (editorNav) {
-    editorNav.classList.add('active');
-    editorNav.click();
-  }
-  // Switch to EDITOR on mobile bottom nav
-  document.querySelectorAll('.bn-item').forEach(n => n.classList.remove('active'));
-  const editorBnItem = [...document.querySelectorAll('.bn-item')]
-    .find(n => (n.querySelector('.bn-label')||{}).textContent.trim() === 'EDITOR');
-  if (editorBnItem) editorBnItem.classList.add('active');
 }
 
 // ── Fix 5: SELECT mode ───────────────────────────────────────────────────
@@ -10603,7 +10606,7 @@ function galleryActionEdit() {
   if (libSelected.length !== 1) return;
   var idx = libSelected[0];
   galleryToggleSelectMode();
-  openEditor(idx);
+  galleryOpenInEditor(idx);
 }
 
 function _gabSync() {

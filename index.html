@@ -3080,6 +3080,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   body:has(#editor-view.active) .app { grid-template-rows: 0px 1fr 0px !important; }
   /* Preset strip — taller so names don't clip */
   #ev-preset-strip { height: 150px !important; overflow-y: visible !important; }
+  /* Crop mode: hide ATMOSPHERE/ADJUST nav + canvas-area close button */
+  #editor-view.crop-mode #ev-mobile-nav { display: none !important; }
+  #editor-view.crop-mode #ev-adjust-close { display: none !important; }
   #ev-adjust-close {
     display: none !important;
     position: absolute !important;
@@ -3605,15 +3608,15 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
             <div class="ev-tb-sep" style="width:1px;height:16px;background:var(--border);flex-shrink:0"></div>
             <div class="ctb-btn disabled" id="ev-undo" onclick="globalUndo()" style="display:inline-flex;align-items:center">
-              <svg class="ev-tb-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+              <svg class="ev-tb-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path stroke-linecap="butt" d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
               <span class="ev-tb-text">UNDO</span>
             </div>
             <div class="ctb-btn disabled" id="ev-redo" onclick="globalRedo()" style="display:inline-flex;align-items:center">
-              <svg class="ev-tb-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg>
+              <svg class="ev-tb-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path stroke-linecap="butt" d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg>
               <span class="ev-tb-text">REDO</span>
             </div>
             <div class="ctb-btn" id="ev-reset-btn" onclick="globalReset()" style="display:inline-flex;align-items:center">
-              <svg class="ev-tb-svg" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              <svg class="ev-tb-svg" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="butt" d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               <span class="ev-tb-text">↺ RESET</span>
             </div>
             <div class="ev-tb-sep" style="width:1px;height:16px;background:var(--border);flex-shrink:0"></div>
@@ -10702,10 +10705,12 @@ function cropStraightenPreview(val) {
     ac.parentElement.appendChild(sc);
   }
   sc.width  = ac.width;  sc.height  = ac.height;
-  sc.style.width  = ac.clientWidth  + 'px';
-  sc.style.height = ac.clientHeight + 'px';
-  sc.style.left   = ac.offsetLeft   + 'px';
-  sc.style.top    = ac.offsetTop    + 'px';
+  var _acWs = ac.clientWidth, _acHs = ac.clientHeight;
+  var _arWs = ac.parentElement.clientWidth, _arHs = ac.parentElement.clientHeight;
+  sc.style.width  = _acWs + 'px';
+  sc.style.height = _acHs + 'px';
+  sc.style.left   = Math.round((_arWs - _acWs) / 2) + 'px';
+  sc.style.top    = Math.round((_arHs - _acHs) / 2) + 'px';
   var ctx = sc.getContext('2d');
   ctx.clearRect(0, 0, sc.width, sc.height);
   ctx.fillStyle = '#050310'; ctx.fillRect(0, 0, sc.width, sc.height);

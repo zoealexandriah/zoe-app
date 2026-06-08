@@ -3086,6 +3086,72 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* Always hide TOOLS header + CROP/FLIP tool rows in ev-tools on mobile */
   #ev-tools .et-section-header,
   #ev-tools .et-tool-row { display: none !important; }
+
+  /* ── Gallery mobile action bar ── */
+  #gallery-mobile-bar {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px 10px;
+    background: var(--bg);
+    border-top: 0.5px solid var(--border);
+    flex-shrink: 0;
+  }
+  #gallery-action-pill {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid rgba(200,168,232,0.13);
+    border-radius: 100px;
+    padding: 4px;
+    gap: 1px;
+  }
+  .gab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    border-radius: 100px;
+    padding: 8px 2px 7px;
+    cursor: pointer;
+    color: rgba(200,168,228,0.28);
+    font-size: 5.5px;
+    letter-spacing: 0.09em;
+    font-family: var(--mono);
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s, background 0.15s;
+    touch-action: manipulation;
+  }
+  .gab-btn svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .gab-btn.active { color: rgba(220,200,248,0.90); }
+  .gab-danger.active { color: rgba(210,80,100,0.88) !important; }
+  #gallery-add-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #c0405a;
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 2px 14px rgba(192,64,90,0.50);
+    transition: transform 0.12s, box-shadow 0.12s;
+    touch-action: manipulation;
+  }
+  #gallery-add-btn:active { transform: scale(0.91); box-shadow: 0 1px 6px rgba(192,64,90,0.32); }
+  /* Hide old batch-bar on mobile — actions live in bottom bar now */
+  #gallery-batch-bar { display: none !important; }
+  /* In lib-toolbar-right: hide ADD MORE + REMOVE, keep SELECT */
+  .lib-toolbar-right .lib-btn { display: none !important; }
   #ev-adjust-close {
     display: none !important;
     position: absolute !important;
@@ -3423,6 +3489,34 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <div class="batch-bar-btn" onclick="galleryToggleSelectMode()">CANCEL</div>
             </div>
             <div class="library-grid" id="library-grid"></div>
+            <!-- Mobile gallery action bar (hidden on desktop via CSS) -->
+            <div id="gallery-mobile-bar" style="display:none">
+              <div id="gallery-action-pill">
+                <button class="gab-btn" id="gab-edit" onclick="galleryActionEdit()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  <span>EDIT</span>
+                </button>
+                <button class="gab-btn" id="gab-copy" onclick="galleryCopyEditFromSelection()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  <span>COPY</span>
+                </button>
+                <button class="gab-btn" id="gab-paste" onclick="galleryPasteEdits()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/></svg>
+                  <span>PASTE</span>
+                </button>
+                <button class="gab-btn" id="gab-save" onclick="galleryExportSelected()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>SAVE</span>
+                </button>
+                <button class="gab-btn gab-danger" id="gab-delete" onclick="galleryBatchDeleteConfirm()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  <span>DELETE</span>
+                </button>
+              </div>
+              <button id="gallery-add-btn" onclick="triggerMultiUpload()">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
             <input type="file" id="multi-upload-input" accept="image/*"
                    multiple style="display:none" onchange="handleMultiUpload(event)">
           </div>
@@ -10434,6 +10528,35 @@ window.toolsFlipApply = function(dir) {
 
 // (second window.exportDownload removed — first full-pipeline version at line 9118 is authoritative)
 
+// ── Gallery mobile action bar helpers ────────────────────────────────────────
+function galleryActionEdit() {
+  if (libSelected.length !== 1) return;
+  var idx = libSelected[0];
+  galleryToggleSelectMode();
+  openEditor(idx);
+}
+
+function _gabSync() {
+  var n = libSelected.length;
+  var hasPaste = !!window.copiedEdits;
+  var gabEdit   = document.getElementById('gab-edit');
+  var gabCopy   = document.getElementById('gab-copy');
+  var gabPaste  = document.getElementById('gab-paste');
+  var gabSave   = document.getElementById('gab-save');
+  var gabDelete = document.getElementById('gab-delete');
+  if (gabEdit)   gabEdit.classList.toggle('active', n === 1);
+  if (gabCopy)   gabCopy.classList.toggle('active', n === 1);
+  if (gabPaste)  gabPaste.classList.toggle('active', n > 0 && hasPaste);
+  if (gabSave)   gabSave.classList.toggle('active', n > 0);
+  if (gabDelete) gabDelete.classList.toggle('active', n > 0);
+}
+
+const _origGalleryUpdateBatchCount = window.galleryUpdateBatchCount;
+window.galleryUpdateBatchCount = function() {
+  if (_origGalleryUpdateBatchCount) _origGalleryUpdateBatchCount();
+  _gabSync();
+};
+
 // ── Fix 1: Copy edits — enhance existing galleryCopyEdits with COPY EDITS btn ──
 // The COPY EDITS btn is added via the renderLibrary patch already.
 // Ensure galleryCopyEdits shows the paste btn:
@@ -10443,6 +10566,7 @@ window.galleryCopyEdits = function(imageId) {
   // Ensure paste btn visible
   const pasteBtn = document.getElementById('gallery-paste-edits-btn');
   if (pasteBtn) pasteBtn.style.display = 'inline-flex';
+  _gabSync(); // update mobile action bar paste button
 };
 
 // ── Crop Fix: Clean final crop overlay — resizes canvas first, then builds overlay ──

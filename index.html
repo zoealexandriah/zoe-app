@@ -8526,12 +8526,11 @@ function etCropHTML() {
     <div class="crop-subtabs">
       <button class="crop-subtab active" onclick="cropSelectSubTab(this,'straighten')">STRAIGHTEN</button>
       <button class="crop-subtab" onclick="cropSelectSubTab(this,'ratio')">RATIO</button>
-      <button class="crop-subtab" onclick="cropSelectSubTab(this,'skew')">SKEW</button>
       <button class="crop-subtab" onclick="cropSelectSubTab(this,'transform')">TRANSFORM</button>
     </div>
     <div class="crop-sub-content" id="crop-sub-straighten">
       <div class="crop-sub-row">
-        <span class="crop-sub-label">Amount</span>
+        <span class="crop-sub-label">ANGLE</span>
         <span class="crop-sub-val" id="crop-straighten-val">0.00</span>
       </div>
       <input type="range" class="tc-range" id="crop-straighten-slider"
@@ -8541,23 +8540,35 @@ function etCropHTML() {
     <div class="crop-sub-content" id="crop-sub-ratio" style="display:none">
       <div class="crop-ratios">${ratioBtns}</div>
     </div>
-    <div class="crop-sub-content" id="crop-sub-skew" style="display:none">
-      <div class="crop-sub-row"><span class="crop-sub-label">Horizontal</span><span class="crop-sub-val" id="crop-skew-x-val">0.00</span></div>
-      <input type="range" class="tc-range" id="crop-skew-x-slider" min="-30" max="30" step="0.1" value="0" oninput="cropSkewPreview('x',this.value)">
-      <div class="crop-sub-row" style="margin-top:8px"><span class="crop-sub-label">Vertical</span><span class="crop-sub-val" id="crop-skew-y-val">0.00</span></div>
-      <input type="range" class="tc-range" id="crop-skew-y-slider" min="-30" max="30" step="0.1" value="0" oninput="cropSkewPreview('y',this.value)">
-    </div>
     <div class="crop-sub-content" id="crop-sub-transform" style="display:none">
-      <div class="crop-transform-btns">
-        <button class="crop-transform-btn" onclick="cropRotate90('ccw')">↺ 90°</button>
-        <button class="crop-transform-btn" onclick="cropRotate90('cw')">↻ 90°</button>
-        <button class="crop-transform-btn" onclick="toolsFlipApply('h')">⇔ H</button>
-        <button class="crop-transform-btn" onclick="toolsFlipApply('v')">↕ V</button>
+      <div class="crop-sub-row" style="margin-bottom:12px">
+        <span class="crop-sub-label">ROTATE</span>
       </div>
+      <div class="crop-transform-btns" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+        <button class="crop-transform-btn" onclick="cropRotate90('ccw')">↺ 90° CCW</button>
+        <button class="crop-transform-btn" onclick="cropRotate90('cw')">↻ 90° CW</button>
+      </div>
+      <div class="crop-sub-row" style="margin-bottom:12px">
+        <span class="crop-sub-label">FLIP</span>
+      </div>
+      <div class="crop-transform-btns" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+        <button class="crop-transform-btn" onclick="toolsFlipApply('h')">⇔ HORIZONTAL</button>
+        <button class="crop-transform-btn" onclick="toolsFlipApply('v')">↕ VERTICAL</button>
+      </div>
+      <div class="crop-sub-row" style="margin-bottom:6px">
+        <span class="crop-sub-label">SKEW X</span>
+        <span class="crop-sub-val" id="crop-skew-x-val">0.00</span>
+      </div>
+      <input type="range" class="tc-range" id="crop-skew-x-slider" min="-30" max="30" step="0.1" value="0" oninput="cropSkewPreview('x',this.value)" style="margin-bottom:12px">
+      <div class="crop-sub-row" style="margin-bottom:6px">
+        <span class="crop-sub-label">SKEW Y</span>
+        <span class="crop-sub-val" id="crop-skew-y-val">0.00</span>
+      </div>
+      <input type="range" class="tc-range" id="crop-skew-y-slider" min="-30" max="30" step="0.1" value="0" oninput="cropSkewPreview('y',this.value)">
     </div>
     <div class="crop-action-bar">
       <button class="crop-action-btn" onclick="toolsCropCancel()">✕</button>
-      <span class="crop-action-label">CROP</span>
+      <span class="crop-action-label" id="crop-action-label">CROP</span>
       <button class="crop-action-btn apply" onclick="toolsCropApply()">✓</button>
     </div>
   </div>`;
@@ -8782,6 +8793,11 @@ function globalReset() {
   // Also clear ev-preset-label
   const _resetLbl = document.getElementById('ev-preset-label');
   if (_resetLbl) _resetLbl.textContent = '';
+
+  // Remove any lingering crop work canvases (straighten/skew overlays at z-index:4)
+  ['crop-straighten-work','crop-skew-work'].forEach(function(id){ var e=document.getElementById(id); if(e) e.remove(); });
+  var _edVR = document.getElementById('editor-view');
+  if (_edVR) _edVR.classList.remove('crop-mode');
 
   showToast('RESET — ALL EDITS CLEARED');
   fix2UpdateButtons();
@@ -10372,6 +10388,8 @@ window.galleryCopyEdits = function(imageId) {
       cropRect = { x: (cw - bw) / 2, y: (ch - bh) / 2, w: bw, h: bh };
       toolsCropDrawRect(ov);
       toolsCropBindDrag(ov, ac);
+      // Default tab is STRAIGHTEN — hide overlay until RATIO is selected
+      ov.style.display = 'none';
       // Touch: single-finger drag + two-finger pinch
       var _cpinch0 = null;
       function _pdist(e) {
@@ -10452,35 +10470,41 @@ window.toolsCropSetRatio = function(r) {
   }
 };
 
-// Patch toolsCropApply — bake any active transforms then crop
+// Patch toolsCropApply — bake transforms then crop, never clears ev-canvas directly
 window.toolsCropApply = function() {
   var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!hc) { toolsCropCancel(); return; }
-  // Bake straighten / skew work canvas into the main canvas first
+  // Use work canvas as pixel source if present and valid; otherwise fall back to ev-canvas
   var sc = document.getElementById('crop-straighten-work') || document.getElementById('crop-skew-work');
-  if (sc) {
-    var bake = document.createElement('canvas');
-    bake.width = sc.width; bake.height = sc.height;
-    bake.getContext('2d').drawImage(sc, 0, 0);
-    hc.getContext('2d').clearRect(0, 0, hc.width, hc.height);
-    hc.getContext('2d').drawImage(bake, 0, 0);
-    ['crop-straighten-work','crop-skew-work'].forEach(function(id){ var e=document.getElementById(id); if(e) e.remove(); });
-  }
-  // Now apply crop rect (if any)
-  if (cropRect) {
-    var x = cropRect.x, y = cropRect.y, w = cropRect.w, h = cropRect.h;
-    var tmp = document.createElement('canvas');
-    tmp.width = Math.round(w); tmp.height = Math.round(h);
-    tmp.getContext('2d').drawImage(hc, x, y, w, h, 0, 0, w, h);
+  var src = (sc && sc.width > 0 && sc.height > 0) ? sc : hc;
+  var scaleX = src.width  / hc.width;
+  var scaleY = src.height / hc.height;
+  function _finish(srcCanvas, toast) {
     var newImg = new Image();
     newImg.onload = function() {
       userImage = newImg;
       var ev = document.getElementById('editor-view');
       if (ev && ev.style.display === 'flex') { if (typeof evRenderCanvas === 'function') evRenderCanvas(); }
       else { loadImageToCanvas(hc, newImg); }
-      showToast('CROP APPLIED');
+      showToast(toast);
     };
-    newImg.src = tmp.toDataURL();
+    newImg.src = srcCanvas.toDataURL();
+  }
+  if (cropRect) {
+    var tmp = document.createElement('canvas');
+    tmp.width  = Math.round(cropRect.w);
+    tmp.height = Math.round(cropRect.h);
+    tmp.getContext('2d').drawImage(src,
+      cropRect.x * scaleX, cropRect.y * scaleY,
+      cropRect.w * scaleX, cropRect.h * scaleY,
+      0, 0, tmp.width, tmp.height);
+    _finish(tmp, 'CROP APPLIED');
+  } else if (src !== hc) {
+    // Transform only (no crop rect) — bake work canvas
+    var tmp2 = document.createElement('canvas');
+    tmp2.width = src.width; tmp2.height = src.height;
+    tmp2.getContext('2d').drawImage(src, 0, 0);
+    _finish(tmp2, 'APPLIED');
   }
   _cropExitMode();
   toolsCropCancel();
@@ -10503,12 +10527,21 @@ function _cropExitMode() {
 }
 
 // ── New Crop sub-tab helpers ──────────────────────────────────────────────
-function cropSelectSubTab(btn, tab) {
-  document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
+function cropSelectSubTab(btn, name) {
+  document.querySelectorAll('.crop-subtab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.querySelectorAll('.crop-sub-content').forEach(function(c){ c.style.display = 'none'; });
-  var el = document.getElementById('crop-sub-' + tab);
-  if (el) el.style.display = 'block';
+  ['straighten','ratio','transform'].forEach(id => {
+    const el = document.getElementById('crop-sub-' + id);
+    if (el) el.style.display = id === name ? '' : 'none';
+  });
+  const label = document.getElementById('crop-action-label');
+  if (label) label.textContent = name === 'ratio' ? 'CROP' : name.toUpperCase();
+  // Show crop overlay only on RATIO tab
+  var ov = document.getElementById('crop-overlay-canvas');
+  if (ov) ov.style.display = (name === 'ratio') ? 'block' : 'none';
+  // Clean up work canvases when leaving their tab
+  if (name !== 'straighten') { var sw = document.getElementById('crop-straighten-work'); if (sw) sw.remove(); }
+  if (name !== 'transform')  { var skw = document.getElementById('crop-skew-work');       if (skw) skw.remove(); }
 }
 
 var _cropStraightenOrig = null;

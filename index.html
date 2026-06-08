@@ -2047,6 +2047,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 /* Hide outer adjust sub-nav while in crop mode so crop's own tabs show */
 #editor-view.crop-mode #ev-adjust-subnav { display:none !important; }
+/* Hide the canvas-area close button during crop so it can't clobber the subnav inline style */
+#editor-view.crop-mode #ev-adjust-close { display:none !important; }
 
 
 /* ── ZOOM + UNDO/REDO TOOLBAR ── */
@@ -10505,7 +10507,14 @@ function _cropExitMode() {
   var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
   if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
   var edV = document.getElementById('editor-view');
-  if (edV) edV.classList.remove('crop-mode');
+  if (edV) {
+    edV.classList.remove('crop-mode');
+    // Restore subnav — its inline style may have been set to 'none' by evAdjustBack
+    // or may be overridden; always bring back the adjust panel state
+    edV.classList.add('adjust-open');
+    var _subnav = document.getElementById('ev-adjust-subnav');
+    if (_subnav) _subnav.style.display = 'flex';
+  }
 }
 
 // ── New Crop sub-tab helpers ──────────────────────────────────────────────

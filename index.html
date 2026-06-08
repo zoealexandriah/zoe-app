@@ -8541,11 +8541,9 @@ function etCropHTML() {
       <div class="crop-ratios">${ratioBtns}</div>
     </div>
     <div class="crop-sub-content" id="crop-sub-transform" style="display:none">
-      <div class="crop-transform-btns">
+      <div class="crop-transform-btns" style="grid-template-columns:1fr 1fr">
         <button class="crop-transform-btn" onclick="cropRotate90('ccw')">↺ 90°</button>
         <button class="crop-transform-btn" onclick="cropRotate90('cw')">↻ 90°</button>
-        <button class="crop-transform-btn" onclick="toolsFlipApply('h')">⇔ H</button>
-        <button class="crop-transform-btn" onclick="toolsFlipApply('v')">↕ V</button>
       </div>
     </div>
     <div class="crop-action-bar">
@@ -8776,10 +8774,14 @@ function globalReset() {
   const _resetLbl = document.getElementById('ev-preset-label');
   if (_resetLbl) _resetLbl.textContent = '';
 
-  // Remove any lingering crop straighten overlay (z-index:4)
+  // Fully exit crop mode on reset
   var _csw = document.getElementById('crop-straighten-work'); if (_csw) _csw.remove();
   var _edVR = document.getElementById('editor-view');
-  if (_edVR) _edVR.classList.remove('crop-mode');
+  if (_edVR && _edVR.classList.contains('crop-mode')) {
+    _edVR.classList.remove('crop-mode');
+    var _tc = document.getElementById('et-tool-controls');
+    if (_tc) { _tc.innerHTML = ''; _tc.style.display = 'none'; }
+  }
 
   showToast('RESET — ALL EDITS CLEARED');
   fix2UpdateButtons();
@@ -10514,11 +10516,33 @@ function cropSelectSubTab(btn, tab) {
     var el = document.getElementById('crop-sub-' + id);
     if (el) el.style.display = id === tab ? '' : 'none';
   });
-  // Show crop overlay only on RATIO tab
   var ov = document.getElementById('crop-overlay-canvas');
-  if (ov) ov.style.display = (tab === 'ratio') ? 'block' : 'none';
-  // Clean up straighten work canvas when leaving straighten
-  if (tab !== 'straighten') { var sw = document.getElementById('crop-straighten-work'); if (sw) sw.remove(); }
+  if (tab === 'ratio') {
+    // Re-sync overlay size/position to current canvas state, then show
+    var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+    if (ov && ac && ac.width > 0) {
+      var pRect = ac.parentElement.getBoundingClientRect();
+      var cRect = ac.getBoundingClientRect();
+      ov.width  = ac.width;
+      ov.height = ac.height;
+      ov.style.width  = cRect.width  + 'px';
+      ov.style.height = cRect.height + 'px';
+      ov.style.left   = (cRect.left - pRect.left) + 'px';
+      ov.style.top    = (cRect.top  - pRect.top)  + 'px';
+      if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0) {
+        var _bw = ac.width * 0.8, _bh = ac.height * 0.8;
+        cropRect = { x: (ac.width - _bw) / 2, y: (ac.height - _bh) / 2, w: _bw, h: _bh };
+      }
+      ov.style.display = 'block';
+      if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(ov);
+    } else if (ov) {
+      ov.style.display = 'block';
+    }
+  } else {
+    if (ov) ov.style.display = 'none';
+    // Clean up straighten work canvas when leaving straighten
+    if (tab !== 'straighten') { var sw = document.getElementById('crop-straighten-work'); if (sw) sw.remove(); }
+  }
 }
 
 var _cropStraightenOrig = null;
@@ -10582,7 +10606,15 @@ function cropRotate90(dir) {
       setTimeout(function() {
         var _o = document.getElementById('crop-overlay-canvas'); if(_o) _o.remove();
         cropRect = null;
-        if (typeof window.etSelectTool === 'function') window.etSelectTool('crop');
+        if (typeof window.etSelectTool === 'function') {
+          window.etSelectTool('crop');
+          // Return to TRANSFORM tab after the crop UI re-renders (200ms + buffer)
+          setTimeout(function() {
+            document.querySelectorAll('.crop-subtab').forEach(function(t) {
+              if (t.textContent.trim() === 'TRANSFORM') t.click();
+            });
+          }, 260);
+        }
       }, 100);
     } else { loadImageToCanvas(hc, newImg); }
     showToast('ROTATED');

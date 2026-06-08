@@ -2171,10 +2171,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .ev-suite-tab:hover { color: rgba(201,184,212,0.75); }
 .ev-suite-tab.active { color: rgba(220,210,240,0.90); border-bottom-color: #c04040; }
-.es-tabs{display:flex;flex-shrink:0;border-bottom:0.5px solid var(--border);}
-.es-tab{flex:1;text-align:center;font-size:7.5px;letter-spacing:0.16em;color:var(--text-dim);padding:7px 2px;cursor:pointer;border-bottom:1.5px solid transparent;transition:all 0.15s;font-family:var(--font-mono);}
-.es-tab:hover{color:var(--text-mid);}
-.es-tab.active{color:var(--text-bright);border-bottom:1.5px solid var(--text-accent);}
+.es-tabs{display:flex;flex-shrink:0;background:rgba(255,255,255,0.08);border-radius:11px;margin:8px 14px 6px;padding:3px;gap:2px;border-bottom:none;}
+.es-tab{flex:1;text-align:center;font-size:8px;letter-spacing:0.05em;color:rgba(255,255,255,0.45);padding:7px 2px;cursor:pointer;border-radius:8px;background:transparent;border-bottom:none;transition:background 0.18s,color 0.18s;font-family:var(--font-mono);font-weight:500;white-space:nowrap;}
+.es-tab:hover{color:rgba(255,255,255,0.7);}
+.es-tab.active{background:#fff;color:#0d0a14;font-weight:700;border-bottom:none;}
 .es-tab-panel{display:none;flex-direction:column;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:rgba(201,184,212,0.12) transparent;}
 .es-tab-panel.active{display:flex;}
 .es-preset-display{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:0.5px solid var(--border);flex-shrink:0;}
@@ -3220,52 +3220,44 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .hsl-dot { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
   .hsl-channel-label { display: block !important; font-size: 7px !important; letter-spacing: 0.12em !important; padding: 4px 16px 2px !important; color: rgba(201,184,212,0.45) !important; }
 
-  /* Adjust sub-nav */
+  /* Adjust sub-nav — iOS pill style matching crop tabs */
   #ev-adjust-subnav {
     flex-direction: row !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    height: 38px !important;
     flex-shrink: 0 !important;
-    border-bottom: 0.5px solid var(--border) !important;
-    background: rgba(7,5,16,0.98) !important;
+    background: rgba(255,255,255,0.08) !important;
+    border-radius: 11px !important;
+    margin: 8px 14px 6px !important;
+    padding: 3px !important;
+    gap: 2px !important;
+    overflow: visible !important;
+    height: auto !important;
     align-items: stretch !important;
-    gap: 0 !important;
-  }
-  .ev-subnav-back {
-    flex-shrink: 0 !important;
-    padding: 0 14px !important;
-    background: none !important;
-    border: none !important;
-    border-right: 0.5px solid var(--border) !important;
-    color: rgba(201,184,212,0.55) !important;
-    font-size: 8px !important;
-    letter-spacing: 0.12em !important;
-    font-family: var(--mono) !important;
-    cursor: pointer !important;
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
+    border-bottom: none !important;
   }
   .ev-subnav-btn {
-    flex-shrink: 0 !important;
-    padding: 0 16px !important;
-    background: none !important;
+    flex: 1 !important;
+    background: transparent !important;
     border: none !important;
-    border-bottom: 2px solid transparent !important;
-    color: rgba(201,184,212,0.38) !important;
-    font-size: 7.5px !important;
-    letter-spacing: 0.18em !important;
+    border-radius: 8px !important;
+    color: rgba(255,255,255,0.45) !important;
+    font-size: 8px !important;
+    letter-spacing: 0.05em !important;
     font-family: var(--mono) !important;
+    font-weight: 500 !important;
+    padding: 7px 2px !important;
     cursor: pointer !important;
     -webkit-tap-highlight-color: transparent !important;
     outline: none !important;
-    box-sizing: border-box !important;
-    transition: color 0.15s !important;
+    transition: background 0.18s, color 0.18s !important;
+    touch-action: manipulation !important;
+    text-align: center !important;
+    white-space: nowrap !important;
   }
   .ev-subnav-btn.active {
-    color: rgba(220,200,245,0.92) !important;
-    border-bottom-color: rgba(200,168,232,0.65) !important;
+    background: #fff !important;
+    color: #0d0a14 !important;
+    font-weight: 700 !important;
+    border-bottom-color: transparent !important;
   }
 }
 </style>

@@ -8999,6 +8999,12 @@ function globalReset() {
     if (_tc) { _tc.innerHTML = ''; _tc.style.display = 'none'; }
   }
 
+  // Clear saved edit state so reopening shows zero sliders (not the pre-reset values)
+  if (_resetEntry) {
+    _resetEntry.editState = null;
+    libSaveToStorage();
+  }
+
   showToast('RESET — ALL EDITS CLEARED');
   fix2UpdateButtons();
 }

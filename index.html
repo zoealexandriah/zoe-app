@@ -2012,8 +2012,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 /* Hide outer adjust sub-nav while in crop mode so crop's own tabs show */
 #editor-view.crop-mode #ev-adjust-subnav { display:none !important; }
-/* Hide the canvas-area close button during crop so it can't clobber the subnav inline style */
-#editor-view.crop-mode #ev-adjust-close { display:none !important; }
 /* Hide TOOLS header and tool-row buttons during crop — keep et-tool-controls visible */
 #editor-view.crop-mode .et-section-header,
 #editor-view.crop-mode .et-tool-row { display:none !important; }
@@ -2779,7 +2777,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-preset-strip { height: 150px !important; overflow-y: visible !important; }
   /* Crop mode: hide ATMOSPHERE/ADJUST nav + canvas-area close button */
   #editor-view.crop-mode #ev-mobile-nav { display: none !important; }
-  #editor-view.crop-mode #ev-adjust-close { display: none !important; }
   /* Always hide TOOLS header + CROP/FLIP tool rows in ev-tools on mobile */
   #ev-tools .et-section-header,
   #ev-tools .et-tool-row { display: none !important; }
@@ -2849,27 +2846,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #gallery-batch-bar { display: none !important; }
   /* In lib-toolbar-right: hide ADD MORE + REMOVE, keep SELECT */
   .lib-toolbar-right .lib-btn { display: none !important; }
-  #ev-adjust-close {
-    display: none !important;
-    position: absolute !important;
-    top: 10px !important;
-    left: 10px !important;
-    z-index: 20 !important;
-    width: 28px !important;
-    height: 28px !important;
-    background: rgba(10,7,18,0.72) !important;
-    border: 0.5px solid rgba(201,184,212,0.18) !important;
-    border-radius: 50% !important;
-    color: rgba(201,184,212,0.70) !important;
-    font-size: 13px !important;
-    line-height: 1 !important;
-    cursor: pointer !important;
-    align-items: center !important;
-    justify-content: center !important;
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-  }
-  #editor-view.adjust-open #ev-adjust-close { display: flex !important; }
 
   /* Sliders: bigger touch target */
   .sl-track { height: 32px; touch-action: none; }
@@ -3407,7 +3383,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           </div>
           <!-- Canvas area -->
           <div id="ev-canvas-area" style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#100d14;">
-            <button id="ev-adjust-close" onclick="evAdjustBack()">✕</button>
             <canvas id="ev-canvas"></canvas>
             <div id="ev-no-photo" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;position:absolute;inset:0">
               <div style="font-size:9px;letter-spacing:0.24em;color:rgba(175,162,200,0.40);font-family:var(--mono)">_ IMPORT A PHOTO TO BEGIN</div>

@@ -7080,7 +7080,6 @@ function renderLibrary() {
     cell.innerHTML = `
       <img src="${entry.dataURL}" alt="${entry.name}" loading="lazy">
       <div class="lib-photo-overlay"></div>
-      <div class="gallery-open-btn">OPEN IN EDITOR</div>
       <div class="select-check${libSelected.includes(idx)?' selected':''}" data-idx="${idx}">${libSelected.includes(idx) ? '✓' : ''}</div>
       <div class="lib-photo-heart${isFaved?' faved':''}" data-id="${entry.id}">${isFaved?'♥':'♡'}</div>
     `;
@@ -7092,10 +7091,21 @@ function renderLibrary() {
       e.stopPropagation();
       toggleSelect(idx);
     });
-    cell.addEventListener('click', (e) => {
+    cell.addEventListener('click', function(e) {
       if (e.target.classList.contains('select-check') ||
           e.target.classList.contains('lib-photo-heart')) return;
-      galleryOpenInEditor(idx);
+      var now = Date.now();
+      if (window._galLastTapIdx === idx && now - window._galLastTapTime < 350) {
+        // Double-tap: open in editor
+        window._galLastTapIdx = -1;
+        window._galLastTapTime = 0;
+        galleryOpenInEditor(idx);
+      } else {
+        // Single tap: select / deselect
+        window._galLastTapIdx = idx;
+        window._galLastTapTime = now;
+        toggleSelect(idx);
+      }
     });
     cols[idx % NUM_COLS].appendChild(cell);
   });

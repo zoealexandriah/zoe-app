@@ -6744,7 +6744,7 @@ function renderLibrary() {
   count.textContent = library.length + (library.length === 1 ? ' PHOTO' : ' PHOTOS');
   if (delBtn) delBtn.style.display = libSelected.length ? 'inline-flex' : 'none';
 
-  const NUM_COLS = window.innerWidth <= 768 ? 2 : 4;
+  const NUM_COLS = window.innerWidth <= 768 ? 3 : 4;
   const cols = Array.from({ length: NUM_COLS }, () => {
     const col = document.createElement('div');
     col.className = 'lib-col';

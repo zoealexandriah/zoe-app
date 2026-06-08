@@ -2584,51 +2584,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   color: rgba(175,162,200,0.38); font-family: var(--mono);
 }
 
-/* Fix 5: Copy/paste edits */
-.gallery-copy-edits-btn {
-  position: absolute;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(8,6,14,0.82);
-  border: 0.5px solid rgba(200,168,232,0.25);
-  color: rgba(232,216,250,0.9);
-  font-size: 7.5px;
-  letter-spacing: 0.16em;
-  padding: 3px 8px;
-  border-radius: 2px;
-  white-space: nowrap;
-  cursor: pointer;
-  z-index: 12;
-  opacity: 0;
-  transition: opacity 0.18s;
-  font-family: var(--mono);
-}
-.lib-photo:hover .gallery-copy-edits-btn { opacity: 1; }
-
-
-/* Fix 1: gallery copy-edits hover button */
-.gallery-copy-edits-btn {
-  position: absolute;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(8,6,14,0.82);
-  border: 0.5px solid rgba(200,168,232,0.25);
-  color: rgba(232,216,250,0.9);
-  font-size: 7.5px;
-  letter-spacing: 0.16em;
-  padding: 3px 8px;
-  border-radius: 2px;
-  white-space: nowrap;
-  cursor: pointer;
-  z-index: 12;
-  opacity: 0;
-  transition: opacity 0.18s;
-  font-family: var(--mono);
-  pointer-events: auto;
-}
-.lib-photo:hover .gallery-copy-edits-btn { opacity: 1 }
 
 /* ── HSL channel selector ── */
 .hsl-channels {
@@ -9808,11 +9763,6 @@ window.renderLibrary = function() {
     try {
       const hasEdits = entry.editState && entry.editState.presetId;
       if (hasEdits) {
-        const btn = document.createElement('div');
-        btn.className = 'gallery-copy-edits-btn';
-        btn.textContent = 'COPY EDIT';
-        btn.onclick = (e) => { e.stopPropagation(); galleryCopyEdits(entry.id); };
-        cell.appendChild(btn);
         const dot = document.createElement('div');
         dot.className = 'lib-photo-edited-dot';
         cell.appendChild(dot);

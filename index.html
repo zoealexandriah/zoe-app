@@ -3046,7 +3046,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     padding: 6px !important;
     min-width: 0 !important;
     height: auto !important;
-    color: rgba(255,255,255,0.80) !important;
+    color: #fff !important;
     flex-shrink: 0 !important;
   }
   #ev-undo.disabled, #ev-redo.disabled {
@@ -3083,6 +3083,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* Crop mode: hide ATMOSPHERE/ADJUST nav + canvas-area close button */
   #editor-view.crop-mode #ev-mobile-nav { display: none !important; }
   #editor-view.crop-mode #ev-adjust-close { display: none !important; }
+  /* Always hide TOOLS header + CROP/FLIP tool rows in ev-tools on mobile */
+  #ev-tools .et-section-header,
+  #ev-tools .et-tool-row { display: none !important; }
   #ev-adjust-close {
     display: none !important;
     position: absolute !important;

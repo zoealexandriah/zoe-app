@@ -5514,7 +5514,6 @@ window.addEventListener('load',()=>{
   // Library mode active
   colLoadFromStorage();
   libLoadFromStorage();
-  favLoad();
   setTimeout(()=>document.getElementById('app').classList.add('revealed'), 100);
 });
 
@@ -9628,7 +9627,6 @@ function editorBackToGallery() {
     if (hw) hw.style.display = '';
     hideCollectionsView && hideCollectionsView();
     hidePresetsView && hidePresetsView();
-    hideFavoritesView && hideFavoritesView();
   }
 }
 

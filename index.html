@@ -3761,6 +3761,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div id="ev-preset-strip" style="height:160px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;">
             <!-- Category filter row -->
             <div id="ev-cats" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+              <div class="ev-cat-btn" onclick="evFilterCat(this,'FAVORITES')">★</div>
               <div class="ev-cat-btn active" onclick="evFilterCat(this,'ALL')">ALL</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'FILM')">FILM</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'CINEMATIC')">CINEMATIC</div>
@@ -9237,6 +9238,8 @@ document.addEventListener('click', e => {
 
 // ── EDITOR VIEW (ev) — inline 3-column layout ────────────────────────────
 let evCatFilter   = 'ALL';
+let evFavPresets  = (function(){ try{ return JSON.parse(localStorage.getItem('ev_fav_presets')||'[]'); }catch(e){ return []; } })();
+function evSaveFavs(){ try{ localStorage.setItem('ev_fav_presets', JSON.stringify(evFavPresets)); }catch(e){} }
 let evActivePreset = null;
 let evZoomLevel   = 1.0;
 let evPanX = 0, evPanY = 0;
@@ -9470,18 +9473,39 @@ function evRenderPresets() {
     }
   });
 
-  presets.forEach(function(p){
-    if (evCatFilter && evCatFilter !== 'ALL' && (p.series||'').toUpperCase() !== evCatFilter) return;
+  var _presetsToRender = presets.slice();
+  if (evCatFilter === 'ALL' && evFavPresets.length) {
+    _presetsToRender.sort(function(a,b){
+      return (evFavPresets.includes(b.id)?1:0) - (evFavPresets.includes(a.id)?1:0);
+    });
+  }
+  _presetsToRender.forEach(function(p){
+    if (evCatFilter === 'FAVORITES') {
+      if (!evFavPresets.includes(p.id)) return;
+    } else if (evCatFilter && evCatFilter !== 'ALL') {
+      if ((p.series||'').toUpperCase() !== evCatFilter) return;
+    }
+    var isFav = evFavPresets.includes(p.id);
     var card = document.createElement('div');
     var isActive = evActivePreset && evActivePreset.id===p.id;
     card.style.cssText = 'width:96px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-right:0.5px solid var(--border);display:flex;flex-direction:column;transition:background 0.18s;'+(isActive?'background:rgba(201,184,212,0.07)':'');
     var _tdpr=Math.min(window.devicePixelRatio||1,2);
     card.innerHTML = '<canvas id="evt-'+p.id+'" width="'+(96*_tdpr)+'" height="'+(96*_tdpr)+'" style="width:96px;height:96px;display:block;flex-shrink:0;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
+      +(isFav?'<div style="position:absolute;top:4px;right:5px;font-size:9px;line-height:1;color:rgba(220,185,255,0.80);pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,0.6);">★</div>':'')
       +'<div style="padding:5px 7px 6px;flex:1;">'
       +'<div style="font-size:7.5px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.72')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name.toUpperCase()+'</div>'
       +'<div style="font-size:6px;letter-spacing:0.10em;color:rgba(154,138,154,0.50);font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(p.series||'').toUpperCase()+'</div>'
       +'</div>'
       +(isActive?'<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,'+(p.acc||'#c9b8d4')+',transparent)"></div>':'');
+    var _lpTimer;
+    card.addEventListener('touchstart', function(){ _lpTimer = setTimeout(function(){
+      var idx = evFavPresets.indexOf(p.id);
+      if (idx === -1) { evFavPresets.push(p.id); showToast('★ PINNED TO FAVORITES'); }
+      else { evFavPresets.splice(idx,1); showToast('REMOVED FROM FAVORITES'); }
+      evSaveFavs(); evRenderPresets();
+    }, 500); }, {passive:true});
+    card.addEventListener('touchend',  function(){ clearTimeout(_lpTimer); }, {passive:true});
+    card.addEventListener('touchmove', function(){ clearTimeout(_lpTimer); }, {passive:true});
     card.onclick = function(){
       var _now = Date.now();
       // Double-tap on the already-active preset → toggle intensity slider

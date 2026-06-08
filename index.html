@@ -2005,6 +2005,49 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   position: absolute; top: 0; left: 0; pointer-events: none;
 }
 
+/* ── New Crop UI ─────────────────────────────────────────── */
+.crop-ui { display:flex; flex-direction:column; }
+.crop-subtabs {
+  display:flex; border-bottom:0.5px solid rgba(42,32,48,0.80);
+  background:rgba(8,5,14,0.55);
+}
+.crop-subtab {
+  flex:1; background:none; border:none; border-bottom:2px solid transparent;
+  color:rgba(175,160,210,0.45); font-size:8.5px; letter-spacing:0.13em;
+  font-family:var(--mono); padding:9px 3px 7px; cursor:pointer;
+  transition:color 0.15s,border-color 0.15s; touch-action:manipulation;
+}
+.crop-subtab.active { color:rgba(228,218,255,0.95); border-bottom-color:rgba(190,165,230,0.75); }
+.crop-sub-content { padding:10px 13px 6px; }
+.crop-sub-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
+.crop-sub-label { font-size:10px; color:rgba(190,175,225,0.65); font-family:var(--mono); letter-spacing:0.10em; }
+.crop-sub-val   { font-size:10px; color:rgba(225,215,255,0.90); font-family:var(--mono); }
+.crop-transform-btns { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; }
+.crop-transform-btn {
+  background:rgba(28,18,48,0.80); border:0.5px solid rgba(120,95,175,0.22);
+  color:rgba(195,175,238,0.78); font-size:9px; letter-spacing:0.09em;
+  font-family:var(--mono); padding:9px 4px; border-radius:7px; cursor:pointer;
+  touch-action:manipulation;
+}
+.crop-transform-btn:active { background:rgba(192,64,90,0.18); }
+.crop-action-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 18px 12px; border-top:0.5px solid rgba(42,32,48,0.80);
+  background:rgba(8,5,14,0.40);
+}
+.crop-action-btn {
+  background:none; border:none; color:rgba(195,175,235,0.72); font-size:20px;
+  cursor:pointer; padding:4px 10px; border-radius:6px; touch-action:manipulation;
+  line-height:1;
+}
+.crop-action-btn.apply { color:rgba(215,200,255,0.95); }
+.crop-action-label {
+  font-size:9.5px; letter-spacing:0.22em; color:rgba(190,175,225,0.60);
+  font-family:var(--mono);
+}
+/* Hide outer adjust sub-nav while in crop mode so crop's own tabs show */
+#editor-view.crop-mode #ev-adjust-subnav { display:none !important; }
+
 
 /* ── ZOOM + UNDO/REDO TOOLBAR ── */
 #canvas-toolbar {
@@ -7643,24 +7686,14 @@ function toolsCropBindDrag(ov, hc) {
       if (ci===5){ h+=dy; }                              // bottom edge
       if (ci===6){ x+=dx; w-=dx; }                      // left edge
       if (ci===7){ w+=dx; }                              // right edge
-      if (w > 20 && h > 20) { var _fx=Math.max(0,x), _fy=Math.max(0,y); cropRect = { x:_fx, y:_fy, w:Math.min(w, hc.width-_fx), h:Math.min(h, hc.height-_fy) }; }
+      // Clamp: if x/y go negative, adjust w/h to keep opposite edge fixed
+      if (x < 0) { w += x; x = 0; }
+      if (y < 0) { h += y; y = 0; }
+      if (w > 20 && h > 20) cropRect = { x, y, w: Math.min(w, hc.width-x), h: Math.min(h, hc.height-y) };
     } else {
-      // Locked ratio: move only (ratio handles resize proportionally from corner)
-      const ci = cropDragging.idx;
-      if (ci < 4) {
-        // Corner: resize proportionally
-        const [rw, rh] = toolsCropRatio.split(':').map(Number);
-        let { x, y, w, h } = sr;
-        let newW = w + (ci===0||ci===2 ? -dx : dx);
-        let newH = newW * rh / rw;
-        if (ci===0){ x = sr.x+sr.w-newW; y = sr.y+sr.h-newH; }
-        if (ci===1){ y = sr.y+sr.h-newH; }
-        if (ci===2){ x = sr.x+sr.w-newW; }
-        if (newW > 20 && newH > 20) { var _rx=Math.max(0,x), _ry=Math.max(0,y); cropRect = { x:_rx, y:_ry, w:Math.min(newW, hc.width-_rx), h:Math.min(newH, hc.height-_ry) }; }
-      } else {
-        cropRect.x = Math.max(0, Math.min(hc.width  - cropRect.w, sr.x + dx));
-        cropRect.y = Math.max(0, Math.min(hc.height - cropRect.h, sr.y + dy));
-      }
+      // Locked ratio — ALL handles only MOVE the box (no free resize)
+      cropRect.x = Math.max(0, Math.min(hc.width  - cropRect.w, sr.x + dx));
+      cropRect.y = Math.max(0, Math.min(hc.height - cropRect.h, sr.y + dy));
     }
     toolsCropDrawRect(ov);
   };
@@ -8486,14 +8519,48 @@ function etSelectTool(name) {
 
 function etCropHTML() {
   const ratios = ['FREEFORM','1:1','4:5','5:4','9:16','16:9'];
-  const btns = ratios.map(r =>
+  const ratioBtns = ratios.map(r =>
     `<div class="crop-ratio-btn${r===toolsCropRatio?' active':''}" onclick="toolsCropSetRatio('${r}')">${r}</div>`
   ).join('');
-  return `<div class="crop-ratios" style="margin-bottom:8px">${btns}</div>
-    <div style="display:flex;gap:6px">
-      <div class="tc-btn tc-btn-primary" style="flex:1" onclick="toolsCropApply()">APPLY CROP</div>
-      <div class="tc-btn tc-btn-ghost" style="flex:1" onclick="toolsCropCancel()">CANCEL</div>
-    </div>`;
+  return `<div class="crop-ui">
+    <div class="crop-subtabs">
+      <button class="crop-subtab active" onclick="cropSelectSubTab(this,'straighten')">STRAIGHTEN</button>
+      <button class="crop-subtab" onclick="cropSelectSubTab(this,'ratio')">RATIO</button>
+      <button class="crop-subtab" onclick="cropSelectSubTab(this,'skew')">SKEW</button>
+      <button class="crop-subtab" onclick="cropSelectSubTab(this,'transform')">TRANSFORM</button>
+    </div>
+    <div class="crop-sub-content" id="crop-sub-straighten">
+      <div class="crop-sub-row">
+        <span class="crop-sub-label">Amount</span>
+        <span class="crop-sub-val" id="crop-straighten-val">0.00</span>
+      </div>
+      <input type="range" class="tc-range" id="crop-straighten-slider"
+             min="-45" max="45" step="0.1" value="0"
+             oninput="cropStraightenPreview(this.value)">
+    </div>
+    <div class="crop-sub-content" id="crop-sub-ratio" style="display:none">
+      <div class="crop-ratios">${ratioBtns}</div>
+    </div>
+    <div class="crop-sub-content" id="crop-sub-skew" style="display:none">
+      <div class="crop-sub-row"><span class="crop-sub-label">Horizontal</span><span class="crop-sub-val" id="crop-skew-x-val">0.00</span></div>
+      <input type="range" class="tc-range" id="crop-skew-x-slider" min="-30" max="30" step="0.1" value="0" oninput="cropSkewPreview('x',this.value)">
+      <div class="crop-sub-row" style="margin-top:8px"><span class="crop-sub-label">Vertical</span><span class="crop-sub-val" id="crop-skew-y-val">0.00</span></div>
+      <input type="range" class="tc-range" id="crop-skew-y-slider" min="-30" max="30" step="0.1" value="0" oninput="cropSkewPreview('y',this.value)">
+    </div>
+    <div class="crop-sub-content" id="crop-sub-transform" style="display:none">
+      <div class="crop-transform-btns">
+        <button class="crop-transform-btn" onclick="cropRotate90('ccw')">↺ 90°</button>
+        <button class="crop-transform-btn" onclick="cropRotate90('cw')">↻ 90°</button>
+        <button class="crop-transform-btn" onclick="toolsFlipApply('h')">⇔ H</button>
+        <button class="crop-transform-btn" onclick="toolsFlipApply('v')">↕ V</button>
+      </div>
+    </div>
+    <div class="crop-action-bar">
+      <button class="crop-action-btn" onclick="toolsCropCancel()">✕</button>
+      <span class="crop-action-label">CROP</span>
+      <button class="crop-action-btn apply" onclick="toolsCropApply()">✓</button>
+    </div>
+  </div>`;
 }
 
 function etStraightenHTML() {
@@ -10268,6 +10335,9 @@ window.galleryCopyEdits = function(imageId) {
       _prevEtSelectToolFinal(name);
       return;
     }
+    // Add crop-mode class so outer ADJUST sub-nav hides
+    var _edV = document.getElementById('editor-view');
+    if (_edV) _edV.classList.add('crop-mode');
     _prevEtSelectToolFinal(name); // run chain for UI setup
     setTimeout(function() {
       // Resize canvas to fit the CURRENT container (adjust panel may have reduced height)
@@ -10278,19 +10348,19 @@ window.galleryCopyEdits = function(imageId) {
       var _old = document.getElementById('crop-overlay-canvas');
       if (_old) _old.remove();
       cropRect = null; cropDragging = null;
-      // Fresh overlay on correct parent
+      // Init straighten original image reference
+      if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
+      // Fresh overlay on correct parent — use offsetLeft/offsetTop for exact canvas position
       var ov = document.createElement('canvas');
       ov.id = 'crop-overlay-canvas';
-      ov.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:crosshair;z-index:5;touch-action:none';
+      ov.style.cssText = 'position:absolute;pointer-events:auto;cursor:crosshair;z-index:5;touch-action:none';
       ac.parentElement.appendChild(ov);
-      var rect  = ac.getBoundingClientRect();
-      var pRect = ac.parentElement.getBoundingClientRect();
       ov.width  = ac.width;
       ov.height = ac.height;
-      ov.style.width  = rect.width  + 'px';
-      ov.style.height = rect.height + 'px';
-      ov.style.left   = (rect.left - pRect.left) + 'px';
-      ov.style.top    = (rect.top  - pRect.top)  + 'px';
+      ov.style.width  = ac.clientWidth  + 'px';
+      ov.style.height = ac.clientHeight + 'px';
+      ov.style.left   = ac.offsetLeft   + 'px';
+      ov.style.top    = ac.offsetTop    + 'px';
       // Init crop rect respecting current ratio
       var cw = ac.width, ch = ac.height;
       var bw = cw * 0.8, bh = ch * 0.8;
@@ -10325,11 +10395,21 @@ window.galleryCopyEdits = function(imageId) {
           var sr = _cpinch0.rect;
           var cx = sr.x + sr.w / 2, cy = sr.y + sr.h / 2;
           var nw = Math.max(30, Math.min(ac.width,  sr.w * scale));
-          var nh = Math.max(30, Math.min(ac.height, sr.h * scale));
+          var nh;
+          if (typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM') {
+            var _pts = toolsCropRatio.split(':').map(Number);
+            nh = nw * _pts[1] / _pts[0];
+            if (nh > ac.height) { nh = ac.height; nw = nh * _pts[0] / _pts[1]; }
+          } else {
+            nh = Math.max(30, Math.min(ac.height, sr.h * scale));
+          }
           var nx = Math.max(0, Math.min(ac.width  - nw, cx - nw / 2));
           var ny = Math.max(0, Math.min(ac.height - nh, cy - nh / 2));
           cropRect = { x: nx, y: ny, w: nw, h: nh };
           toolsCropDrawRect(ov);
+          e.preventDefault();
+        } else if (e.touches.length === 1 && typeof toolsCropRatio !== 'undefined' && toolsCropRatio === 'FREEFORM') {
+          ov.onmousemove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
           e.preventDefault();
         } else if (e.touches.length === 1) {
           ov.onmousemove({ clientX: e.touches[0].clientX, clientY: e.touches[0].clientY });
@@ -10372,28 +10452,159 @@ window.toolsCropSetRatio = function(r) {
   }
 };
 
-// Patch toolsCropApply to use active canvas
+// Patch toolsCropApply — bake any active transforms then crop
 window.toolsCropApply = function() {
   var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
-  if (!hc || !cropRect) return;
-  var x = cropRect.x, y = cropRect.y, w = cropRect.w, h = cropRect.h;
+  if (!hc) { toolsCropCancel(); return; }
+  // Bake straighten / skew work canvas into the main canvas first
+  var sc = document.getElementById('crop-straighten-work') || document.getElementById('crop-skew-work');
+  if (sc) {
+    var bake = document.createElement('canvas');
+    bake.width = sc.width; bake.height = sc.height;
+    bake.getContext('2d').drawImage(sc, 0, 0);
+    hc.getContext('2d').clearRect(0, 0, hc.width, hc.height);
+    hc.getContext('2d').drawImage(bake, 0, 0);
+    ['crop-straighten-work','crop-skew-work'].forEach(function(id){ var e=document.getElementById(id); if(e) e.remove(); });
+  }
+  // Now apply crop rect (if any)
+  if (cropRect) {
+    var x = cropRect.x, y = cropRect.y, w = cropRect.w, h = cropRect.h;
+    var tmp = document.createElement('canvas');
+    tmp.width = Math.round(w); tmp.height = Math.round(h);
+    tmp.getContext('2d').drawImage(hc, x, y, w, h, 0, 0, w, h);
+    var newImg = new Image();
+    newImg.onload = function() {
+      userImage = newImg;
+      var ev = document.getElementById('editor-view');
+      if (ev && ev.style.display === 'flex') { if (typeof evRenderCanvas === 'function') evRenderCanvas(); }
+      else { loadImageToCanvas(hc, newImg); }
+      showToast('CROP APPLIED');
+    };
+    newImg.src = tmp.toDataURL();
+  }
+  _cropExitMode();
+  toolsCropCancel();
+};
+
+// Patch toolsCropCancel — clean up work canvases and exit crop-mode
+var _origToolsCropCancelFinal = window.toolsCropCancel;
+window.toolsCropCancel = function() {
+  _cropExitMode();
+  if (_origToolsCropCancelFinal) _origToolsCropCancelFinal();
+};
+
+function _cropExitMode() {
+  ['crop-straighten-work','crop-skew-work'].forEach(function(id){ var e=document.getElementById(id); if(e) e.remove(); });
+  if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
+  if (typeof _cropSkewX !== 'undefined') _cropSkewX = 0;
+  if (typeof _cropSkewY !== 'undefined') _cropSkewY = 0;
+  var edV = document.getElementById('editor-view');
+  if (edV) edV.classList.remove('crop-mode');
+}
+
+// ── New Crop sub-tab helpers ──────────────────────────────────────────────
+function cropSelectSubTab(btn, tab) {
+  document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.crop-sub-content').forEach(function(c){ c.style.display = 'none'; });
+  var el = document.getElementById('crop-sub-' + tab);
+  if (el) el.style.display = 'block';
+}
+
+var _cropStraightenOrig = null;
+function cropStraightenPreview(val) {
+  var valEl = document.getElementById('crop-straighten-val');
+  if (valEl) valEl.textContent = parseFloat(val).toFixed(2);
+  if (!_cropStraightenOrig) return;
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+  if (!ac) return;
+  var sc = document.getElementById('crop-straighten-work');
+  if (!sc) {
+    sc = document.createElement('canvas');
+    sc.id = 'crop-straighten-work';
+    sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none';
+    ac.parentElement.appendChild(sc);
+  }
+  sc.width  = ac.width;  sc.height  = ac.height;
+  sc.style.width  = ac.clientWidth  + 'px';
+  sc.style.height = ac.clientHeight + 'px';
+  sc.style.left   = ac.offsetLeft   + 'px';
+  sc.style.top    = ac.offsetTop    + 'px';
+  var ctx = sc.getContext('2d');
+  ctx.clearRect(0, 0, sc.width, sc.height);
+  ctx.fillStyle = '#050310'; ctx.fillRect(0, 0, sc.width, sc.height);
+  var rad = parseFloat(val) * Math.PI / 180;
+  var absR = Math.abs(rad);
+  var fs = absR > 0.001 ? 1 / (Math.cos(absR) + Math.sin(absR)) : 1;
+  var iw = _cropStraightenOrig.naturalWidth, ih = _cropStraightenOrig.naturalHeight;
+  var base = Math.max(sc.width / iw, sc.height / ih);
+  var dw = iw * base / fs, dh = ih * base / fs;
+  ctx.save();
+  ctx.translate(sc.width / 2, sc.height / 2);
+  ctx.rotate(rad);
+  ctx.drawImage(_cropStraightenOrig, -dw/2, -dh/2, dw, dh);
+  ctx.strokeStyle = 'rgba(201,184,212,0.22)'; ctx.lineWidth = 0.5;
+  for (var i = 1; i < 6; i++) {
+    ctx.beginPath(); ctx.moveTo(-dw/2 + dw*i/6, -dh); ctx.lineTo(-dw/2 + dw*i/6, dh); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-dw, -dh/2 + dh*i/6); ctx.lineTo(dw,  -dh/2 + dh*i/6); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+var _cropSkewX = 0, _cropSkewY = 0;
+function cropSkewPreview(axis, val) {
+  var v = parseFloat(val);
+  if (axis === 'x') { _cropSkewX = v; var el = document.getElementById('crop-skew-x-val'); if(el) el.textContent = v.toFixed(2); }
+  else              { _cropSkewY = v; var el = document.getElementById('crop-skew-y-val'); if(el) el.textContent = v.toFixed(2); }
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+  if (!ac || !userImage) return;
+  var sc = document.getElementById('crop-skew-work');
+  if (!sc) {
+    sc = document.createElement('canvas');
+    sc.id = 'crop-skew-work';
+    sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none';
+    ac.parentElement.appendChild(sc);
+  }
+  sc.width  = ac.width;  sc.height  = ac.height;
+  sc.style.width  = ac.clientWidth  + 'px';
+  sc.style.height = ac.clientHeight + 'px';
+  sc.style.left   = ac.offsetLeft   + 'px';
+  sc.style.top    = ac.offsetTop    + 'px';
+  var ctx = sc.getContext('2d');
+  ctx.clearRect(0, 0, sc.width, sc.height);
+  var sx = Math.tan(_cropSkewX * Math.PI / 180);
+  var sy = Math.tan(_cropSkewY * Math.PI / 180);
+  ctx.save(); ctx.transform(1, sy, sx, 1, 0, 0);
+  ctx.drawImage(ac, 0, 0); ctx.restore();
+}
+
+function cropRotate90(dir) {
+  var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+  if (!hc || !userImage) return;
   var tmp = document.createElement('canvas');
-  tmp.width = Math.round(w); tmp.height = Math.round(h);
-  tmp.getContext('2d').drawImage(hc, x, y, w, h, 0, 0, w, h);
+  tmp.width = hc.height; tmp.height = hc.width;
+  var ctx = tmp.getContext('2d');
+  ctx.save();
+  if (dir === 'cw')  { ctx.translate(tmp.width, 0);   ctx.rotate(Math.PI / 2); }
+  else               { ctx.translate(0, tmp.height);  ctx.rotate(-Math.PI / 2); }
+  ctx.drawImage(hc, 0, 0); ctx.restore();
   var newImg = new Image();
   newImg.onload = function() {
     userImage = newImg;
+    _cropStraightenOrig = newImg;
     var ev = document.getElementById('editor-view');
-    if (ev && ev.style.display === 'flex') {
-      if (typeof evRenderCanvas === 'function') evRenderCanvas();
-    } else {
-      loadImageToCanvas(hc, newImg);
-    }
-    showToast('CROP APPLIED');
+    if (ev && ev.style.display === 'flex' && typeof evRenderCanvas === 'function') {
+      evRenderCanvas();
+      setTimeout(function() {
+        var _o = document.getElementById('crop-overlay-canvas'); if(_o) _o.remove();
+        cropRect = null;
+        if (typeof window.etSelectTool === 'function') window.etSelectTool('crop');
+      }, 100);
+    } else { loadImageToCanvas(hc, newImg); }
+    showToast('ROTATED');
   };
   newImg.src = tmp.toDataURL();
-  toolsCropCancel();
-};
+}
 
 // ── Fix 10: Collections level 2 header editable ──────────────────────────
 // colRenderGrid already has ondblclick="colStartRename(…)" — confirmed above.

@@ -2048,6 +2048,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 #editor-view.crop-mode #ev-adjust-subnav { display:none !important; }
 /* Hide the canvas-area close button during crop so it can't clobber the subnav inline style */
 #editor-view.crop-mode #ev-adjust-close { display:none !important; }
+/* Hide TOOLS header and tool-row buttons during crop — keep et-tool-controls visible */
+#editor-view.crop-mode .et-section-header,
+#editor-view.crop-mode .et-tool-row { display:none !important; }
 
 
 /* ── ZOOM + UNDO/REDO TOOLBAR ── */
@@ -8518,16 +8521,16 @@ function etSelectTool(name) {
 }
 
 function etCropHTML() {
-  // Ratio items: [label, ratio-key, box-width, box-height] — max dim = 42px
+  // Ratio items: [label, ratio-key, box-width, box-height] — max dim = 28px
   const ratioItems = [
-    ['FREE',  'FREEFORM', 36, 36],
-    ['1:1',   '1:1',      42, 42],
-    ['3:4',   '3:4',      32, 42],
-    ['4:3',   '4:3',      42, 32],
-    ['4:5',   '4:5',      34, 42],
-    ['5:4',   '5:4',      42, 34],
-    ['9:16',  '9:16',     24, 42],
-    ['16:9',  '16:9',     42, 24],
+    ['FREE',  'FREEFORM', 22, 22],
+    ['1:1',   '1:1',      28, 28],
+    ['3:4',   '3:4',      21, 28],
+    ['4:3',   '4:3',      28, 21],
+    ['4:5',   '4:5',      22, 28],
+    ['5:4',   '5:4',      28, 22],
+    ['9:16',  '9:16',     16, 28],
+    ['16:9',  '16:9',     28, 16],
   ];
   const ratioBtns = ratioItems.map(([lbl, r, w, h]) => {
     const active = r === toolsCropRatio ? ' active' : '';
@@ -8723,23 +8726,34 @@ function _evUpdateUndoRedoBtns() {
 window.globalUndo = function() {
   if (evHistory.length === 0) return;
   const p = evActivePreset || activePreset;
-  evFuture.push({
+  var _fuSnap = {
     presetId:  p ? p.id : null,
     sliders:   p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
     intensity: presetIntensity
-  });
-  _evRestoreSnap(evHistory.pop());
+  };
+  var _histSnap = evHistory[evHistory.length - 1];
+  // If the history snap carries a pre-crop image, save current image so redo can restore it
+  if (_histSnap && _histSnap._userImage) _fuSnap._userImage = userImage;
+  evFuture.push(_fuSnap);
+  var snap = evHistory.pop();
+  if (snap._userImage) userImage = snap._userImage;
+  _evRestoreSnap(snap);
 };
 
 window.globalRedo = function() {
   if (evFuture.length === 0) return;
   const p = evActivePreset || activePreset;
-  evHistory.push({
+  var _hiSnap = {
     presetId:  p ? p.id : null,
     sliders:   p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
     intensity: presetIntensity
-  });
-  _evRestoreSnap(evFuture.pop());
+  };
+  var _futSnap = evFuture[evFuture.length - 1];
+  if (_futSnap && _futSnap._userImage) _hiSnap._userImage = userImage;
+  evHistory.push(_hiSnap);
+  var snap = evFuture.pop();
+  if (snap._userImage) userImage = snap._userImage;
+  _evRestoreSnap(snap);
 };
 
 // ── Fix 3: Global RESET ───────────────────────────────────────────────────
@@ -10512,6 +10526,18 @@ window.toolsCropApply = function() {
   function _finish(srcCanvas, toast) {
     var newImg = new Image();
     newImg.onload = function() {
+      // Push pre-crop snapshot so undo can restore original image
+      var _p = evActivePreset || activePreset;
+      var _snap = {
+        presetId:  _p ? _p.id : null,
+        sliders:   _p ? JSON.parse(JSON.stringify(sliderState[_p.id] || {})) : {},
+        intensity: presetIntensity,
+        _userImage: userImage
+      };
+      if (evHistory.length >= 30) evHistory.shift();
+      evHistory.push(_snap);
+      evFuture.length = 0;
+      if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
       userImage = newImg;
       var ev = document.getElementById('editor-view');
       if (ev && ev.style.display === 'flex') { if (typeof evRenderCanvas === 'function') evRenderCanvas(); }
@@ -10574,15 +10600,16 @@ function cropSelectSubTab(btn, tab) {
     // Re-sync overlay size/position to current canvas state, then show
     var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
     if (ov && ac && ac.width > 0) {
-      var pRect = ac.parentElement.getBoundingClientRect();
-      var cRect = ac.getBoundingClientRect();
+      // Use layout dimensions (offsetLeft/clientWidth) to match 200ms wrapper and avoid zoom distortion
       ov.width  = ac.width;
       ov.height = ac.height;
-      ov.style.width  = cRect.width  + 'px';
-      ov.style.height = cRect.height + 'px';
-      ov.style.left   = (cRect.left - pRect.left) + 'px';
-      ov.style.top    = (cRect.top  - pRect.top)  + 'px';
-      if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0) {
+      ov.style.width  = ac.clientWidth  + 'px';
+      ov.style.height = ac.clientHeight + 'px';
+      ov.style.left   = ac.offsetLeft   + 'px';
+      ov.style.top    = ac.offsetTop    + 'px';
+      // Re-init cropRect if missing or if it exceeds current canvas bounds (e.g. after rotation)
+      if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
+          || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
         var _bw = ac.width * 0.8, _bh = ac.height * 0.8;
         cropRect = { x: (ac.width - _bw) / 2, y: (ac.height - _bh) / 2, w: _bw, h: _bh };
       }

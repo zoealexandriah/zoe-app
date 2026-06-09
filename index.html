@@ -3376,8 +3376,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div class="ev-tb-sep" style="width:1px;height:16px;background:var(--border);flex-shrink:0"></div>
             <div class="ctb-btn" onclick="editorReplacePhoto()" style="display:inline-flex;align-items:center">⟳ REPLACE</div>
             <div class="ctb-btn" id="ev-export-btn" onclick="exportModalOpen()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">↑ EXPORT</div>
-            <div class="ctb-btn" id="save-to-gallery-btn" onclick="editorSaveToGallery()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">
-              <span class="ev-tb-text">↓ SAVE TO GALLERY</span>
+            <div class="ctb-btn" id="save-to-gallery-btn" onclick="exportModalOpen()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">
+              <span class="ev-tb-text">↑ EXPORT</span>
               <span class="ev-tb-save-mobile">Save ↓</span>
             </div>
           </div>
@@ -9223,11 +9223,17 @@ function galleryOpenInEditor(idx) {
         userImage = origImg;
         if (typeof evRenderCanvas === 'function') evRenderCanvas();
         evRenderPresets();
+        // Push clean state into history so undo goes back to no-preset (original)
+        evHistory.push({ presetId: null, sliders: {}, intensity: 1.0 });
+        if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
       };
       origImg.src = es.originalDataURL;
     } else {
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
       evRenderPresets();
+      // Push clean state into history so undo goes back to no-preset (original)
+      evHistory.push({ presetId: null, sliders: {}, intensity: 1.0 });
+      if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
     }
   }
 }

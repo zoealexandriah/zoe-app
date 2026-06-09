@@ -1653,17 +1653,64 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   color: rgba(218,90,125,0.55); font-family: var(--mono);
 }
 
-/* Collection delete button */
-.col-delete-btn {
-  position: absolute; top: 6px; right: 6px;
-  width: 22px; height: 22px; border-radius: 50%;
-  background: rgba(0,0,0,0.60); border: 0.5px solid rgba(201,184,212,0.15);
-  color: rgba(220,200,230,0.65); font-size: 9px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; opacity: 0; transition: opacity 0.15s;
+/* ── Mosaic cover ── */
+.col-card-mosaic {
+  width: 100%; aspect-ratio: 1/1;
+  display: flex; flex-direction: column;
+  overflow: hidden; background: rgba(18,12,28,0.90);
+  gap: 1.5px;
 }
-.col-card:hover .col-delete-btn { opacity: 1; }
-@media (max-width: 768px) { .col-delete-btn { opacity: 1; } }
+.col-mosaic-main { flex: 1; min-height: 0; overflow: hidden; }
+.col-mosaic-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.col-mosaic-row {
+  flex-shrink: 0; height: 32%;
+  display: flex; gap: 1.5px; overflow: hidden;
+}
+.col-mosaic-row img { flex: 1; height: 100%; object-fit: cover; display: block; min-width: 0; }
+.col-mosaic-empty {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: rgba(201,184,212,0.12);
+}
+
+/* ── Dots menu button ── */
+.col-dots-btn {
+  position: absolute; top: 7px; right: 7px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(0,0,0,0.52); border: 0.5px solid rgba(201,184,212,0.15);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: rgba(220,210,235,0.90); font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 2; letter-spacing: 1px; line-height: 1;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.col-dots-btn:active { background: rgba(0,0,0,0.78) }
+
+/* ── Context menu ── */
+.col-context-menu {
+  background: rgba(18,12,28,0.97); border: 0.5px solid rgba(201,184,212,0.14);
+  border-radius: 10px; overflow: hidden; z-index: 9999;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  min-width: 134px; box-shadow: 0 10px 32px rgba(0,0,0,0.55);
+}
+.col-menu-item {
+  padding: 12px 16px; font-size: 9px; letter-spacing: 0.14em;
+  color: rgba(220,210,235,0.85); font-family: var(--mono);
+  cursor: pointer; transition: background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.col-menu-item:active { background: rgba(201,184,212,0.10) }
+.col-menu-item-del { color: rgba(218,90,125,0.85) }
+.col-menu-item-del:active { background: rgba(218,90,125,0.10) }
+.col-menu-sep { height: 0.5px; background: rgba(201,184,212,0.08); }
+
+/* ── Drag states ── */
+.col-card.col-dragging { opacity: 0.40; transform: scale(0.95) !important; }
+.col-card.col-drag-over {
+  border-color: rgba(218,90,125,0.55) !important;
+  box-shadow: 0 0 0 1.5px rgba(218,90,125,0.30) !important;
+}
 
 /* New collection inline name input */
 .col-name-input {
@@ -7371,8 +7418,10 @@ function colStartRename(el, colId) {
   if (l2name && colActiveId === colId) l2name.textContent = trimmed;
   colSaveToStorage();
 }
+var _colDragFromIdx = null, _colDragOverEl = null, _colDragFromEl = null;
+
 function colRenderGrid() {
-  const grid = document.getElementById('col-grid');
+  var grid = document.getElementById('col-grid');
   grid.innerHTML = '';
 
   // Always-first: Create Collection card
@@ -7389,28 +7438,170 @@ function colRenderGrid() {
     + '<div class="col-create-sub">START ORGANIZING →</div>';
   grid.appendChild(createCard);
 
-  collections.forEach((col, i) => {
-    const card = document.createElement('div');
+  collections.forEach(function(col, i) {
+    var card = document.createElement('div');
     card.className = 'col-card';
-    card.onclick = () => colOpenCollection(col.id);
+    card.dataset.colIdx = i;
 
-    const coverSrc = col.photos.length > 0 ? col.photos[0].dataURL : null;
-    const coverHTML = coverSrc
-      ? `<img src="${coverSrc}" alt="${col.name}">`
-      : `<div class="col-card-cover-empty">◫</div>`;
+    // Build mosaic cover
+    var photos = col.photos;
+    var mosaicHTML = '<div class="col-card-mosaic">';
+    if (photos.length === 0) {
+      mosaicHTML += '<div class="col-mosaic-empty">◫</div>';
+    } else if (photos.length === 1) {
+      mosaicHTML += '<div class="col-mosaic-main"><img src="' + photos[0].dataURL + '" loading="lazy"></div>';
+    } else {
+      var thumbCount = Math.min(photos.length - 1, 3);
+      var thumbsHTML = '';
+      for (var t = 1; t <= thumbCount; t++) {
+        thumbsHTML += '<img src="' + photos[t].dataURL + '" loading="lazy">';
+      }
+      mosaicHTML += '<div class="col-mosaic-main"><img src="' + photos[0].dataURL + '" loading="lazy"></div>'
+        + '<div class="col-mosaic-row">' + thumbsHTML + '</div>';
+    }
+    mosaicHTML += '</div>';
 
-    const count = col.photos.length;
-    const countLabel = count + (count === 1 ? ' PHOTO' : ' PHOTOS');
+    var count = photos.length;
+    var countLabel = count + (count === 1 ? ' PHOTO' : ' PHOTOS');
 
-    card.innerHTML = `
-      <div class="col-card-cover">${coverHTML}</div>
-      <div class="col-card-meta">
-        <div class="col-card-name" id="col-card-name-${col.id}" ondblclick="event.stopPropagation();colStartRename(this,'${col.id}')" ontouchend="colTapName(this,'${col.id}')" style="cursor:text">${col.name}</div>
-        <div class="col-card-info"><span>${countLabel}</span></div>
-      </div>
-      <button class="col-delete-btn" onclick="event.stopPropagation();colConfirmDelete('${col.id}')" title="Delete">✕</button>`;
+    card.innerHTML = mosaicHTML
+      + '<div class="col-card-meta">'
+      + '<div class="col-card-name" id="col-card-name-' + col.id + '">' + col.name + '</div>'
+      + '<div class="col-card-info"><span>' + countLabel + '</span></div>'
+      + '</div>'
+      + '<button class="col-dots-btn" title="Options">···</button>';
+
+    card.querySelector('.col-dots-btn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      colShowDotsMenu(e, col.id);
+    });
+    card.addEventListener('click', function() { colOpenCollection(col.id); });
+    colCardDragEvents(card, i, grid);
     grid.appendChild(card);
   });
+
+  // Grid-level drop target (init once per render)
+  if (!grid._dragInit) {
+    grid._dragInit = true;
+    grid.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      var target = e.target.closest('.col-card[data-col-idx]');
+      grid.querySelectorAll('.col-card').forEach(function(c){ c.classList.remove('col-drag-over'); });
+      if (target && target !== _colDragFromEl) { target.classList.add('col-drag-over'); _colDragOverEl = target; }
+    });
+    grid.addEventListener('drop', function(e) {
+      e.preventDefault();
+      grid.querySelectorAll('.col-card').forEach(function(c){ c.classList.remove('col-drag-over','col-dragging'); });
+      if (_colDragFromIdx !== null && _colDragOverEl) {
+        var toIdx = parseInt(_colDragOverEl.dataset.colIdx);
+        if (!isNaN(toIdx) && toIdx !== _colDragFromIdx) {
+          var item = collections.splice(_colDragFromIdx, 1)[0];
+          collections.splice(toIdx, 0, item);
+          colSaveToStorage();
+          colRenderGrid();
+        }
+      }
+      _colDragFromIdx = null; _colDragOverEl = null; _colDragFromEl = null;
+    });
+  }
+}
+
+function colCardDragEvents(card, idx, grid) {
+  card.draggable = true;
+  card.addEventListener('dragstart', function(e) {
+    _colDragFromIdx = idx; _colDragFromEl = card;
+    card.classList.add('col-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  card.addEventListener('dragend', function() {
+    card.classList.remove('col-dragging');
+    grid.querySelectorAll('.col-card').forEach(function(c){ c.classList.remove('col-drag-over'); });
+    _colDragFromIdx = null; _colDragFromEl = null; _colDragOverEl = null;
+  });
+
+  // Touch long-press drag
+  var _tStartX, _tStartY, _tActive = false, _tTimer = null;
+  card.addEventListener('touchstart', function(e) {
+    var t = e.touches[0];
+    _tStartX = t.clientX; _tStartY = t.clientY; _tActive = false;
+    _tTimer = setTimeout(function() {
+      _tActive = true; _colDragFromIdx = idx; _colDragFromEl = card;
+      card.classList.add('col-dragging');
+      if (navigator.vibrate) navigator.vibrate(28);
+    }, 450);
+  }, {passive: true});
+
+  card.addEventListener('touchmove', function(e) {
+    var t = e.touches[0];
+    if (_tTimer && (Math.abs(t.clientX - _tStartX) > 8 || Math.abs(t.clientY - _tStartY) > 8)) {
+      clearTimeout(_tTimer); _tTimer = null;
+    }
+    if (!_tActive) return;
+    e.preventDefault();
+    var el = document.elementFromPoint(t.clientX, t.clientY);
+    var target = el && el.closest('.col-card[data-col-idx]');
+    grid.querySelectorAll('.col-card').forEach(function(c){ c.classList.remove('col-drag-over'); });
+    if (target && target !== card) { target.classList.add('col-drag-over'); _colDragOverEl = target; }
+    else { _colDragOverEl = null; }
+  }, {passive: false});
+
+  card.addEventListener('touchend', function() {
+    clearTimeout(_tTimer); _tTimer = null;
+    if (_tActive && _colDragOverEl) {
+      var toIdx = parseInt(_colDragOverEl.dataset.colIdx);
+      if (!isNaN(toIdx) && toIdx !== _colDragFromIdx) {
+        var item = collections.splice(_colDragFromIdx, 1)[0];
+        collections.splice(toIdx, 0, item);
+        colSaveToStorage();
+        colRenderGrid();
+      }
+    }
+    card.classList.remove('col-dragging');
+    grid.querySelectorAll('.col-card').forEach(function(c){ c.classList.remove('col-drag-over'); });
+    _tActive = false; _colDragFromIdx = null; _colDragFromEl = null; _colDragOverEl = null;
+  }, {passive: true});
+}
+
+function colShowDotsMenu(e, colId) {
+  var existing = document.querySelector('.col-context-menu');
+  if (existing) { existing.remove(); return; }
+  var menu = document.createElement('div');
+  menu.className = 'col-context-menu';
+  menu.innerHTML =
+    '<div class="col-menu-item" onclick="colMenuRename(\'' + colId + '\')">RENAME</div>'
+    + '<div class="col-menu-sep"></div>'
+    + '<div class="col-menu-item col-menu-item-del" onclick="colMenuDelete(\'' + colId + '\')">DELETE</div>';
+  document.body.appendChild(menu);
+  var r = e.currentTarget.getBoundingClientRect();
+  var menuW = 134;
+  var left = Math.max(8, Math.min(r.right - menuW, window.innerWidth - menuW - 8));
+  var top = r.bottom + 5;
+  if (top + 90 > window.innerHeight) top = r.top - 90;
+  menu.style.cssText = 'position:fixed;top:' + top + 'px;left:' + left + 'px;';
+  var close = function() { if (menu.parentElement) menu.remove(); };
+  setTimeout(function() {
+    document.addEventListener('touchstart', close, {once: true});
+    document.addEventListener('mousedown', close, {once: true});
+  }, 60);
+}
+
+function colMenuRename(colId) {
+  var m = document.querySelector('.col-context-menu'); if (m) m.remove();
+  var col = collections.find(function(c){ return c.id === colId; });
+  if (!col) return;
+  var newName = window.prompt('Rename collection:', col.name);
+  if (!newName || !newName.trim()) return;
+  col.name = newName.trim().toUpperCase();
+  colSaveToStorage();
+  var nameEl = document.getElementById('col-card-name-' + colId);
+  if (nameEl) nameEl.textContent = col.name;
+  var l2name = document.getElementById('col-l2-name');
+  if (l2name && colActiveId === colId) l2name.textContent = col.name;
+}
+
+function colMenuDelete(colId) {
+  var m = document.querySelector('.col-context-menu'); if (m) m.remove();
+  colConfirmDelete(colId);
 }
 
 // ── Delete collection ─────────────────────────────────────────────────────

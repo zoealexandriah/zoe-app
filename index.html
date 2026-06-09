@@ -3049,6 +3049,231 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     border-bottom-color: transparent !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════
+   HOME VIEW
+   ══════════════════════════════════════════════════════ */
+#home-view {
+  display: none;
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #080508;
+  z-index: 10;
+  flex-direction: column;
+  -webkit-overflow-scrolling: touch;
+}
+#home-view.active { display: flex; }
+
+/* Hero */
+.hv-hero {
+  position: relative;
+  width: 100%;
+  min-height: 72vw;
+  max-height: 90vh;
+  background: linear-gradient(160deg, #0c1a12 0%, #081110 42%, #060409 100%);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hv-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  opacity: 0.82;
+}
+.hv-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(5,3,8,0.18) 0%, transparent 38%, rgba(5,3,8,0.62) 100%);
+}
+.hv-brand {
+  position: relative;
+  z-index: 2;
+  padding: 22px 18px 0;
+}
+.hv-brand-title {
+  font-family: var(--font-serif);
+  font-size: clamp(46px, 14vw, 80px);
+  color: rgba(255,248,240,0.96);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  font-weight: 400;
+  text-shadow: 0 2px 32px rgba(0,0,0,0.55);
+}
+.hv-brand-sub {
+  font-family: var(--font-mono);
+  font-size: clamp(7.5px, 2vw, 10px);
+  letter-spacing: 0.32em;
+  color: rgba(210,188,168,0.60);
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+.hv-preset-card {
+  position: relative;
+  z-index: 2;
+  align-self: flex-start;
+  margin: 0 18px 22px;
+  background: rgba(8,5,12,0.68);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(192,72,72,0.30);
+  border-radius: 2px;
+  padding: 9px 13px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 88px;
+}
+.hv-preset-num {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  color: rgba(192,72,72,0.65);
+}
+.hv-preset-name {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  letter-spacing: 0.06em;
+  color: rgba(248,228,215,0.95);
+  line-height: 1;
+  font-weight: 400;
+}
+.hv-preset-series {
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.30em;
+  color: rgba(192,72,72,0.48);
+}
+
+/* Sections */
+.hv-section {
+  padding: 26px 16px 0;
+  flex-shrink: 0;
+}
+.hv-section-title {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.38em;
+  color: rgba(172,142,190,0.42);
+  text-transform: uppercase;
+  margin-bottom: 13px;
+}
+
+/* Visual DNA */
+.hv-dna-strip {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.hv-dna-strip::-webkit-scrollbar { display: none; }
+.hv-dna-card {
+  flex: 0 0 calc(25% - 6px);
+  min-width: 70px;
+  aspect-ratio: 2 / 3;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 10px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border: 0.5px solid rgba(160,130,185,0.10);
+}
+.hv-dna-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 45%, rgba(6,3,10,0.80) 100%);
+  z-index: 1;
+}
+.hv-dna-card-label {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.26em;
+  color: rgba(220,200,240,0.80);
+}
+.hv-dna-film   { background: linear-gradient(155deg, #2a1510 0%, #180c08 55%, #0a0608 100%); }
+.hv-dna-digi   { background: linear-gradient(155deg, #0e1e28 0%, #081418 55%, #060810 100%); }
+.hv-dna-cinema { background: linear-gradient(155deg, #1e0a12 0%, #120810 55%, #080510 100%); }
+.hv-dna-ether  { background: linear-gradient(155deg, #180f22 0%, #100a1a 55%, #080610 100%); }
+
+/* Worlds */
+.hv-worlds-section {
+  padding: 24px 16px 0;
+  flex-shrink: 0;
+}
+.hv-worlds-title {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.38em;
+  color: rgba(172,142,190,0.42);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.hv-world-row { margin-bottom: 22px; }
+.hv-world-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.hv-world-name {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  color: rgba(210,188,222,0.68);
+}
+.hv-world-all {
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.18em;
+  color: rgba(172,142,190,0.42);
+  background: rgba(172,142,190,0.07);
+  border: 0.5px solid rgba(172,142,190,0.16);
+  border-radius: 20px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.hv-world-strip {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.hv-world-strip::-webkit-scrollbar { display: none; }
+.hv-world-card {
+  flex: 0 0 calc(33.333% - 5px);
+  min-width: 88px;
+  aspect-ratio: 3 / 4;
+  border-radius: 3px;
+  border: 0.5px solid rgba(160,130,185,0.09);
+}
+.hv-liminal-1 { background: linear-gradient(145deg, #151820 0%, #0e1018 100%); }
+.hv-liminal-2 { background: linear-gradient(145deg, #111520 0%, #0c0f18 100%); }
+.hv-liminal-3 { background: linear-gradient(145deg, #181c22 0%, #101318 100%); }
+.hv-forks-1   { background: linear-gradient(145deg, #0e1a14 0%, #090f0c 100%); }
+.hv-forks-2   { background: linear-gradient(145deg, #10180e 0%, #0a0f09 100%); }
+.hv-forks-3   { background: linear-gradient(145deg, #121a10 0%, #0b1009 100%); }
+.hv-bottom-pad { height: 90px; flex-shrink: 0; }
+
+/* Sparkle nav icon */
+.hv-spark { font-size: 13px; line-height: 1; color: inherit; display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; }
+.bn-item .hv-spark { width: 20px; height: 20px; font-size: 16px; }
 </style>
 </head>
 <body>
@@ -3089,7 +3314,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
       <!-- Nav -->
       <div class="sidebar-nav">
         <div class="nav-section-title"></div>
-        <div class="nav-item active" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="nav-label">GALLERY</span></div>
+        <div class="nav-item active" onclick="navClick(this)"><span class="hv-spark">✦</span><span class="nav-label">HOME</span></div>
+        <div class="nav-item" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="nav-label">GALLERY</span></div>
         <div class="nav-item" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="4" y="11" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="11" width="5.5" height="5.5" rx="0.8"/></svg></span><span class="nav-label">COLLECTIONS</span></div>
         <div class="nav-item" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="7" x2="16" y2="7"/><line x1="4" y1="10" x2="12" y2="10"/><line x1="4" y1="13" x2="9" y2="13"/><circle cx="14" cy="13" r="2"/><line x1="15.5" y1="14.5" x2="17" y2="16"/></svg></span><span class="nav-label">EDITOR</span></div>
         
@@ -3245,6 +3471,67 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                  style="display:none" onchange="colHandleUpload(event)">
         </div>
       </div>
+
+      <!-- ── HOME VIEW ── -->
+      <div id="home-view" class="active">
+
+        <!-- Hero: featured image + ZOë brand + Carmine card -->
+        <div class="hv-hero">
+          <img class="hv-hero-img" id="hv-featured-img" src="" alt="" onerror="this.style.display='none'">
+          <div class="hv-hero-scrim"></div>
+          <div class="hv-brand">
+            <div class="hv-brand-title">ZOË</div>
+            <div class="hv-brand-sub">DIGITAL ALCHEMY</div>
+          </div>
+          <div class="hv-preset-card">
+            <div class="hv-preset-num">01</div>
+            <div class="hv-preset-name">Carmine</div>
+            <div class="hv-preset-series">FILM</div>
+          </div>
+        </div>
+
+        <!-- Visual DNA -->
+        <div class="hv-section">
+          <div class="hv-section-title">VISUAL DNA</div>
+          <div class="hv-dna-strip">
+            <div class="hv-dna-card hv-dna-film"><span class="hv-dna-card-label">FILM</span></div>
+            <div class="hv-dna-card hv-dna-digi"><span class="hv-dna-card-label">DIGI</span></div>
+            <div class="hv-dna-card hv-dna-cinema"><span class="hv-dna-card-label">CINEMA</span></div>
+            <div class="hv-dna-card hv-dna-ether"><span class="hv-dna-card-label">ETHEREAL</span></div>
+          </div>
+        </div>
+
+        <!-- Worlds -->
+        <div class="hv-worlds-section">
+          <div class="hv-worlds-title">WORLDS</div>
+
+          <div class="hv-world-row">
+            <div class="hv-world-header">
+              <span class="hv-world-name">LIMINAL SPACES</span>
+              <span class="hv-world-all">ALL →</span>
+            </div>
+            <div class="hv-world-strip">
+              <div class="hv-world-card hv-liminal-1"></div>
+              <div class="hv-world-card hv-liminal-2"></div>
+              <div class="hv-world-card hv-liminal-3"></div>
+            </div>
+          </div>
+
+          <div class="hv-world-row">
+            <div class="hv-world-header">
+              <span class="hv-world-name">FORKS</span>
+              <span class="hv-world-all">ALL →</span>
+            </div>
+            <div class="hv-world-strip">
+              <div class="hv-world-card hv-forks-1"></div>
+              <div class="hv-world-card hv-forks-2"></div>
+              <div class="hv-world-card hv-forks-3"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hv-bottom-pad"></div>
+      </div><!-- /home-view -->
 
       <!-- Collections lightbox -->
       <div id="col-lightbox">
@@ -3545,7 +3832,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   <!-- BOTTOM NAV -->
   <div class="bottomnav">
-    <div class="bn-item active" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="bn-label">GALLERY</span></div>
+    <div class="bn-item active" onclick="bnClick(this)"><span class="hv-spark">✦</span><span class="bn-label">HOME</span></div>
+    <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="bn-label">GALLERY</span></div>
     <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M4 16l2-6 8-8 4 4-8 8-6 2z"/><line x1="12" y1="4" x2="16" y2="8"/></svg></span><span class="bn-label">EDITOR</span></div>
     <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="4" y="11" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="11" width="5.5" height="5.5" rx="0.8"/></svg></span><span class="bn-label">COLLECTIONS</span></div>
     <div class="bn-right">
@@ -5375,6 +5663,7 @@ function switchToTab(label) {
   const presView = document.getElementById('presets-view');
   const edView   = document.getElementById('editor-view');
   const rc       = document.getElementById('right-col');
+  const hv       = document.getElementById('home-view');
 
   // Hide everything
   if (colView)  colView.classList.remove('active');
@@ -5382,6 +5671,7 @@ function switchToTab(label) {
   if (edView)   { edView.style.display = 'none'; edView.classList.remove('active'); }
   if (rc)       { rc.style.display = 'none'; rc.style.width = '0'; rc.style.minWidth = '0'; }
   if (heroWin)  heroWin.style.display = '';
+  if (hv)       hv.classList.remove('active');
 
   if (label === 'GALLERY') {
     const lv = document.getElementById('library-view');
@@ -5406,6 +5696,10 @@ function switchToTab(label) {
     if (edView)  { edView.style.display = 'flex'; edView.classList.add('active'); }
     if (rc)      { rc.style.display = 'flex'; rc.style.width = '320px'; rc.style.minWidth = '320px'; rc.style.padding = ''; rc.style.border = ''; }
     if (typeof evInit === 'function') evInit();
+  }
+  else if (label === 'HOME') {
+    if (heroWin) heroWin.style.display = 'none';
+    if (hv) hv.classList.add('active');
   }
 }// ══════════════════════════════════════
 // INIT
@@ -5443,6 +5737,8 @@ window.addEventListener('load',()=>{
   // Library mode active
   colLoadFromStorage();
   libLoadFromStorage();
+  // Start on homepage
+  switchToTab('HOME');
   setTimeout(()=>document.getElementById('app').classList.add('revealed'), 100);
 });
 

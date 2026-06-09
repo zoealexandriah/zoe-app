@@ -339,7 +339,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .look-card:hover .lc-grad{background:linear-gradient(to top,rgba(7,5,14,0.94) 0%,rgba(7,5,14,0.4) 40%,rgba(7,5,14,0.08) 70%,transparent 100%)}
 .lc-holo{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0;background:linear-gradient(135deg,transparent 30%,rgba(200,168,232,0.1) 50%,rgba(160,210,255,0.08) 65%,transparent 82%);transition:opacity 0.4s}
 .look-card:hover .lc-holo{opacity:1}
-.lc-meta{position:absolute;bottom:0;left:0;right:0;padding:10px 10px 8px;z-index:4}
+.lc-meta{position:absolute;bottom:0;left:0;right:0;padding:8px 10px 5px;z-index:4}
 .lc-num{font-size:11.5px;letter-spacing:0.28em;color:var(--text-dim);font-weight:300;margin-bottom:2px}
 .lc-name{font-size:11.5px;font-family:var(--font-serif);color:var(--text-bright);font-weight:400;line-height:1;text-shadow:0 0 16px rgba(180,140,218,0.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lc-series{font-size:11.5px;letter-spacing:0.2em;color:var(--text-dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2690,7 +2690,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-preset-strip { display: none !important; }
   #ev-preset-strip.visible {
     display: flex !important;
-    height: 164px !important;
+    height: 136px !important;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -2774,7 +2774,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   body:has(#editor-view.active) .bottomnav { display: none !important; }
   body:has(#editor-view.active) .app { grid-template-rows: 0px 1fr 0px !important; }
   /* Preset strip — taller so names don't clip */
-  #ev-preset-strip { height: 150px !important; overflow-y: visible !important; }
+  #ev-preset-strip { height: 136px !important; overflow-y: visible !important; }
   /* Crop mode: hide ATMOSPHERE/ADJUST nav + canvas-area close button */
   #editor-view.crop-mode #ev-mobile-nav { display: none !important; }
   /* Always hide TOOLS header + CROP/FLIP tool rows in ev-tools on mobile */
@@ -3680,7 +3680,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
           </div>
           <!-- Bottom preset strip -->
-          <div id="ev-preset-strip" style="height:160px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;">
+          <div id="ev-preset-strip" style="height:136px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;">
             <!-- Category filter row -->
             <div id="ev-cats" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
               <div class="ev-cat-btn" onclick="evFilterCat(this,'FAVORITES')">★</div>

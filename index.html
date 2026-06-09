@@ -3251,25 +3251,58 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .hv-world-strip {
   display: flex;
-  gap: 7px;
+  gap: 9px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  padding-right: 16px;
 }
 .hv-world-strip::-webkit-scrollbar { display: none; }
 .hv-world-card {
-  flex: 0 0 calc(33.333% - 5px);
-  min-width: 88px;
-  aspect-ratio: 3 / 4;
-  border-radius: 3px;
+  flex: 0 0 calc(33.333% - 6px);
+  min-width: 110px;
+  aspect-ratio: 3 / 2;
+  border-radius: 4px;
   border: 0.5px solid rgba(160,130,185,0.09);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
 }
-.hv-liminal-1 { background: linear-gradient(145deg, #151820 0%, #0e1018 100%); }
-.hv-liminal-2 { background: linear-gradient(145deg, #111520 0%, #0c0f18 100%); }
-.hv-liminal-3 { background: linear-gradient(145deg, #181c22 0%, #101318 100%); }
-.hv-forks-1   { background: linear-gradient(145deg, #0e1a14 0%, #090f0c 100%); }
-.hv-forks-2   { background: linear-gradient(145deg, #10180e 0%, #0a0f09 100%); }
-.hv-forks-3   { background: linear-gradient(145deg, #121a10 0%, #0b1009 100%); }
+.hv-world-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 30%, rgba(5,3,9,0.82) 100%);
+  z-index: 1;
+}
+.hv-world-card-meta {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 2;
+  padding: 0 9px 8px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.hv-world-card-name {
+  font-family: var(--font-serif);
+  font-size: clamp(10px, 2.8vw, 13px);
+  color: rgba(240,228,212,0.90);
+  font-weight: 400;
+  line-height: 1.2;
+}
+.hv-world-card-arrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(210,188,165,0.50);
+  flex-shrink: 0;
+}
+.hv-liminal-1 { background: linear-gradient(160deg, #1a1a14 0%, #0f0f0c 55%, #0a0a09 100%); }
+.hv-liminal-2 { background: linear-gradient(160deg, #14181e 0%, #0e1118 55%, #090c12 100%); }
+.hv-liminal-3 { background: linear-gradient(160deg, #1c1a14 0%, #12100c 55%, #0a0908 100%); }
+.hv-forks-1   { background: linear-gradient(160deg, #0e1810 0%, #090f0a 55%, #070c08 100%); }
+.hv-forks-2   { background: linear-gradient(160deg, #121a10 0%, #0c1209 55%, #090e07 100%); }
+.hv-forks-3   { background: linear-gradient(160deg, #14180e 0%, #0e120a 55%, #0a0e07 100%); }
 .hv-bottom-pad { height: 90px; flex-shrink: 0; }
 
 /* Sparkle nav icon */
@@ -3513,9 +3546,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <span class="hv-world-all">ALL →</span>
             </div>
             <div class="hv-world-strip">
-              <div class="hv-world-card hv-liminal-1"></div>
-              <div class="hv-world-card hv-liminal-2"></div>
-              <div class="hv-world-card hv-liminal-3"></div>
+              <div class="hv-world-card hv-liminal-1"><div class="hv-world-card-meta"><span class="hv-world-card-name">Backrooms</span><span class="hv-world-card-arrow">→</span></div></div>
+              <div class="hv-world-card hv-liminal-2"><div class="hv-world-card-meta"><span class="hv-world-card-name">Empty Pool</span><span class="hv-world-card-arrow">→</span></div></div>
+              <div class="hv-world-card hv-liminal-3"><div class="hv-world-card-meta"><span class="hv-world-card-name">Forgotten Mall</span><span class="hv-world-card-arrow">→</span></div></div>
             </div>
           </div>
 
@@ -3525,9 +3558,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <span class="hv-world-all">ALL →</span>
             </div>
             <div class="hv-world-strip">
-              <div class="hv-world-card hv-forks-1"></div>
-              <div class="hv-world-card hv-forks-2"></div>
-              <div class="hv-world-card hv-forks-3"></div>
+              <div class="hv-world-card hv-forks-1"><div class="hv-world-card-meta"><span class="hv-world-card-name">Forks, WA</span><span class="hv-world-card-arrow">→</span></div></div>
+              <div class="hv-world-card hv-forks-2"><div class="hv-world-card-meta"><span class="hv-world-card-name">La Push</span><span class="hv-world-card-arrow">→</span></div></div>
+              <div class="hv-world-card hv-forks-3"><div class="hv-world-card-meta"><span class="hv-world-card-name">The Meadow</span><span class="hv-world-card-arrow">→</span></div></div>
             </div>
           </div>
         </div>

@@ -2897,10 +2897,15 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-mobile-nav {
     display: flex !important;
     flex-direction: row !important;
-    height: 52px !important;
     flex-shrink: 0 !important;
-    border-top: 0.5px solid var(--border) !important;
-    background: rgba(7,5,16,0.98) !important;
+    border-top: none !important;
+    background: rgba(14,10,24,0.90) !important;
+    border: 0.5px solid rgba(201,184,212,0.10) !important;
+    border-radius: 100px !important;
+    margin: 8px 24px 12px !important;
+    padding: 3px !important;
+    height: auto !important;
+    backdrop-filter: blur(12px) !important;
   }
   .ev-mnav-btn {
     flex: 1 !important;
@@ -2911,17 +2916,21 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     gap: 3px !important;
     background: none !important;
     border: none !important;
+    border-radius: 100px !important;
     cursor: pointer !important;
-    color: rgba(201,184,212,0.35) !important;
+    color: rgba(201,184,212,0.32) !important;
     font-size: 6px !important;
     letter-spacing: 0.14em !important;
     font-family: var(--mono) !important;
-    padding: 0 2px !important;
+    padding: 7px 4px !important;
     -webkit-tap-highlight-color: transparent !important;
     outline: none !important;
-    transition: color 0.15s !important;
+    transition: color 0.18s, background 0.18s !important;
   }
-  .ev-mnav-btn.active { color: rgba(220,200,245,0.95) !important; }
+  .ev-mnav-btn.active {
+    color: rgba(218,90,125,0.95) !important;
+    background: rgba(180,50,80,0.14) !important;
+  }
   .ev-mnav-btn svg { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
 
   /* Slider containers: compact vertical scroll */

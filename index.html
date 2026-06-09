@@ -6738,16 +6738,22 @@ function renderLibrary() {
     `;
     cell.addEventListener('click', function(e) {
       var now = Date.now();
-      if (window._galLastTapIdx === idx && now - window._galLastTapTime < 350) {
+      if (window._galLastTapIdx === idx && now - window._galLastTapTime < 400) {
         // Double-tap: open in editor
+        clearTimeout(window._galTapTimer);
         window._galLastTapIdx = -1;
         window._galLastTapTime = 0;
         galleryOpenInEditor(idx);
       } else {
-        // Single tap: select / deselect
+        // First tap: wait to see if a second tap arrives
         window._galLastTapIdx = idx;
         window._galLastTapTime = now;
-        toggleSelect(idx);
+        clearTimeout(window._galTapTimer);
+        window._galTapTimer = setTimeout(function() {
+          window._galLastTapIdx = -1;
+          window._galLastTapTime = 0;
+          toggleSelect(idx);
+        }, 400);
       }
     });
     cols[idx % NUM_COLS].appendChild(cell);

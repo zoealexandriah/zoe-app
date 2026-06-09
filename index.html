@@ -6901,41 +6901,20 @@ function colShowLevel(n) {
 
 // ── Level 1: render collection grid ──────────────────────────────────────
 
-// ── Inline collection rename ──────────────────────────────────────────────
+// ── Collection rename via prompt ──────────────────────────────────────────
 function colStartRename(el, colId) {
   const col = collections.find(c => c.id === colId);
   if (!col) return;
-  const orig = col.name;
-  el.contentEditable = 'true';
-  el.style.borderBottom = '1px solid #c9b8d4';
-  el.style.outline = 'none';
-  el.focus();
-  // Select all
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
-
-  function save() {
-    const newName = el.textContent.trim().toUpperCase() || orig;
-    col.name = newName;
-    el.contentEditable = 'false';
-    el.style.borderBottom = '';
-    el.textContent = newName;
-    // Update L2 header if open
-    const l2name = document.getElementById('col-l2-name');
-    if (l2name && colActiveId === colId) l2name.textContent = newName;
-    colSaveToStorage();
-  }
-  function cancel() {
-    el.contentEditable = 'false';
-    el.style.borderBottom = '';
-    el.textContent = orig;
-  }
-  el.onblur   = save;
-  el.onkeydown = (e) => {
-    if (e.key === 'Enter')  { e.preventDefault(); el.blur(); }
-    if (e.key === 'Escape') { el.onblur = null; cancel(); }
-  };
+  const newName = window.prompt('Rename collection:', col.name);
+  if (newName === null) return; // cancelled
+  const trimmed = newName.trim().toUpperCase();
+  if (!trimmed) return;
+  col.name = trimmed;
+  el.textContent = trimmed;
+  // Update L2 header if open
+  const l2name = document.getElementById('col-l2-name');
+  if (l2name && colActiveId === colId) l2name.textContent = trimmed;
+  colSaveToStorage();
 }
 function colRenderGrid() {
   const grid = document.getElementById('col-grid');
@@ -7010,15 +6989,21 @@ function colNewCollection() {
 }
 
 // ── Double-tap to rename (mobile) ─────────────────────────────────────────
-var _colTapTime = 0, _colTapId = null;
+var _colTapTime = 0, _colTapId = null, _colTapTimer = null;
 function colTapName(el, id) {
+  event.stopPropagation();
   var now = Date.now();
-  if (_colTapId === id && now - _colTapTime < 360) {
+  if (_colTapId === id && now - _colTapTime < 400) {
+    clearTimeout(_colTapTimer);
     _colTapTime = 0; _colTapId = null;
-    event.stopPropagation();
     colStartRename(el, id);
   } else {
     _colTapTime = now; _colTapId = id;
+    clearTimeout(_colTapTimer);
+    _colTapTimer = setTimeout(function() {
+      _colTapTime = 0; _colTapId = null;
+      colOpenCollection(id);
+    }, 400);
   }
 }
 

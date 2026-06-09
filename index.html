@@ -3095,30 +3095,50 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .hsl-channel-label { display: block !important; font-size: 7px !important; letter-spacing: 0.12em !important; padding: 4px 16px 2px !important; color: rgba(201,184,212,0.45) !important; }
 
   /* Adjust sub-nav — iOS pill style matching crop tabs */
+  /* Subnav pill — same slot as main nav, shown in place of it during ADJUST */
   #ev-adjust-subnav {
     flex-direction: row !important;
     flex-shrink: 0 !important;
-    background: rgba(255,255,255,0.08) !important;
-    border-radius: 11px !important;
-    margin: 5px 14px 4px !important;
+    background: rgba(14,10,24,0.90) !important;
+    border: 0.5px solid rgba(201,184,212,0.10) !important;
+    border-radius: 100px !important;
+    margin: 5px 24px 8px !important;
     padding: 2px !important;
-    gap: 2px !important;
-    overflow: visible !important;
+    gap: 0 !important;
     height: auto !important;
     align-items: stretch !important;
-    border-bottom: none !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
   }
+  .ev-subnav-back {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    width: 34px !important;
+    background: rgba(201,184,212,0.08) !important;
+    border: none !important;
+    border-radius: 100px !important;
+    color: rgba(201,184,212,0.60) !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin: 2px !important;
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+    transition: background 0.15s !important;
+  }
+  .ev-subnav-back:active { background: rgba(201,184,212,0.16) !important; }
   .ev-subnav-btn {
     flex: 1 !important;
     background: transparent !important;
     border: none !important;
-    border-radius: 8px !important;
-    color: rgba(255,255,255,0.45) !important;
-    font-size: 8px !important;
-    letter-spacing: 0.05em !important;
+    border-radius: 100px !important;
+    color: rgba(201,184,212,0.40) !important;
+    font-size: 7px !important;
+    letter-spacing: 0.09em !important;
     font-family: var(--mono) !important;
     font-weight: 500 !important;
-    padding: 5px 2px !important;
+    padding: 5px 1px !important;
     cursor: pointer !important;
     -webkit-tap-highlight-color: transparent !important;
     outline: none !important;
@@ -3128,11 +3148,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     white-space: nowrap !important;
   }
   .ev-subnav-btn.active {
-    background: #fff !important;
-    color: #0d0a14 !important;
+    background: rgba(255,255,255,0.12) !important;
+    color: rgba(255,255,255,0.92) !important;
     font-weight: 700 !important;
-    border-bottom-color: transparent !important;
   }
+  /* Hide main nav when subnav is active */
+  #ev-mobile-nav.ev-mnav-hidden { display: none !important; }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -3918,14 +3939,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div class="es-tab" data-tab="details" onclick="esTab(this)">DETAILS</div>
             <div class="es-tab" data-tab="tools" onclick="esTab(this)">TOOLS</div>
           </div>
-          <!-- Adjust sub-nav: visible when ADJUST is active (mobile only) -->
-          <div id="ev-adjust-subnav" style="display:none">
-            <button class="ev-subnav-btn active" data-tab="light" onclick="evAdjustSubTab('light')">LIGHT</button>
-            <button class="ev-subnav-btn" data-tab="color" onclick="evAdjustSubTab('color')">COLOR</button>
-            <button class="ev-subnav-btn" data-tab="hsl" onclick="evAdjustSubTab('hsl')">HSL</button>
-            <button class="ev-subnav-btn" data-tab="details" onclick="evAdjustSubTab('details')">DETAILS</button>
-            <button class="ev-subnav-btn" data-tab="crop" onclick="evAdjustSubTab('crop')">CROP</button>
-          </div>
           <!-- ATMOSPHERE panel: active preset display + GLOW GRAIN FADE HAZE -->
           <div class="es-tab-panel active" id="es-panel-atmosphere">
             <div class="es-preset-display" id="es-active-preset">
@@ -3961,6 +3974,17 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div id="ev-sliders" style="display:none"></div>
           <div id="editor-sliders" style="display:none"></div>
           <div id="editor-tools-section" style="display:none"></div>
+          <!-- Adjust sub-nav: replaces main nav when ADJUST is active (mobile only) -->
+          <div id="ev-adjust-subnav" style="display:none">
+            <button class="ev-subnav-back" onclick="evAdjustSubnavBack()">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="11,4 6,9 11,14"/></svg>
+            </button>
+            <button class="ev-subnav-btn active" data-tab="light" onclick="evAdjustSubTab('light')">LIGHT</button>
+            <button class="ev-subnav-btn" data-tab="color" onclick="evAdjustSubTab('color')">COLOR</button>
+            <button class="ev-subnav-btn" data-tab="hsl" onclick="evAdjustSubTab('hsl')">HSL</button>
+            <button class="ev-subnav-btn" data-tab="details" onclick="evAdjustSubTab('details')">DETAILS</button>
+            <button class="ev-subnav-btn" data-tab="crop" onclick="evAdjustSubTab('crop')">CROP</button>
+          </div>
           <!-- Mobile nav: two primary categories (hidden on desktop) -->
           <div id="ev-mobile-nav" style="display:none">
             <button class="ev-mnav-btn" data-tab="atmosphere" onclick="evMobileNavToggle('atmosphere')">
@@ -5226,20 +5250,23 @@ function evMobileNavToggle(name) {
       if (btn) btn.classList.add('active');
     }
   } else if (name === 'adjust') {
-    // ADJUST = sub-nav + sliders
+    // ADJUST = sub-nav + sliders; sub-nav replaces main nav pill
     strip.classList.remove('visible');
     var edView = document.getElementById('editor-view');
+    var mnav = document.getElementById('ev-mobile-nav');
     if (isSame && suite.classList.contains('open')) {
       suite.classList.remove('open');
       if (subnav) subnav.style.display = 'none';
+      if (mnav) mnav.classList.remove('ev-mnav-hidden');
       if (edView) edView.classList.remove('adjust-open');
     } else {
       suite.classList.add('open');
       if (subnav) subnav.style.display = 'flex';
+      if (mnav) mnav.classList.add('ev-mnav-hidden');
       if (edView) edView.classList.add('adjust-open');
       var btn = document.querySelector('.ev-mnav-btn[data-tab="adjust"]');
       if (btn) btn.classList.add('active');
-      evAdjustSubTab('light'); // default to LIGHT sub-tab
+      evAdjustSubTab('light');
     }
   }
 }
@@ -5278,6 +5305,18 @@ function evAdjustSubTab(name) {
   if (name === 'crop' || name === 'flip') {
     setTimeout(function(){ if (typeof etSelectTool === 'function') etSelectTool(name); }, 60);
   }
+}
+
+function evAdjustSubnavBack() {
+  var subnav = document.getElementById('ev-adjust-subnav');
+  var mnav   = document.getElementById('ev-mobile-nav');
+  var suite  = document.getElementById('ev-editor-suite');
+  var edView = document.getElementById('editor-view');
+  if (subnav) subnav.style.display = 'none';
+  if (mnav)   mnav.classList.remove('ev-mnav-hidden');
+  if (suite)  suite.classList.remove('open');
+  if (edView) edView.classList.remove('adjust-open');
+  document.querySelectorAll('.ev-mnav-btn').forEach(function(b){ b.classList.remove('active'); });
 }
 
 function evAdjustBack() {

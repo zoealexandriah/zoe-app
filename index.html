@@ -3394,7 +3394,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
       <!-- Nav -->
       <div class="sidebar-nav">
         <div class="nav-section-title"></div>
-        <div class="nav-item active" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2L6.2 4.3L8.5 5L6.2 5.7L5.5 8L4.8 5.7L2.5 5L4.8 4.3Z" stroke-linejoin="round"/><path d="M13.5 6L14.8 10.2L19 11.5L14.8 12.8L13.5 17L12.2 12.8L8 11.5L12.2 10.2Z" stroke-linejoin="round"/></svg></span></div>
+        <div class="nav-item active" data-tab="HOME" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2L6.2 4.3L8.5 5L6.2 5.7L5.5 8L4.8 5.7L2.5 5L4.8 4.3Z" stroke-linejoin="round"/><path d="M13.5 6L14.8 10.2L19 11.5L14.8 12.8L13.5 17L12.2 12.8L8 11.5L12.2 10.2Z" stroke-linejoin="round"/></svg></span></div>
         <div class="nav-item" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="nav-label">GALLERY</span></div>
         <div class="nav-item" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="4" y="11" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="11" width="5.5" height="5.5" rx="0.8"/></svg></span><span class="nav-label">COLLECTIONS</span></div>
         <div class="nav-item" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="7" x2="16" y2="7"/><line x1="4" y1="10" x2="12" y2="10"/><line x1="4" y1="13" x2="9" y2="13"/><circle cx="14" cy="13" r="2"/><line x1="15.5" y1="14.5" x2="17" y2="16"/></svg></span><span class="nav-label">EDITOR</span></div>
@@ -3917,7 +3917,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   <!-- BOTTOM NAV -->
   <div class="bottomnav">
-    <div class="bn-item active" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2L6.2 4.3L8.5 5L6.2 5.7L5.5 8L4.8 5.7L2.5 5L4.8 4.3Z" stroke-linejoin="round"/><path d="M13.5 6L14.8 10.2L19 11.5L14.8 12.8L13.5 17L12.2 12.8L8 11.5L12.2 10.2Z" stroke-linejoin="round"/></svg></span></div>
+    <div class="bn-item active" data-tab="HOME" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2L6.2 4.3L8.5 5L6.2 5.7L5.5 8L4.8 5.7L2.5 5L4.8 4.3Z" stroke-linejoin="round"/><path d="M13.5 6L14.8 10.2L19 11.5L14.8 12.8L13.5 17L12.2 12.8L8 11.5L12.2 10.2Z" stroke-linejoin="round"/></svg></span></div>
     <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="bn-label">GALLERY</span></div>
     <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M4 16l2-6 8-8 4 4-8 8-6 2z"/><line x1="12" y1="4" x2="16" y2="8"/></svg></span><span class="bn-label">EDITOR</span></div>
     <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="4" y="11" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="11" width="5.5" height="5.5" rx="0.8"/></svg></span><span class="bn-label">COLLECTIONS</span></div>
@@ -5731,14 +5731,14 @@ function updateClock(){
 function navClick(el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   el.classList.add('active');
-  const label = (el.querySelector('.nav-label') || {}).textContent || '';
+  const label = el.dataset.tab || (el.querySelector('.nav-label') || {}).textContent || '';
   switchToTab(label.trim());
 }
 
 function bnClick(el) {
   document.querySelectorAll('.bn-item').forEach(n => n.classList.remove('active'));
   el.classList.add('active');
-  const label = (el.querySelector('.bn-label') || {}).textContent || '';
+  const label = el.dataset.tab || (el.querySelector('.bn-label') || {}).textContent || '';
   switchToTab(label.trim());
 }
 

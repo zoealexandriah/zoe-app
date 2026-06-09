@@ -3143,11 +3143,22 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   gap: 10px;
   text-shadow: 0 2px 28px rgba(0,0,0,0.45);
 }
+@keyframes hv-sparkle {
+  0%   { opacity: 0.85; transform: scale(1)    rotate(0deg);   text-shadow: 0 0 6px rgba(210,160,90,0.30); }
+  20%  { opacity: 1;    transform: scale(1.18) rotate(12deg);  text-shadow: 0 0 14px rgba(225,180,100,0.80), 0 0 28px rgba(210,160,90,0.40); }
+  40%  { opacity: 0.70; transform: scale(0.92) rotate(0deg);   text-shadow: 0 0 4px rgba(210,160,90,0.20); }
+  60%  { opacity: 1;    transform: scale(1.10) rotate(-8deg);  text-shadow: 0 0 18px rgba(225,180,100,0.70), 0 0 32px rgba(210,160,90,0.35); }
+  80%  { opacity: 0.80; transform: scale(0.96) rotate(0deg);   text-shadow: 0 0 5px rgba(210,160,90,0.25); }
+  100% { opacity: 0.85; transform: scale(1)    rotate(0deg);   text-shadow: 0 0 6px rgba(210,160,90,0.30); }
+}
 .hv-hero-title-spark {
   font-size: 0.48em;
-  color: rgba(210,160,90,0.80);
+  color: rgba(210,160,90,0.85);
   line-height: 1;
   flex-shrink: 0;
+  display: inline-block;
+  animation: hv-sparkle 3.8s ease-in-out infinite;
+  transform-origin: center;
 }
 .hv-hero-desc {
   font-family: var(--font-serif);

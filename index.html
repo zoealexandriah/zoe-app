@@ -3367,7 +3367,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-bottom: 9px;
+  margin-bottom: 4px;
 }
 .sl-icon-wrap {
   width: 14px; height: 14px;
@@ -5082,7 +5082,7 @@ function attachSliderListeners(p) {
         track.removeEventListener('touchmove', onFirstMove);
         var adx = Math.abs(ev.touches[0].clientX - startX);
         var ady = Math.abs(ev.touches[0].clientY - startY);
-        if (adx >= ady && adx >= 5) {
+        if (adx >= ady && adx >= 9) {
           evHistoryPush();
           _slDragTrack = track; _slDragPreset = track.dataset.preset;
           window._slDragging = true;

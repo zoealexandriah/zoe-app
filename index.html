@@ -2055,6 +2055,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .ctb-btn:disabled, .ctb-btn.disabled {
   opacity: 0.28; cursor: default; pointer-events: none;
 }
+#ctb-undo.disabled, #ctb-redo.disabled,
+#ev-undo.disabled,  #ev-redo.disabled {
+  opacity: 0 !important;
+  pointer-events: none;
+}
 .ctb-btn.primary { color: #c9b8d4; border-color: rgba(201,184,212,0.35) }
 .ctb-zoom-val {
   min-width: 42px; text-align: center;
@@ -2745,8 +2750,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex-shrink: 0 !important;
   }
   #ev-undo.disabled, #ev-redo.disabled {
-    color: rgba(255,255,255,0.22) !important;
-    opacity: 1 !important;
+    color: transparent !important;
+    opacity: 0 !important;
   }
   /* Save — pill button absolute right */
   #save-to-gallery-btn {

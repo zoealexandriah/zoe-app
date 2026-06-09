@@ -3877,7 +3877,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <div style="font-size:8px;letter-spacing:0.22em;color:rgba(175,162,200,0.38);font-family:var(--mono);text-align:center;margin-bottom:26px;">IMPORT A PHOTO TO BEGIN</div>
               <!-- Buttons -->
               <div style="display:flex;flex-direction:column;gap:10px;width:100%;">
-                <div onclick="document.getElementById('editor-file-input').click()" style="cursor:pointer;width:100%;padding:15px 0;border-radius:100px;font-size:8.5px;letter-spacing:0.20em;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(135deg,rgba(205,58,92,1),rgba(162,32,62,1));color:rgba(255,255,255,0.95);box-shadow:0 4px 20px rgba(180,48,78,0.40);box-sizing:border-box;-webkit-tap-highlight-color:transparent;">
+                <div onclick="showEditorImportSheet()" style="cursor:pointer;width:100%;padding:15px 0;border-radius:100px;font-size:8.5px;letter-spacing:0.20em;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(135deg,rgba(205,58,92,1),rgba(162,32,62,1));color:rgba(255,255,255,0.95);box-shadow:0 4px 20px rgba(180,48,78,0.40);box-sizing:border-box;-webkit-tap-highlight-color:transparent;">
                   <svg width="14" height="13" viewBox="0 0 14 13" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="4" width="12" height="8.5" rx="1.5" stroke="currentColor" stroke-width="1.15"/><path d="M4.8 4V3C4.8 2.45 5.25 2 5.8 2H8.2C8.75 2 9.2 2.45 9.2 3V4" stroke="currentColor" stroke-width="1.15"/><circle cx="7" cy="8.2" r="2" stroke="currentColor" stroke-width="1.15"/></svg>
                   IMPORT FROM DEVICE
                 </div>
@@ -4029,8 +4029,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
         </div>
       </div>
 
-      <!-- ── Editor File Input ── -->
-      <input type="file" id="editor-file-input" accept="image/*" style="display:none" onchange="editorLoadFile(this)">
+      <!-- ── Editor File Inputs ── -->
+      <input type="file" id="editor-file-input"        accept="image/*"  style="display:none" onchange="editorLoadFile(this)">
+      <input type="file" id="editor-file-input-camera" accept="image/*"  capture="environment" style="display:none" onchange="editorLoadFile(this)">
+      <input type="file" id="editor-file-input-files"                    style="display:none" onchange="editorLoadFile(this)">
 
     </div><!-- /center -->
 
@@ -11333,6 +11335,46 @@ function hslSelectChannel(dot) {
       </div>
     </div>
   </div>
+
+<!-- ── Import sheet ── -->
+<div id="import-sheet" style="display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;justify-content:flex-end;" onclick="if(event.target===this)closeImportSheet()">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);"></div>
+  <div style="position:relative;background:rgba(22,16,32,0.98);border-radius:18px 18px 0 0;border-top:0.5px solid rgba(201,184,212,0.12);overflow:hidden;padding-bottom:env(safe-area-inset-bottom);">
+    <!-- handle -->
+    <div style="width:36px;height:4px;border-radius:2px;background:rgba(201,184,212,0.22);margin:10px auto 4px;"></div>
+    <!-- items -->
+    <div onclick="importSheetChoice('library')" style="display:flex;align-items:center;justify-content:space-between;padding:17px 22px;cursor:pointer;border-bottom:0.5px solid rgba(201,184,212,0.07);-webkit-tap-highlight-color:transparent;">
+      <span style="font-size:16px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:rgba(235,225,245,0.92);">Photo Library</span>
+      <svg width="22" height="20" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.55;color:rgba(201,184,212,1)"><rect x="1" y="4" width="20" height="15" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M1 13l5-4 4 3.5 3-2.5 7 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="8.5" r="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 1h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </div>
+    <div onclick="importSheetChoice('camera')" style="display:flex;align-items:center;justify-content:space-between;padding:17px 22px;cursor:pointer;border-bottom:0.5px solid rgba(201,184,212,0.07);-webkit-tap-highlight-color:transparent;">
+      <span style="font-size:16px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:rgba(235,225,245,0.92);">Take Photo</span>
+      <svg width="22" height="20" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.55;color:rgba(201,184,212,1)"><rect x="1" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.4"/><circle cx="11" cy="12" r="3.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 5V4C7 3.45 7.45 3 8 3H14C14.55 3 15 3.45 15 4V5" stroke="currentColor" stroke-width="1.4"/><circle cx="17" cy="8.5" r="1" fill="currentColor" opacity="0.6"/></svg>
+    </div>
+    <div onclick="importSheetChoice('files')" style="display:flex;align-items:center;justify-content:space-between;padding:17px 22px;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+      <span style="font-size:16px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:rgba(235,225,245,0.92);">Choose File</span>
+      <svg width="22" height="20" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.55;color:rgba(201,184,212,1)"><path d="M2 5C2 3.9 2.9 3 4 3H9L11 5.5H18C19.1 5.5 20 6.4 20 7.5V16C20 17.1 19.1 18 18 18H4C2.9 18 2 17.1 2 16V5Z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
+    </div>
+  </div>
+</div>
+
+<script>
+function showEditorImportSheet() {
+  var s = document.getElementById('import-sheet');
+  s.style.display = 'flex';
+}
+function closeImportSheet() {
+  document.getElementById('import-sheet').style.display = 'none';
+}
+function importSheetChoice(type) {
+  closeImportSheet();
+  setTimeout(function() {
+    if (type === 'library') document.getElementById('editor-file-input').click();
+    else if (type === 'camera') document.getElementById('editor-file-input-camera').click();
+    else document.getElementById('editor-file-input-files').click();
+  }, 80);
+}
+</script>
 
 </body>
 </html>

@@ -3093,6 +3093,30 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   inset: 0;
   background: linear-gradient(to bottom, rgba(5,3,8,0.10) 0%, transparent 30%, rgba(6,4,9,0.55) 65%, rgba(5,3,8,0.82) 100%);
 }
+/* Top-left brand overlay */
+.hv-hero-topbar {
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 2;
+  padding: 20px 20px 0;
+}
+.hv-hero-zoe {
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 8vw, 44px);
+  color: rgba(255,248,238,0.92);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  font-weight: 400;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.50);
+}
+.hv-hero-alchemy {
+  font-family: var(--font-mono);
+  font-size: clamp(7px, 1.8vw, 9px);
+  letter-spacing: 0.32em;
+  color: rgba(210,188,162,0.55);
+  margin-top: 4px;
+  text-transform: uppercase;
+}
 /* Hero text content — bottom-anchored like the Halo banner */
 .hv-hero-content {
   position: relative;
@@ -3513,6 +3537,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
         <div class="hv-hero">
           <img class="hv-hero-img" id="hv-featured-img" src="" alt="" onerror="this.style.display='none'">
           <div class="hv-hero-scrim"></div>
+          <div class="hv-hero-topbar">
+            <div class="hv-hero-zoe">ZOË</div>
+            <div class="hv-hero-alchemy">DIGITAL ALCHEMY</div>
+          </div>
           <div class="hv-hero-content">
             <div class="hv-hero-label">FEATURED PRESET</div>
             <div class="hv-hero-title">Carmine <span class="hv-hero-title-spark">✦</span></div>

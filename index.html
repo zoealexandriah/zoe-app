@@ -4768,7 +4768,9 @@ function initParticles(){
 }
 function resizeParticles(){pX=pC.width=window.innerWidth;pY=pC.height=window.innerHeight;}
 function makePt(rand=false){return{x:Math.random()*pX,y:rand?Math.random()*pY:pY+5,r:Math.random()*0.95+0.15,s:Math.random()*0.14+0.04,d:(Math.random()-0.5)*0.05,a:Math.random()*0.22+0.04,f:Math.random()*Math.PI*2,fs:Math.random()*0.015+0.006,holo:Math.random()>0.8};}
+var _animPtsRafId = null;
 function animPts(){
+  if (window._stopParticles) { _animPtsRafId = null; return; }
   pCtx.clearRect(0,0,pX,pY);
   for(let i=pts.length-1;i>=0;i--){
     const p=pts[i];p.y-=p.s;p.x+=p.d;p.f+=p.fs;
@@ -4778,7 +4780,7 @@ function animPts(){
     pCtx.fill();
     if(p.y<-5)pts[i]=makePt(false);
   }
-  requestAnimationFrame(animPts);
+  _animPtsRafId = requestAnimationFrame(animPts);
 }
 
 // ══════════════════════════════════════
@@ -5914,6 +5916,7 @@ function loadUserImage(file) {
     const img = new Image();
     img.onload = () => {
       userImage = img;
+      if (typeof _clearPresetThumbCaches === 'function') _clearPresetThumbCaches();
       // Clear any previous edit state
       editAdj = {};
       activePresetForEdit = null;
@@ -9231,7 +9234,17 @@ function evInit() {
   evUpdateUndoRedo();
 }
 
+var _evRenderScheduled = false;
 function evRenderCanvas() {
+  // Coalesce rapid back-to-back calls into one rAF — prevents stacked pixel ops
+  if (_evRenderScheduled) return;
+  _evRenderScheduled = true;
+  requestAnimationFrame(function() {
+    _evRenderScheduled = false;
+    _evRenderCanvasImmediate();
+  });
+}
+function _evRenderCanvasImmediate() {
   var canvas = document.getElementById('ev-canvas');
   var area   = document.getElementById('ev-canvas-area');
   if (!canvas || !area || !userImage) return;
@@ -9361,6 +9374,10 @@ function evRenderCanvas() {
 
 // Render a preset thumbnail using the user's actual photo + preset adjustments.
 // Falls back to synthetic renderPhoto if no userImage is loaded.
+function _clearPresetThumbCaches() {
+  presets.forEach(function(pr) { pr._thumbCache = null; pr._thumbCacheSrc = null; });
+}
+
 function renderPresetThumb(canvas, p) {
   if (!canvas) return;
   if (!userImage) {
@@ -9369,12 +9386,19 @@ function renderPresetThumb(canvas, p) {
   }
   var ctx = canvas.getContext('2d');
   var w = canvas.width, h = canvas.height;
-  // Cover-fit the user's photo into the thumbnail (w/h are buffer pixels, may be DPR-scaled)
+  var imgSrc = userImage.src;
+
+  // Return cached render — skip expensive pixel ops if image hasn't changed
+  if (p._thumbCache && p._thumbCacheSrc === imgSrc && p._thumbCacheW === w && p._thumbCacheH === h) {
+    ctx.putImageData(p._thumbCache, 0, 0);
+    return;
+  }
+
+  // Full render
   var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
   var scale = Math.max(w / iw, h / ih);
   var sw = iw * scale, sh = ih * scale;
   ctx.drawImage(userImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
-  // Apply preset adjustments so thumbnail matches full render
   if (p.defaults) {
     var adj = buildAdjustments(p.defaults);
     if (p.splitTone) adj.split_tone = p.splitTone;
@@ -9387,6 +9411,14 @@ function renderPresetThumb(canvas, p) {
     ctx.putImageData(new ImageData(processed, w, h), 0, 0);
     if (p.curve) applyCurveLUTs(canvas, p.curve, 0, 0, w, h);
   }
+
+  // Cache the result (one getImageData per preset per image, amortized over all future preset switches)
+  try {
+    p._thumbCache    = ctx.getImageData(0, 0, w, h);
+    p._thumbCacheSrc = imgSrc;
+    p._thumbCacheW   = w;
+    p._thumbCacheH   = h;
+  } catch(e) {}
 }
 
 function evRenderPresets() {
@@ -9627,6 +9659,7 @@ function galleryOpenInEditor(idx) {
   // Set up globals
   editingIdx = idx;
   userImage  = entry.img;
+  _clearPresetThumbCaches(); // new image — invalidate all cached thumbnails
   evHistory.length = 0;
   evFuture.length  = 0;
   Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
@@ -9956,22 +9989,19 @@ function autoSaveEdit() {
 
 function scheduleAutoSave() {
   clearTimeout(_autoSaveTimer);
-  _autoSaveTimer = setTimeout(autoSaveEdit, 800);
+  _autoSaveTimer = setTimeout(autoSaveEdit, 1500); // increased from 800ms — less I/O pressure while editing
 }
 
-// Patch doRender to trigger auto-save
-const _origDoRenderAS = window.doRender;
-window.doRender = function(presetId) {
-  _origDoRenderAS(presetId);
+// Auto-save only on drag END (not on every rendered frame)
+const _origSlEndDragAS = _slEndDrag;
+window._slEndDragWithSave = function() {
+  _origSlEndDragAS();
   scheduleAutoSave();
 };
-
-// Patch evRenderCanvas to also trigger auto-save (EV editor path bypasses doRender)
-const _origEvRenderCanvasAS = window.evRenderCanvas;
-window.evRenderCanvas = function() {
-  if (_origEvRenderCanvasAS) _origEvRenderCanvasAS.apply(this, arguments);
-  scheduleAutoSave();
-};
+document.removeEventListener('mouseup',  _slEndDrag);
+document.removeEventListener('touchend', _slEndDrag);
+document.addEventListener('mouseup',  window._slEndDragWithSave);
+document.addEventListener('touchend', window._slEndDragWithSave);
 
 // ── Fix 4: Back to gallery ───────────────────────────────────────────────
 function editorBackToGallery() {
@@ -10282,6 +10312,14 @@ window.switchToTab = function(label) {
   if (label !== 'EDITOR') {
     clearTimeout(_autoSaveTimer);
     autoSaveEdit();
+  }
+  // Stop particle loop in editor (expensive rAF running 60fps continuously)
+  if (label === 'EDITOR') {
+    window._stopParticles = true;
+    if (_animPtsRafId) { cancelAnimationFrame(_animPtsRafId); _animPtsRafId = null; }
+  } else {
+    window._stopParticles = false;
+    if (!_animPtsRafId && typeof animPts === 'function') _animPtsRafId = requestAnimationFrame(animPts);
   }
   if (_origSwitchToTab) _origSwitchToTab.call(this, label);
   if (label === 'GALLERY') renderLibrary();

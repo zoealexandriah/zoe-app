@@ -3070,14 +3070,14 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .hv-hero {
   position: relative;
   width: 100%;
-  min-height: 72vw;
-  max-height: 90vh;
-  background: linear-gradient(160deg, #0c1a12 0%, #081110 42%, #060409 100%);
+  height: 82svh;
+  min-height: 480px;
+  background: linear-gradient(175deg, #2a1a0c 0%, #3a2410 18%, #2c1c0c 36%, #1a1208 55%, #0e0c0a 74%, #080608 100%);
   overflow: hidden;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 .hv-hero-img {
   position: absolute;
@@ -3085,71 +3085,71 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 15%;
-  opacity: 0.82;
+  object-position: center 20%;
+  opacity: 0.78;
 }
 .hv-hero-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(5,3,8,0.18) 0%, transparent 38%, rgba(5,3,8,0.62) 100%);
+  background: linear-gradient(to bottom, rgba(5,3,8,0.10) 0%, transparent 30%, rgba(6,4,9,0.55) 65%, rgba(5,3,8,0.82) 100%);
 }
-.hv-brand {
+/* Hero text content — bottom-anchored like the Halo banner */
+.hv-hero-content {
   position: relative;
   z-index: 2;
-  padding: 22px 18px 0;
+  padding: 0 22px 28px;
 }
-.hv-brand-title {
-  font-family: var(--font-serif);
-  font-size: clamp(46px, 14vw, 80px);
-  color: rgba(255,248,240,0.96);
-  letter-spacing: 0.04em;
-  line-height: 1;
-  font-weight: 400;
-  text-shadow: 0 2px 32px rgba(0,0,0,0.55);
-}
-.hv-brand-sub {
-  font-family: var(--font-mono);
-  font-size: clamp(7.5px, 2vw, 10px);
-  letter-spacing: 0.32em;
-  color: rgba(210,188,168,0.60);
-  margin-top: 5px;
-  text-transform: uppercase;
-}
-.hv-preset-card {
-  position: relative;
-  z-index: 2;
-  align-self: flex-start;
-  margin: 0 18px 22px;
-  background: rgba(8,5,12,0.68);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 0.5px solid rgba(192,72,72,0.30);
-  border-radius: 2px;
-  padding: 9px 13px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 88px;
-}
-.hv-preset-num {
+.hv-hero-label {
   font-family: var(--font-mono);
   font-size: 8.5px;
-  letter-spacing: 0.22em;
-  color: rgba(192,72,72,0.65);
+  letter-spacing: 0.38em;
+  color: rgba(210,160,90,0.72);
+  text-transform: uppercase;
+  margin-bottom: 10px;
 }
-.hv-preset-name {
+.hv-hero-title {
   font-family: var(--font-serif);
-  font-size: 19px;
-  letter-spacing: 0.06em;
-  color: rgba(248,228,215,0.95);
-  line-height: 1;
+  font-size: clamp(40px, 12vw, 64px);
+  color: rgba(255,245,232,0.97);
+  letter-spacing: 0.02em;
+  line-height: 1.05;
   font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-shadow: 0 2px 28px rgba(0,0,0,0.45);
 }
-.hv-preset-series {
-  font-family: var(--font-mono);
-  font-size: 7.5px;
-  letter-spacing: 0.30em;
-  color: rgba(192,72,72,0.48);
+.hv-hero-title-spark {
+  font-size: 0.48em;
+  color: rgba(210,160,90,0.80);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.hv-hero-desc {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(12px, 3.2vw, 15px);
+  line-height: 1.55;
+  color: rgba(220,200,178,0.68);
+  margin-top: 10px;
+  max-width: 320px;
+}
+/* Slideshow dots */
+.hv-hero-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 18px;
+  align-items: center;
+}
+.hv-hero-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(220,195,158,0.28);
+  transition: background 0.2s;
+}
+.hv-hero-dot.active {
+  background: rgba(220,195,158,0.80);
 }
 
 /* Sections */
@@ -3475,18 +3475,19 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
       <!-- ── HOME VIEW ── -->
       <div id="home-view" class="active">
 
-        <!-- Hero: featured image + ZOë brand + Carmine card -->
+        <!-- Hero: featured image + featured preset -->
         <div class="hv-hero">
           <img class="hv-hero-img" id="hv-featured-img" src="" alt="" onerror="this.style.display='none'">
           <div class="hv-hero-scrim"></div>
-          <div class="hv-brand">
-            <div class="hv-brand-title">ZOË</div>
-            <div class="hv-brand-sub">DIGITAL ALCHEMY</div>
-          </div>
-          <div class="hv-preset-card">
-            <div class="hv-preset-num">01</div>
-            <div class="hv-preset-name">Carmine</div>
-            <div class="hv-preset-series">FILM</div>
+          <div class="hv-hero-content">
+            <div class="hv-hero-label">FEATURED PRESET</div>
+            <div class="hv-hero-title">Carmine <span class="hv-hero-title-spark">✦</span></div>
+            <div class="hv-hero-desc">rich in warmth. deep in grain.<br>a film preset that feels like the last light of day.</div>
+            <div class="hv-hero-dots">
+              <div class="hv-hero-dot active"></div>
+              <div class="hv-hero-dot"></div>
+              <div class="hv-hero-dot"></div>
+            </div>
           </div>
         </div>
 

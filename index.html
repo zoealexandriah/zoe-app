@@ -10902,6 +10902,10 @@ function cropStraightenPreview(val) {
 function cropRotate90(dir) {
   var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!hc || !userImage) return;
+  // Remove overlays immediately — before image decode, so there's no flash
+  var _o = document.getElementById('crop-overlay-canvas'); if (_o) _o.remove();
+  var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
+  var _sw2 = document.getElementById('straighten-work-canvas'); if (_sw2) _sw2.remove();
   var tmp = document.createElement('canvas');
   tmp.width = hc.height; tmp.height = hc.width;
   var ctx = tmp.getContext('2d');
@@ -10913,17 +10917,17 @@ function cropRotate90(dir) {
   newImg.onload = function() {
     userImage = newImg;
     _cropStraightenOrig = newImg;
-    // Remove overlay and straighten canvas immediately — no delay, no flash
-    var _o = document.getElementById('crop-overlay-canvas'); if (_o) _o.remove();
-    var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
     cropRect = null;
     var ev = document.getElementById('editor-view');
     if (ev && ev.style.display === 'flex' && typeof evRenderCanvas === 'function') {
       evRenderCanvas();
-      if (typeof window.etSelectTool === 'function') {
-        _etCropDefaultTab = 'transform';
-        window.etSelectTool('crop');
-      }
+      // Delay crop UI rebuild until after rAF has painted the new frame
+      setTimeout(function() {
+        if (typeof window.etSelectTool === 'function') {
+          _etCropDefaultTab = 'transform';
+          window.etSelectTool('crop');
+        }
+      }, 60);
     } else { loadImageToCanvas(hc, newImg); }
     showToast('ROTATED');
   };

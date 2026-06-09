@@ -10744,24 +10744,26 @@ function _cropExitMode() {
 function cropSelectSubTab(btn, tab) {
   document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
+  // Always clean up overlays immediately to prevent flash
+  var ov = document.getElementById('crop-overlay-canvas');
+  if (ov) ov.style.display = 'none';
+  var sw = document.getElementById('crop-straighten-work'); if (sw) sw.remove();
   ['straighten','ratio','transform'].forEach(function(id) {
     var el = document.getElementById('crop-sub-' + id);
     if (el) el.style.display = id === tab ? '' : 'none';
   });
-  var ov = document.getElementById('crop-overlay-canvas');
   if (tab === 'ratio') {
     // Re-sync overlay size/position to current canvas state, then show
     var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
     if (ov && ac && ac.width > 0) {
-      // Center overlay over canvas using explicit area math — immune to transforms/offsetLeft quirks
+      var _acRect = ac.getBoundingClientRect();
+      var _parRect = ac.parentElement.getBoundingClientRect();
       ov.width  = ac.width;
       ov.height = ac.height;
-      var _acW2 = ac.clientWidth, _acH2 = ac.clientHeight;
-      var _arW2 = ac.parentElement.clientWidth, _arH2 = ac.parentElement.clientHeight;
-      ov.style.width  = _acW2 + 'px';
-      ov.style.height = _acH2 + 'px';
-      ov.style.left   = Math.round((_arW2 - _acW2) / 2) + 'px';
-      ov.style.top    = Math.round((_arH2 - _acH2) / 2) + 'px';
+      ov.style.width  = _acRect.width  + 'px';
+      ov.style.height = _acRect.height + 'px';
+      ov.style.left   = (_acRect.left - _parRect.left) + 'px';
+      ov.style.top    = (_acRect.top  - _parRect.top)  + 'px';
       // Re-init cropRect if missing or if it exceeds current canvas bounds (e.g. after rotation)
       if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
           || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
@@ -10773,10 +10775,6 @@ function cropSelectSubTab(btn, tab) {
     } else if (ov) {
       ov.style.display = 'block';
     }
-  } else {
-    if (ov) ov.style.display = 'none';
-    // Clean up straighten work canvas when leaving straighten
-    if (tab !== 'straighten') { var sw = document.getElementById('crop-straighten-work'); if (sw) sw.remove(); }
   }
 }
 
@@ -10837,17 +10835,17 @@ function cropRotate90(dir) {
   newImg.onload = function() {
     userImage = newImg;
     _cropStraightenOrig = newImg;
+    // Remove overlay and straighten canvas immediately — no delay, no flash
+    var _o = document.getElementById('crop-overlay-canvas'); if (_o) _o.remove();
+    var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
+    cropRect = null;
     var ev = document.getElementById('editor-view');
     if (ev && ev.style.display === 'flex' && typeof evRenderCanvas === 'function') {
       evRenderCanvas();
-      setTimeout(function() {
-        var _o = document.getElementById('crop-overlay-canvas'); if(_o) _o.remove();
-        cropRect = null;
-        if (typeof window.etSelectTool === 'function') {
-          _etCropDefaultTab = 'transform'; // etCropHTML will open on TRANSFORM, no flash
-          window.etSelectTool('crop');
-        }
-      }, 100);
+      if (typeof window.etSelectTool === 'function') {
+        _etCropDefaultTab = 'transform';
+        window.etSelectTool('crop');
+      }
     } else { loadImageToCanvas(hc, newImg); }
     showToast('ROTATED');
   };

@@ -9801,8 +9801,18 @@ function toolsCropDrawOnCanvas(hc) {
 window.editorBackToGallery = function editorBackToGallery() {
   clearTimeout(_autoSaveTimer);
   autoSaveEdit();
-  libSaveToStorage();
-  renderLibrary();
+  var _tbEntry = (editingIdx >= 0) ? library[editingIdx] : null;
+  if (_tbEntry && _tbEntry.editState && _tbEntry.editState.presetId && userImage) {
+    _renderBatchThumbnail(_tbEntry, _tbEntry.editState.presetId, _tbEntry.editState.sliders, _tbEntry.editState.intensity, function(off) {
+      _tbEntry.dataURL = off.toDataURL('image/jpeg', 0.92);
+      var tbi = new Image();
+      tbi.onload = function() { _tbEntry.img = tbi; libSaveToStorage(); renderLibrary(); };
+      tbi.src = _tbEntry.dataURL;
+    });
+  } else {
+    libSaveToStorage();
+    renderLibrary();
+  }
 
   const allNavItems = document.querySelectorAll('.nav-item');
   let galleryNav = null;

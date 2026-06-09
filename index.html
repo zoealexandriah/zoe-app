@@ -7807,12 +7807,15 @@ function toolsCropDraw() {
     ov.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:crosshair;z-index:5';
     hc.parentElement.appendChild(ov);
   }
-  // Match canvas display size
+  // Match canvas display size and position within parent
   const hcRect = hc.getBoundingClientRect();
+  const hcPRect = hc.parentElement.getBoundingClientRect();
   ov.width  = hc.width;
   ov.height = hc.height;
   ov.style.width  = hcRect.width  + 'px';
   ov.style.height = hcRect.height + 'px';
+  ov.style.left   = (hcRect.left - hcPRect.left) + 'px';
+  ov.style.top    = (hcRect.top  - hcPRect.top)  + 'px';
 
   if (!cropRect) {
     // Default: 80% of canvas, centered, respecting current ratio
@@ -8014,13 +8017,16 @@ function toolsStraightenUpdate(v) {
     parent.style.overflow = 'hidden';
     parent.appendChild(sc);
   }
-  // Match work canvas to hero-canvas CSS display dimensions
+  // Match work canvas to hero-canvas CSS display dimensions and position
   const hcRect = hc.getBoundingClientRect();
+  const hcPRectSt = hc.parentElement ? hc.parentElement.getBoundingClientRect() : hcRect;
   const cw = hc.width, ch = hc.height;
   sc.width  = cw;
   sc.height = ch;
   sc.style.width  = hcRect.width  + 'px';
   sc.style.height = hcRect.height + 'px';
+  sc.style.left   = (hcRect.left - hcPRectSt.left) + 'px';
+  sc.style.top    = (hcRect.top  - hcPRectSt.top)  + 'px';
 
   // Hide hero-canvas while work canvas is showing
   hc.style.opacity = '0';
@@ -10237,10 +10243,13 @@ function toolsCropDrawOnCanvas(hc) {
     if (hc.parentElement) hc.parentElement.appendChild(ov);
   }
   const hcRect = hc.getBoundingClientRect();
+  const hcPRect2 = hc.parentElement ? hc.parentElement.getBoundingClientRect() : hcRect;
   ov.width  = hc.width;
   ov.height = hc.height;
   ov.style.width  = hcRect.width  + 'px';
   ov.style.height = hcRect.height + 'px';
+  ov.style.left   = (hcRect.left - hcPRect2.left) + 'px';
+  ov.style.top    = (hcRect.top  - hcPRect2.top)  + 'px';
   if (!cropRect) {
     const bw = hc.width * 0.8, bh = hc.height * 0.8;
     cropRect = { x: (hc.width-bw)/2, y: (hc.height-bh)/2, w: bw, h: bh };

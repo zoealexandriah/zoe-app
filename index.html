@@ -7185,7 +7185,13 @@ function toggleSelect(idx) {
   const pos = libSelected.indexOf(idx);
   if (pos >= 0) libSelected.splice(pos, 1);
   else libSelected.push(idx);
-  renderLibrary();
+  // Update only the affected cell — no full grid rebuild
+  var cell = document.querySelector('.lib-photo[data-idx="' + idx + '"]');
+  if (cell) cell.classList.toggle('selected', libSelected.includes(idx));
+  var delBtn  = document.getElementById('lib-delete-btn');
+  if (delBtn) delBtn.style.display = libSelected.length ? 'inline-flex' : 'none';
+  var countEl = document.getElementById('gallery-selected-count');
+  if (countEl) countEl.textContent = libSelected.length + ' SELECTED';
 }
 
 function deleteSelected() {

@@ -8998,6 +8998,19 @@ function globalReset() {
   // Fix 7: Sync ev-sliders and re-render ev-canvas AFTER preset is cleared
   const _evView = document.getElementById('editor-view');
   if (_evView && _evView.style.display === 'flex') {
+    // Clear entry editState so backing out saves the reset (no-preset) state
+    var _rstEntry = (editingIdx >= 0) ? library[editingIdx] : null;
+    if (_rstEntry) {
+      var _rstOrigURL = _rstEntry.editState && _rstEntry.editState.originalDataURL;
+      _rstEntry.editState = null;
+      if (_rstOrigURL) {
+        _rstEntry.dataURL = _rstOrigURL;
+        var _rstImg = new Image();
+        _rstImg.onload = function() { _rstEntry.img = _rstImg; };
+        _rstImg.src = _rstOrigURL;
+        userImage = _rstImg; // also update working image
+      }
+    }
     if (userImage) {
       const hc2 = document.getElementById('hero-canvas');
       if (hc2) loadImageToCanvas(hc2, userImage);

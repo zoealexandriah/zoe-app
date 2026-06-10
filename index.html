@@ -10914,23 +10914,23 @@ window.etSelectTool = function(name) {
 
 // ── Fix 5: Flip using getActiveCanvas ────────────────────────────────────
 window.toolsFlipApply = function(dir) {
-  const hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
-  if (!hc || !userImage) return;
-  _flipPreState = { userImage, canvasData: hc.getContext('2d').getImageData(0, 0, hc.width, hc.height) };
+  if (!userImage) return;
+  // Operate on userImage (clean source) — NOT the canvas, which has adjustments baked in.
+  // Drawing from the canvas would double-apply all sliders/presets on the next render.
+  _flipPreState = { userImage };
   const undoBtn = document.getElementById('et-flip-undo') || document.getElementById('flip-undo-btn');
   if (undoBtn) undoBtn.style.display = 'block';
   const tmp = document.createElement('canvas');
-  tmp.width = hc.width; tmp.height = hc.height;
+  tmp.width  = userImage.naturalWidth;
+  tmp.height = userImage.naturalHeight;
   const ctx = tmp.getContext('2d');
   ctx.save();
-  if (dir === 'h') { ctx.scale(-1, 1); ctx.drawImage(hc, -hc.width, 0); }
-  else             { ctx.scale(1, -1); ctx.drawImage(hc, 0, -hc.height); }
+  if (dir === 'h') { ctx.scale(-1, 1); ctx.drawImage(userImage, -tmp.width,  0); }
+  else             { ctx.scale(1, -1); ctx.drawImage(userImage, 0, -tmp.height); }
   ctx.restore();
-  hc.getContext('2d').drawImage(tmp, 0, 0);
   const newImg = new Image();
-  newImg.onload = async () => {
+  newImg.onload = function() {
     userImage = newImg; _origPixels = null;
-    await captureOriginal(hc, newImg);
     showToast('FLIPPED');
     if (typeof evRenderCanvas === 'function') {
       const ev = document.getElementById('editor-view');
@@ -11285,13 +11285,15 @@ function cropRotate90(dir) {
   var _o = document.getElementById('crop-overlay-canvas'); if (_o) _o.remove();
   var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
   var _sw2 = document.getElementById('straighten-work-canvas'); if (_sw2) _sw2.remove();
+  // Operate on userImage (clean source) — NOT hc, which has adjustments baked in.
+  // Drawing from hc would double-apply all sliders/presets on the next evRenderCanvas() call.
   var tmp = document.createElement('canvas');
-  tmp.width = hc.height; tmp.height = hc.width;
+  tmp.width = userImage.naturalHeight; tmp.height = userImage.naturalWidth;
   var ctx = tmp.getContext('2d');
   ctx.save();
   if (dir === 'cw')  { ctx.translate(tmp.width, 0);   ctx.rotate(Math.PI / 2); }
   else               { ctx.translate(0, tmp.height);  ctx.rotate(-Math.PI / 2); }
-  ctx.drawImage(hc, 0, 0); ctx.restore();
+  ctx.drawImage(userImage, 0, 0); ctx.restore();
   var newImg = new Image();
   newImg.onload = function() {
     userImage = newImg;

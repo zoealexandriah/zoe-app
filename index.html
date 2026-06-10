@@ -5249,6 +5249,8 @@ function _slApplyDrag(e) {
   var rect  = _slDragTrack.getBoundingClientRect();
   var t     = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
   var param = _slDragTrack.dataset.param;
+  var cfg   = sliderConfig[param];
+  if (cfg && cfg[3] !== false && Math.abs(t - 0.5) < 0.04) t = 0.5;
   var pid   = _slDragTrack.dataset.preset;
   if (!sliderState[pid]) sliderState[pid] = {};
   sliderState[pid][param] = t;
@@ -5293,23 +5295,13 @@ function attachSliderListeners(p) {
       e.preventDefault();
     });
     track.addEventListener('touchstart', function(e) {
-      var t0 = e.touches[0];
-      var startX = t0.clientX, startY = t0.clientY;
-      function onFirstMove(ev) {
-        track.removeEventListener('touchmove', onFirstMove);
-        var adx = Math.abs(ev.touches[0].clientX - startX);
-        var ady = Math.abs(ev.touches[0].clientY - startY);
-        if (adx >= ady && adx >= 9) {
-          evHistoryPush();
-          _slDragTrack = track; _slDragPreset = track.dataset.preset;
-          window._slDragging = true;
-          track.classList.add('dragging');
-          _slApplyDrag(ev);
-        }
-      }
-      track.addEventListener('touchmove', onFirstMove, {passive:true});
-      track.addEventListener('touchend', function(){ track.removeEventListener('touchmove', onFirstMove); }, {once:true, passive:true});
-    }, {passive:true});
+      e.preventDefault(); // block native scroll so horizontal drag is reliable
+      evHistoryPush();
+      _slDragTrack = track; _slDragPreset = track.dataset.preset;
+      window._slDragging = true;
+      track.classList.add('dragging');
+      _slApplyDrag(e);
+    }, {passive: false});
   });
 }
 

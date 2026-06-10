@@ -7936,8 +7936,9 @@ function colLoadFromStorage() {
     const raw = localStorage.getItem('zoe_collections');
     if (!raw) return;
     const data = JSON.parse(raw);
-    // Restore each collection
+    // Restore each collection (skip empty UNTITLED leftovers from accidental creation)
     data.forEach(saved => {
+      if (saved.name === 'UNTITLED' && (!saved.photos || saved.photos.length === 0)) return;
       const existing = collections.find(c => c.id === saved.id);
       if (existing) {
         // Update existing (e.g. FAVORITES)

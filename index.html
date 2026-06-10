@@ -2871,6 +2871,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-preset-strip { height: 152px !important; overflow: hidden !important; }
   /* Crop mode: hide ATMOSPHERE/ADJUST nav + canvas-area close button */
   #editor-view.crop-mode #ev-mobile-nav { display: none !important; }
+  /* No-image state: hide nav pills and sub-nav so user can only import or go back */
+  #editor-view.no-image #ev-mobile-nav { display: none !important; }
+  #editor-view.no-image #ev-adjust-subnav { display: none !important; }
   /* Always hide TOOLS header + CROP/FLIP tool rows in ev-tools on mobile */
   #ev-tools .et-section-header,
   #ev-tools .et-tool-row { display: none !important; }
@@ -6138,7 +6141,11 @@ function loadUserImage(file) {
   reader.readAsDataURL(file);
 }
 
-function activateEditMode() { /* replaced by openEditor() */ }
+function activateEditMode() {
+  // Called after userImage is set via direct file upload — re-run evInit so
+  // the no-image class is removed and nav pills become visible.
+  if (typeof evInit === 'function') evInit();
+}
 
 // ── Render the hero canvas with user image ───────────
 function renderHeroUser(adj) {
@@ -9626,6 +9633,9 @@ function evInit() {
   var canvas  = document.getElementById('ev-canvas');
   if (noPhoto) noPhoto.style.display = userImage ? 'none' : 'flex';
   if (canvas)  canvas.style.display  = userImage ? 'block' : 'none';
+  // Hide nav pills when no image is loaded so user can't tap into broken editor state
+  var edView = document.getElementById('editor-view');
+  if (edView) edView.classList.toggle('no-image', !userImage);
   // Undo/redo button state
   evUpdateUndoRedo();
 }

@@ -7351,6 +7351,7 @@ function renderLibrary() {
     const cell = document.createElement('div');
     cell.className = 'lib-photo' + (libSelected.includes(idx) ? ' selected' : '');
     cell.dataset.idx = idx;
+    cell.style.touchAction = 'manipulation'; // eliminates browser 300ms click delay
     cell.innerHTML = `
       <img src="${entry.dataURL}" alt="${entry.name}" loading="lazy">
       <div class="lib-photo-overlay"></div>

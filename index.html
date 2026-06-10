@@ -11002,6 +11002,10 @@ window.galleryCopyEdits = function(imageId) {
     setTimeout(function() {
       var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
       if (!ac || !userImage) return;
+      // Reset zoom/pan so getBoundingClientRect matches the true CSS image size
+      // (any zoom scale would inflate _cr.width, making the overlay wider than the image)
+      if (typeof evZoomLevel !== 'undefined') evZoomLevel = 1;
+      if (typeof evPanX !== 'undefined') { evPanX = 0; evPanY = 0; }
       // Render canvas synchronously so its CSS size reflects the crop-mode layout
       // (crop-mode hides the mobile nav, giving ev-canvas-area more height)
       if (typeof _evRenderCanvasImmediate === 'function') _evRenderCanvasImmediate();
@@ -11212,8 +11216,9 @@ function cropSelectSubTab(btn, tab) {
       var _parRect = ac.parentElement.getBoundingClientRect();
       ov.width  = ac.width;
       ov.height = ac.height;
-      ov.style.width  = _acRect.width  + 'px';
-      ov.style.height = _acRect.height + 'px';
+      // Use clientWidth/Height (unaffected by CSS transform) for size so zoom scale doesn't bleed in
+      ov.style.width  = ac.clientWidth  + 'px';
+      ov.style.height = ac.clientHeight + 'px';
       ov.style.left   = (_acRect.left - _parRect.left) + 'px';
       ov.style.top    = (_acRect.top  - _parRect.top)  + 'px';
       // Re-init cropRect if missing or if it exceeds current canvas bounds (e.g. after rotation)

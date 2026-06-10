@@ -10937,29 +10937,30 @@ window.galleryCopyEdits = function(imageId) {
     if (_edV) _edV.classList.add('crop-mode');
     _prevEtSelectToolFinal(name); // run chain for UI setup
     setTimeout(function() {
-      // Resize canvas to fit the CURRENT container (adjust panel may have reduced height)
-      if (typeof evRenderCanvas === 'function') evRenderCanvas();
       var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
       if (!ac || !userImage) return;
+      // Render canvas synchronously so its CSS size reflects the crop-mode layout
+      // (crop-mode hides the mobile nav, giving ev-canvas-area more height)
+      if (typeof _evRenderCanvasImmediate === 'function') _evRenderCanvasImmediate();
       // Remove any overlay from earlier patches
       var _old = document.getElementById('crop-overlay-canvas');
       if (_old) _old.remove();
       cropRect = null; cropDragging = null;
       // Init straighten original image reference
       if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
-      // Fresh overlay on correct parent — use offsetLeft/offsetTop for exact canvas position
+      // Fresh overlay — getBoundingClientRect gives pixel-perfect position after sync render
       var ov = document.createElement('canvas');
       ov.id = 'crop-overlay-canvas';
       ov.style.cssText = 'position:absolute;pointer-events:auto;cursor:crosshair;z-index:5;touch-action:none';
       ac.parentElement.appendChild(ov);
       ov.width  = ac.width;
       ov.height = ac.height;
-      var _acW = ac.clientWidth, _acH = ac.clientHeight;
-      var _arW = ac.parentElement.clientWidth, _arH = ac.parentElement.clientHeight;
-      ov.style.width  = _acW + 'px';
-      ov.style.height = _acH + 'px';
-      ov.style.left   = Math.round((_arW - _acW) / 2) + 'px';
-      ov.style.top    = Math.round((_arH - _acH) / 2) + 'px';
+      var _cr = ac.getBoundingClientRect();
+      var _pr = ac.parentElement.getBoundingClientRect();
+      ov.style.width  = _cr.width  + 'px';
+      ov.style.height = _cr.height + 'px';
+      ov.style.left   = (_cr.left - _pr.left) + 'px';
+      ov.style.top    = (_cr.top  - _pr.top)  + 'px';
       // Init crop rect respecting current ratio
       var cw = ac.width, ch = ac.height;
       var bw = cw * 0.8, bh = ch * 0.8;

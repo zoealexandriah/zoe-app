@@ -7388,28 +7388,33 @@ function renderLibrary() {
       <div class="lib-photo-overlay"></div>
     `;
     cell.addEventListener('click', function(e) {
-      // If already selecting, fire instantly — no double-tap delay
+      var now = Date.now();
+      // Double-tap → open in editor. Check BEFORE select-mode guard because
+      // the first tap already selected this item (libSelected.length > 0).
+      if (!window.gallerySelectMode && window._galLastTapIdx === idx && now - window._galLastTapTime < 400) {
+        clearTimeout(window._galTapTimer);
+        // Undo the selection the first tap applied
+        var si = libSelected.indexOf(idx);
+        if (si !== -1) { libSelected.splice(si, 1); renderLibrary(); }
+        window._galLastTapIdx = -1;
+        window._galLastTapTime = 0;
+        galleryOpenInEditor(idx);
+        return;
+      }
+      // Multi-select mode (other items already selected, or explicit select mode): instant toggle
       if (libSelected.length > 0 || window.gallerySelectMode) {
         toggleSelect(idx);
         return;
       }
-      // Otherwise wait briefly to distinguish single-tap (select) from double-tap (open)
-      var now = Date.now();
-      if (window._galLastTapIdx === idx && now - window._galLastTapTime < 400) {
-        clearTimeout(window._galTapTimer);
+      // First tap with nothing selected: select immediately, open a 400ms double-tap window
+      toggleSelect(idx);
+      window._galLastTapIdx = idx;
+      window._galLastTapTime = now;
+      clearTimeout(window._galTapTimer);
+      window._galTapTimer = setTimeout(function() {
         window._galLastTapIdx = -1;
         window._galLastTapTime = 0;
-        galleryOpenInEditor(idx);
-      } else {
-        window._galLastTapIdx = idx;
-        window._galLastTapTime = now;
-        clearTimeout(window._galTapTimer);
-        window._galTapTimer = setTimeout(function() {
-          window._galLastTapIdx = -1;
-          window._galLastTapTime = 0;
-          toggleSelect(idx);
-        }, 400);
-      }
+      }, 400);
     });
     cols[idx % NUM_COLS].appendChild(cell);
   });

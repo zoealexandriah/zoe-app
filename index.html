@@ -3075,12 +3075,43 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     height: 20px !important;
     background: transparent !important;
   }
-  .sl-track::before { display: none !important; }
+  /* Visible track line behind the fill — makes 0-value sliders look styled, not broken */
+  .sl-track::before {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important; right: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    height: 1.5px !important;
+    background: rgba(200, 168, 232, 0.14) !important;
+    border-radius: 100px !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+  }
+  /* Center tick mark — shows the neutral point on bipolar sliders */
+  .sl-track::after {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 1.5px !important;
+    height: 6px !important;
+    background: rgba(200, 168, 232, 0.22) !important;
+    border-radius: 1px !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+  }
   .sl-fill {
     height: 2px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
+    z-index: 2 !important;
+    position: absolute !important;
   }
+  .sl-thumb { z-index: 3 !important; position: absolute !important; }
   .slider-section-title, .sl-reset-btn { display: none !important; }
 
   /* HSL dot row: horizontal across top of HSL panel */

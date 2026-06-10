@@ -1727,7 +1727,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 
 /* ── Level 2: inside a collection ── */
-#col-level2 { display: none; flex-direction: column; flex: 1; overflow: hidden }
+#col-level2 { display: none; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden }
 #col-level2.active { display: flex }
 
 .col-l2-bar {
@@ -1840,13 +1840,54 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .col-l2-empty {
   grid-column: 1/-1;
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 12px; padding: 48px 0;
+  align-items: center;
+  padding: 24px 28px 48px;
+  min-height: 72vh;
+  justify-content: center;
 }
-.col-l2-empty-label {
-  font-size: 9px; letter-spacing: 0.28em;
-  color: rgba(175,162,200,0.35); font-family: var(--mono);
+.col-empty-visual { margin-bottom: 30px; flex-shrink: 0; }
+.col-empty-heading {
+  font-size: 22px; font-weight: 300;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  color: rgba(225,215,240,0.88);
+  text-align: center; margin-bottom: 10px;
 }
+.col-empty-sub {
+  font-size: 13px; line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  color: rgba(175,162,200,0.48);
+  text-align: center; max-width: 270px;
+  margin-bottom: 30px;
+}
+.col-empty-add-btn {
+  width: 100%; max-width: 320px;
+  padding: 16px 0;
+  background: linear-gradient(135deg,#c0405a,#8a1a2e);
+  border: none; border-radius: 100px;
+  color: rgba(255,255,255,0.96);
+  font-size: 10px; letter-spacing: 0.22em; font-family: var(--mono);
+  cursor: pointer; box-shadow: 0 6px 22px rgba(138,26,46,0.32);
+  margin-bottom: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+.col-empty-or {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; max-width: 320px; margin-bottom: 14px;
+}
+.col-empty-or-line { flex: 1; height: 0.5px; background: rgba(201,184,212,0.10); }
+.col-empty-or span {
+  font-size: 8px; letter-spacing: 0.20em;
+  color: rgba(175,162,200,0.28); font-family: var(--mono);
+}
+.col-empty-import-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: none;
+  color: rgba(192,100,120,0.72);
+  font-size: 9px; letter-spacing: 0.20em; font-family: var(--mono);
+  cursor: pointer; padding: 8px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.col-empty-import-btn:active { color: rgba(220,130,150,0.90); }
 
 /* Lightbox modal */
 #col-lightbox {
@@ -7954,8 +7995,77 @@ function colRenderL2() {
     const empty = document.createElement('div');
     empty.className = 'col-l2-empty';
     empty.innerHTML = `
-      <div class="col-l2-empty-label">NO PHOTOS YET</div>
-      <div class="col-l2-add" onclick="colAddPhotos()" style="margin-top:4px">+ ADD MORE</div>`;
+      <div class="col-empty-visual">
+        <svg viewBox="0 0 260 260" width="220" height="220" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <defs>
+            <filter id="cef-glow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="7" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Ambient glow -->
+          <ellipse cx="145" cy="148" rx="90" ry="70" fill="rgba(192,64,90,0.07)"/>
+          <!-- Film strip — rotated left -->
+          <g transform="rotate(-11,52,138)">
+            <rect x="12" y="26" width="64" height="220" rx="5"
+              fill="rgba(22,13,34,0.94)" stroke="rgba(192,64,90,0.20)" stroke-width="0.8"/>
+            <rect x="21" y="35" width="9" height="7" rx="1.5" fill="rgba(0,0,0,0.65)"/>
+            <rect x="36" y="35" width="9" height="7" rx="1.5" fill="rgba(0,0,0,0.65)"/>
+            <rect x="51" y="35" width="9" height="7" rx="1.5" fill="rgba(0,0,0,0.65)"/>
+            <rect x="21" y="51" width="46" height="38" rx="2" fill="rgba(192,64,90,0.06)" stroke="rgba(192,64,90,0.13)" stroke-width="0.5"/>
+            <rect x="21" y="96" width="46" height="38" rx="2" fill="rgba(192,64,90,0.06)" stroke="rgba(192,64,90,0.13)" stroke-width="0.5"/>
+            <rect x="21" y="141" width="46" height="38" rx="2" fill="rgba(192,64,90,0.06)" stroke="rgba(192,64,90,0.13)" stroke-width="0.5"/>
+            <rect x="21" y="196" width="9" height="7" rx="1.5" fill="rgba(0,0,0,0.65)"/>
+            <rect x="36" y="196" width="9" height="7" rx="1.5" fill="rgba(0,0,0,0.65)"/>
+            <rect x="51" y="196" width="9" height="7" rx="1.5" fill="rgba(0,0,0,0.65)"/>
+          </g>
+          <!-- Back polaroid — tilted right -->
+          <g transform="rotate(9,178,145)">
+            <rect x="118" y="63" width="118" height="152" rx="5"
+              fill="rgba(26,16,40,0.88)" stroke="rgba(192,64,90,0.16)" stroke-width="0.8"/>
+            <rect x="128" y="72" width="98" height="100" rx="2"
+              fill="rgba(10,5,18,0.55)"/>
+          </g>
+          <!-- Front polaroid — slight tilt, glow -->
+          <g transform="rotate(-4,155,148)" filter="url(#cef-glow)">
+            <rect x="97" y="62" width="118" height="152" rx="5"
+              fill="rgba(30,19,45,0.97)" stroke="rgba(192,64,90,0.30)" stroke-width="0.9"/>
+            <rect x="97" y="62" width="118" height="2.5" rx="2.5"
+              fill="rgba(192,64,90,0.45)"/>
+            <rect x="107" y="71" width="98" height="100" rx="2"
+              fill="rgba(10,5,18,0.58)" stroke="rgba(192,64,90,0.09)" stroke-width="0.5"/>
+          </g>
+          <!-- Flower ornament on front polaroid -->
+          <g transform="rotate(-4,155,148)">
+            <g transform="translate(156,189)" fill="rgba(192,64,90,0.40)">
+              <circle cx="0" cy="0" r="3.5"/>
+              <ellipse cx="0" cy="-7" rx="2" ry="3.5"/>
+              <ellipse cx="0" cy="7" rx="2" ry="3.5"/>
+              <ellipse cx="-7" cy="0" rx="3.5" ry="2"/>
+              <ellipse cx="7" cy="0" rx="3.5" ry="2"/>
+              <ellipse cx="-5" cy="-5" rx="1.8" ry="3.2" transform="rotate(-45)"/>
+              <ellipse cx="5" cy="-5" rx="1.8" ry="3.2" transform="rotate(45) translate(0,-7)"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="col-empty-heading">This collection is empty</div>
+      <div class="col-empty-sub">Add photos to start building this collection.</div>
+      <button class="col-empty-add-btn" onclick="colAddPhotos()">+ ADD PHOTOS</button>
+      <div class="col-empty-or">
+        <div class="col-empty-or-line"></div>
+        <span>OR</span>
+        <div class="col-empty-or-line"></div>
+      </div>
+      <button class="col-empty-import-btn" onclick="colAddPhotos()">
+        <svg width="15" height="13" viewBox="0 0 15 13" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="0.6" y="2.6" width="13.8" height="9.8" rx="1.4"/>
+          <path d="M0.6 8.5l3.4-2.8 2.8 2.4 2-1.7 4.8 3.4"/>
+          <circle cx="4.3" cy="5.8" r="1" fill="currentColor" stroke="none" opacity="0.7"/>
+          <path d="M4.7 0.6h5.6" stroke-width="1.3"/>
+        </svg>
+        IMPORT FROM GALLERY
+      </button>`;
     grid.appendChild(empty);
     return;
   }

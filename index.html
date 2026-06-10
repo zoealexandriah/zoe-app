@@ -3626,9 +3626,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div class="ctb-btn" onclick="zoomIn()">+</div>
           <div class="ctb-btn primary" onclick="zoomFit()">FIT</div>
           <div class="ctb-sep"></div>
-          <div class="ctb-btn" onclick="exportModalOpen()" style="color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">↑ EXPORT</div>
+          <div class="ctb-btn" onclick="evSaveWithAnimation()" style="color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">↑ EXPORT</div>
           <div class="ctb-sep"></div>
-          <div class="ctb-btn" onclick="exportModalOpen()" style="color:#c9b8d4;border-color:rgba(201,184,212,0.35)">↑ EXPORT</div>
+          <div class="ctb-btn" onclick="evSaveWithAnimation()" style="color:#c9b8d4;border-color:rgba(201,184,212,0.35)">↑ EXPORT</div>
         </div>
         <div class="hero-body" id="hero-body">
           <!-- ── LIBRARY VIEW ── -->
@@ -3939,8 +3939,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div class="ctb-btn" onclick="evZoomFit()" style="display:inline-flex;align-items:center">FIT</div>
             <div class="ev-tb-sep" style="width:1px;height:16px;background:var(--border);flex-shrink:0"></div>
             <div class="ctb-btn" onclick="editorReplacePhoto()" style="display:inline-flex;align-items:center">⟳ REPLACE</div>
-            <div class="ctb-btn" id="ev-export-btn" onclick="exportModalOpen()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">↑ EXPORT</div>
-            <div class="ctb-btn" id="save-to-gallery-btn" onclick="exportModalOpen()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">
+            <div class="ctb-btn" id="ev-export-btn" onclick="evSaveWithAnimation()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">↑ EXPORT</div>
+            <div class="ctb-btn" id="save-to-gallery-btn" onclick="evSaveWithAnimation()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">
               <span class="ev-tb-text">↑ EXPORT</span>
               <span class="ev-tb-save-mobile">Save ↓</span>
             </div>
@@ -9616,12 +9616,113 @@ function exportDownload() {
   }
 }
 
-// Close on backdrop click
-document.addEventListener('click', e => {
-  const modal = document.getElementById('export-modal');
-  if (modal && e.target === modal) exportModalClose();
-});
+// ── Save Animation ──────────────────────────────────────────────────────────
+function evSaveWithAnimation() {
+  if (!userImage) { showToast('OPEN A PHOTO FIRST'); return; }
+  var ov    = document.getElementById('save-anim-overlay');
+  var ring  = document.getElementById('saf-ring');
+  var star  = document.getElementById('saf-star');
+  var check = document.getElementById('saf-check');
+  if (!ov) { _evDoSave(); return; }
 
+  // Reset to clean state
+  ov.classList.remove('saf-active','saf-content','saf-text');
+  ring.classList.remove('saf-drawing');
+  star.style.opacity  = '0';
+  check.style.opacity = '0';
+  check.style.strokeDashoffset = '47';
+  ov.style.opacity = '';
+  ov.style.transition = '';
+  ov.style.display = 'flex';
+  ov.style.backdropFilter = 'blur(0px)';
+  ov.style.webkitBackdropFilter = 'blur(0px)';
+
+  // Phase 1 (0ms): overlay + star fade in
+  requestAnimationFrame(function() { requestAnimationFrame(function() {
+    ov.classList.add('saf-active', 'saf-content');
+    ov.style.backdropFilter = 'blur(10px)';
+    ov.style.webkitBackdropFilter = 'blur(10px)';
+    ov.style.transition = 'background 0.35s ease-in-out, backdrop-filter 0.35s ease-in-out';
+    star.style.opacity = '1';
+  }); });
+
+  // Phase 2 (200ms): draw circle ring
+  setTimeout(function() { ring.classList.add('saf-drawing'); }, 200);
+
+  // Do actual save work in background
+  setTimeout(_evDoSave, 150);
+
+  // Phase 3 (1020ms): star → checkmark
+  setTimeout(function() {
+    star.style.opacity = '0';
+    setTimeout(function() {
+      check.style.opacity = '1';
+      check.style.strokeDashoffset = '0';
+    }, 130);
+  }, 1020);
+
+  // Phase 4 (1160ms): text fades in
+  setTimeout(function() { ov.classList.add('saf-text'); }, 1160);
+
+  // Phase 5 (1950ms): auto-dismiss
+  setTimeout(function() {
+    ov.style.transition = 'opacity 0.45s ease-in-out';
+    ov.style.opacity = '0';
+    setTimeout(function() {
+      ov.style.display = 'none';
+      ov.style.opacity = '';
+      ov.style.transition = '';
+      ov.style.backdropFilter = '';
+      ov.style.webkitBackdropFilter = '';
+      ov.classList.remove('saf-active','saf-content','saf-text');
+      ring.classList.remove('saf-drawing');
+    }, 460);
+  }, 1950);
+}
+
+function _evDoSave() {
+  if (!userImage) return;
+  var iw = userImage.naturalWidth;
+  var ih = userImage.naturalHeight;
+  var off = document.createElement('canvas');
+  off.width  = iw;
+  off.height = ih;
+  var ctx = off.getContext('2d');
+  ctx.drawImage(userImage, 0, 0, iw, ih);
+  var p = activePreset || evActivePreset;
+  var hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
+  if (hasPreset) {
+    var adj = buildAdjustments(sliderState[p.id]);
+    if (p.hueTempZones)             adj.hueTempZones  = p.hueTempZones;
+    if (p.colorGlow  !== undefined)  adj.colorGlow    = p.colorGlow;
+    if (p.skinLift   !== undefined)  adj.skinLift     = p.skinLift;
+    if (p.splitTone)                 adj.split_tone   = p.splitTone;
+    var origData  = ctx.getImageData(0, 0, iw, ih);
+    var processed = applyPixelAdjustments(origData, adj);
+    var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
+    if (intensity < 0.999) {
+      var od = origData.data;
+      for (var i = 0; i < processed.length; i += 4) {
+        processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
+        processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
+        processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
+      }
+    }
+    ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+    if (p.curve)                      applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
+    if ((adj.sharpen  || 0) > 0.01)   applySharpness(off, adj.sharpen,  0, 0, iw, ih);
+    if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, iw, ih);
+    if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, iw, ih);
+    if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
+    if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, iw, ih);
+  }
+  var d  = new Date();
+  var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+  var a  = document.createElement('a');
+  a.download = 'ZOE_EDIT_' + ds + '.jpg';
+  a.href = off.toDataURL('image/jpeg', 0.95);
+  a.click();
+}
 
 // Wire EDITOR nav item
 
@@ -11444,70 +11545,92 @@ function hslSelectChannel(dot) {
   </div>
 
 
-  <!-- ── EXPORT MODAL ── -->
-  <div id="export-modal" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(5,3,10,0.72);backdrop-filter:blur(8px);align-items:center;justify-content:center">
-    <div style="background:#0d0b11;border:0.5px solid #2a2030;border-radius:3px;width:320px;padding:0;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.80)">
-      <div style="height:26px;background:linear-gradient(to bottom,#cdb0ba,#b89aa4);display:flex;align-items:center;justify-content:space-between;padding:0 12px;flex-shrink:0">
-        <span style="font-size:8.5px;letter-spacing:0.20em;color:#2a1a1e;font-family:var(--mono);font-weight:500">EXPORT IMAGE</span>
-        <div onclick="exportModalClose()" style="width:14px;height:14px;background:rgba(210,188,198,0.55);border:0.5px solid rgba(90,55,65,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:8px;color:#2a1a1e;font-family:var(--mono)">✕</div>
-      </div>
-      <div style="padding:18px 16px;display:flex;flex-direction:column;gap:14px">
-        <div>
-          <div style="font-size:7.5px;letter-spacing:0.26em;color:rgba(175,162,200,0.42);font-family:var(--mono);margin-bottom:7px">FORMAT</div>
-          <div style="display:flex;gap:6px">
-            <div id="exp-fmt-jpg" class="crop-ratio-btn active" onclick="exportSetFormat('jpg')">JPG</div>
-            <div id="exp-fmt-png" class="crop-ratio-btn" onclick="exportSetFormat('png')">PNG</div>
-          </div>
-        </div>
-        <div id="exp-quality-row">
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-            <span style="font-size:8px;letter-spacing:0.14em;color:rgba(210,205,235,0.80);font-family:var(--mono)">QUALITY</span>
-            <span id="exp-qual-val" style="font-size:8px;color:rgba(175,168,210,0.50);font-family:var(--mono)">90</span>
-          </div>
-          <input type="range" class="tc-range" id="exp-quality" min="1" max="100" value="90" oninput="document.getElementById('exp-qual-val').textContent=this.value">
-        </div>
-        <div>
-          <div style="font-size:7.5px;letter-spacing:0.26em;color:rgba(175,162,200,0.42);font-family:var(--mono);margin-bottom:7px">FILENAME</div>
-          <input id="exp-filename" type="text" value="ZOE_EDIT_20260524" style="width:100%;background:rgba(255,255,255,0.03);border:0.5px solid #2a2030;color:rgba(210,205,235,0.82);font-family:var(--mono);font-size:8.5px;padding:6px 8px;outline:none;letter-spacing:0.08em;border-radius:2px">
-        </div>
-        <div onclick="exportDownload()" style="margin-top:4px;width:100%;padding:10px 0;text-align:center;background:linear-gradient(135deg,#c0405a,#8a1a2e);border:none;border-radius:100px;color:rgba(255,255,255,0.96);font-size:9px;letter-spacing:0.22em;font-family:var(--mono);cursor:pointer;box-shadow:0 4px 16px rgba(138,26,46,0.40)">DOWNLOAD</div>
-      </div>
-    </div>
-  </div>
+  <!-- ── SAVE ANIMATION OVERLAY ── -->
+  <style>
+    #save-anim-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9800;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: rgba(0,0,0,0);
+      transition: background 0.35s ease-in-out;
+      pointer-events: all;
+    }
+    #save-anim-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+      opacity: 0;
+      transform: scale(0.86) translateY(8px);
+      transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    }
+    #save-anim-overlay.saf-active { background: rgba(0,0,0,0.68); }
+    #save-anim-overlay.saf-content #save-anim-content { opacity: 1; transform: scale(1) translateY(0); }
+    @keyframes saf-ring-draw {
+      from { stroke-dashoffset: 201.06; }
+      to   { stroke-dashoffset: 0; }
+    }
+    #saf-ring.saf-drawing {
+      animation: saf-ring-draw 0.85s cubic-bezier(0.42, 0, 0.28, 1) forwards;
+    }
+    #saf-star  { transition: opacity 0.22s ease-in-out; }
+    #saf-check { transition: opacity 0.2s ease-in-out, stroke-dashoffset 0.34s cubic-bezier(0.4,0,0.2,1); }
+    #save-anim-text {
+      text-align: center;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.28s ease-in-out, transform 0.28s ease-in-out;
+    }
+    #save-anim-overlay.saf-text #save-anim-text { opacity: 1; transform: translateY(0); }
+    #saf-line1 {
+      font-size: 10px;
+      letter-spacing: 0.26em;
+      color: rgba(210, 140, 155, 0.90);
+      font-family: var(--mono);
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    #saf-line2 {
+      font-size: 8px;
+      letter-spacing: 0.16em;
+      color: rgba(210, 140, 155, 0.50);
+      font-family: var(--mono);
+    }
+  </style>
 
-  <!-- ── EXPORT MODAL ── -->
-  <div id="export-modal" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(6,4,12,0.75);backdrop-filter:blur(10px);align-items:center;justify-content:center">
-    <div style="background:#0d0b11;border:0.5px solid #2a2030;border-radius:4px;width:280px;overflow:hidden">
-      <!-- Titlebar -->
-      <div style="height:26px;background:linear-gradient(to bottom,#cdb0ba,#b89aa4);display:flex;align-items:center;justify-content:space-between;padding:0 10px">
-        <span style="font-size:9px;letter-spacing:0.20em;color:#2a1a1e;font-family:var(--mono);font-weight:500">EXPORT IMAGE</span>
-        <div onclick="exportModalClose()" style="width:14px;height:14px;border:0.5px solid rgba(90,55,65,0.45);background:rgba(210,188,198,0.55);color:#2a1a1e;font-size:8px;display:flex;align-items:center;justify-content:center;cursor:pointer">✕</div>
-      </div>
-      <!-- Body -->
-      <div style="padding:16px 14px;display:flex;flex-direction:column;gap:14px">
-        <!-- Format -->
-        <div>
-          <div style="font-size:8px;letter-spacing:0.24em;color:rgba(175,162,200,0.42);font-family:var(--mono);margin-bottom:8px">FORMAT</div>
-          <div style="display:flex;gap:7px">
-            <div id="exp-fmt-jpg" class="crop-ratio-btn active" onclick="expSetFmt('jpg')" style="flex:1;text-align:center">JPG</div>
-            <div id="exp-fmt-png" class="crop-ratio-btn" onclick="expSetFmt('png')" style="flex:1;text-align:center">PNG</div>
-          </div>
-        </div>
-        <!-- Quality (JPG only) -->
-        <div id="exp-quality-row">
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-            <span style="font-size:9px;letter-spacing:0.10em;color:rgba(210,205,235,0.80);font-family:var(--mono)">QUALITY</span>
-            <span id="exp-quality-val" style="font-size:9px;color:rgba(175,168,210,0.50);font-family:var(--mono)">95</span>
-          </div>
-          <input type="range" class="tc-range" id="exp-quality" min="1" max="100" value="95" oninput="document.getElementById('exp-quality-val').textContent=this.value">
-        </div>
-        <!-- Filename -->
-        <div>
-          <div style="font-size:8px;letter-spacing:0.24em;color:rgba(175,162,200,0.42);font-family:var(--mono);margin-bottom:8px">FILENAME</div>
-          <input id="exp-filename" type="text" style="width:100%;background:rgba(255,255,255,0.03);border:0.5px solid #2a2030;color:rgba(210,205,235,0.88);font-family:var(--mono);font-size:9px;letter-spacing:0.10em;padding:6px 9px;outline:none;border-radius:2px">
-        </div>
-        <!-- Download -->
-        <div class="tc-btn tc-btn-primary" onclick="exportDownload()" style="text-align:center">↓ DOWNLOAD</div>
+  <div id="save-anim-overlay">
+    <div id="save-anim-content">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="saf-glow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="g"/>
+            <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- Dim guide ring always present -->
+        <circle cx="40" cy="40" r="32" stroke="rgba(192,64,90,0.10)" stroke-width="1.5"/>
+        <!-- Animated ring draws clockwise from 12 o'clock -->
+        <circle id="saf-ring" cx="40" cy="40" r="32"
+          stroke="rgba(192,90,112,0.80)" stroke-width="2" stroke-linecap="round"
+          stroke-dasharray="201.06" stroke-dashoffset="201.06"
+          transform="rotate(-90 40 40)" filter="url(#saf-glow)"/>
+        <!-- 4-pointed celestial star -->
+        <path id="saf-star"
+          d="M40 13 Q47 33 63 40 Q47 47 40 67 Q33 47 17 40 Q33 33 40 13 Z"
+          fill="rgba(204,95,115,0.88)" opacity="0" filter="url(#saf-glow)"/>
+        <!-- Checkmark (draws in after star fades) -->
+        <path id="saf-check"
+          d="M24 40 L35 52 L57 27"
+          stroke="rgba(204,95,115,0.90)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"
+          stroke-dasharray="47" stroke-dashoffset="47" opacity="0" filter="url(#saf-glow)"/>
+      </svg>
+      <div id="save-anim-text">
+        <div id="saf-line1">IMAGE SAVED</div>
+        <div id="saf-line2">Saved to Photos</div>
       </div>
     </div>
   </div>

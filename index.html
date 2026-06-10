@@ -4121,14 +4121,19 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
       </div>
 
 
-      <!-- ── Delete Collection Confirmation ── -->
-      <div id="col-delete-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;">
-        <div style="background:#0e0b18;border:0.5px solid rgba(201,184,212,0.18);border-radius:4px;padding:24px;width:300px;font-family:var(--mono);">
-          <div style="font-size:10px;letter-spacing:0.22em;color:rgba(220,210,240,0.90);margin-bottom:8px;">DELETE COLLECTION</div>
-          <div style="font-size:8px;letter-spacing:0.14em;color:rgba(175,162,200,0.60);line-height:1.7;margin-bottom:20px;">Are you sure? This cannot be undone.</div>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <div id="col-delete-confirm-btn" style="cursor:pointer;padding:9px;text-align:center;font-size:8px;letter-spacing:0.18em;color:rgba(255,255,255,0.88);background:#7a1a2a;border-radius:2px;">DELETE COLLECTION</div>
-            <div onclick="document.getElementById('col-delete-modal').style.display='none'" style="cursor:pointer;padding:9px;text-align:center;font-size:8px;letter-spacing:0.18em;color:rgba(175,162,200,0.45);">CANCEL</div>
+      <!-- ── Delete Collection Confirmation (bottom sheet) ── -->
+      <div id="col-delete-modal" style="display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;justify-content:flex-end;">
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.60);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);" onclick="document.getElementById('col-delete-modal').style.display='none'"></div>
+        <div style="position:relative;background:rgba(18,14,28,0.98);border-radius:18px 18px 0 0;border-top:0.5px solid rgba(201,184,212,0.12);padding-bottom:env(safe-area-inset-bottom);">
+          <div style="width:36px;height:4px;border-radius:2px;background:rgba(201,184,212,0.22);margin:10px auto 20px;"></div>
+          <div style="padding:0 22px 28px;display:flex;flex-direction:column;gap:0;">
+            <div style="font-size:9px;letter-spacing:0.26em;color:rgba(220,180,190,0.92);font-family:var(--mono);font-weight:500;margin-bottom:10px;">DELETE COLLECTION</div>
+            <div style="font-size:12px;color:rgba(220,210,240,0.82);font-family:-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.5;margin-bottom:6px;">Are you sure you want to delete this collection?</div>
+            <div style="font-size:11px;color:rgba(175,162,200,0.50);font-family:-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.5;margin-bottom:26px;">This action cannot be undone. Photos in the collection will not be deleted.</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <button id="col-delete-confirm-btn" style="-webkit-tap-highlight-color:transparent;width:100%;padding:14px 0;background:linear-gradient(135deg,#a03040,#6a1020);border:none;border-radius:100px;color:rgba(255,255,255,0.96);font-size:9px;letter-spacing:0.22em;font-family:var(--mono);cursor:pointer;box-shadow:0 4px 18px rgba(120,20,35,0.35);">DELETE COLLECTION</button>
+              <button onclick="document.getElementById('col-delete-modal').style.display='none'" style="-webkit-tap-highlight-color:transparent;width:100%;padding:14px 0;background:rgba(201,184,212,0.06);border:0.5px solid rgba(201,184,212,0.15);border-radius:100px;color:rgba(201,184,212,0.55);font-size:9px;letter-spacing:0.22em;font-family:var(--mono);cursor:pointer;">CANCEL</button>
+            </div>
           </div>
         </div>
       </div>
@@ -7831,10 +7836,16 @@ function colShowDotsMenu(e, colId) {
   var top = r.bottom + 5;
   if (top + 90 > window.innerHeight) top = r.top - 90;
   menu.style.cssText = 'position:fixed;top:' + top + 'px;left:' + left + 'px;';
-  var close = function() { if (menu.parentElement) menu.remove(); };
+  var close = function(ev) {
+    if (!menu.contains(ev.target)) {
+      menu.remove();
+      document.removeEventListener('touchstart', close);
+      document.removeEventListener('mousedown',  close);
+    }
+  };
   setTimeout(function() {
-    document.addEventListener('touchstart', close, {once: true});
-    document.addEventListener('mousedown', close, {once: true});
+    document.addEventListener('touchstart', close);
+    document.addEventListener('mousedown',  close);
   }, 60);
 }
 

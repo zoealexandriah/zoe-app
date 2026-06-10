@@ -9193,21 +9193,19 @@ function etCropHTML() {
     </div>`;
   }).join('');
 
-  const flipHSvg = `<svg viewBox="0 0 40 40" width="22" height="22" fill="currentColor">
-    <polygon points="2,10 2,30 17,20"/>
-    <polygon points="38,10 38,30 23,20"/>
-    <line x1="20" y1="5" x2="20" y2="35" stroke="currentColor" stroke-width="2.2" stroke-dasharray="3.2 2.6" stroke-linecap="square" fill="none"/>
+  const flipHSvg = `<svg viewBox="0 0 40 40" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="17,13 8,20 17,27"/>
+    <polyline points="23,13 32,20 23,27"/>
+    <line x1="20" y1="7" x2="20" y2="33" stroke-dasharray="2.8 2.4" stroke-width="1.2"/>
   </svg>`;
-  const flipVSvg = `<svg viewBox="0 0 40 40" width="22" height="22" fill="currentColor">
-    <polygon points="10,2 30,2 20,17"/>
-    <polygon points="10,38 30,38 20,23"/>
-    <line x1="5" y1="20" x2="35" y2="20" stroke="currentColor" stroke-width="2.2" stroke-dasharray="3.2 2.6" stroke-linecap="square" fill="none"/>
+  const flipVSvg = `<svg viewBox="0 0 40 40" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="13,17 20,8 27,17"/>
+    <polyline points="13,23 20,32 27,23"/>
+    <line x1="7" y1="20" x2="33" y2="20" stroke-dasharray="2.8 2.4" stroke-width="1.2"/>
   </svg>`;
-  const rotateSvg = `<svg viewBox="0 0 40 40" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4">
-    <rect x="5" y="15" width="22" height="22" rx="5"/>
-    <path d="M29 24 A14 14 0 0 0 9 7"/>
-    <polyline points="5,11 9,7 13,11"/>
-    <polyline points="25,21 29,24 33,20"/>
+  const rotateSvg = `<svg viewBox="0 0 40 40" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 7 A13 13 0 1 1 7 20"/>
+    <polyline points="3,16 7,21 11,16"/>
   </svg>`;
 
   const _st = _etCropDefaultTab || 'straighten'; _etCropDefaultTab = 'straighten';
@@ -9899,7 +9897,6 @@ function evRenderPresets() {
       +(isFav?'<div style="position:absolute;top:4px;right:5px;font-size:9px;line-height:1;color:rgba(220,185,255,0.80);pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,0.6);z-index:1;">★</div>':'')
       +'<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.82),transparent);pointer-events:none;z-index:1;">'
       +'<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.78')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.name.toUpperCase()+'</div>'
-      +'<div style="font-size:5.5px;letter-spacing:0.10em;color:rgba(154,138,180,0.52);font-family:var(--mono);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(p.series||'').toUpperCase()+'</div>'
       +'</div>';
     var _lpTimer;
     card.addEventListener('touchstart', function(){ _lpTimer = setTimeout(function(){

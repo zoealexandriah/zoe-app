@@ -7400,9 +7400,13 @@ function renderLibrary() {
       // the first tap already selected this item (libSelected.length > 0).
       if (!window.gallerySelectMode && window._galLastTapIdx === idx && now - window._galLastTapTime < 400) {
         clearTimeout(window._galTapTimer);
-        // Undo the selection the first tap applied
+        // Undo the selection the first tap applied — patch the DOM directly,
+        // no full renderLibrary() rebuild (we're navigating away immediately anyway)
         var si = libSelected.indexOf(idx);
-        if (si !== -1) { libSelected.splice(si, 1); renderLibrary(); }
+        if (si !== -1) {
+          libSelected.splice(si, 1);
+          cell.classList.remove('selected');
+        }
         window._galLastTapIdx = -1;
         window._galLastTapTime = 0;
         galleryOpenInEditor(idx);

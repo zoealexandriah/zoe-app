@@ -3104,63 +3104,95 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .hsl-dot { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
   .hsl-channel-label { display: block !important; font-size: 7px !important; letter-spacing: 0.12em !important; padding: 4px 16px 2px !important; color: rgba(201,184,212,0.45) !important; }
 
-  /* Adjust sub-nav — iOS pill style matching crop tabs */
-  /* Subnav pill — same slot as main nav, shown in place of it during ADJUST */
+  /* Adjust sub-nav — icon+label tabs with horizontal scroll, pinned back arrow */
   #ev-adjust-subnav {
     flex-direction: row !important;
     flex-shrink: 0 !important;
-    background: rgba(14,10,24,0.90) !important;
-    border: 0.5px solid rgba(201,184,212,0.10) !important;
-    border-radius: 100px !important;
-    margin: 5px 24px 8px !important;
-    padding: 2px !important;
-    gap: 0 !important;
-    height: auto !important;
     align-items: stretch !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+    background: rgba(8,5,18,0.97) !important;
+    border-top: 0.5px solid rgba(201,184,212,0.08) !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    height: 58px !important;
+    overflow: hidden !important;
   }
   .ev-subnav-back {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     flex-shrink: 0 !important;
-    width: 34px !important;
-    background: rgba(201,184,212,0.08) !important;
+    width: 46px !important;
+    height: 100% !important;
+    background: transparent !important;
     border: none !important;
-    border-radius: 100px !important;
-    color: rgba(201,184,212,0.60) !important;
+    border-right: 0.5px solid rgba(201,184,212,0.08) !important;
+    border-radius: 0 !important;
+    color: rgba(201,184,212,0.50) !important;
     cursor: pointer !important;
     padding: 0 !important;
-    margin: 2px !important;
+    margin: 0 !important;
     -webkit-tap-highlight-color: transparent !important;
     outline: none !important;
     transition: background 0.15s !important;
   }
-  .ev-subnav-back:active { background: rgba(201,184,212,0.16) !important; }
-  .ev-subnav-btn {
+  .ev-subnav-back:active { background: rgba(201,184,212,0.08) !important; }
+  .ev-subnav-scroll {
+    display: flex !important;
+    flex-direction: row !important;
     flex: 1 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    align-items: stretch !important;
+  }
+  .ev-subnav-scroll::-webkit-scrollbar { display: none !important; }
+  .ev-subnav-btn {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    flex-shrink: 0 !important;
+    min-width: 68px !important;
+    height: 100% !important;
     background: transparent !important;
     border: none !important;
-    border-radius: 100px !important;
-    color: rgba(201,184,212,0.40) !important;
-    font-size: 7px !important;
-    letter-spacing: 0.09em !important;
-    font-family: var(--mono) !important;
-    font-weight: 500 !important;
-    padding: 5px 1px !important;
+    border-radius: 0 !important;
+    color: rgba(201,184,212,0.35) !important;
     cursor: pointer !important;
+    padding: 0 10px !important;
     -webkit-tap-highlight-color: transparent !important;
     outline: none !important;
-    transition: background 0.18s, color 0.18s !important;
+    transition: color 0.18s !important;
     touch-action: manipulation !important;
-    text-align: center !important;
+    position: relative !important;
+  }
+  .ev-subnav-btn svg { transition: stroke 0.18s !important; }
+  .ev-subnav-btn span {
+    font-size: 7.5px !important;
+    letter-spacing: 0.10em !important;
+    font-family: var(--mono) !important;
+    font-weight: 500 !important;
     white-space: nowrap !important;
   }
   .ev-subnav-btn.active {
-    background: rgba(255,255,255,0.12) !important;
-    color: rgba(255,255,255,0.92) !important;
-    font-weight: 700 !important;
+    color: rgba(218,90,125,1) !important;
+  }
+  .ev-subnav-btn.active::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 20% !important;
+    right: 20% !important;
+    height: 2px !important;
+    background: rgba(218,90,125,0.85) !important;
+    border-radius: 2px 2px 0 0 !important;
   }
   /* Hide main nav when subnav is active */
   #ev-mobile-nav.ev-mnav-hidden { display: none !important; }
@@ -3989,11 +4021,28 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <button class="ev-subnav-back" onclick="evAdjustSubnavBack()">
               <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="11,4 6,9 11,14"/></svg>
             </button>
-            <button class="ev-subnav-btn active" data-tab="light" onclick="evAdjustSubTab('light')">LIGHT</button>
-            <button class="ev-subnav-btn" data-tab="color" onclick="evAdjustSubTab('color')">COLOR</button>
-            <button class="ev-subnav-btn" data-tab="hsl" onclick="evAdjustSubTab('hsl')">HSL</button>
-            <button class="ev-subnav-btn" data-tab="details" onclick="evAdjustSubTab('details')">DETAILS</button>
-            <button class="ev-subnav-btn" data-tab="crop" onclick="evAdjustSubTab('crop')">CROP</button>
+            <div class="ev-subnav-scroll">
+              <button class="ev-subnav-btn active" data-tab="light" onclick="evAdjustSubTab('light')">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="3"/><line x1="10" y1="2.5" x2="10" y2="4.5"/><line x1="10" y1="15.5" x2="10" y2="17.5"/><line x1="2.5" y1="10" x2="4.5" y2="10"/><line x1="15.5" y1="10" x2="17.5" y2="10"/><line x1="4.4" y1="4.4" x2="5.8" y2="5.8"/><line x1="14.2" y1="14.2" x2="15.6" y2="15.6"/><line x1="15.6" y1="4.4" x2="14.2" y2="5.8"/><line x1="5.8" y1="14.2" x2="4.4" y2="15.6"/></svg>
+                <span>LIGHT</span>
+              </button>
+              <button class="ev-subnav-btn" data-tab="color" onclick="evAdjustSubTab('color')">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5 C7 6.5 4 9.5 4 12.5 A6 6 0 0 0 16 12.5 C16 9.5 13 6.5 10 2.5Z"/></svg>
+                <span>COLOR</span>
+              </button>
+              <button class="ev-subnav-btn" data-tab="hsl" onclick="evAdjustSubTab('hsl')">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><path d="M10 3.5 A6.5 6.5 0 0 1 16.5 10" stroke-dasharray="2.5 1.8"/><path d="M10 16.5 A6.5 6.5 0 0 1 3.5 10" stroke-dasharray="2.5 1.8"/></svg>
+                <span>HSL</span>
+              </button>
+              <button class="ev-subnav-btn" data-tab="details" onclick="evAdjustSubTab('details')">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="3" y1="6" x2="17" y2="6"/><circle cx="7" cy="6" r="2"/><line x1="3" y1="11" x2="17" y2="11"/><circle cx="13" cy="11" r="2"/><line x1="3" y1="16" x2="17" y2="16"/><circle cx="9" cy="16" r="2"/></svg>
+                <span>DETAILS</span>
+              </button>
+              <button class="ev-subnav-btn" data-tab="crop" onclick="evAdjustSubTab('crop')">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 2.5 L5 15 L17.5 15"/><path d="M2.5 5 L15 5 L15 17.5"/></svg>
+                <span>CROP</span>
+              </button>
+            </div>
           </div>
           <!-- Mobile nav: two primary categories (hidden on desktop) -->
           <div id="ev-mobile-nav" style="display:none">

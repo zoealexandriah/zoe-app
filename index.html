@@ -7297,15 +7297,19 @@ function renderLibrary() {
       <div class="lib-photo-overlay"></div>
     `;
     cell.addEventListener('click', function(e) {
+      // If already selecting, fire instantly — no double-tap delay
+      if (libSelected.length > 0 || window.gallerySelectMode) {
+        toggleSelect(idx);
+        return;
+      }
+      // Otherwise wait briefly to distinguish single-tap (select) from double-tap (open)
       var now = Date.now();
       if (window._galLastTapIdx === idx && now - window._galLastTapTime < 400) {
-        // Double-tap: open in editor
         clearTimeout(window._galTapTimer);
         window._galLastTapIdx = -1;
         window._galLastTapTime = 0;
         galleryOpenInEditor(idx);
       } else {
-        // First tap: wait to see if a second tap arrives
         window._galLastTapIdx = idx;
         window._galLastTapTime = now;
         clearTimeout(window._galTapTimer);

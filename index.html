@@ -7601,20 +7601,69 @@ function colShowLevel(n) {
 
 // ── Level 1: render collection grid ──────────────────────────────────────
 
-// ── Collection rename via prompt ──────────────────────────────────────────
+// ── Collection rename sheet ───────────────────────────────────────────────
+var _colRenameTargetId = null;
+var _colRenameIsNew    = false;
+var _colRenameScrollY  = 0;
+
+function colRenameOpen(colId, initialName, isNew) {
+  _colRenameTargetId = colId;
+  _colRenameIsNew    = isNew || false;
+  _colRenameScrollY  = window.scrollY || window.pageYOffset || 0;
+  var sheet = document.getElementById('col-rename-sheet');
+  var inp   = document.getElementById('col-rename-input');
+  inp.value = initialName || '';
+  sheet.style.display = 'flex';
+  setTimeout(function() { inp.focus(); inp.select(); }, 120);
+}
+
+function colRenameSave() {
+  var inp  = document.getElementById('col-rename-input');
+  var name = (inp.value || '').trim().toUpperCase() || 'UNTITLED';
+  var col  = collections.find(function(c){ return c.id === _colRenameTargetId; });
+  if (col) {
+    col.name = name;
+    colSaveToStorage();
+    var nameEl = document.getElementById('col-card-name-' + _colRenameTargetId);
+    if (nameEl) nameEl.textContent = name;
+    var l2name = document.getElementById('col-l2-name');
+    if (l2name && colActiveId === _colRenameTargetId) l2name.textContent = name;
+  }
+  _colRenameClose();
+}
+
+function colRenameCancel() {
+  if (_colRenameIsNew && _colRenameTargetId) {
+    var idx = collections.findIndex(function(c){ return c.id === _colRenameTargetId; });
+    if (idx !== -1) { collections.splice(idx, 1); colSaveToStorage(); colRenderGrid(); }
+  }
+  _colRenameClose();
+}
+
+function _colRenameClose() {
+  var inp = document.getElementById('col-rename-input');
+  if (inp) inp.blur();
+  var sheet = document.getElementById('col-rename-sheet');
+  if (sheet) sheet.style.display = 'none';
+  _colRenameTargetId = null;
+  _colRenameIsNew    = false;
+  // Restore scroll and reset any iOS viewport zoom
+  setTimeout(function() {
+    window.scrollTo({ top: _colRenameScrollY, behavior: 'instant' });
+    var vp = document.querySelector('meta[name=viewport]');
+    if (vp && vp.content.indexOf('maximum-scale') === -1) {
+      var orig = vp.content;
+      vp.content = orig + ', maximum-scale=1';
+      setTimeout(function() { vp.content = orig; }, 320);
+    }
+  }, 60);
+}
+
+// Legacy alias kept for double-tap path
 function colStartRename(el, colId) {
-  const col = collections.find(c => c.id === colId);
+  var col = collections.find(function(c){ return c.id === colId; });
   if (!col) return;
-  const newName = window.prompt('Rename collection:', col.name);
-  if (newName === null) return; // cancelled
-  const trimmed = newName.trim().toUpperCase();
-  if (!trimmed) return;
-  col.name = trimmed;
-  el.textContent = trimmed;
-  // Update L2 header if open
-  const l2name = document.getElementById('col-l2-name');
-  if (l2name && colActiveId === colId) l2name.textContent = trimmed;
-  colSaveToStorage();
+  colRenameOpen(colId, col.name, false);
 }
 var _colDragFromIdx = null, _colDragOverEl = null, _colDragFromEl = null;
 
@@ -7793,6 +7842,8 @@ function colMenuRename(colId) {
   var m = document.querySelector('.col-context-menu'); if (m) m.remove();
   var col = collections.find(function(c){ return c.id === colId; });
   if (!col) return;
+  colRenameOpen(colId, col.name, false); return;
+  // legacy prompt kept below — unreachable
   var newName = window.prompt('Rename collection:', col.name);
   if (!newName || !newName.trim()) return;
   col.name = newName.trim().toUpperCase();
@@ -7836,21 +7887,7 @@ function colNewCollection() {
   const newCol = { id, name: 'UNTITLED', photos: [], created: `${m} · ${d} · ${y}` };
   collections.push(newCol);
   colRenderGrid();
-  // Sync focus (not rAF) so iOS keyboard fires within the user gesture
-  const nameEl = document.getElementById('col-card-name-' + id);
-  if (!nameEl) return;
-  nameEl.contentEditable = 'true';
-  nameEl.focus();
-  const range = document.createRange();
-  range.selectNodeContents(nameEl);
-  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
-  nameEl.onblur = () => {
-    const newName = nameEl.textContent.trim().toUpperCase() || 'UNTITLED';
-    newCol.name = newName;
-    nameEl.contentEditable = 'false';
-    colRenderGrid();
-  };
-  nameEl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); nameEl.blur(); } };
+  colRenameOpen(id, '', true);
 }
 
 // ── Double-tap to rename (mobile) ─────────────────────────────────────────
@@ -11634,6 +11671,25 @@ function hslSelectChannel(dot) {
       </div>
     </div>
   </div>
+
+<!-- ── Collection Rename Sheet ── -->
+<div id="col-rename-sheet" style="display:none;position:fixed;inset:0;z-index:9600;flex-direction:column;justify-content:flex-end;">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);" onclick="colRenameCancel()"></div>
+  <div style="position:relative;background:rgba(18,14,28,0.98);border-radius:18px 18px 0 0;border-top:0.5px solid rgba(201,184,212,0.12);overflow:hidden;padding-bottom:env(safe-area-inset-bottom);">
+    <div style="width:36px;height:4px;border-radius:2px;background:rgba(201,184,212,0.22);margin:10px auto 16px;"></div>
+    <div style="padding:0 22px 28px;display:flex;flex-direction:column;gap:16px;">
+      <div style="font-size:8px;letter-spacing:0.28em;color:rgba(201,184,212,0.40);font-family:var(--mono);font-weight:500;">COLLECTION NAME</div>
+      <input id="col-rename-input" type="text"
+        autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();colRenameSave();}"
+        style="font-size:16px;letter-spacing:0.14em;color:rgba(220,210,240,0.92);background:rgba(255,255,255,0.04);border:0.5px solid rgba(201,184,212,0.18);border-radius:8px;padding:12px 14px;outline:none;font-family:var(--mono);width:100%;box-sizing:border-box;text-transform:uppercase;-webkit-tap-highlight-color:transparent;">
+      <div style="display:flex;gap:10px;">
+        <button onclick="colRenameCancel()" style="flex:1;padding:13px 0;background:rgba(201,184,212,0.06);border:0.5px solid rgba(201,184,212,0.15);border-radius:100px;color:rgba(201,184,212,0.55);font-size:9px;letter-spacing:0.22em;font-family:var(--mono);cursor:pointer;-webkit-tap-highlight-color:transparent;">CANCEL</button>
+        <button onclick="colRenameSave()" style="flex:2;padding:13px 0;background:linear-gradient(135deg,#c0405a,#8a1a2e);border:none;border-radius:100px;color:rgba(255,255,255,0.96);font-size:9px;letter-spacing:0.22em;font-family:var(--mono);cursor:pointer;box-shadow:0 4px 16px rgba(138,26,46,0.28);-webkit-tap-highlight-color:transparent;">SAVE</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ── Import sheet ── -->
 <div id="import-sheet" style="display:none;position:fixed;inset:0;z-index:9000;flex-direction:column;justify-content:flex-end;" onclick="if(event.target===this)closeImportSheet()">

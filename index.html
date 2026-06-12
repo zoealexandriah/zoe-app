@@ -9920,6 +9920,15 @@ function evInit() {
   // Reset zoom/pan and active preset so stale effects aren't applied to a new photo
   evZoomLevel = 1; evPanX = 0; evPanY = 0;
   evActivePreset = null; activePreset = null;
+  // Reset adjust panel state — close subnav and restore bottom nav bar
+  // (stale open state from a previous edit session would hide the nav bar)
+  var _subnav = document.getElementById('ev-adjust-subnav');
+  var _mnav   = document.getElementById('ev-mobile-nav');
+  var _suite  = document.getElementById('ev-editor-suite');
+  if (_subnav) _subnav.style.display = 'none';
+  if (_mnav)   _mnav.classList.remove('ev-mnav-hidden');
+  if (_suite)  { _suite.classList.remove('open'); _suite.classList.remove('hsl-active'); }
+  document.querySelectorAll('.ev-mnav-btn').forEach(function(b){ b.classList.remove('active'); });
   // Immediately show/hide canvas so the tab appears populated before heavy work runs
   var noPhoto = document.getElementById('ev-no-photo');
   var canvas  = document.getElementById('ev-canvas');
@@ -9927,7 +9936,10 @@ function evInit() {
   if (canvas)  canvas.style.display  = userImage ? 'block' : 'none';
   // Hide nav pills when no image is loaded so user can't tap into broken editor state
   var edView = document.getElementById('editor-view');
-  if (edView) edView.classList.toggle('no-image', !userImage);
+  if (edView) {
+    edView.classList.toggle('no-image', !userImage);
+    edView.classList.remove('adjust-open');
+  }
   // Undo/redo button state
   evUpdateUndoRedo();
   // Render canvas (already rAF-deferred internally)

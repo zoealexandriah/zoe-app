@@ -9900,13 +9900,7 @@ function evInit() {
   // Reset zoom/pan and active preset so stale effects aren't applied to a new photo
   evZoomLevel = 1; evPanX = 0; evPanY = 0;
   evActivePreset = null; activePreset = null;
-  // Render canvas
-  evRenderCanvas();
-  // Populate preset list
-  evRenderPresets();
-  // Populate sliders
-  evBuildSliders();
-  // Show/hide import prompt
+  // Immediately show/hide canvas so the tab appears populated before heavy work runs
   var noPhoto = document.getElementById('ev-no-photo');
   var canvas  = document.getElementById('ev-canvas');
   if (noPhoto) noPhoto.style.display = userImage ? 'none' : 'flex';
@@ -9916,6 +9910,13 @@ function evInit() {
   if (edView) edView.classList.toggle('no-image', !userImage);
   // Undo/redo button state
   evUpdateUndoRedo();
+  // Render canvas (already rAF-deferred internally)
+  evRenderCanvas();
+  // Defer preset list + sliders so the browser paints the tab transition first
+  requestAnimationFrame(function() {
+    evRenderPresets();
+    evBuildSliders();
+  });
 }
 
 var _evRenderScheduled = false;

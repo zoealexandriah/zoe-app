@@ -9512,7 +9512,16 @@ function _evRestoreSnap(snap) {
     if (hc && userImage) loadImageToCanvas(hc, userImage);
     if (typeof evRenderCanvas === 'function') evRenderCanvas();
   }
-  evRenderPresets();
+  // Swap active card highlight in place — no full preset list rebuild needed
+  if (_evActiveCardEl) _evActiveCardEl.style.boxShadow = '';
+  var _rcCanvas = snap.presetId ? document.getElementById('evt-' + snap.presetId) : document.getElementById('evt-none');
+  var _rcCard   = _rcCanvas ? _rcCanvas.parentElement : null;
+  if (_rcCard) {
+    _rcCard.style.boxShadow = snap.presetId
+      ? '0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)'
+      : '0 0 0 1.5px rgba(201,184,212,0.75),0 0 12px rgba(150,120,200,0.28)';
+  }
+  _evActiveCardEl = _rcCard || null;
   _evUpdateUndoRedoBtns();
 }
 
@@ -9642,8 +9651,13 @@ function globalReset() {
       if (hc2) loadImageToCanvas(hc2, userImage);
     }
     evRenderCanvas();
-    evRenderPresets();
     evBuildSliders(); // re-render sliders at zero after reset
+    // Highlight the NONE card in place — no full preset list rebuild needed
+    if (_evActiveCardEl) _evActiveCardEl.style.boxShadow = '';
+    var _rstNoneCanvas = document.getElementById('evt-none');
+    var _rstNoneCard   = _rstNoneCanvas ? _rstNoneCanvas.parentElement : null;
+    if (_rstNoneCard) _rstNoneCard.style.boxShadow = '0 0 0 1.5px rgba(201,184,212,0.75),0 0 12px rgba(150,120,200,0.28)';
+    _evActiveCardEl = _rstNoneCard || null;
   }
   document.querySelectorAll('.ed3-preset-card, [data-preset-id]').forEach(c => c.classList.remove('active'));
 

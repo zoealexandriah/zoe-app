@@ -4027,7 +4027,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
           </div>
           <!-- Bottom preset strip -->
-          <div id="ev-preset-strip" style="height:152px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;">
+          <div id="ev-preset-strip" style="height:152px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow-x:hidden;overflow-y:visible;">
             <!-- Category filter row -->
             <div id="ev-cats" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
               <div class="ev-cat-btn" onclick="evFilterCat(this,'FAVORITES')">★</div>
@@ -4037,8 +4037,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <div class="ev-cat-btn" onclick="evFilterCat(this,'ETHEREAL')">ETHEREAL</div>
             </div>
             <!-- Thumbnail scroll row -->
-            <div style="flex:1;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
-              <div id="ev-preset-list" style="height:100%;display:flex;flex-direction:row;width:max-content;gap:5px;padding:4px 6px;align-items:center;"></div>
+            <div style="flex:1;display:flex;align-items:center;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
+              <div id="ev-preset-list" style="display:flex;flex-direction:row;width:max-content;gap:5px;padding:4px 6px;align-items:center;"></div>
             </div>
           </div>
         </div>
@@ -9895,6 +9895,7 @@ let evZoomLevel   = 1.0;
 let evPanX = 0, evPanY = 0;
 let evPanning = false, evPanStart = null;
 let _evLastTap = 0, _evLastTapId = null;
+let _evActiveCardEl = null; // direct reference to the active preset card DOM element
 
 function evInit() {
   // Reset zoom/pan and active preset so stale effects aren't applied to a new photo
@@ -10111,6 +10112,7 @@ function evRenderPresets() {
   var list = document.getElementById('ev-preset-list');
   if (!list) return;
   list.innerHTML = '';
+  _evActiveCardEl = null; // reset on full re-render; will be set below as cards are built
 
   // ── NONE card — raw photo, no preset applied ──
   var _tdpr = Math.min(window.devicePixelRatio||1, 2);
@@ -10125,6 +10127,10 @@ function evRenderPresets() {
     +'</div>';
   noneCard.onclick = function() {
     evHistoryPush();
+    // Swap active highlight without rebuilding the whole list
+    if (_evActiveCardEl) _evActiveCardEl.style.boxShadow = '';
+    _evActiveCardEl = noneCard;
+    noneCard.style.boxShadow = '0 0 0 1.5px rgba(201,184,212,0.75),0 0 12px rgba(150,120,200,0.28)';
     evActivePreset = null; activePreset = null;
     presetIntensity = 1.0;
     var nameEl = document.getElementById('es-preset-name');
@@ -10132,11 +10138,12 @@ function evRenderPresets() {
     if (nameEl) nameEl.textContent = '— NO PRESET —';
     if (seriesEl) seriesEl.textContent = '';
     evBuildSliders(); // rebuild with zeroed state so sliders return to 0
-    evRenderPresets(); evRenderCanvas();
+    evRenderCanvas();
   };
-  noneCard.onmouseover = function(){ if(!noneActive){ this.style.boxShadow='0 0 0 1px rgba(201,184,212,0.25)'; }};
-  noneCard.onmouseout  = function(){ if(!noneActive){ this.style.boxShadow=''; }};
+  noneCard.onmouseover = function(){ if(evActivePreset){ this.style.boxShadow='0 0 0 1px rgba(201,184,212,0.25)'; }};
+  noneCard.onmouseout  = function(){ if(evActivePreset){ this.style.boxShadow=''; }};
   list.appendChild(noneCard);
+  if (noneActive) _evActiveCardEl = noneCard;
   requestAnimationFrame(function(){
     var c = document.getElementById('evt-none');
     if (!c) return;
@@ -10184,8 +10191,8 @@ function evRenderPresets() {
     card.addEventListener('touchmove', function(){ clearTimeout(_lpTimer); }, {passive:true});
     card.onclick = function(){
       var _now = Date.now();
-      // Double-tap on the already-active preset → toggle intensity slider
-      if (isActive && _now - _evLastTap < 360 && _evLastTapId === p.id) {
+      // Double-tap on the already-active preset → toggle intensity slider (use live state, not closure)
+      if (evActivePreset && evActivePreset.id === p.id && _now - _evLastTap < 360 && _evLastTapId === p.id) {
         var _ir = document.getElementById('es-intensity-row');
         if (_ir) _ir.classList.toggle('visible');
         _evLastTap = 0; return;
@@ -10193,6 +10200,10 @@ function evRenderPresets() {
       _evLastTap = _now; _evLastTapId = p.id;
       // Push history before changing preset
       evHistoryPush();
+      // Swap active highlight without rebuilding the whole list
+      if (_evActiveCardEl) _evActiveCardEl.style.boxShadow = '';
+      _evActiveCardEl = card;
+      card.style.boxShadow = '0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)';
       // Set both evActivePreset AND activePreset — evRenderCanvas reads activePreset
       evActivePreset = p; activePreset = p;
       applyPresetDefaults(p); presetIntensity=1.0;
@@ -10207,11 +10218,13 @@ function evRenderPresets() {
       if (thumbEl) { thumbEl.width=36; thumbEl.height=46; renderPhoto(thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
       // Rebuild editor suite sliders for the new preset
       buildEditorSliders(p);
-      evRenderPresets(); evRenderCanvas();
+      evRenderCanvas();
     };
-    card.onmouseover = function(){ if(!isActive){ this.style.boxShadow='0 0 0 1px rgba(201,184,212,0.28)'; var cv=this.querySelector('canvas'); if(cv) cv.style.transform='scale(1.04)'; } };
-    card.onmouseout  = function(){ if(!isActive){ this.style.boxShadow=''; var cv=this.querySelector('canvas'); if(cv) cv.style.transform=''; } };
+    // Use live state checks so hover doesn't get confused after preset changes without a re-render
+    card.onmouseover = function(){ if(!(evActivePreset&&evActivePreset.id===p.id)){ this.style.boxShadow='0 0 0 1px rgba(201,184,212,0.28)'; var cv=this.querySelector('canvas'); if(cv) cv.style.transform='scale(1.04)'; } };
+    card.onmouseout  = function(){ if(!(evActivePreset&&evActivePreset.id===p.id)){ this.style.boxShadow=''; var cv=this.querySelector('canvas'); if(cv) cv.style.transform=''; } };
     list.appendChild(card);
+    if (isActive) _evActiveCardEl = card;
     requestAnimationFrame(function(){
       var c = document.getElementById('evt-'+p.id);
       renderPresetThumb(c, p);

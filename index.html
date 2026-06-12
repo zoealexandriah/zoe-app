@@ -10101,7 +10101,7 @@ function evRenderPresets() {
   var noneActive = !evActivePreset;
   var noneCard = document.createElement('div');
   var _pcW = 78, _pcH = 96;
-  noneCard.style.cssText = 'width:'+_pcW+'px;height:'+_pcH+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;transition:box-shadow 0.2s;'+(noneActive?'box-shadow:0 0 0 1.5px rgba(201,184,212,0.75),0 0 12px rgba(150,120,200,0.28)':'');
+  noneCard.style.cssText = 'width:'+_pcW+'px;height:'+_pcH+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;'+(noneActive?'box-shadow:0 0 0 1.5px rgba(201,184,212,0.75),0 0 12px rgba(150,120,200,0.28)':'');
   noneCard.innerHTML = '<canvas id="evt-none" width="'+(_pcW*_tdpr)+'" height="'+(_pcH*_tdpr)+'" style="position:absolute;top:0;left:0;width:'+_pcW+'px;height:'+_pcH+'px;display:block;"></canvas>'
     +'<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.80),transparent);pointer-events:none;z-index:1;">'
     +'<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,'+(noneActive?'0.96':'0.78')+');font-family:var(--mono);font-weight:500;">NONE</div>'
@@ -10156,7 +10156,7 @@ function evRenderPresets() {
     var card = document.createElement('div');
     var isActive = evActivePreset && evActivePreset.id===p.id;
     var _tdpr=Math.min(window.devicePixelRatio||1,2);
-    card.style.cssText = 'width:'+_pcW+'px;height:'+_pcH+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;transition:box-shadow 0.2s,transform 0.2s;'+(isActive?'box-shadow:0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)':'');
+    card.style.cssText = 'width:'+_pcW+'px;height:'+_pcH+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;transition:transform 0.2s;'+(isActive?'box-shadow:0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)':'');
     card.innerHTML = '<canvas id="evt-'+p.id+'" width="'+(_pcW*_tdpr)+'" height="'+(_pcH*_tdpr)+'" style="position:absolute;top:0;left:0;width:'+_pcW+'px;height:'+_pcH+'px;display:block;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
       +(isFav?'<div style="position:absolute;top:4px;right:5px;font-size:9px;line-height:1;color:rgba(220,185,255,0.80);pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,0.6);z-index:1;">★</div>':'')
       +'<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.82),transparent);pointer-events:none;z-index:1;">'

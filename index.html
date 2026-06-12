@@ -6719,13 +6719,16 @@ function applyPixelAdjustments(srcData, adj) {
     }
 
     // ── PER-CHANNEL HSL (sat + hue + luminance) with smooth overlap ─────
+    // Widths are deliberately tight so each channel isolates its hue band.
+    // Old wide values (80–100) caused >50% bleed into adjacent channels,
+    // making per-channel sliders feel identical to the master hue slider.
     const channelList = [
-      { center: 0,   width: 80,  sat: adj.sat_reds,    hue: adj.hue_reds,    lum: adj.lum_reds    },
-      { center: 30,  width: 70,  sat: adj.sat_oranges,  hue: adj.hue_oranges,  lum: adj.lum_oranges  },
-      { center: 60,  width: 70,  sat: adj.sat_yellows,  hue: adj.hue_yellows,  lum: adj.lum_yellows  },
-      { center: 120, width: 100, sat: adj.sat_greens,   hue: adj.hue_greens,   lum: adj.lum_greens   },
-      { center: 210, width: 100, sat: adj.sat_blues,    hue: adj.hue_blues,    lum: adj.lum_blues    },
-      { center: 285, width: 100, sat: adj.sat_purples,  hue: adj.hue_purples,  lum: adj.lum_purples  },
+      { center: 0,   width: 45,  sat: adj.sat_reds,    hue: adj.hue_reds,    lum: adj.lum_reds    },
+      { center: 30,  width: 40,  sat: adj.sat_oranges, hue: adj.hue_oranges, lum: adj.lum_oranges },
+      { center: 60,  width: 45,  sat: adj.sat_yellows, hue: adj.hue_yellows, lum: adj.lum_yellows },
+      { center: 120, width: 80,  sat: adj.sat_greens,  hue: adj.hue_greens,  lum: adj.lum_greens  },
+      { center: 210, width: 80,  sat: adj.sat_blues,   hue: adj.hue_blues,   lum: adj.lum_blues   },
+      { center: 285, width: 65,  sat: adj.sat_purples, hue: adj.hue_purples, lum: adj.lum_purples },
     ];
     const hasPerChannel = channelList.some(c =>
       (c.sat && Math.abs(c.sat) > 0.005) ||
@@ -6752,7 +6755,7 @@ function applyPixelAdjustments(srcData, adj) {
           let dist = Math.abs(ph - ch.center);
           if (dist > 180) dist = 360 - dist;
           const norm = dist / (ch.width / 2);
-          const weight = norm < 2.0 ? Math.exp(-norm * norm * 1.0) : 0;
+          const weight = norm < 2.0 ? Math.exp(-norm * norm * 1.5) : 0;
           if (weight < 0.001) continue;
           if (ch.sat && Math.abs(ch.sat) > 0.005) {
             let satContrib = ch.sat * weight * 0.7;

@@ -9916,7 +9916,7 @@ function _evRenderCanvasImmediate() {
   var canvas = document.getElementById('ev-canvas');
   var area   = document.getElementById('ev-canvas-area');
   if (!canvas || !area || !userImage) return;
-  var dpr = window._slDragging ? 0.5 : Math.min(window.devicePixelRatio || 1, 2);
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
   var aw = area.clientWidth || 500, ah = area.clientHeight || 400;
   var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
   var baseScale = Math.min(aw/iw, ah/ih, 1);

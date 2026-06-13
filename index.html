@@ -5238,9 +5238,12 @@ function initSliderState(p) {
 }
 
 // Load a preset's default values into sliderState — called only on explicit user selection.
+// All sliders start neutral (0.5 = +0.00) so no unintended effects are applied.
 function applyPresetDefaults(p) {
-  if (!p || !p.defaults) return;
-  sliderState[p.id] = { ...p.defaults };
+  if (!p) return;
+  // Always initialize to neutral; ignore non-zero preset defaults
+  sliderState[p.id] = {};
+  initSliderState(p);
 }
 
 function getSliderDisplay(name, t) {
@@ -9704,18 +9707,18 @@ window.globalRedo = function() {
 // ── Fix 3: Global RESET ───────────────────────────────────────────────────
 function globalReset() {
   var _evViewR = document.getElementById('editor-view');
-  var _evOpenR = _evViewR && _evViewR.style.display === 'flex';
-  if (!userImage || (!_evOpenR && !_origPixels)) { showToast('NOTHING TO RESET'); return; }
+  var _evOpenR = _evViewR && _evViewR.classList.contains('active');
+  if (!userImage) { showToast('NOTHING TO RESET'); return; }
   const hc = document.getElementById('hero-canvas');
   // Push current state to history (reset is undoable)
   if (hc && activePreset) fix2HistoryPush(activePreset.id);
 
-  // Reset ALL sliders to exact zero
-  if (activePreset) {
-    sliderState[activePreset.id] = {};
-    buildEditorSliders(activePreset);
-    buildEditorToolsSection();
-  }
+  // Zero ALL sliders across ALL presets to neutral (0.5 = +0.00)
+  Object.keys(sliderState).forEach(function(pid) {
+    Object.keys(sliderState[pid]).forEach(function(k) {
+      sliderState[pid][k] = 0.5;
+    });
+  });
 
   // Clear crop overlay, straighten, flip
   const cropOv = document.getElementById('crop-overlay-canvas');
@@ -9743,6 +9746,7 @@ function globalReset() {
   function _finishReset() {
     if (!_evOpenR) return;
     evRenderCanvas();
+    // Rebuild sliders to show 0.00
     evBuildSliders();
     if (_evActiveCardEl) _evActiveCardEl.style.boxShadow = '';
     var _rstNoneCanvas = document.getElementById('evt-none');

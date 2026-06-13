@@ -5401,7 +5401,7 @@ function _slEndDrag() {
   // (full resolution + sharpen/clarity/blur/halation) that was skipped during dragging.
   if (pid) scheduleRender(pid);
   var _ev = document.getElementById('editor-view');
-  if (_ev && _ev.style.display === 'flex') evRenderCanvas();
+  if (_ev && _ev.classList.contains('active')) evRenderCanvas();
 }
 document.addEventListener('mousemove', _slApplyDrag);
 document.addEventListener('touchmove', _slApplyDrag, {passive:true}); // touch-action:none on tracks handles scroll prevention
@@ -9439,8 +9439,8 @@ function etCropHTML() {
     <path d="M5 14 L12 21 L19 14 Z" opacity="0.92"/>
   </svg>`;
   const rotateSvg = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-    <path d="M12 3 L17.5 7 L12 11 Z"/>
-    <path d="M15.5 7 A8 8 0 1 0 19 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M 12 5 A 7 7 0 1 1 5 12" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
+    <polygon points="2.5,9.5 7.5,9.5 5,14.5"/>
   </svg>`;
   const perspVSvg = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
     <polygon points="3,5 21,5 17.5,19 6.5,19"/>
@@ -9652,7 +9652,11 @@ window.globalUndo = function() {
   if (_histSnap && _histSnap._userImage) _fuSnap._userImage = userImage;
   evFuture.push(_fuSnap);
   var snap = evHistory.pop();
-  if (snap._userImage) userImage = snap._userImage;
+  if (snap._userImage) {
+    userImage = snap._userImage;
+    // Crop was undone — next crop tool open should land on RATIO tab so box is visible
+    if (typeof _etCropDefaultTab !== 'undefined') _etCropDefaultTab = 'ratio';
+  }
   _evRestoreSnap(snap);
 };
 
@@ -11607,7 +11611,7 @@ window.toolsFlipApply = function(dir) {
     showToast('FLIPPED');
     if (typeof evRenderCanvas === 'function') {
       const ev = document.getElementById('editor-view');
-      if (ev && ev.style.display === 'flex') evRenderCanvas();
+      if (ev && ev.classList.contains('active')) evRenderCanvas();
     }
   };
   newImg.src = tmp.toDataURL();
@@ -11830,7 +11834,7 @@ window.toolsCropApply = function() {
       if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
       userImage = newImg;
       var ev = document.getElementById('editor-view');
-      if (ev && ev.style.display === 'flex') { if (typeof evRenderCanvas === 'function') evRenderCanvas(); }
+      if (ev && ev.classList.contains('active')) { if (typeof evRenderCanvas === 'function') evRenderCanvas(); }
       else { loadImageToCanvas(hc, newImg); }
       showToast(toast);
     };
@@ -11994,7 +11998,7 @@ function cropRotate90(dir) {
     _cropStraightenOrig = newImg;
     cropRect = null;
     var ev = document.getElementById('editor-view');
-    if (ev && ev.style.display === 'flex' && typeof evRenderCanvas === 'function') {
+    if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') {
       evRenderCanvas();
       // Delay crop UI rebuild until after rAF has painted the new frame
       setTimeout(function() {
@@ -12021,13 +12025,25 @@ function _cropPerspFlush() {
   var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
   if (!ac) { sc.remove(); return; }
   ac.style.opacity = '1';
+  // Fast canvas-to-canvas copy (no JPEG encoding — avoids UI-thread lag)
   ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
   ac.getContext('2d').drawImage(sc, 0, 0);
-  var dataURL = ac.toDataURL('image/jpeg', 0.96);
-  var img = new Image();
-  img.onload = function() { userImage = img; _cropPerspOrig = img; };
-  img.src = dataURL;
+  // Keep a canvas snapshot as the new perspective base (drawImage accepts canvas elements)
+  var snap = document.createElement('canvas');
+  snap.width = ac.width; snap.height = ac.height;
+  snap.getContext('2d').drawImage(sc, 0, 0);
+  _cropPerspOrig = snap;
   sc.remove();
+  // Update userImage asynchronously so crop confirm uses correct source
+  if (ac.toBlob) {
+    ac.toBlob(function(blob) {
+      if (!blob) return;
+      var url = URL.createObjectURL(blob);
+      var img = new Image();
+      img.onload = function() { userImage = img; URL.revokeObjectURL(url); };
+      img.src = url;
+    }, 'image/jpeg', 0.92);
+  }
 }
 
 function cropPerspActivate(axis) {

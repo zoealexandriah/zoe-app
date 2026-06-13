@@ -5329,7 +5329,11 @@ function _slEndDrag() {
   window._slDragging = false;
   var pid = _slDragPreset;
   _slDragTrack = null; _slDragPreset = null;
+  // Always fire a final render after drag ends — this is the full-quality pass
+  // (full resolution + sharpen/clarity/blur/halation) that was skipped during dragging.
   if (pid) scheduleRender(pid);
+  var _ev = document.getElementById('editor-view');
+  if (_ev && _ev.style.display === 'flex') evRenderCanvas();
 }
 document.addEventListener('mousemove', _slApplyDrag);
 document.addEventListener('touchmove', _slApplyDrag, {passive:true}); // touch-action:none on tracks handles scroll prevention
@@ -9930,7 +9934,9 @@ function _evRenderCanvasImmediate() {
   var cssW = Math.round(iw * baseScale);
   var cssH = Math.round(ih * baseScale);
   // Render at zoom-aware resolution so the image stays sharp when zoomed in
-  var MAX_SIDE = 1200;
+  // Use a lower cap while the user is actively dragging a slider — cuts pixel work in half,
+  // giving near-instant feedback. A quality re-render fires on drag release.
+  var MAX_SIDE = window._slDragging ? 600 : 1200;
   var zoomFactor = Math.max(evZoomLevel || 1, 1);
   var renderScale = Math.min(baseScale * zoomFactor * dpr, 1, MAX_SIDE/iw, MAX_SIDE/ih);
   canvas.width  = Math.round(iw * renderScale);
@@ -9989,14 +9995,21 @@ function _evRenderCanvasImmediate() {
     ctx.putImageData(new ImageData(processed, canvas.width, canvas.height), 0, 0);
     const _hasState = activePreset && sliderState[activePreset.id] && Object.keys(sliderState[activePreset.id]).length > 0;
     if (_hasState && activePreset.curve) applyCurveLUTs(canvas, activePreset.curve, 0, 0, canvas.width, canvas.height);
-    // Apply canvas-composited effects
-    if ((adj.sharpen || 0) > 0.01) applySharpness(canvas, adj.sharpen, 0, 0, canvas.width, canvas.height);
-    if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(canvas, adj.clarity, 0, 0, canvas.width, canvas.height);
-    if ((adj.blur   || 0) > 0.01) applyBlur(canvas, adj.blur, 0, 0, canvas.width, canvas.height);
-    if ((adj.glow   || 0) > 0.01) applyGlow(canvas, adj.glow, 0, 0, canvas.width, canvas.height);
+    // Skip heavy offscreen-canvas effects while slider is being dragged — they each allocate a
+    // new canvas + getImageData/putImageData and are the main source of mid-drag lag.
+    // A full-quality re-render fires automatically on drag release.
+    var _dragging = window._slDragging;
+    if (!_dragging) {
+      if ((adj.sharpen || 0) > 0.01) applySharpness(canvas, adj.sharpen, 0, 0, canvas.width, canvas.height);
+      if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(canvas, adj.clarity, 0, 0, canvas.width, canvas.height);
+      if ((adj.blur   || 0) > 0.01) applyBlur(canvas, adj.blur, 0, 0, canvas.width, canvas.height);
+      if ((adj.glow   || 0) > 0.01) applyGlow(canvas, adj.glow, 0, 0, canvas.width, canvas.height);
+    }
     if (_hasState && activePreset.splitTone) adj.split_tone = activePreset.splitTone;
     if (_hasState && activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
-    if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
+    if (!_dragging) {
+      if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
+    }
     if ((adj.vignette || 0) > 0.01) applyVignette(canvas, adj.vignette, 0, 0, canvas.width, canvas.height);
   }
 }
@@ -10287,7 +10300,9 @@ function evApplyZoom() {
         var _p = presets.find(function(x){ return x.id === pid; });
         if (_p) { activePreset = _p; evActivePreset = _p; }
       }
-      evRenderCanvas();
+      // Call immediate version — we're already inside a rAF from scheduleRender,
+      // so calling evRenderCanvas() would add a second rAF hop (one full extra frame of lag).
+      _evRenderCanvasImmediate();
     } else {
       _orig(pid); // Not in editor: run normal hero/preview render
     }

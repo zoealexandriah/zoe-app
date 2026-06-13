@@ -2269,18 +2269,17 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   background: rgba(201,184,212,0.13); border-color: rgba(201,184,212,0.35);
   color: rgba(220,205,250,0.95);
 }
-/* Save Formula button — sits right-of filter row */
-#ev-save-formula-row-btn {
-  flex-shrink: 0;
-  padding: 3px 10px; border-radius: 100px; cursor: pointer;
-  border: 0.5px solid rgba(192,64,90,0.35);
-  background: rgba(192,64,90,0.09);
-  font-size: 8px; letter-spacing: 0.16em;
-  color: rgba(218,108,138,0.80); font-family: var(--mono);
-  white-space: nowrap; transition: all 0.15s;
+/* Formula save FAB */
+#ev-save-fab {
+  position: absolute; bottom: 16px; right: 14px; z-index: 10;
+  width: 46px; height: 46px; border-radius: 13px;
+  background: rgba(18,14,30,0.86); border: 0.5px solid rgba(201,184,212,0.18);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,0.50);
   -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  color: rgba(218,180,240,0.80); transition: background 0.15s, transform 0.12s;
 }
-#ev-save-formula-row-btn:hover { background: rgba(192,64,90,0.18); color: rgba(230,130,155,0.95); }
+#ev-save-fab:active { transform: scale(0.93); background: rgba(192,64,90,0.22); }
 /* Formula card delete badge */
 .ev-formula-del {
   position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;
@@ -2930,18 +2929,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex-shrink: 0 !important;
   }
   /* Hide all other toolbar items (desktop-only) */
-  #ev-toolbar > *:not(#editor-back-btn):not(#ev-undo):not(#ev-redo):not(#ev-reset-btn):not(#ev-save-formula-btn):not(#save-to-gallery-btn) {
+  #ev-toolbar > *:not(#editor-back-btn):not(#ev-undo):not(#ev-redo):not(#ev-reset-btn):not(#save-to-gallery-btn) {
     display: none !important;
-  }
-  /* Save Formula wand — icon button, same style as reset/undo */
-  #ev-save-formula-btn {
-    background: none !important;
-    border: none !important;
-    padding: 4px !important;
-    min-width: 0 !important;
-    height: auto !important;
-    color: #fff !important;
-    flex-shrink: 0 !important;
   }
   /* In ADJUST mode keep toolbar visible */
   #editor-view.adjust-open #ev-toolbar { display: flex !important; }
@@ -4011,10 +4000,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <svg class="ev-tb-svg" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.1-5.8"/><polyline points="21 3 21 8 16 8"/></svg>
               <span class="ev-tb-text">↺ RESET</span>
             </div>
-            <div class="ctb-btn" id="ev-save-formula-btn" onclick="evShowSaveFormula()" style="display:inline-flex;align-items:center;" title="Save Formula">
-              <svg class="ev-tb-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L14.5 9H21L15.7 13.1L17.9 20L12 16L6.1 20L8.3 13.1L3 9H9.5Z"/></svg>
-              <span class="ev-tb-text">SAVE FORMULA</span>
-            </div>
             <div class="ev-tb-sep" style="width:1px;height:16px;background:var(--border);flex-shrink:0"></div>
             <div class="ctb-btn" onclick="evZoomOut()" style="display:inline-flex;align-items:center">−</div>
             <div id="ev-zoom" style="min-width:36px;text-align:center;font-size:9px;color:rgba(201,184,212,0.60);font-family:var(--mono);flex-shrink:0">100%</div>
@@ -4031,6 +4016,14 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <!-- Canvas area -->
           <div id="ev-canvas-area" style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#100d14;">
             <canvas id="ev-canvas"></canvas>
+            <!-- Floating save formula button -->
+            <div id="ev-save-fab" onclick="evShowSaveFormula()" title="Save Formula">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                <line x1="12" y1="9" x2="12" y2="15"/>
+                <line x1="9" y1="12" x2="15" y2="12"/>
+              </svg>
+            </div>
             <div id="ev-no-photo" style="display:none;flex-direction:column;align-items:center;justify-content:center;position:absolute;inset:0;padding:0 32px;">
               <!-- Folder illustration -->
               <svg width="172" height="152" viewBox="0 0 172 152" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:18px;flex-shrink:0">
@@ -4072,7 +4065,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div id="ev-preset-strip" style="height:152px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow-x:hidden;overflow-y:visible;">
             <!-- Category filter row -->
             <div id="ev-cats" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-              <div id="ev-save-formula-row-btn" onclick="evShowSaveFormula()">✦</div>
               <div class="ev-cat-btn" data-cat="SAVED" onclick="evFilterCat(this,'SAVED')">CUSTOM</div>
               <div class="ev-cat-btn active" data-cat="ALL" onclick="evFilterCat(this,'ALL')">ALL</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'FILM')">FILM</div>
@@ -4179,6 +4171,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <button class="ev-mnav-btn" data-tab="effects" onclick="evMobileNavToggle('effects')">
               <svg viewBox="0 0 20 20" fill="none"><text x="10" y="14.5" text-anchor="middle" fill="currentColor" font-size="13" font-style="italic" font-family="Georgia,'Times New Roman',serif">fx</text></svg>
               <span>EFFECTS</span>
+            </button>
+            <button class="ev-mnav-btn" data-tab="formulas" onclick="evMobileNavToggle('formulas')">
+              <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 18l-5-3.5L5 18V4a1.5 1.5 0 0 1 1.5-1.5h7A1.5 1.5 0 0 1 15 4z"/>
+              </svg>
+              <span>FORMULAS</span>
             </button>
           </div>
         </div>
@@ -5463,6 +5461,22 @@ function evMobileNavToggle(name) {
       var btn = document.querySelector('.ev-mnav-btn[data-tab="adjust"]');
       if (btn) btn.classList.add('active');
       evAdjustSubTab('light');
+    }
+  } else if (name === 'formulas') {
+    // FORMULAS = preset strip filtered to saved formulas
+    suite.classList.remove('open');
+    if (subnav) subnav.style.display = 'none';
+    if (isSame && strip.classList.contains('visible')) {
+      strip.classList.remove('visible');
+    } else {
+      strip.classList.add('visible');
+      var btn = document.querySelector('.ev-mnav-btn[data-tab="formulas"]');
+      if (btn) btn.classList.add('active');
+      evCatFilter = 'SAVED';
+      document.querySelectorAll('#ev-cats .ev-cat-btn').forEach(function(b){ b.classList.remove('active'); });
+      var savedBtn = document.querySelector('#ev-cats [data-cat="SAVED"]');
+      if (savedBtn) savedBtn.classList.add('active');
+      evRenderPresets();
     }
   }
 }

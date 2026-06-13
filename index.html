@@ -2100,19 +2100,20 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .crop-sub-label { font-size:9px; color:rgba(210,205,235,0.75); font-family:var(--mono); letter-spacing:0.08em; }
 .crop-sub-val   { font-size:9px; color:rgba(175,168,210,0.45); font-family:var(--mono); }
 /* Transform icon buttons */
-.crop-transform-icons { display:flex; justify-content:center; gap:12px; padding:10px 8px 6px; }
+.crop-transform-icons { display:flex; justify-content:center; gap:8px; padding:10px 4px 6px; flex-wrap:wrap; }
 .crop-transform-icon-btn {
-  display:flex; flex-direction:column; align-items:center; gap:6px;
-  cursor:pointer; touch-action:manipulation; min-width:56px;
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  cursor:pointer; touch-action:manipulation; min-width:46px;
 }
 .crop-transform-icon-box {
-  width:44px; height:44px; border:1px solid rgba(255,255,255,0.16);
-  border-radius:12px; display:flex; align-items:center; justify-content:center;
-  background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.80);
+  width:48px; height:48px; border:1.5px solid rgba(200,190,220,0.26);
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:rgba(12,8,22,0.82); color:rgba(255,255,255,0.88);
   transition:background 0.14s,border-color 0.14s;
 }
-.crop-transform-icon-btn:active .crop-transform-icon-box { background:rgba(255,255,255,0.10); border-color:rgba(255,255,255,0.38); }
-.crop-transform-icon-label { font-size:8.5px; color:rgba(255,255,255,0.40); font-family:var(--mono); letter-spacing:0.09em; }
+.crop-transform-icon-btn:active .crop-transform-icon-box,
+.crop-transform-icon-box.active { background:rgba(192,64,90,0.20); border-color:rgba(218,90,125,0.55); }
+.crop-transform-icon-label { font-size:7.5px; color:rgba(255,255,255,0.38); font-family:var(--mono); letter-spacing:0.09em; }
 /* Action bar */
 .crop-action-bar {
   display:flex; align-items:center; justify-content:space-between;
@@ -9409,19 +9410,25 @@ function etCropHTML() {
     </div>`;
   }).join('');
 
-  const flipHSvg = `<svg viewBox="0 0 40 40" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="17,13 8,20 17,27"/>
-    <polyline points="23,13 32,20 23,27"/>
-    <line x1="20" y1="7" x2="20" y2="33" stroke-dasharray="2.8 2.4" stroke-width="1.2"/>
+  const flipHSvg = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+    <path d="M10 5 L3 12 L10 19 Z" opacity="0.92"/>
+    <path d="M14 5 L21 12 L14 19 Z" opacity="0.92"/>
   </svg>`;
-  const flipVSvg = `<svg viewBox="0 0 40 40" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="13,17 20,8 27,17"/>
-    <polyline points="13,23 20,32 27,23"/>
-    <line x1="7" y1="20" x2="33" y2="20" stroke-dasharray="2.8 2.4" stroke-width="1.2"/>
+  const flipVSvg = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+    <path d="M5 10 L12 3 L19 10 Z" opacity="0.92"/>
+    <path d="M5 14 L12 21 L19 14 Z" opacity="0.92"/>
   </svg>`;
-  const rotateSvg = `<svg viewBox="0 0 40 40" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M20 7 A13 13 0 1 1 7 20"/>
-    <polyline points="3,16 7,21 11,16"/>
+  const rotateSvg = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12 A9 9 0 1 1 12.4 3"/>
+    <polyline points="17,3 12,3 12,8"/>
+  </svg>`;
+  const perspVSvg = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+    <polygon points="3,5 21,5 17.5,19 6.5,19"/>
+    <rect x="11.25" y="5" width="1.5" height="14" fill="rgba(5,3,14,0.85)"/>
+  </svg>`;
+  const perspHSvg = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+    <polygon points="5,3 19,6.5 19,17.5 5,21"/>
+    <rect x="5" y="11.25" width="14" height="1.5" fill="rgba(5,3,14,0.85)"/>
   </svg>`;
 
   const _st = _etCropDefaultTab || 'straighten'; _etCropDefaultTab = 'straighten';
@@ -9447,7 +9454,7 @@ function etCropHTML() {
       <div class="crop-transform-icons">
         <div class="crop-transform-icon-btn" onclick="toolsFlipApply('h')">
           <div class="crop-transform-icon-box">${flipHSvg}</div>
-          <span class="crop-transform-icon-label">FLIP</span>
+          <span class="crop-transform-icon-label">FLIP H</span>
         </div>
         <div class="crop-transform-icon-btn" onclick="toolsFlipApply('v')">
           <div class="crop-transform-icon-box">${flipVSvg}</div>
@@ -9456,6 +9463,26 @@ function etCropHTML() {
         <div class="crop-transform-icon-btn" onclick="cropRotate90('cw')">
           <div class="crop-transform-icon-box">${rotateSvg}</div>
           <span class="crop-transform-icon-label">ROTATE</span>
+        </div>
+        <div class="crop-transform-icon-btn" onclick="cropPerspActivate('v')">
+          <div class="crop-transform-icon-box" id="crop-persp-v-box">${perspVSvg}</div>
+          <span class="crop-transform-icon-label">VERT</span>
+        </div>
+        <div class="crop-transform-icon-btn" onclick="cropPerspActivate('h')">
+          <div class="crop-transform-icon-box" id="crop-persp-h-box">${perspHSvg}</div>
+          <span class="crop-transform-icon-label">HORIZ</span>
+        </div>
+      </div>
+      <div id="crop-persp-slider-row" style="display:none;padding:4px 0 2px;">
+        <div class="crop-sub-row" style="margin-bottom:4px;">
+          <span class="crop-sub-label" id="crop-persp-label">PERSPECTIVE</span>
+          <span class="crop-sub-val" id="crop-persp-val">0.00</span>
+        </div>
+        <input type="range" class="tc-range" id="crop-persp-slider" min="-100" max="100" step="1" value="0"
+               oninput="cropPerspPreview(this.value)">
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <div class="tc-btn tc-btn-primary" style="flex:1" onclick="cropPerspApply()">APPLY</div>
+          <div class="tc-btn tc-btn-ghost"   style="flex:1" onclick="cropPerspReset()">RESET</div>
         </div>
       </div>
     </div>
@@ -11840,6 +11867,8 @@ function cropSelectSubTab(btn, tab) {
   var ov = document.getElementById('crop-overlay-canvas');
   if (ov) ov.style.display = 'none';
   var sw = document.getElementById('crop-straighten-work'); if (sw) sw.remove();
+  // Clean up perspective work canvas when leaving transform
+  var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
   // Clear cropRect when leaving RATIO tab — only RATIO should produce a crop on confirm
   if (tab !== 'ratio') { cropRect = null; cropDragging = null; }
   ['straighten','ratio','transform'].forEach(function(id) {
@@ -11963,6 +11992,133 @@ function cropRotate90(dir) {
     showToast('ROTATED');
   };
   newImg.src = tmp.toDataURL();
+}
+
+// ── Perspective Warp ────────────────────────────────────────────────────────
+var _cropPerspAxis = 'v';
+var _cropPerspOrig = null;
+
+function cropPerspActivate(axis) {
+  _cropPerspAxis = axis;
+  var label = document.getElementById('crop-persp-label');
+  if (label) label.textContent = axis === 'v' ? 'VERT PERSPECTIVE' : 'HORIZ PERSPECTIVE';
+  var row = document.getElementById('crop-persp-slider-row');
+  if (row) row.style.display = '';
+  var sl = document.getElementById('crop-persp-slider');
+  if (sl) sl.value = 0;
+  var val = document.getElementById('crop-persp-val');
+  if (val) val.textContent = '0.00';
+  // Remove any existing preview
+  var pw = document.getElementById('crop-perspective-work'); if (pw) pw.remove();
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+  if (ac) ac.style.opacity = '1';
+  _cropPerspOrig = userImage;
+  // Highlight active button
+  var vBox = document.getElementById('crop-persp-v-box'), hBox = document.getElementById('crop-persp-h-box');
+  if (vBox) vBox.classList.toggle('active', axis === 'v');
+  if (hBox) hBox.classList.toggle('active', axis === 'h');
+}
+
+function cropPerspPreview(val) {
+  var valEl = document.getElementById('crop-persp-val');
+  if (valEl) valEl.textContent = parseFloat(val).toFixed(2);
+  if (!_cropPerspOrig) { _cropPerspOrig = userImage; if (!_cropPerspOrig) return; }
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+  if (!ac) return;
+  var sc = document.getElementById('crop-perspective-work');
+  if (!sc) {
+    sc = document.createElement('canvas'); sc.id = 'crop-perspective-work';
+    sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none';
+    ac.parentElement.appendChild(sc);
+  }
+  sc.width = ac.width; sc.height = ac.height;
+  var _acW = ac.clientWidth, _acH = ac.clientHeight;
+  var _arW = ac.parentElement.clientWidth, _arH = ac.parentElement.clientHeight;
+  sc.style.width  = _acW + 'px'; sc.style.height = _acH + 'px';
+  sc.style.left   = Math.round((_arW - _acW) / 2) + 'px';
+  sc.style.top    = Math.round((_arH - _acH) / 2) + 'px';
+  // Draw source at display scale
+  var tmp = document.createElement('canvas'); tmp.width = sc.width; tmp.height = sc.height;
+  tmp.getContext('2d').drawImage(_cropPerspOrig, 0, 0, sc.width, sc.height);
+  var ctx = sc.getContext('2d');
+  ctx.clearRect(0, 0, sc.width, sc.height);
+  ctx.fillStyle = '#050310'; ctx.fillRect(0, 0, sc.width, sc.height);
+  _cropPerspWarp(ctx, tmp, _cropPerspAxis, parseFloat(val) / 100, sc.width, sc.height);
+  ac.style.opacity = '0';
+}
+
+function _cropPerspWarp(dstCtx, srcCanvas, axis, amount, w, h) {
+  var srcCtx = srcCanvas.getContext('2d');
+  var src = srcCtx.getImageData(0, 0, w, h);
+  var dst = dstCtx.createImageData(w, h);
+  var maxS = 0.45;
+  var x, y, t, scale, span, s0, i, fx, si0, si1, di;
+  if (axis === 'v') {
+    for (y = 0; y < h; y++) {
+      t = y / Math.max(h - 1, 1);
+      scale = Math.max(0.1, 1.0 + amount * maxS * (1 - 2 * t));
+      span = w / scale; s0 = (w - span) / 2;
+      for (x = 0; x < w; x++) {
+        var sx = s0 + x * span / w;
+        if (sx < 0 || sx >= w) continue;
+        i = Math.floor(sx); fx = sx - i;
+        si0 = (y * w + i) * 4; si1 = (y * w + Math.min(w-1, i+1)) * 4; di = (y * w + x) * 4;
+        dst.data[di]   = src.data[si0]   + (src.data[si1]   - src.data[si0])   * fx;
+        dst.data[di+1] = src.data[si0+1] + (src.data[si1+1] - src.data[si0+1]) * fx;
+        dst.data[di+2] = src.data[si0+2] + (src.data[si1+2] - src.data[si0+2]) * fx;
+        dst.data[di+3] = 255;
+      }
+    }
+  } else {
+    for (x = 0; x < w; x++) {
+      t = x / Math.max(w - 1, 1);
+      scale = Math.max(0.1, 1.0 + amount * maxS * (1 - 2 * t));
+      span = h / scale; s0 = (h - span) / 2;
+      for (y = 0; y < h; y++) {
+        var sy = s0 + y * span / h;
+        if (sy < 0 || sy >= h) continue;
+        i = Math.floor(sy); fx = sy - i;
+        si0 = (i * w + x) * 4; si1 = (Math.min(h-1, i+1) * w + x) * 4; di = (y * w + x) * 4;
+        dst.data[di]   = src.data[si0]   + (src.data[si1]   - src.data[si0])   * fx;
+        dst.data[di+1] = src.data[si0+1] + (src.data[si1+1] - src.data[si0+1]) * fx;
+        dst.data[di+2] = src.data[si0+2] + (src.data[si1+2] - src.data[si0+2]) * fx;
+        dst.data[di+3] = 255;
+      }
+    }
+  }
+  dstCtx.putImageData(dst, 0, 0);
+}
+
+function cropPerspApply() {
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+  var sc = document.getElementById('crop-perspective-work');
+  if (!sc || !sc.width || !ac) { cropPerspReset(); return; }
+  if (typeof evHistoryPush === 'function') evHistoryPush();
+  ac.style.opacity = '1';
+  ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
+  ac.getContext('2d').drawImage(sc, 0, 0);
+  var dataURL = ac.toDataURL('image/jpeg', 0.96);
+  var img = new Image();
+  img.onload = function() { userImage = img; _cropPerspOrig = img; };
+  img.src = dataURL;
+  sc.remove();
+  var row = document.getElementById('crop-persp-slider-row'); if (row) row.style.display = 'none';
+  var sl = document.getElementById('crop-persp-slider'); if (sl) sl.value = 0;
+  var vBox = document.getElementById('crop-persp-v-box'), hBox = document.getElementById('crop-persp-h-box');
+  if (vBox) vBox.classList.remove('active'); if (hBox) hBox.classList.remove('active');
+  showToast('PERSPECTIVE APPLIED');
+}
+
+function cropPerspReset() {
+  var sc = document.getElementById('crop-perspective-work'); if (sc) sc.remove();
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+  if (ac) ac.style.opacity = '1';
+  var sl = document.getElementById('crop-persp-slider'); if (sl) sl.value = 0;
+  var val = document.getElementById('crop-persp-val'); if (val) val.textContent = '0.00';
+  var row = document.getElementById('crop-persp-slider-row'); if (row) row.style.display = 'none';
+  var vBox = document.getElementById('crop-persp-v-box'), hBox = document.getElementById('crop-persp-h-box');
+  if (vBox) vBox.classList.remove('active'); if (hBox) hBox.classList.remove('active');
+  _cropPerspOrig = null;
 }
 
 // ── Fix 10: Collections level 2 header editable ──────────────────────────

@@ -12058,8 +12058,11 @@ function _cropPerspFlush() {
   snap.width = ac.width; snap.height = ac.height;
   snap.getContext('2d').drawImage(sc, 0, 0);
   _cropPerspOrig = snap;
+  // Hide the overlay when leaving perspective mode
+  var ov = document.getElementById('crop-overlay-canvas');
+  if (ov) ov.style.display = 'none';
   sc.remove();
-  // Update userImage asynchronously so crop confirm uses correct source
+  // Update userImage asynchronously so subsequent operations use correct source
   if (ac.toBlob) {
     ac.toBlob(function(blob) {
       if (!blob) return;
@@ -12092,7 +12095,7 @@ function cropPerspActivate(axis) {
 
 function cropPerspPreview(val) {
   var valEl = document.getElementById('crop-persp-val');
-  if (valEl) valEl.textContent = parseFloat(val).toFixed(2);
+  if (valEl) valEl.textContent = Math.round(parseFloat(val));
   if (!_cropPerspOrig) { _cropPerspOrig = userImage; if (!_cropPerspOrig) return; }
   var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
   if (!ac) return;
@@ -12108,51 +12111,93 @@ function cropPerspPreview(val) {
   sc.style.width  = _acW + 'px'; sc.style.height = _acH + 'px';
   sc.style.left   = Math.round((_arW - _acW) / 2) + 'px';
   sc.style.top    = Math.round((_arH - _acH) / 2) + 'px';
-  // Draw source at display scale
   var tmp = document.createElement('canvas'); tmp.width = sc.width; tmp.height = sc.height;
   tmp.getContext('2d').drawImage(_cropPerspOrig, 0, 0, sc.width, sc.height);
   var ctx = sc.getContext('2d');
   ctx.clearRect(0, 0, sc.width, sc.height);
-  ctx.fillStyle = '#050310'; ctx.fillRect(0, 0, sc.width, sc.height);
-  _cropPerspWarp(ctx, tmp, _cropPerspAxis, parseFloat(val) / 100, sc.width, sc.height);
+  var amount = parseFloat(val) / 100;
+  _cropPerspWarp(ctx, tmp, _cropPerspAxis, amount, sc.width, sc.height);
   ac.style.opacity = '0';
+
+  // Auto-crop: compute inscribed rectangle (largest rect with no empty corners)
+  var maxS = 0.48, absEff = Math.abs(amount) * maxS;
+  var W = sc.width, H = sc.height;
+  if (_cropPerspAxis === 'v') {
+    cropRect = { x: Math.round(W * absEff / 2), y: 0, w: Math.round(W * (1 - absEff)), h: H };
+  } else {
+    cropRect = { x: 0, y: Math.round(H * absEff / 2), w: W, h: Math.round(H * (1 - absEff)) };
+  }
+
+  // Show crop overlay to visualise the valid region
+  var ov = document.getElementById('crop-overlay-canvas');
+  if (!ov) {
+    ov = document.createElement('canvas'); ov.id = 'crop-overlay-canvas';
+    ov.style.cssText = 'position:absolute;z-index:5;pointer-events:none';
+    ac.parentElement.appendChild(ov);
+  }
+  ov.width = W; ov.height = H;
+  ov.style.width  = _acW + 'px'; ov.style.height = _acH + 'px';
+  ov.style.left   = Math.round((_arW - _acW) / 2) + 'px';
+  ov.style.top    = Math.round((_arH - _acH) / 2) + 'px';
+  ov.style.display = 'block';
+  if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(ov);
 }
 
 function _cropPerspWarp(dstCtx, srcCanvas, axis, amount, w, h) {
+  // True keystone / perspective warp:
+  //   One edge fills the full dimension; the opposite edge compresses inward.
+  //   Empty corner pixels are left transparent (alpha 0).
+  // axis='v': scale varies per ROW, affects horizontal width
+  //   amount > 0 → top narrower, bottom full-width
+  //   amount < 0 → top full-width, bottom narrower
+  // axis='h': scale varies per COLUMN, affects vertical height
+  //   amount > 0 → left narrower, right full-height
+  //   amount < 0 → left full-height, right narrower
+  var maxS = 0.48;
+  var eff = amount * maxS;          // effective warp: ±0 … ±maxS
+  var abs = Math.abs(eff);
   var srcCtx = srcCanvas.getContext('2d');
   var src = srcCtx.getImageData(0, 0, w, h);
   var dst = dstCtx.createImageData(w, h);
-  var maxS = 0.45;
-  var x, y, t, scale, span, s0, i, fx, si0, si1, di;
+  var t, u, k, sx, sy, sx0, sy0, fx, fy, sx1, sy1, si, si2, di;
+
   if (axis === 'v') {
-    for (y = 0; y < h; y++) {
+    for (var y = 0; y < h; y++) {
       t = y / Math.max(h - 1, 1);
-      scale = Math.max(0.1, 1.0 + amount * maxS * (1 - 2 * t));
-      span = w / scale; s0 = (w - span) / 2;
-      for (x = 0; x < w; x++) {
-        var sx = s0 + x * span / w;
-        if (sx < 0 || sx >= w) continue;
-        i = Math.floor(sx); fx = sx - i;
-        si0 = (y * w + i) * 4; si1 = (y * w + Math.min(w-1, i+1)) * 4; di = (y * w + x) * 4;
-        dst.data[di]   = src.data[si0]   + (src.data[si1]   - src.data[si0])   * fx;
-        dst.data[di+1] = src.data[si0+1] + (src.data[si1+1] - src.data[si0+1]) * fx;
-        dst.data[di+2] = src.data[si0+2] + (src.data[si1+2] - src.data[si0+2]) * fx;
+      // u = 1 at the narrow end, 0 at the wide (full-width) end
+      u = eff >= 0 ? (1 - t) : t;
+      k = 1.0 - abs * u;
+      if (k < 0.01) continue;
+      for (var x = 0; x < w; x++) {
+        // Inverse warp: where in the source does this destination pixel come from?
+        sx = (x - w * 0.5) / k + w * 0.5;
+        if (sx < 0 || sx >= w) continue;   // outside image → transparent
+        sx0 = sx | 0; fx = sx - sx0; sx1 = Math.min(w - 1, sx0 + 1);
+        si  = (y * w + sx0) * 4;
+        si2 = (y * w + sx1) * 4;
+        di  = (y * w + x)   * 4;
+        dst.data[di]   = src.data[si]   + (src.data[si2]   - src.data[si])   * fx;
+        dst.data[di+1] = src.data[si+1] + (src.data[si2+1] - src.data[si+1]) * fx;
+        dst.data[di+2] = src.data[si+2] + (src.data[si2+2] - src.data[si+2]) * fx;
         dst.data[di+3] = 255;
       }
     }
   } else {
-    for (x = 0; x < w; x++) {
-      t = x / Math.max(w - 1, 1);
-      scale = Math.max(0.1, 1.0 + amount * maxS * (1 - 2 * t));
-      span = h / scale; s0 = (h - span) / 2;
-      for (y = 0; y < h; y++) {
-        var sy = s0 + y * span / h;
+    for (var x2 = 0; x2 < w; x2++) {
+      t = x2 / Math.max(w - 1, 1);
+      u = eff >= 0 ? (1 - t) : t;
+      k = 1.0 - abs * u;
+      if (k < 0.01) continue;
+      for (var y2 = 0; y2 < h; y2++) {
+        sy = (y2 - h * 0.5) / k + h * 0.5;
         if (sy < 0 || sy >= h) continue;
-        i = Math.floor(sy); fx = sy - i;
-        si0 = (i * w + x) * 4; si1 = (Math.min(h-1, i+1) * w + x) * 4; di = (y * w + x) * 4;
-        dst.data[di]   = src.data[si0]   + (src.data[si1]   - src.data[si0])   * fx;
-        dst.data[di+1] = src.data[si0+1] + (src.data[si1+1] - src.data[si0+1]) * fx;
-        dst.data[di+2] = src.data[si0+2] + (src.data[si1+2] - src.data[si0+2]) * fx;
+        sy0 = sy | 0; fy = sy - sy0; sy1 = Math.min(h - 1, sy0 + 1);
+        si  = (sy0 * w + x2) * 4;
+        si2 = (sy1 * w + x2) * 4;
+        di  = (y2 * w + x2) * 4;
+        dst.data[di]   = src.data[si]   + (src.data[si2]   - src.data[si])   * fy;
+        dst.data[di+1] = src.data[si+1] + (src.data[si2+1] - src.data[si+1]) * fy;
+        dst.data[di+2] = src.data[si+2] + (src.data[si2+2] - src.data[si+2]) * fy;
         dst.data[di+3] = 255;
       }
     }
@@ -12161,23 +12206,8 @@ function _cropPerspWarp(dstCtx, srcCanvas, axis, amount, w, h) {
 }
 
 function cropPerspApply() {
-  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
-  var sc = document.getElementById('crop-perspective-work');
-  if (!sc || !sc.width || !ac) { cropPerspReset(); return; }
-  if (typeof evHistoryPush === 'function') evHistoryPush();
-  ac.style.opacity = '1';
-  ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
-  ac.getContext('2d').drawImage(sc, 0, 0);
-  var dataURL = ac.toDataURL('image/jpeg', 0.96);
-  var img = new Image();
-  img.onload = function() { userImage = img; _cropPerspOrig = img; };
-  img.src = dataURL;
-  sc.remove();
-  var row = document.getElementById('crop-persp-slider-row'); if (row) row.style.display = 'none';
-  var sl = document.getElementById('crop-persp-slider'); if (sl) sl.value = 0;
-  var vBox = document.getElementById('crop-persp-v-box'), hBox = document.getElementById('crop-persp-h-box');
-  if (vBox) vBox.classList.remove('active'); if (hBox) hBox.classList.remove('active');
-  showToast('PERSPECTIVE APPLIED');
+  // cropPerspApply is no longer called directly (checkmark uses toolsCropApply which
+  // calls _cropPerspFlush then crops via cropRect). Kept as no-op for safety.
 }
 
 function cropPerspReset() {

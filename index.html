@@ -10336,30 +10336,58 @@ function evShowSaveFormula() {
   if (!userImage) { showToast('OPEN A PHOTO FIRST'); return; }
   var existing = document.getElementById('ev-formula-modal');
   if (existing) existing.remove();
+  // Capture square-cropped thumbnail for preview
+  var previewThumb = '';
+  var evC = document.getElementById('ev-canvas');
+  if (evC && evC.width > 0) {
+    var _sz = Math.min(evC.width, evC.height);
+    var _tOff = document.createElement('canvas'); _tOff.width = 104; _tOff.height = 104;
+    _tOff.getContext('2d').drawImage(evC, (evC.width-_sz)/2, (evC.height-_sz)/2, _sz, _sz, 0, 0, 104, 104);
+    previewThumb = _tOff.toDataURL('image/jpeg', 0.82);
+  }
+  var PLACEHOLDER = 'WESTMINSTER';
   var modal = document.createElement('div');
   modal.id = 'ev-formula-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;background:rgba(0,0,0,0.60);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);';
   modal.innerHTML =
     '<div style="width:100%;background:#0e0b1a;border-top:0.5px solid rgba(192,64,90,0.30);border-radius:18px 18px 0 0;padding:22px 20px 44px;box-shadow:0 -14px 48px rgba(0,0,0,0.55);">'
     +'<div style="width:36px;height:3px;border-radius:2px;background:rgba(200,168,232,0.18);margin:0 auto 20px;"></div>'
-    +'<div style="font-size:9px;letter-spacing:0.30em;color:rgba(192,72,108,0.65);margin-bottom:6px;font-family:var(--mono);">SAVE FORMULA</div>'
-    +'<div style="font-size:15px;letter-spacing:0.04em;color:rgba(215,195,240,0.85);font-weight:300;margin-bottom:20px;font-family:var(--font-ui);">Name your formula</div>'
-    +'<input id="ev-formula-name" maxlength="10" placeholder="e.g. GOLDEN" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"'
-    +' style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.04);border:0.5px solid rgba(192,64,90,0.30);border-radius:8px;padding:13px 14px;font-size:16px;letter-spacing:0.16em;color:rgba(225,205,245,0.92);font-family:var(--font-ui);outline:none;caret-color:rgba(218,90,125,0.90);">'
-    +'<div style="font-size:8px;letter-spacing:0.18em;color:rgba(165,135,195,0.35);margin-top:7px;font-family:var(--mono);">MAX 10 CHARACTERS</div>'
-    +'<div style="display:flex;gap:10px;margin-top:18px;">'
-    +'<div onclick="evCancelFormula()" style="flex:1;padding:14px;text-align:center;font-size:9px;letter-spacing:0.22em;color:rgba(175,148,205,0.55);border:0.5px solid rgba(200,168,232,0.12);border-radius:10px;cursor:pointer;font-family:var(--mono);">CANCEL</div>'
-    +'<div onclick="evConfirmSaveFormula()" style="flex:2;padding:14px;text-align:center;font-size:9px;letter-spacing:0.22em;color:rgba(225,205,240,0.95);background:linear-gradient(135deg,rgba(192,64,90,0.60),rgba(138,26,46,0.50));border:0.5px solid rgba(192,64,90,0.40);border-radius:10px;cursor:pointer;font-family:var(--mono);font-weight:500;">SAVE</div>'
+    +'<div style="font-size:9px;letter-spacing:0.30em;color:rgba(192,72,108,0.65);margin-bottom:8px;font-family:var(--mono);">SAVE FORMULA</div>'
+    +'<div style="font-size:22px;letter-spacing:0.01em;color:rgba(220,200,245,0.90);font-weight:300;margin-bottom:5px;font-family:var(--font-ui);">Name this look.</div>'
+    +'<div style="font-size:12px;color:rgba(165,140,195,0.48);margin-bottom:18px;font-family:var(--font-ui);">This will be saved to Custom.</div>'
+    +'<div style="position:relative;">'
+    +'<input id="ev-formula-name" maxlength="25" placeholder="e.g. '+PLACEHOLDER+'" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"'
+    +' style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.04);border:0.5px solid rgba(192,64,90,0.30);border-radius:8px;padding:13px 14px 26px;font-size:16px;letter-spacing:0.16em;color:rgba(225,205,245,0.92);font-family:var(--font-ui);outline:none;caret-color:rgba(218,90,125,0.90);">'
+    +'<span id="ev-formula-counter" style="position:absolute;bottom:9px;right:12px;font-size:9px;letter-spacing:0.08em;color:rgba(165,135,195,0.32);font-family:var(--mono);pointer-events:none;">0 / 25</span>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;gap:14px;margin-top:12px;background:rgba(255,255,255,0.025);border:0.5px solid rgba(192,64,90,0.16);border-radius:12px;padding:14px 16px;">'
+    +'<img src="'+previewThumb+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;background:rgba(255,255,255,0.06);">'
+    +'<div style="min-width:0;">'
+    +'<div style="font-size:8px;letter-spacing:0.28em;color:rgba(192,72,108,0.70);margin-bottom:4px;font-family:var(--mono);">PREVIEW</div>'
+    +'<div id="ev-formula-preview-name" style="font-size:15px;letter-spacing:0.08em;color:rgba(220,200,245,0.92);font-family:var(--font-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+PLACEHOLDER+'</div>'
+    +'<div style="font-size:11px;color:rgba(160,135,190,0.45);margin-top:2px;font-family:var(--font-ui);">Custom Formula</div>'
+    +'</div>'
+    +'</div>'
+    +'<div style="display:flex;gap:10px;margin-top:20px;align-items:center;">'
+    +'<div onclick="evCancelFormula()" style="flex:1;padding:14px;text-align:center;font-size:9px;letter-spacing:0.22em;color:rgba(175,148,205,0.55);cursor:pointer;font-family:var(--mono);">CANCEL</div>'
+    +'<div onclick="evConfirmSaveFormula()" style="flex:2;padding:14px;text-align:center;font-size:9px;letter-spacing:0.22em;color:rgba(225,205,240,0.95);background:linear-gradient(135deg,rgba(192,64,90,0.60),rgba(138,26,46,0.50));border:0.5px solid rgba(192,64,90,0.40);border-radius:50px;cursor:pointer;font-family:var(--mono);font-weight:500;">SAVE</div>'
     +'</div>'
     +'</div>';
   document.body.appendChild(modal);
   modal.addEventListener('click', function(e){ if (e.target === modal) evCancelFormula(); });
-  setTimeout(function(){ var i = document.getElementById('ev-formula-name'); if (i) i.focus(); }, 80);
-  // Allow Enter key to confirm
   setTimeout(function(){
-    var i = document.getElementById('ev-formula-name');
-    if (i) i.addEventListener('keydown', function(e){ if (e.key === 'Enter') evConfirmSaveFormula(); });
-  }, 100);
+    var inp = document.getElementById('ev-formula-name');
+    if (!inp) return;
+    inp.focus();
+    inp.addEventListener('input', function(){
+      var v = inp.value;
+      var ctr = document.getElementById('ev-formula-counter');
+      if (ctr) ctr.textContent = v.length + ' / 25';
+      var pn = document.getElementById('ev-formula-preview-name');
+      if (pn) pn.textContent = v.toUpperCase() || PLACEHOLDER;
+    });
+    inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') evConfirmSaveFormula(); });
+  }, 80);
 }
 
 function evCancelFormula() {
@@ -10369,7 +10397,7 @@ function evCancelFormula() {
 function evConfirmSaveFormula() {
   var inp = document.getElementById('ev-formula-name');
   var name = (inp ? inp.value.trim() : '').toUpperCase() || 'FORMULA';
-  if (name.length > 10) name = name.slice(0, 10);
+  if (name.length > 25) name = name.slice(0, 25);
   var p = activePreset || evActivePreset;
   var sliders = p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {};
   var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;

@@ -11886,41 +11886,37 @@ function cropSelectSubTab(btn, tab) {
     if (el) el.style.display = id === tab ? '' : 'none';
   });
   if (tab === 'ratio') {
-    // Re-sync overlay size/position to current canvas state, then show.
-    // If the overlay was removed (e.g. after toolsCropCancel on apply or undo),
-    // delegate to toolsCropDraw() which recreates it from scratch.
-    if (!ov) {
-      if (typeof toolsCropDraw === 'function') toolsCropDraw();
-      ov = document.getElementById('crop-overlay-canvas');
-      if (ov) ov.style.display = 'block';
-    } else {
-      // Defer position sync to after the panel reflow settles to prevent off-canvas placement
-      var _ovRef = ov;
-      requestAnimationFrame(function() {
-        var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
-        if (ac && ac.width > 0) {
-          var _acRect = ac.getBoundingClientRect();
-          // Use ov.parentElement for the reference rect (may differ from ac.parentElement)
-          var _parRect = (_ovRef.parentElement || ac.parentElement).getBoundingClientRect();
-          _ovRef.width  = ac.width;
-          _ovRef.height = ac.height;
-          _ovRef.style.width  = _acRect.width  + 'px';
-          _ovRef.style.height = _acRect.height + 'px';
-          _ovRef.style.left   = (_acRect.left - _parRect.left) + 'px';
-          _ovRef.style.top    = (_acRect.top  - _parRect.top)  + 'px';
-          if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
-              || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
-            var _bw = ac.width * 0.8, _bh = ac.height * 0.8;
-            cropRect = { x: (ac.width - _bw) / 2, y: (ac.height - _bh) / 2, w: _bw, h: _bh };
-          }
-          // Draw before making visible — prevents blank-canvas flash
-          if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(_ovRef);
-          _ovRef.style.display = 'block';
-        } else {
-          _ovRef.style.display = 'block';
-        }
-      });
-    }
+    // Use RAF so panel reflow settles before measuring positions.
+    // Always use getActiveCanvas() — never hardcode hero-canvas (wrong in editor view).
+    var _needCreate = !ov;
+    requestAnimationFrame(function() {
+      var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+      if (!ac || !ac.width) return;
+      if (_needCreate) {
+        // Recreate overlay attached to the correct canvas parent
+        if (typeof toolsCropDrawOnCanvas === 'function') toolsCropDrawOnCanvas(ac);
+        // toolsCropDrawOnCanvas leaves overlay hidden; we'll show it below
+      }
+      var _ov2 = document.getElementById('crop-overlay-canvas');
+      if (!_ov2) return;
+      // Re-parent if it ended up under the wrong container
+      if (_ov2.parentElement !== ac.parentElement) ac.parentElement.appendChild(_ov2);
+      var _acRect  = ac.getBoundingClientRect();
+      var _parRect = ac.parentElement.getBoundingClientRect();
+      _ov2.width  = ac.width;
+      _ov2.height = ac.height;
+      _ov2.style.width  = _acRect.width  + 'px';
+      _ov2.style.height = _acRect.height + 'px';
+      _ov2.style.left   = (_acRect.left - _parRect.left) + 'px';
+      _ov2.style.top    = (_acRect.top  - _parRect.top)  + 'px';
+      if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
+          || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
+        var _bw = ac.width * 0.8, _bh = ac.height * 0.8;
+        cropRect = { x: (ac.width - _bw) / 2, y: (ac.height - _bh) / 2, w: _bw, h: _bh };
+      }
+      if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(_ov2);
+      _ov2.style.display = 'block';
+    });
   }
 }
 

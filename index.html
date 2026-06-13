@@ -4138,13 +4138,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 <span>LIGHT</span>
               </button>
               <button class="ev-subnav-btn" data-tab="color" onclick="evAdjustSubTab('color')">
-                <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                  <!-- Bail/handle: stroke arc over the opening -->
-                  <path d="M8 3 Q5 0.5 2.5 3.5 Q1 5.5 3 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                  <!-- Bucket body: tilted trapezoid, opening upper-left -->
-                  <path d="M3 8 L8 2.5 L17 9 L12 14.5 Q10.5 16 9 15 Q7.5 14 6.5 12.5 Z"/>
-                  <!-- Paint drop -->
-                  <path d="M16.5 13 Q19.5 14.5 18 18 Q16.5 20 14.5 18.5 Q12.5 17 13.5 14.5 Q14.5 12.5 16.5 13Z"/>
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="7.5" cy="8" r="5" fill="currentColor" opacity="0.55"/>
+                  <circle cx="12.5" cy="8" r="5" fill="currentColor" opacity="0.55"/>
+                  <circle cx="10" cy="12.5" r="5" fill="currentColor" opacity="0.55"/>
                 </svg>
                 <span>COLOR</span>
               </button>
@@ -5151,8 +5148,8 @@ const sliderConfig = {
   TINT:        [-1.00, 1.00, '', true],
   VIBRANCE:    [-1.00, 1.00, '', true],
   SATURATION:  [-1.00, 1.00, '', true],
-  GLOW:        [ 0.00, 1.00, '', true],
-  GRAIN:       [ 0.00, 1.00, '', true],
+  GLOW:        [-1.00, 1.00, '', true],
+  GRAIN:       [-1.00, 1.00, '', true],
   SHARPEN:     [-1.00, 1.00, '', true],
   CLARITY:     [-1.00, 1.00, '', true],
   BLUR:        [-1.00, 1.00, '', true],
@@ -5164,6 +5161,18 @@ const sliderConfig = {
   SAT_GREENS:  [-1.00, 1.00, '', true],
   SAT_BLUES:   [-1.00, 1.00, '', true],
   SAT_PURPLES: [-1.00, 1.00, '', true],
+  HUE_REDS:    [-1.00, 1.00, '', true],
+  HUE_ORANGES: [-1.00, 1.00, '', true],
+  HUE_YELLOWS: [-1.00, 1.00, '', true],
+  HUE_GREENS:  [-1.00, 1.00, '', true],
+  HUE_BLUES:   [-1.00, 1.00, '', true],
+  HUE_PURPLES: [-1.00, 1.00, '', true],
+  LUM_REDS:    [-1.00, 1.00, '', true],
+  LUM_ORANGES: [-1.00, 1.00, '', true],
+  LUM_YELLOWS: [-1.00, 1.00, '', true],
+  LUM_GREENS:  [-1.00, 1.00, '', true],
+  LUM_BLUES:   [-1.00, 1.00, '', true],
+  LUM_PURPLES: [-1.00, 1.00, '', true],
 };
 
 function initSliderState(p) {
@@ -5191,7 +5200,7 @@ function getSliderDisplay(name, t) {
   if (!cfg) return t.toFixed(2);
   const [mn, mx, unit, neutral] = cfg;
   const val = mn + t * (mx - mn);
-  if (unit === '°') return Math.round(val) + '°';
+  if (unit === '°') { const sign = val >= 0 ? '+' : ''; return sign + Math.round(val) + '°'; }
   const sign = val >= 0 ? '+' : '';
   return sign + val.toFixed(2);
 }
@@ -5264,7 +5273,7 @@ function _sliderIcon(name) {
     'SHARPEN':     '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7,1.5 12.5,12.5 1.5,12.5"/></svg>',
     'CLARITY':     '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><line x1="1" y1="7" x2="4" y2="7"/><line x1="10" y1="7" x2="13" y2="7"/><line x1="7" y1="1" x2="7" y2="4"/><line x1="7" y1="10" x2="7" y2="13"/></svg>',
     'BLUR':        '<svg viewBox="0 0 14 14" fill="currentColor" stroke="none"><rect x="0.5" y="0.5" width="13" height="13" rx="5" opacity="0.07"/><rect x="1.5" y="1.5" width="11" height="11" rx="4.5" opacity="0.13"/><rect x="2.5" y="2.5" width="9" height="9" rx="4" opacity="0.22"/><rect x="3.5" y="3.5" width="7" height="7" rx="3.2"/></svg>',
-    'HUE_SHIFT':   '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="5"/><path d="M4.5 3.5 Q7 1 9.5 3.5 Q12 6 9.5 8.5" stroke-dasharray="2 1.5" fill="none"/></svg>',
+    'HUE_SHIFT':   '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2 A5 5 0 1 1 2 7"/><polyline points="1.5,5.5 2,7.5 4,7"/></svg>',
   };
   return '<span class="sl-icon-wrap">' + (icons[n] || '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="4.5"/></svg>') + '</span>';
 }

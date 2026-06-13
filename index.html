@@ -2269,6 +2269,26 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   background: rgba(201,184,212,0.13); border-color: rgba(201,184,212,0.35);
   color: rgba(220,205,250,0.95);
 }
+/* Save Formula button — sits right-of filter row */
+#ev-save-formula-row-btn {
+  margin-left: auto; flex-shrink: 0;
+  padding: 3px 10px; border-radius: 100px; cursor: pointer;
+  border: 0.5px solid rgba(192,64,90,0.35);
+  background: rgba(192,64,90,0.09);
+  font-size: 8px; letter-spacing: 0.16em;
+  color: rgba(218,108,138,0.80); font-family: var(--mono);
+  white-space: nowrap; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+#ev-save-formula-row-btn:hover { background: rgba(192,64,90,0.18); color: rgba(230,130,155,0.95); }
+/* Formula card delete badge */
+.ev-formula-del {
+  position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;
+  background:rgba(10,5,18,0.72);display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:rgba(215,90,110,0.75);cursor:pointer;z-index:3;
+  border:0.5px solid rgba(192,64,90,0.28);transition:all 0.15s;
+}
+.ev-formula-del:hover { background:rgba(192,64,90,0.35);color:#fff; }
 #ev-cats::-webkit-scrollbar { display: none; }
 #ev-preset-strip ::-webkit-scrollbar { display: none; }
 .ev-suite-tab {
@@ -2903,8 +2923,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex-shrink: 0 !important;
   }
   /* Hide all other toolbar items (desktop-only) */
-  #ev-toolbar > *:not(#editor-back-btn):not(#ev-undo):not(#ev-redo):not(#ev-reset-btn):not(#save-to-gallery-btn) {
+  #ev-toolbar > *:not(#editor-back-btn):not(#ev-undo):not(#ev-redo):not(#ev-reset-btn):not(#ev-save-formula-btn):not(#save-to-gallery-btn) {
     display: none !important;
+  }
+  /* Save Formula wand — icon button, same style as reset/undo */
+  #ev-save-formula-btn {
+    background: none !important;
+    border: none !important;
+    padding: 4px !important;
+    min-width: 0 !important;
+    height: auto !important;
+    color: #fff !important;
+    flex-shrink: 0 !important;
   }
   /* In ADJUST mode keep toolbar visible */
   #editor-view.adjust-open #ev-toolbar { display: flex !important; }
@@ -3974,6 +4004,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <svg class="ev-tb-svg" viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.1-5.8"/><polyline points="21 3 21 8 16 8"/></svg>
               <span class="ev-tb-text">↺ RESET</span>
             </div>
+            <div class="ctb-btn" id="ev-save-formula-btn" onclick="evShowSaveFormula()" style="display:inline-flex;align-items:center;" title="Save Formula">
+              <svg class="ev-tb-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L14.5 9H21L15.7 13.1L17.9 20L12 16L6.1 20L8.3 13.1L3 9H9.5Z"/></svg>
+              <span class="ev-tb-text">SAVE FORMULA</span>
+            </div>
             <div class="ev-tb-sep" style="width:1px;height:16px;background:var(--border);flex-shrink:0"></div>
             <div class="ctb-btn" onclick="evZoomOut()" style="display:inline-flex;align-items:center">−</div>
             <div id="ev-zoom" style="min-width:36px;text-align:center;font-size:9px;color:rgba(201,184,212,0.60);font-family:var(--mono);flex-shrink:0">100%</div>
@@ -4031,11 +4065,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div id="ev-preset-strip" style="height:152px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow-x:hidden;overflow-y:visible;">
             <!-- Category filter row -->
             <div id="ev-cats" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-              <div class="ev-cat-btn" onclick="evFilterCat(this,'FAVORITES')">★</div>
-              <div class="ev-cat-btn active" onclick="evFilterCat(this,'ALL')">ALL</div>
+              <div class="ev-cat-btn" data-cat="SAVED" onclick="evFilterCat(this,'SAVED')">SAVED</div>
+              <div class="ev-cat-btn active" data-cat="ALL" onclick="evFilterCat(this,'ALL')">ALL</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'FILM')">FILM</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'CINEMATIC')">CINEMATIC</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'ETHEREAL')">ETHEREAL</div>
+              <div id="ev-save-formula-row-btn" onclick="evShowSaveFormula()">✦ SAVE</div>
             </div>
             <!-- Thumbnail scroll row -->
             <div style="flex:1;display:flex;align-items:center;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
@@ -10117,6 +10152,43 @@ function evRenderPresets() {
   list.innerHTML = '';
   _evActiveCardEl = null; // reset on full re-render; will be set below as cards are built
 
+  // ── SAVED FORMULAS tab — render formula cards then return ──
+  if (evCatFilter === 'SAVED') {
+    if (!_evFormulas.length) {
+      list.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;flex:1;flex-direction:column;gap:8px;padding:0 20px;min-width:220px;">'
+        +'<div style="font-size:9px;letter-spacing:0.22em;color:rgba(185,155,210,0.35);font-family:var(--mono);">NO SAVED FORMULAS YET</div>'
+        +'<div style="font-size:8px;letter-spacing:0.14em;color:rgba(165,135,190,0.22);font-family:var(--mono);">TAP ✦ SAVE TO CREATE ONE</div>'
+        +'</div>';
+      return;
+    }
+    _evFormulas.forEach(function(formula) {
+      var _fw = 78, _fh = 96;
+      var fcard = document.createElement('div');
+      var isActive = evActivePreset && evActivePreset.id === formula.id;
+      fcard.style.cssText = 'width:'+_fw+'px;height:'+_fh+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;transition:transform 0.2s;'
+        +(isActive ? 'box-shadow:0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)' : '');
+      var thumbHTML = formula.thumbDataURL
+        ? '<img src="'+formula.thumbDataURL+'" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block;">'
+        : '<div style="position:absolute;inset:0;background:#100d1a;"></div>';
+      fcard.innerHTML = thumbHTML
+        +'<div class="ev-formula-del" onclick="event.stopPropagation();evDeleteFormula(\''+formula.id+'\')">×</div>'
+        +'<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.88),transparent);pointer-events:none;z-index:1;">'
+        +'<div style="font-size:6px;letter-spacing:0.18em;color:rgba(192,72,108,0.65);font-family:var(--mono);margin-bottom:1px;">✦</div>'
+        +'<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.80')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+formula.name+'</div>'
+        +'</div>';
+      var _flpTimer;
+      fcard.addEventListener('touchstart', function(){ _flpTimer = setTimeout(function(){ evDeleteFormula(formula.id); }, 700); }, {passive:true});
+      fcard.addEventListener('touchend',  function(){ clearTimeout(_flpTimer); }, {passive:true});
+      fcard.addEventListener('touchmove', function(){ clearTimeout(_flpTimer); }, {passive:true});
+      fcard.onclick = function() { evApplyFormula(formula); };
+      fcard.onmouseover = function(){ if(!isActive){ this.style.boxShadow='0 0 0 1px rgba(192,64,90,0.35)'; } };
+      fcard.onmouseout  = function(){ if(!isActive){ this.style.boxShadow=''; } };
+      list.appendChild(fcard);
+      if (isActive) _evActiveCardEl = fcard;
+    });
+    return;
+  }
+
   // ── NONE card — raw photo, no preset applied ──
   var _tdpr = Math.min(window.devicePixelRatio||1, 2);
   var noneActive = !evActivePreset;
@@ -10162,24 +10234,15 @@ function evRenderPresets() {
   });
 
   var _presetsToRender = presets.slice();
-  if (evCatFilter === 'ALL' && evFavPresets.length) {
-    _presetsToRender.sort(function(a,b){
-      return (evFavPresets.includes(b.id)?1:0) - (evFavPresets.includes(a.id)?1:0);
-    });
-  }
   _presetsToRender.forEach(function(p){
-    if (evCatFilter === 'FAVORITES') {
-      if (!evFavPresets.includes(p.id)) return;
-    } else if (evCatFilter && evCatFilter !== 'ALL') {
+    if (evCatFilter && evCatFilter !== 'ALL') {
       if ((p.series||'').toUpperCase() !== evCatFilter) return;
     }
-    var isFav = evFavPresets.includes(p.id);
     var card = document.createElement('div');
     var isActive = evActivePreset && evActivePreset.id===p.id;
     var _tdpr=Math.min(window.devicePixelRatio||1,2);
     card.style.cssText = 'width:'+_pcW+'px;height:'+_pcH+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;transition:transform 0.2s;'+(isActive?'box-shadow:0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)':'');
     card.innerHTML = '<canvas id="evt-'+p.id+'" width="'+(_pcW*_tdpr)+'" height="'+(_pcH*_tdpr)+'" style="position:absolute;top:0;left:0;width:'+_pcW+'px;height:'+_pcH+'px;display:block;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
-      +(isFav?'<div style="position:absolute;top:4px;right:5px;font-size:9px;line-height:1;color:rgba(220,185,255,0.80);pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,0.6);z-index:1;">★</div>':'')
       +'<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.82),transparent);pointer-events:none;z-index:1;">'
       +'<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.78')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.name.toUpperCase()+'</div>'
       +'</div>';
@@ -10240,6 +10303,106 @@ function evFilterCat(btn, cat) {
   document.querySelectorAll('#ev-cats .ev-cat-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
   evRenderPresets();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SAVE FORMULA — custom user presets
+// ═══════════════════════════════════════════════════════════════════════════
+var _evFormulas = (function() {
+  try { return JSON.parse(localStorage.getItem('zoe_formulas') || '[]'); } catch(e) { return []; }
+})();
+function _evSaveFormulas() {
+  try { localStorage.setItem('zoe_formulas', JSON.stringify(_evFormulas)); } catch(e) {} }
+
+function evShowSaveFormula() {
+  if (!userImage) { showToast('OPEN A PHOTO FIRST'); return; }
+  var existing = document.getElementById('ev-formula-modal');
+  if (existing) existing.remove();
+  var modal = document.createElement('div');
+  modal.id = 'ev-formula-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;background:rgba(0,0,0,0.60);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);';
+  modal.innerHTML =
+    '<div style="width:100%;background:#0e0b1a;border-top:0.5px solid rgba(192,64,90,0.30);border-radius:18px 18px 0 0;padding:22px 20px 44px;box-shadow:0 -14px 48px rgba(0,0,0,0.55);">'
+    +'<div style="width:36px;height:3px;border-radius:2px;background:rgba(200,168,232,0.18);margin:0 auto 20px;"></div>'
+    +'<div style="font-size:9px;letter-spacing:0.30em;color:rgba(192,72,108,0.65);margin-bottom:6px;font-family:var(--mono);">SAVE FORMULA</div>'
+    +'<div style="font-size:15px;letter-spacing:0.04em;color:rgba(215,195,240,0.85);font-weight:300;margin-bottom:20px;font-family:var(--font-ui);">Name your formula</div>'
+    +'<input id="ev-formula-name" maxlength="10" placeholder="e.g. GOLDEN" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"'
+    +' style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.04);border:0.5px solid rgba(192,64,90,0.30);border-radius:8px;padding:13px 14px;font-size:16px;letter-spacing:0.16em;color:rgba(225,205,245,0.92);font-family:var(--font-ui);outline:none;caret-color:rgba(218,90,125,0.90);">'
+    +'<div style="font-size:8px;letter-spacing:0.18em;color:rgba(165,135,195,0.35);margin-top:7px;font-family:var(--mono);">MAX 10 CHARACTERS</div>'
+    +'<div style="display:flex;gap:10px;margin-top:18px;">'
+    +'<div onclick="evCancelFormula()" style="flex:1;padding:14px;text-align:center;font-size:9px;letter-spacing:0.22em;color:rgba(175,148,205,0.55);border:0.5px solid rgba(200,168,232,0.12);border-radius:10px;cursor:pointer;font-family:var(--mono);">CANCEL</div>'
+    +'<div onclick="evConfirmSaveFormula()" style="flex:2;padding:14px;text-align:center;font-size:9px;letter-spacing:0.22em;color:rgba(225,205,240,0.95);background:linear-gradient(135deg,rgba(192,64,90,0.60),rgba(138,26,46,0.50));border:0.5px solid rgba(192,64,90,0.40);border-radius:10px;cursor:pointer;font-family:var(--mono);font-weight:500;">SAVE</div>'
+    +'</div>'
+    +'</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(e){ if (e.target === modal) evCancelFormula(); });
+  setTimeout(function(){ var i = document.getElementById('ev-formula-name'); if (i) i.focus(); }, 80);
+  // Allow Enter key to confirm
+  setTimeout(function(){
+    var i = document.getElementById('ev-formula-name');
+    if (i) i.addEventListener('keydown', function(e){ if (e.key === 'Enter') evConfirmSaveFormula(); });
+  }, 100);
+}
+
+function evCancelFormula() {
+  var m = document.getElementById('ev-formula-modal'); if (m) m.remove();
+}
+
+function evConfirmSaveFormula() {
+  var inp = document.getElementById('ev-formula-name');
+  var name = (inp ? inp.value.trim() : '').toUpperCase() || 'FORMULA';
+  if (name.length > 10) name = name.slice(0, 10);
+  var p = activePreset || evActivePreset;
+  var sliders = p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {};
+  var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
+  // Capture thumbnail from ev-canvas at current render
+  var evC = document.getElementById('ev-canvas');
+  var thumbDataURL = '';
+  if (evC && evC.width > 0) {
+    var _tw = 156, _th = Math.round(156 * evC.height / Math.max(evC.width, 1));
+    var _tOff = document.createElement('canvas'); _tOff.width = _tw; _tOff.height = _th;
+    _tOff.getContext('2d').drawImage(evC, 0, 0, _tw, _th);
+    thumbDataURL = _tOff.toDataURL('image/jpeg', 0.78);
+  }
+  var formula = {
+    id: 'formula_' + Date.now(),
+    name: name, series: 'SAVED',
+    tint: 'none', orbs: [],
+    sliders: sliders, intensity: intensity,
+    thumbDataURL: thumbDataURL, createdAt: Date.now()
+  };
+  _evFormulas.unshift(formula);
+  _evSaveFormulas();
+  evCancelFormula();
+  showToast('✦ FORMULA SAVED — ' + name);
+}
+
+function evDeleteFormula(id) {
+  _evFormulas = _evFormulas.filter(function(f){ return f.id !== id; });
+  _evSaveFormulas();
+  evRenderPresets();
+  showToast('FORMULA REMOVED');
+}
+
+function evApplyFormula(formula) {
+  // Build a minimal synthetic preset so the render pipeline works
+  var synth = {
+    id: formula.id, name: formula.name, series: 'SAVED',
+    tint: 'none', orbs: [], defaults: formula.sliders,
+    isFormula: true
+  };
+  evHistoryPush();
+  sliderState[synth.id] = JSON.parse(JSON.stringify(formula.sliders));
+  presetIntensity = typeof formula.intensity === 'number' ? formula.intensity : 1.0;
+  evActivePreset = synth; activePreset = synth;
+  document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = Math.round(presetIntensity*100); });
+  document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = Math.round(presetIntensity*100)+'%'; });
+  var nameEl = document.getElementById('es-preset-name');
+  var seriesEl = document.getElementById('es-preset-series');
+  if (nameEl) nameEl.textContent = formula.name;
+  if (seriesEl) seriesEl.textContent = 'SAVED';
+  buildEditorSliders(synth);
+  evRenderCanvas();
 }
 
 function evBuildSliders() {

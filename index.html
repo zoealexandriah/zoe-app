@@ -2271,7 +2271,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 /* Save Formula button — sits right-of filter row */
 #ev-save-formula-row-btn {
-  margin-left: auto; flex-shrink: 0;
+  flex-shrink: 0;
   padding: 3px 10px; border-radius: 100px; cursor: pointer;
   border: 0.5px solid rgba(192,64,90,0.35);
   background: rgba(192,64,90,0.09);
@@ -4065,12 +4065,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div id="ev-preset-strip" style="height:152px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow-x:hidden;overflow-y:visible;">
             <!-- Category filter row -->
             <div id="ev-cats" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-              <div class="ev-cat-btn" data-cat="SAVED" onclick="evFilterCat(this,'SAVED')" style="padding:3px 8px;"><svg width="11" height="13" viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 2h16a2 2 0 0 1 2 2v22l-10-7L2 26V4a2 2 0 0 1 2-2z"/></svg></div>
+              <div class="ev-cat-btn" data-cat="SAVED" onclick="evFilterCat(this,'SAVED')">CUSTOM</div>
+              <div id="ev-save-formula-row-btn" onclick="evShowSaveFormula()">✦ SAVE</div>
               <div class="ev-cat-btn active" data-cat="ALL" onclick="evFilterCat(this,'ALL')">ALL</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'FILM')">FILM</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'CINEMATIC')">CINEMATIC</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'ETHEREAL')">ETHEREAL</div>
-              <div id="ev-save-formula-row-btn" onclick="evShowSaveFormula()">✦ SAVE</div>
             </div>
             <!-- Thumbnail scroll row -->
             <div style="flex:1;display:flex;align-items:center;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">

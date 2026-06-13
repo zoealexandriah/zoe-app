@@ -8972,6 +8972,7 @@ window.toolsCropApply = function() {
 };
 const _origToolsFlipApply = window.toolsFlipApply;
 window.toolsFlipApply = function(dir) {
+  if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
   globalHistoryPush();
   _origToolsFlipApply(dir);
 };
@@ -9493,10 +9494,6 @@ function etCropHTML() {
         </div>
         <input type="range" class="tc-range" id="crop-persp-slider" min="-100" max="100" step="1" value="0"
                oninput="cropPerspPreview(this.value)">
-        <div style="display:flex;gap:6px;margin-top:8px;">
-          <div class="tc-btn tc-btn-primary" style="flex:1" onclick="cropPerspApply()">APPLY</div>
-          <div class="tc-btn tc-btn-ghost"   style="flex:1" onclick="cropPerspReset()">RESET</div>
-        </div>
       </div>
     </div>
     <div class="crop-action-bar">
@@ -11801,6 +11798,8 @@ window.toolsCropSetRatio = function(r) {
 
 // Patch toolsCropApply — bake transforms then crop, never clears ev-canvas directly
 window.toolsCropApply = function() {
+  // Flush any pending perspective preview before cropping
+  if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
   var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!hc) { toolsCropCancel(); return; }
   // Use work canvas as pixel source if present and valid; otherwise fall back to ev-canvas
@@ -11967,6 +11966,7 @@ function cropStraightenPreview(val) {
 
 
 function cropRotate90(dir) {
+  if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
   var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!hc || !userImage) return;
   // Remove overlays immediately — before image decode, so there's no flash
@@ -12007,7 +12007,26 @@ function cropRotate90(dir) {
 var _cropPerspAxis = 'v';
 var _cropPerspOrig = null;
 
+// Auto-applies any in-progress perspective preview before switching tools.
+// Called by flip, rotate, and perspective activate so transforms stack cleanly.
+function _cropPerspFlush() {
+  var sc = document.getElementById('crop-perspective-work');
+  if (!sc || !sc.width) return;
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+  if (!ac) { sc.remove(); return; }
+  ac.style.opacity = '1';
+  ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
+  ac.getContext('2d').drawImage(sc, 0, 0);
+  var dataURL = ac.toDataURL('image/jpeg', 0.96);
+  var img = new Image();
+  img.onload = function() { userImage = img; _cropPerspOrig = img; };
+  img.src = dataURL;
+  sc.remove();
+}
+
 function cropPerspActivate(axis) {
+  // Flush any existing perspective preview before starting a new one
+  _cropPerspFlush();
   _cropPerspAxis = axis;
   var label = document.getElementById('crop-persp-label');
   if (label) label.textContent = axis === 'v' ? 'VERT PERSPECTIVE' : 'HORIZ PERSPECTIVE';
@@ -12017,10 +12036,6 @@ function cropPerspActivate(axis) {
   if (sl) sl.value = 0;
   var val = document.getElementById('crop-persp-val');
   if (val) val.textContent = '0.00';
-  // Remove any existing preview
-  var pw = document.getElementById('crop-perspective-work'); if (pw) pw.remove();
-  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
-  if (ac) ac.style.opacity = '1';
   _cropPerspOrig = userImage;
   // Highlight active button
   var vBox = document.getElementById('crop-persp-v-box'), hBox = document.getElementById('crop-persp-h-box');

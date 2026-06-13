@@ -11377,8 +11377,9 @@ window.galleryCopyEdits = function(imageId) {
       cropRect = { x: (cw - bw) / 2, y: (ch - bh) / 2, w: bw, h: bh };
       toolsCropDrawRect(ov);
       toolsCropBindDrag(ov, ac);
-      // Default tab is STRAIGHTEN — hide overlay until RATIO is selected
+      // Default tab is STRAIGHTEN — hide overlay and clear cropRect until RATIO is selected
       ov.style.display = 'none';
+      cropRect = null; cropDragging = null;
       // Touch: single-finger drag + two-finger pinch
       var _cpinch0 = null;
       function _pdist(e) {
@@ -11542,6 +11543,8 @@ function cropSelectSubTab(btn, tab) {
   var ov = document.getElementById('crop-overlay-canvas');
   if (ov) ov.style.display = 'none';
   var sw = document.getElementById('crop-straighten-work'); if (sw) sw.remove();
+  // Clear cropRect when leaving RATIO tab — only RATIO should produce a crop on confirm
+  if (tab !== 'ratio') { cropRect = null; cropDragging = null; }
   ['straighten','ratio','transform'].forEach(function(id) {
     var el = document.getElementById('crop-sub-' + id);
     if (el) el.style.display = id === tab ? '' : 'none';

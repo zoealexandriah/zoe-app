@@ -2883,21 +2883,17 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     color: transparent !important;
     opacity: 0 !important;
   }
-  /* Save — pill button absolute right */
+  /* Save ✓ — icon button absolute right, matches undo/redo/reset style */
   #save-to-gallery-btn {
     position: absolute !important;
     right: 14px !important;
-    background: #fff !important;
-    color: #0d0a14 !important;
+    background: none !important;
     border: none !important;
-    border-radius: 100px !important;
-    padding: 6px 14px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.01em !important;
-    font-family: var(--font-ui) !important;
-    height: auto !important;
+    padding: 4px !important;
     min-width: 0 !important;
+    height: auto !important;
+    color: #fff !important;
+    flex-shrink: 0 !important;
   }
   /* Hide all other toolbar items (desktop-only) */
   #ev-toolbar > *:not(#editor-back-btn):not(#ev-undo):not(#ev-redo):not(#ev-reset-btn):not(#save-to-gallery-btn) {
@@ -3981,9 +3977,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div class="ev-tb-sep" style="width:1px;height:16px;background:var(--border);flex-shrink:0"></div>
             <div class="ctb-btn" onclick="editorReplacePhoto()" style="display:inline-flex;align-items:center">⟳ REPLACE</div>
             <div class="ctb-btn" id="ev-export-btn" onclick="evSaveWithAnimation()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">↑ EXPORT</div>
-            <div class="ctb-btn" id="save-to-gallery-btn" onclick="evSaveWithAnimation()" style="display:inline-flex;align-items:center;color:rgba(201,184,212,0.80);border-color:rgba(201,184,212,0.35)">
+            <div class="ctb-btn" id="save-to-gallery-btn" onclick="evSaveAndReturn()" style="display:inline-flex;align-items:center;">
+              <svg class="ev-tb-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               <span class="ev-tb-text">↑ EXPORT</span>
-              <span class="ev-tb-save-mobile">Save ↓</span>
             </div>
           </div>
           <!-- Canvas area -->
@@ -10725,6 +10721,64 @@ function editorBackToGallery() {
     if (hw) hw.style.display = '';
     hideCollectionsView && hideCollectionsView();
     hidePresetsView && hidePresetsView();
+  }
+}
+
+// ── ✓ Save & return — checkmark button in mobile toolbar ─────────────────
+function evSaveAndReturn() {
+  if (!userImage) { showToast('OPEN A PHOTO FIRST'); return; }
+  // Flush any pending auto-save
+  clearTimeout(_autoSaveTimer);
+  autoSaveEdit();
+  // Render the edited image at full source resolution and update the library thumbnail
+  var evC = document.getElementById('ev-canvas');
+  if (evC && editingIdx !== undefined && editingIdx >= 0 && library[editingIdx]) {
+    var entry = library[editingIdx];
+    var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
+    var off = document.createElement('canvas');
+    off.width = iw; off.height = ih;
+    var ctx = off.getContext('2d');
+    ctx.drawImage(userImage, 0, 0, iw, ih);
+    var p = activePreset || evActivePreset;
+    if (p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) {
+      var adj = buildAdjustments(sliderState[p.id]);
+      if (p.hueTempZones) adj.hueTempZones = p.hueTempZones;
+      if (p.colorGlow !== undefined) adj.colorGlow = p.colorGlow;
+      if (p.skinLift  !== undefined) adj.skinLift  = p.skinLift;
+      if (p.splitTone) adj.split_tone = p.splitTone;
+      if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
+      var origData  = ctx.getImageData(0, 0, iw, ih);
+      var processed = applyPixelAdjustments(origData, adj);
+      var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
+      if (intensity < 0.999) {
+        var od = origData.data;
+        for (var i = 0; i < processed.length; i += 4) {
+          processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
+          processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
+          processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
+        }
+      }
+      ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+      if (p.curve) applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
+      if ((adj.sharpen  || 0) > 0.01) applySharpness(off, adj.sharpen,  0, 0, iw, ih);
+      if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(off, adj.clarity, 0, 0, iw, ih);
+      if ((adj.blur     || 0) > 0.01) applyBlur(off,  adj.blur,      0, 0, iw, ih);
+      if ((adj.glow     || 0) > 0.01) applyGlow(off,  adj.glow,      0, 0, iw, ih);
+      if ((adj.halation || 0) > 0.01) applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
+      if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
+    }
+    var dataURL = off.toDataURL('image/jpeg', 0.93);
+    var img = new Image();
+    img.onload = function() {
+      entry.dataURL = dataURL;
+      entry.img     = img;
+      libSaveToStorage();
+      renderLibrary();
+      editorBackToGallery();
+    };
+    img.src = dataURL;
+  } else {
+    editorBackToGallery();
   }
 }
 

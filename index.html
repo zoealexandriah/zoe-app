@@ -2035,6 +2035,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .tc-range {
   width: 100%; height: 2px; -webkit-appearance: none; appearance: none;
   background: rgba(180,60,80,0.18); border-radius: 100px; outline: none; cursor: pointer;
+  touch-action: pan-x; padding: 14px 0; box-sizing: content-box; background-clip: content-box;
 }
 .tc-range::-webkit-slider-thumb {
   -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%;
@@ -11632,6 +11633,8 @@ window.galleryCopyEdits = function(imageId) {
     cropRect = null; cropDragging = null;
     var _oldFlash = document.getElementById('crop-overlay-canvas');
     if (_oldFlash) _oldFlash.remove();
+    // Set straighten reference immediately so slider works without waiting for setTimeout
+    if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
     _prevEtSelectToolFinal(name); // run chain for UI setup
     setTimeout(function() {
       var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
@@ -11647,8 +11650,6 @@ window.galleryCopyEdits = function(imageId) {
       var _old = document.getElementById('crop-overlay-canvas');
       if (_old) _old.remove();
       cropRect = null; cropDragging = null;
-      // Init straighten original image reference
-      if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
       // Fresh overlay — getBoundingClientRect gives pixel-perfect position after sync render
       var ov = document.createElement('canvas');
       ov.id = 'crop-overlay-canvas';
@@ -11854,26 +11855,32 @@ function cropSelectSubTab(btn, tab) {
       ov = document.getElementById('crop-overlay-canvas');
       if (ov) ov.style.display = 'block';
     } else {
-      var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
-      if (ac && ac.width > 0) {
-        var _acRect = ac.getBoundingClientRect();
-        var _parRect = ac.parentElement.getBoundingClientRect();
-        ov.width  = ac.width;
-        ov.height = ac.height;
-        ov.style.width  = ac.clientWidth  + 'px';
-        ov.style.height = ac.clientHeight + 'px';
-        ov.style.left   = (_acRect.left - _parRect.left) + 'px';
-        ov.style.top    = (_acRect.top  - _parRect.top)  + 'px';
-        if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
-            || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
-          var _bw = ac.width * 0.8, _bh = ac.height * 0.8;
-          cropRect = { x: (ac.width - _bw) / 2, y: (ac.height - _bh) / 2, w: _bw, h: _bh };
+      // Defer position sync to after the panel reflow settles to prevent off-canvas placement
+      var _ovRef = ov;
+      requestAnimationFrame(function() {
+        var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+        if (ac && ac.width > 0) {
+          var _acRect = ac.getBoundingClientRect();
+          // Use ov.parentElement for the reference rect (may differ from ac.parentElement)
+          var _parRect = (_ovRef.parentElement || ac.parentElement).getBoundingClientRect();
+          _ovRef.width  = ac.width;
+          _ovRef.height = ac.height;
+          _ovRef.style.width  = _acRect.width  + 'px';
+          _ovRef.style.height = _acRect.height + 'px';
+          _ovRef.style.left   = (_acRect.left - _parRect.left) + 'px';
+          _ovRef.style.top    = (_acRect.top  - _parRect.top)  + 'px';
+          if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
+              || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
+            var _bw = ac.width * 0.8, _bh = ac.height * 0.8;
+            cropRect = { x: (ac.width - _bw) / 2, y: (ac.height - _bh) / 2, w: _bw, h: _bh };
+          }
+          // Draw before making visible — prevents blank-canvas flash
+          if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(_ovRef);
+          _ovRef.style.display = 'block';
+        } else {
+          _ovRef.style.display = 'block';
         }
-        ov.style.display = 'block';
-        if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(ov);
-      } else {
-        ov.style.display = 'block';
-      }
+      });
     }
   }
 }

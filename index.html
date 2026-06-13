@@ -2787,6 +2787,13 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
   .bn-item[data-tab="HOME"] {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 4px;
+    height: 100%;
   }
   /* Faint ambient glow behind the HOME star icon */
   .bn-item[data-tab="HOME"]::after {
@@ -2795,7 +2802,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     inset: 0;
     background: radial-gradient(ellipse 70% 90% at 50% 115%, rgba(192,64,90,0.22) 0%, rgba(138,26,46,0.10) 55%, transparent 100%);
     pointer-events: none;
-    z-index: 0;
+    z-index: -1;
   }
   .bn-item[data-tab="HOME"].active::after {
     background: radial-gradient(ellipse 80% 100% at 50% 115%, rgba(210,72,100,0.32) 0%, rgba(155,32,58,0.16) 55%, transparent 100%);

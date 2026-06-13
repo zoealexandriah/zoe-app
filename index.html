@@ -11369,6 +11369,11 @@ window.galleryCopyEdits = function(imageId) {
     // Add crop-mode class so outer ADJUST sub-nav hides
     var _edV = document.getElementById('editor-view');
     if (_edV) _edV.classList.add('crop-mode');
+    // Clear any stale cropRect before running the chain — prevents old rect from
+    // flashing briefly on screen before the setTimeout below resets it
+    cropRect = null; cropDragging = null;
+    var _oldFlash = document.getElementById('crop-overlay-canvas');
+    if (_oldFlash) _oldFlash.remove();
     _prevEtSelectToolFinal(name); // run chain for UI setup
     setTimeout(function() {
       var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');

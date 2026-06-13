@@ -6791,8 +6791,11 @@ function applyPixelAdjustments(srcData, adj) {
           let dist = Math.abs(ph - ch.center);
           if (dist > 180) dist = 360 - dist;
           const norm = dist / (ch.width / 2);
-          const weight = norm < 2.0 ? Math.exp(-norm * norm * 1.5) : 0;
-          if (weight < 0.001) continue;
+          // Soft feathered falloff: gentle Gaussian (0.55) so color transitions
+          // blend gradually instead of clipping hard at the selection boundary.
+          // No hard cutoff — let it decay naturally to zero around norm≈3.
+          const weight = Math.exp(-norm * norm * 0.55);
+          if (weight < 0.002) continue;
           if (ch.sat && Math.abs(ch.sat) > 0.005) {
             let satContrib = ch.sat * weight * 0.7;
             // colorGlow: concentrate positive saturation boost in upper midtones (lum ~0.62)

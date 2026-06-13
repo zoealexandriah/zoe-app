@@ -4103,12 +4103,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               </button>
               <button class="ev-subnav-btn" data-tab="color" onclick="evAdjustSubTab('color')">
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                  <!-- Handle arc -->
-                  <path d="M7 8 C7 3.5 13 3.5 13 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  <!-- Rim -->
-                  <rect x="3.5" y="7.2" width="13" height="1.6" rx="0.8"/>
-                  <!-- Bucket body (wider at top, narrower at bottom) -->
-                  <path d="M5 8.8 L6.8 17.5 Q7 18.5 8 18.5 L12 18.5 Q13 18.5 13.2 17.5 L15 8.8 Z"/>
+                  <!-- Bail/handle: stroke arc over the opening -->
+                  <path d="M8 3 Q5 0.5 2.5 3.5 Q1 5.5 3 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <!-- Bucket body: tilted trapezoid, opening upper-left -->
+                  <path d="M3 8 L8 2.5 L17 9 L12 14.5 Q10.5 16 9 15 Q7.5 14 6.5 12.5 Z"/>
+                  <!-- Paint drop -->
+                  <path d="M16.5 13 Q19.5 14.5 18 18 Q16.5 20 14.5 18.5 Q12.5 17 13.5 14.5 Q14.5 12.5 16.5 13Z"/>
                 </svg>
                 <span>COLOR</span>
               </button>
@@ -5249,8 +5249,8 @@ function buildSectionHTML(p, section, rows, state) {
     html += `<div class="hsl-channel-label" id="hsl-chan-label-${p.id}">HLS ALL SETTINGS</div>`;
     const hueT = state['HUE_SHIFT'] ?? 0.5;
     html += `<div class="sl-row" id="hsl-hue-row-${p.id}">
-      <div class="sl-header">${_sliderIcon('HUE_SHIFT')}<span class="sl-name">HUE</span><span class="sl-val" id="slv-${p.id}-HUE_SHIFT">${getSliderDisplay('HUE_SHIFT', hueT)}</span></div>
-      <div class="sl-track" data-preset="${p.id}" data-param="HUE_SHIFT">
+      <div class="sl-header">${_sliderIcon('HUE_SHIFT')}<span class="sl-name">HUE</span><span class="sl-val" id="slv-hsl-hue-${p.id}">${getSliderDisplay('HUE_SHIFT', hueT)}</span></div>
+      <div class="sl-track" data-preset="${p.id}" data-param="HUE_SHIFT" id="hsl-hue-track-${p.id}">
         <div class="sl-fill" style="width:${Math.round(hueT*100)}%"></div>
         <div class="sl-thumb" style="left:${Math.round(hueT*100)}%"></div>
       </div>
@@ -5258,17 +5258,19 @@ function buildSectionHTML(p, section, rows, state) {
     const activeChan = 'SAT_REDS';
     const satT = state[activeChan] ?? 0.5;
     html += `<div class="sl-row" id="hsl-sat-row-${p.id}">
-      <div class="sl-header">${_sliderIcon('SATURATION')}<span class="sl-name">SATURATION</span><span class="sl-val" id="slv-${p.id}-${activeChan}">${getSliderDisplay(activeChan, satT)}</span></div>
+      <div class="sl-header">${_sliderIcon('SATURATION')}<span class="sl-name">SATURATION</span><span class="sl-val" id="slv-hsl-sat-${p.id}">${getSliderDisplay(activeChan, satT)}</span></div>
       <div class="sl-track" data-preset="${p.id}" data-param="${activeChan}" id="hsl-sat-track-${p.id}">
         <div class="sl-fill" style="width:${Math.round(satT*100)}%"></div>
         <div class="sl-thumb" style="left:${Math.round(satT*100)}%"></div>
       </div>
     </div>`;
+    const lumParam0 = 'LUM_REDS';
+    const lumT0 = state[lumParam0] ?? 0.5;
     html += `<div class="sl-row" id="hsl-lum-row-${p.id}">
-      <div class="sl-header">${_sliderIcon('BLACKS')}<span class="sl-name">LUMINANCE</span><span class="sl-val" id="slv-${p.id}-BLACKS-hsl">${getSliderDisplay('BLACKS', state['BLACKS']??0.5)}</span></div>
-      <div class="sl-track" data-preset="${p.id}" data-param="BLACKS">
-        <div class="sl-fill" style="width:${Math.round((state['BLACKS']??0.5)*100)}%"></div>
-        <div class="sl-thumb" style="left:${Math.round((state['BLACKS']??0.5)*100)}%"></div>
+      <div class="sl-header">${_sliderIcon('BLACKS')}<span class="sl-name">LUMINANCE</span><span class="sl-val" id="slv-hsl-lum-${p.id}">${getSliderDisplay(lumParam0, lumT0)}</span></div>
+      <div class="sl-track" data-preset="${p.id}" data-param="${lumParam0}" id="hsl-lum-track-${p.id}">
+        <div class="sl-fill" style="width:${Math.round(lumT0*100)}%"></div>
+        <div class="sl-thumb" style="left:${Math.round(lumT0*100)}%"></div>
       </div>
     </div>`;
     return html;
@@ -5472,43 +5474,7 @@ function evAdjustBack() {
   if (typeof cropDragging !== 'undefined') cropDragging = null;
 }
 
-function hslSelectChannel(dot) {
-  const presetId = dot.dataset.preset;
-  const channel  = dot.dataset.channel;
-
-  // Update active dot visual
-  document.querySelectorAll(`#hsl-channels-${presetId} .hsl-dot`)
-    .forEach(d => d.classList.remove('active'));
-  dot.classList.add('active');
-
-  // Update channel label
-  const label = document.getElementById('hsl-chan-label-' + presetId);
-  if (label) {
-    const names = { ALL:'ALL', SAT_REDS:'REDS', SAT_ORANGES:'ORANGES',
-      SAT_YELLOWS:'YELLOWS', SAT_GREENS:'GREENS',
-      SAT_BLUES:'BLUES', SAT_PURPLES:'PURPLES' };
-    label.textContent = 'HLS ' + (names[channel] || channel) + ' SETTINGS';
-  }
-
-  // Rewire SAT slider to the selected channel param
-  const satTrack = document.getElementById('hsl-sat-track-' + presetId);
-  if (!satTrack) return;
-
-  const newParam = channel === 'ALL' ? 'SATURATION' : channel;
-  satTrack.dataset.param = newParam;
-
-  // Update slider display to show current value for this channel
-  const t = (sliderState[presetId] || {})[newParam] ?? 0.5;
-  const fill  = satTrack.querySelector('.sl-fill');
-  const thumb = satTrack.querySelector('.sl-thumb');
-  const pct   = Math.round(t * 100);
-  if (fill)  fill.style.width = pct + '%';
-  if (thumb) thumb.style.left  = pct + '%';
-
-  // Update the value display — find it by its current data-param
-  const valEl = satTrack.parentElement.querySelector('.sl-val');
-  if (valEl) valEl.textContent = getSliderDisplay(newParam, t);
-}
+// hslSelectChannel defined once below (near end of script)
 
 function resetSection(presetId, section) {
   const p = presets.find(x => x.id === presetId);
@@ -11710,21 +11676,32 @@ window.colOpenCollection = function(colId) {
 
 function hslSelectChannel(dot) {
   const presetId = dot.dataset.preset;
-  const channel  = dot.dataset.channel;
+  const channel  = dot.dataset.channel; // 'ALL' or 'SAT_REDS' etc.
   document.querySelectorAll(`#hsl-channels-${presetId} .hsl-dot`).forEach(d => d.classList.remove('active'));
   dot.classList.add('active');
   const label = document.getElementById('hsl-chan-label-' + presetId);
   if (label) label.textContent = 'HLS ' + (dot.title || channel) + ' SETTINGS';
-  const satTrack = document.getElementById('hsl-sat-track-' + presetId);
-  if (!satTrack) return;
-  satTrack.dataset.param = (channel === 'ALL') ? 'SATURATION' : channel;
-  const t = (sliderState[presetId] || {})[satTrack.dataset.param] ?? 0.5;
-  const fill  = satTrack.querySelector('.sl-fill');
-  const thumb = satTrack.querySelector('.sl-thumb');
-  if (fill)  fill.style.width  = Math.round(t*100) + '%';
-  if (thumb) thumb.style.left  = Math.round(t*100) + '%';
-  const valEl = document.getElementById('slv-' + presetId + '-' + satTrack.dataset.param);
-  if (valEl) valEl.textContent = getSliderDisplay(satTrack.dataset.param, t);
+  const state = sliderState[presetId] || {};
+  const isAll = channel === 'ALL';
+  // Derive per-track params from the selected channel dot
+  const satParam = isAll ? 'SATURATION' : channel;                      // SAT_REDS …
+  const hueParam = isAll ? 'HUE_SHIFT'  : channel.replace('SAT_','HUE_'); // HUE_REDS …
+  const lumParam = isAll ? 'BLACKS'     : channel.replace('SAT_','LUM_'); // LUM_REDS …
+  function _syncTrack(trackId, valId, param) {
+    const track = document.getElementById(trackId);
+    if (!track) return;
+    track.dataset.param = param;
+    const t = state[param] ?? 0.5;
+    const fill  = track.querySelector('.sl-fill');
+    const thumb = track.querySelector('.sl-thumb');
+    if (fill)  fill.style.width = Math.round(t*100) + '%';
+    if (thumb) thumb.style.left = Math.round(t*100) + '%';
+    const valEl = document.getElementById(valId);
+    if (valEl) valEl.textContent = getSliderDisplay(param, t);
+  }
+  _syncTrack('hsl-hue-track-' + presetId, 'slv-hsl-hue-' + presetId, hueParam);
+  _syncTrack('hsl-sat-track-' + presetId, 'slv-hsl-sat-' + presetId, satParam);
+  _syncTrack('hsl-lum-track-' + presetId, 'slv-hsl-lum-' + presetId, lumParam);
 }
 </script>
 

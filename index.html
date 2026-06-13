@@ -8432,6 +8432,8 @@ function toolsCropDraw() {
   }
   toolsCropDrawRect(ov);
   toolsCropBindDrag(ov, hc);
+  // Overlay starts hidden — only cropSelectSubTab('ratio') makes it visible
+  ov.style.display = 'none';
 }
 
 function toolsCropDrawRect(ov) {
@@ -11000,6 +11002,8 @@ function toolsCropDrawOnCanvas(hc) {
   }
   toolsCropDrawRect(ov);
   toolsCropBindDrag(ov, hc);
+  // Overlay starts hidden — only cropSelectSubTab('ratio') makes it visible
+  ov.style.display = 'none';
 }
 
 // ── Fix 2: editorBackToGallery — save edit state, then navigate ──
@@ -11236,6 +11240,8 @@ window.etSelectTool = function(name) {
         }
         toolsCropDrawRect(ov);
         toolsCropBindDrag(ov, ac);
+        // Overlay starts hidden — only cropSelectSubTab('ratio') makes it visible
+        ov.style.display = 'none';
         // Touch support: single-finger drag + two-finger pinch to resize
         var _cropPinch0 = null;
         function _ovClientToCanvas(cx, cy) {

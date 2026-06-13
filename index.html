@@ -10242,7 +10242,9 @@ function evRenderPresets() {
     var isActive = evActivePreset && evActivePreset.id===p.id;
     var _tdpr=Math.min(window.devicePixelRatio||1,2);
     card.style.cssText = 'width:'+_pcW+'px;height:'+_pcH+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;transition:transform 0.2s;'+(isActive?'box-shadow:0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)':'');
+    var isFav = evFavPresets.includes(p.id);
     card.innerHTML = '<canvas id="evt-'+p.id+'" width="'+(_pcW*_tdpr)+'" height="'+(_pcH*_tdpr)+'" style="position:absolute;top:0;left:0;width:'+_pcW+'px;height:'+_pcH+'px;display:block;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
+      +(isFav ? '<div style="position:absolute;bottom:22px;right:4px;z-index:2;pointer-events:none;opacity:0.85;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));"><svg width="11" height="11" viewBox="0 0 24 24" fill="rgba(220,185,255,0.90)" xmlns="http://www.w3.org/2000/svg"><path d="M17 2H7a1 1 0 0 0-1 1v10.59l-1.7 1.7A1 1 0 0 0 5 17h6v5l1 1 1-1v-5h6a1 1 0 0 0 .7-1.71L18 13.59V3a1 1 0 0 0-1-1z"/></svg></div>' : '')
       +'<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.82),transparent);pointer-events:none;z-index:1;">'
       +'<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.78')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.name.toUpperCase()+'</div>'
       +'</div>';

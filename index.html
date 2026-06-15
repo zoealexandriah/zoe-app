@@ -6840,9 +6840,9 @@ function applyPixelAdjustments(srcData, adj) {
         // Weight: 0 at lum=0.25 → 1.0 at lum=1.0 (smooth ramp across upper tones)
         const ww = (lumW - 0.25) / 0.75;
         if (whites > 0) {
-          r = Math.min(255, r + whites * 1.1 * ww * (255 - r));
-          g = Math.min(255, g + whites * 1.1 * ww * (255 - g));
-          b = Math.min(255, b + whites * 1.1 * ww * (255 - b));
+          r = Math.min(255, r + whites * 0.60 * ww * (255 - r));
+          g = Math.min(255, g + whites * 0.60 * ww * (255 - g));
+          b = Math.min(255, b + whites * 0.60 * ww * (255 - b));
         } else {
           const pull = Math.abs(whites) * ww * 0.55;
           r = Math.max(0, r * (1 - pull));

@@ -6861,9 +6861,9 @@ function applyPixelAdjustments(srcData, adj) {
           let dist = Math.abs(ph - ch.center);
           if (dist > 180) dist = 360 - dist;
           const norm = dist / (ch.width / 2);
-          // Soft feathered falloff: wide Gaussian (0.30) so hue transitions
-          // blend gradually — prevents visible patchiness at selection edges.
-          const weight = Math.exp(-norm * norm * 0.30);
+          // Very soft Gaussian (0.18) for smooth hue transitions — lum
+          // changes are especially sensitive so we need a wide, gradual falloff.
+          const weight = Math.exp(-norm * norm * 0.18);
           if (weight < 0.002) continue;
           if (ch.sat && Math.abs(ch.sat) > 0.005) {
             let satContrib = ch.sat * weight * 0.62;
@@ -6881,7 +6881,7 @@ function applyPixelAdjustments(srcData, adj) {
 
         const newSat = Math.max(0, Math.min(1, ss2 + totalSatAdj));
         const newHue = (ph + totalHueAdj + 360) % 360;
-        const newLum = Math.max(0, Math.min(1, ll2 + totalLumAdj * 0.4));
+        const newLum = Math.max(0, Math.min(1, ll2 + totalLumAdj * 0.20));
         const c3 = (1-Math.abs(2*newLum-1))*newSat;
         const x3 = c3*(1-Math.abs((newHue/60)%2-1));
         const m3 = newLum-c3/2;

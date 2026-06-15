@@ -6715,12 +6715,11 @@ function applyPixelAdjustments(srcData, adj) {
       if (lum > 180) {
         const weight = (lum - 180) / 75;
         if (hl < 0) {
-          // Recovery: blend toward luminosity-neutral (pull to grey, preserve ratio)
-          const pull = Math.abs(hl) * weight;
-          const neutral = lum;
-          r = Math.min(255, Math.max(0, r + pull * (neutral - r)));
-          g = Math.min(255, Math.max(0, g + pull * (neutral - g)));
-          b = Math.min(255, Math.max(0, b + pull * (neutral - b)));
+          // Recovery: proportionally darken bright pixels (mirrors positive push-to-white)
+          const pull = Math.abs(hl) * weight * 0.50;
+          r = Math.max(0, r * (1 - pull));
+          g = Math.max(0, g * (1 - pull));
+          b = Math.max(0, b * (1 - pull));
         } else {
           // Boost: push toward white (slightly stronger ceiling)
           const push = hl * weight * 1.18;

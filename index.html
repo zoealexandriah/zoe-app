@@ -9040,9 +9040,17 @@ function toolsCropBindDrag(ov, hc) {
   ov.onmouseleave = () => { cropDragging = null };
 }
 
+let _preCropState = null; // saved before crop apply so reset can restore it
 function toolsCropApply() {
   const hc = document.getElementById('hero-canvas');
   if (!hc || !cropRect) return;
+  // Save pre-crop state so globalReset can fully undo the crop
+  _preCropState = {
+    userImage:   userImage,
+    origPixels:  _origPixels,
+    origOffX:    _origOffX, origOffY: _origOffY,
+    origW:       _origW,    origH:    _origH
+  };
   const { x, y, w, h } = cropRect;
   const tmp = document.createElement('canvas');
   tmp.width = Math.round(w); tmp.height = Math.round(h);
@@ -10162,6 +10170,14 @@ function globalReset() {
   toolsStraightenVal = 0;
   _straightenOrigImage = null;
   _flipPreState = null;
+  // Restore pre-crop image if crop was applied
+  if (_preCropState) {
+    userImage   = _preCropState.userImage;
+    _origPixels = _preCropState.origPixels;
+    _origOffX   = _preCropState.origOffX; _origOffY = _preCropState.origOffY;
+    _origW      = _preCropState.origW;    _origH    = _preCropState.origH;
+    _preCropState = null;
+  }
 
   // Clear preset so evRenderCanvas draws a clean image
   activePreset   = null;

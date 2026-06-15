@@ -5965,7 +5965,7 @@ function buildAdjustments(state) {
     glow:        val('GLOW',   false),
     grain:       val('GRAIN',   false),
     sharpen:     val('SHARPEN', false) * 0.40,
-    clarity:     val('CLARITY', false),
+    clarity:     val('CLARITY', false) * 0.40,
     blur:        val('BLUR',    false),
     fade:        val('FADE',   false),
     hue_shift: (() => { const t = state['HUE_SHIFT'] ?? 0.5; return (t - 0.5) * 360; })(),

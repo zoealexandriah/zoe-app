@@ -10815,9 +10815,18 @@ function evRenderPresets() {
       // Push history before changing preset
       evHistoryPush();
       // Swap active highlight without rebuilding the whole list
-      if (_evActiveCardEl) _evActiveCardEl.style.boxShadow = '';
+      if (_evActiveCardEl) {
+        _evActiveCardEl.style.boxShadow = '';
+        var _oldHint = _evActiveCardEl.querySelector('.ev-int-hint');
+        if (_oldHint) _oldHint.remove();
+      }
       _evActiveCardEl = card;
       card.style.boxShadow = '0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)';
+      var _hint = document.createElement('div');
+      _hint.className = 'ev-int-hint';
+      _hint.style.cssText = 'position:absolute;top:5px;right:5px;z-index:2;pointer-events:none;opacity:0.82;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));';
+      _hint.innerHTML = '<svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="2" x2="14" y2="2" stroke="rgba(255,220,240,0.9)" stroke-width="1"/><circle cx="9" cy="2" r="2" fill="rgba(255,220,240,0.9)"/><line x1="0" y1="8" x2="14" y2="8" stroke="rgba(255,220,240,0.9)" stroke-width="1"/><circle cx="5" cy="8" r="2" fill="rgba(255,220,240,0.9)"/></svg>';
+      card.appendChild(_hint);
       // Set both evActivePreset AND activePreset — evRenderCanvas reads activePreset
       evActivePreset = p; activePreset = p;
       applyPresetDefaults(p); presetIntensity=1.0;

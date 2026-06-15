@@ -2632,10 +2632,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .batch-bar-btn.danger:hover { color: rgba(230,80,100,0.95); border-color: rgba(210,80,100,0.55); }
 .lib-photo-edited-dot {
   position: absolute; bottom: 5px; left: 5px;
-  width: 22px; height: 22px; pointer-events: none;
+  width: 18px; height: 18px; pointer-events: none;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(195,170,220,0.88);
-  border-radius: 6px;
+  background: none;
 }
 #gallery-delete-confirm {
   font-size: 8px; letter-spacing: 0.14em; color: rgba(232,216,250,0.85);
@@ -11599,7 +11598,7 @@ window.renderLibrary = function() {
       if (hasEdits) {
         const dot = document.createElement('div');
         dot.className = 'lib-photo-edited-dot';
-        dot.innerHTML = '<svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="1.5" x2="12" y2="1.5" stroke="#3d2455" stroke-width="1.2"/><circle cx="8.5" cy="1.5" r="1.6" fill="#c3aadc" stroke="#3d2455" stroke-width="1.1"/><line x1="0" y1="5" x2="12" y2="5" stroke="#3d2455" stroke-width="1.2"/><circle cx="4" cy="5" r="1.6" fill="#c3aadc" stroke="#3d2455" stroke-width="1.1"/><line x1="0" y1="8.5" x2="12" y2="8.5" stroke="#3d2455" stroke-width="1.2"/><circle cx="7" cy="8.5" r="1.6" fill="#c3aadc" stroke="#3d2455" stroke-width="1.1"/></svg>';
+        dot.innerHTML = '<svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="1.5" x2="12" y2="1.5" stroke="#c3aadc" stroke-width="1.2"/><circle cx="8.5" cy="1.5" r="1.6" fill="#c3aadc" stroke="#c3aadc" stroke-width="1.1"/><line x1="0" y1="5" x2="12" y2="5" stroke="#c3aadc" stroke-width="1.2"/><circle cx="4" cy="5" r="1.6" fill="#c3aadc" stroke="#c3aadc" stroke-width="1.1"/><line x1="0" y1="8.5" x2="12" y2="8.5" stroke="#c3aadc" stroke-width="1.2"/><circle cx="7" cy="8.5" r="1.6" fill="#c3aadc" stroke="#c3aadc" stroke-width="1.1"/></svg>';
         cell.appendChild(dot);
       }
     } catch(e) {}

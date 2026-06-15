@@ -7382,25 +7382,35 @@ function applyStars(canvas, amount, offX, offY, imgW, imgH) {
 function applySharpness(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
   const ctx = canvas.getContext('2d');
-  // Get original region
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
-  // Create blurred version on offscreen canvas
-  const off = document.createElement('canvas');
-  off.width = imgW; off.height = imgH;
-  const offCtx = off.getContext('2d');
-  offCtx.putImageData(orig, 0, 0);
-  const blurPx = Math.max(1, Math.round(amount * 3));
-  offCtx.filter = `blur(${blurPx}px)`;
-  offCtx.drawImage(off, 0, 0);
-  offCtx.filter = 'none';
-  const blurred = offCtx.getImageData(0, 0, imgW, imgH);
-  // Unsharp mask: out = orig + amount * (orig - blurred)
-  const od = orig.data, bd = blurred.data;
-  const strength = amount * 6.0;
+  const od = orig.data;
+  // Software two-pass box blur — radius 1 gives tight edge sharpening.
+  // (ctx.filter is not supported in Safari so we cannot use offscreen canvas blur.)
+  const radius = 1;
+  const tmp = new Uint8ClampedArray(od.length);
+  const blr = new Uint8ClampedArray(od.length);
+  for (let y = 0; y < imgH; y++) {
+    for (let x = 0; x < imgW; x++) {
+      let rr=0,gg=0,bb=0,n=0;
+      const x0=Math.max(0,x-radius), x1=Math.min(imgW-1,x+radius);
+      for (let kx=x0;kx<=x1;kx++){const ii=(y*imgW+kx)*4;rr+=od[ii];gg+=od[ii+1];bb+=od[ii+2];n++;}
+      const ii=(y*imgW+x)*4; tmp[ii]=rr/n; tmp[ii+1]=gg/n; tmp[ii+2]=bb/n;
+    }
+  }
+  for (let y = 0; y < imgH; y++) {
+    for (let x = 0; x < imgW; x++) {
+      let rr=0,gg=0,bb=0,n=0;
+      const y0=Math.max(0,y-radius), y1=Math.min(imgH-1,y+radius);
+      for (let ky=y0;ky<=y1;ky++){const ii=(ky*imgW+x)*4;rr+=tmp[ii];gg+=tmp[ii+1];bb+=tmp[ii+2];n++;}
+      const ii=(y*imgW+x)*4; blr[ii]=rr/n; blr[ii+1]=gg/n; blr[ii+2]=bb/n;
+    }
+  }
+  // Unsharp mask: orig + strength * (orig - blurred)
+  const strength = amount * 4.5;
   for (let i = 0; i < od.length; i += 4) {
-    od[i]   = Math.min(255, Math.max(0, od[i]   + strength * (od[i]   - bd[i])));
-    od[i+1] = Math.min(255, Math.max(0, od[i+1] + strength * (od[i+1] - bd[i+1])));
-    od[i+2] = Math.min(255, Math.max(0, od[i+2] + strength * (od[i+2] - bd[i+2])));
+    od[i]   = Math.min(255, Math.max(0, od[i]   + strength * (od[i]   - blr[i])));
+    od[i+1] = Math.min(255, Math.max(0, od[i+1] + strength * (od[i+1] - blr[i+1])));
+    od[i+2] = Math.min(255, Math.max(0, od[i+2] + strength * (od[i+2] - blr[i+2])));
   }
   ctx.putImageData(orig, offX, offY);
 }
@@ -7433,7 +7443,7 @@ function applyClarity(canvas, amount, offX, offY, imgW, imgH) {
       const ii=(y*imgW+x)*4; blr[ii]=rr/n; blr[ii+1]=gg/n; blr[ii+2]=bb/n;
     }
   }
-  const strength = amount * 1.8;
+  const strength = amount * 3.0;
   for (let i = 0; i < od.length; i += 4) {
     const r = od[i], g = od[i+1], b = od[i+2];
     const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
@@ -7453,7 +7463,8 @@ function applyBlur(canvas, amount, offX, offY, imgW, imgH) {
   const ctx = canvas.getContext('2d');
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
-  const radius = Math.max(1, Math.round(amount * 8));
+  // Power curve so low values produce visible results; max radius=12 at full slider.
+  const radius = Math.max(1, Math.round(Math.pow(amount, 0.65) * 12));
   const tmp = new Uint8ClampedArray(src.length);
   const out = new Uint8ClampedArray(src.length);
   // Pass 1: horizontal

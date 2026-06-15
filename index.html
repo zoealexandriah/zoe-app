@@ -3038,8 +3038,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* In lib-toolbar-right: hide ADD MORE + REMOVE, keep SELECT */
   .lib-toolbar-right .lib-btn { display: none !important; }
 
-  /* Sliders: bigger touch target */
-  .sl-track { height: 32px; touch-action: pan-y; }
+  /* Sliders: bigger touch target; touch-action:none prevents iOS from stealing
+     horizontal drags for container scroll — JS handles all directions */
+  .sl-track { height: 44px !important; touch-action: none !important; }
   .sl-thumb { width: 16px; height: 16px; }
 
   /* Canvas: disable browser scroll/zoom interference */
@@ -3170,11 +3171,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     font-size: 10px !important; letter-spacing: 0.10em !important;
     color: rgba(201,184,212,0.65) !important;
   }
-  /* Track: full width, comfortable touch target height */
+  /* Track: full width, 44px touch target (Apple HIG min), transparent background */
   .sl-track {
     flex: none !important;
     width: 100% !important;
-    height: 20px !important;
+    height: 44px !important;
     background: transparent !important;
   }
   /* Visible track line behind the fill — makes 0-value sliders look styled, not broken */

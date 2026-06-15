@@ -10174,7 +10174,18 @@ function globalReset() {
     evRenderCanvas();
     // Rebuild sliders to show 0.00
     evBuildSliders();
-    if (_evActiveCardEl) _evActiveCardEl.style.boxShadow = '';
+    if (_evActiveCardEl) {
+      var _rstOldHint = _evActiveCardEl.querySelector('.ev-int-hint');
+      if (_rstOldHint) _rstOldHint.remove();
+      _evActiveCardEl.style.boxShadow = '';
+    }
+    // Close intensity overlay if open
+    var _rstIntOv = document.getElementById('ev-intensity-overlay');
+    if (_rstIntOv) _rstIntOv.style.display = 'none';
+    var _rstStrip = document.getElementById('ev-preset-strip');
+    var _rstMnav  = document.getElementById('ev-mobile-nav');
+    if (_rstStrip) _rstStrip.style.display = '';
+    if (_rstMnav)  _rstMnav.style.display  = '';
     var _rstNoneCanvas = document.getElementById('evt-none');
     var _rstNoneCard   = _rstNoneCanvas ? _rstNoneCanvas.parentElement : null;
     if (_rstNoneCard) _rstNoneCard.style.boxShadow = '0 0 0 1.5px rgba(201,184,212,0.75),0 0 12px rgba(150,120,200,0.28)';
@@ -10796,7 +10807,7 @@ function evRenderPresets() {
     var isFav = evFavPresets.includes(p.id);
     card.innerHTML = '<canvas id="evt-'+p.id+'" width="'+(_pcW*_tdpr)+'" height="'+(_pcH*_tdpr)+'" style="position:absolute;top:0;left:0;width:'+_pcW+'px;height:'+_pcH+'px;display:block;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
       +(isFav ? '<div style="position:absolute;bottom:20px;left:5px;z-index:2;pointer-events:none;opacity:0.88;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));"><svg width="9" height="11" viewBox="0 0 24 28" fill="none" stroke="rgba(220,185,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 2h16a2 2 0 0 1 2 2v22l-10-7L2 26V4a2 2 0 0 1 2-2z"/></svg></div>' : '')
-      +(isActive ? '<div class="ev-int-hint" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;background:rgba(10,6,20,0.52);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:20px;padding:5px 10px;display:flex;align-items:center;"><svg width="20" height="6" viewBox="0 0 20 6" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="3" x2="20" y2="3" stroke="#e8d0f0" stroke-width="1.2"/><circle cx="13" cy="3" r="3" fill="#e8d0f0"/></svg></div>' : '')
+      +(isActive ? '<div class="ev-int-hint" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;background:rgba(10,6,20,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:20px;padding:6px 10px;"><div style="position:relative;width:22px;height:6px;"><div style="position:absolute;top:50%;left:0;right:0;height:1.5px;background:#e8d0f0;transform:translateY(-50%);border-radius:1px;"></div><div style="position:absolute;top:50%;right:3px;width:6px;height:6px;background:#e8d0f0;border-radius:50%;transform:translateY(-50%);"></div></div></div>' : '')
       +'<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.82),transparent);pointer-events:none;z-index:1;">'
       +'<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.78')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.name.toUpperCase()+'</div>'
       +'</div>';
@@ -10824,8 +10835,8 @@ function evRenderPresets() {
       card.style.boxShadow = '0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)';
       var _hint = document.createElement('div');
       _hint.className = 'ev-int-hint';
-      _hint.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;background:rgba(10,6,20,0.52);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:20px;padding:5px 9px;display:flex;align-items:center;gap:4px;';
-      _hint.innerHTML = '<svg width="20" height="6" viewBox="0 0 20 6" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="3" x2="20" y2="3" stroke="#e8d0f0" stroke-width="1.2"/><circle cx="13" cy="3" r="3" fill="#e8d0f0"/></svg>';
+      _hint.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;background:rgba(10,6,20,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:20px;padding:6px 10px;';
+      _hint.innerHTML = '<div style="position:relative;width:22px;height:6px;"><div style="position:absolute;top:50%;left:0;right:0;height:1.5px;background:#e8d0f0;transform:translateY(-50%);border-radius:1px;"></div><div style="position:absolute;top:50%;right:3px;width:6px;height:6px;background:#e8d0f0;border-radius:50%;transform:translateY(-50%);"></div></div>';
       card.appendChild(_hint);
       // Set both evActivePreset AND activePreset — evRenderCanvas reads activePreset
       evActivePreset = p; activePreset = p;

@@ -11426,6 +11426,7 @@ function toolsCropDrawOnCanvas(hc) {
 // ── Fix 2: editorBackToGallery — navigate immediately, save/thumbnail in background ──
 window.editorBackToGallery = function editorBackToGallery() {
   clearTimeout(_autoSaveTimer);
+  autoSaveEdit(); // flush BEFORE clearing state — autoSaveEdit needs userImage
 
   // Switch view instantly — no blocking work before this
   const allNavItems = document.querySelectorAll('.nav-item');
@@ -11441,11 +11442,20 @@ window.editorBackToGallery = function editorBackToGallery() {
   if (galleryNav) navClick(galleryNav);
   else switchToTab('GALLERY');
 
-  // Save + re-render thumbnail after navigation (non-blocking)
+  // Capture what thumbnail render needs, then clear editor state so that
+  // tapping EDITOR again shows the import prompt (fresh session) instead of
+  // reopening the previous image.
+  var _capturedImage = userImage;
+  var _capturedIdx   = editingIdx;
+  userImage      = null;
+  editingIdx     = -1;
+  evActivePreset = null;
+  activePreset   = null;
+
+  // Re-render thumbnail after navigation (non-blocking)
   setTimeout(function() {
-    autoSaveEdit();
-    var _tbEntry = (editingIdx >= 0) ? library[editingIdx] : null;
-    if (_tbEntry && _tbEntry.editState && _tbEntry.editState.presetId && userImage) {
+    var _tbEntry = (_capturedIdx >= 0) ? library[_capturedIdx] : null;
+    if (_tbEntry && _tbEntry.editState && _tbEntry.editState.presetId && _capturedImage) {
       _renderBatchThumbnail(_tbEntry, _tbEntry.editState.presetId, _tbEntry.editState.sliders, _tbEntry.editState.intensity, function() {
         libSaveToStorage();
         renderLibrary();

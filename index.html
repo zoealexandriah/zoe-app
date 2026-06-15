@@ -10796,7 +10796,7 @@ function evRenderPresets() {
     var isFav = evFavPresets.includes(p.id);
     card.innerHTML = '<canvas id="evt-'+p.id+'" width="'+(_pcW*_tdpr)+'" height="'+(_pcH*_tdpr)+'" style="position:absolute;top:0;left:0;width:'+_pcW+'px;height:'+_pcH+'px;display:block;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
       +(isFav ? '<div style="position:absolute;bottom:20px;left:5px;z-index:2;pointer-events:none;opacity:0.88;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));"><svg width="9" height="11" viewBox="0 0 24 28" fill="none" stroke="rgba(220,185,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 2h16a2 2 0 0 1 2 2v22l-10-7L2 26V4a2 2 0 0 1 2-2z"/></svg></div>' : '')
-      +(isActive ? '<div style="position:absolute;top:5px;right:5px;z-index:2;pointer-events:none;opacity:0.82;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));"><svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="2" x2="14" y2="2" stroke="rgba(255,220,240,0.9)" stroke-width="1"/><circle cx="9" cy="2" r="2" fill="rgba(255,220,240,0.9)"/><line x1="0" y1="8" x2="14" y2="8" stroke="rgba(255,220,240,0.9)" stroke-width="1"/><circle cx="5" cy="8" r="2" fill="rgba(255,220,240,0.9)"/></svg></div>' : '')
+      +(isActive ? '<div class="ev-int-hint" style="position:absolute;top:5px;right:5px;z-index:2;pointer-events:none;opacity:0.82;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));"><svg width="14" height="10" viewBox="0 0 14 10" xmlns="http://www.w3.org/2000/svg" opacity="0.9"><line x1="0" y1="2" x2="14" y2="2" stroke="#ffdcf0" stroke-width="1"/><circle cx="9" cy="2" r="2" fill="#ffdcf0"/><line x1="0" y1="8" x2="14" y2="8" stroke="#ffdcf0" stroke-width="1"/><circle cx="5" cy="8" r="2" fill="#ffdcf0"/></svg></div>' : '')
       +'<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.82),transparent);pointer-events:none;z-index:1;">'
       +'<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.78')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.name.toUpperCase()+'</div>'
       +'</div>';
@@ -10825,7 +10825,7 @@ function evRenderPresets() {
       var _hint = document.createElement('div');
       _hint.className = 'ev-int-hint';
       _hint.style.cssText = 'position:absolute;top:5px;right:5px;z-index:2;pointer-events:none;opacity:0.82;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));';
-      _hint.innerHTML = '<svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="2" x2="14" y2="2" stroke="rgba(255,220,240,0.9)" stroke-width="1"/><circle cx="9" cy="2" r="2" fill="rgba(255,220,240,0.9)"/><line x1="0" y1="8" x2="14" y2="8" stroke="rgba(255,220,240,0.9)" stroke-width="1"/><circle cx="5" cy="8" r="2" fill="rgba(255,220,240,0.9)"/></svg>';
+      _hint.innerHTML = '<svg width="14" height="10" viewBox="0 0 14 10" xmlns="http://www.w3.org/2000/svg" opacity="0.9"><line x1="0" y1="2" x2="14" y2="2" stroke="#ffdcf0" stroke-width="1"/><circle cx="9" cy="2" r="2" fill="#ffdcf0"/><line x1="0" y1="8" x2="14" y2="8" stroke="#ffdcf0" stroke-width="1"/><circle cx="5" cy="8" r="2" fill="#ffdcf0"/></svg>';
       card.appendChild(_hint);
       // Set both evActivePreset AND activePreset — evRenderCanvas reads activePreset
       evActivePreset = p; activePreset = p;

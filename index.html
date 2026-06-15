@@ -5963,7 +5963,7 @@ function buildAdjustments(state) {
     tint:        val('TINT'),
     glow:        val('GLOW',   false),
     grain:       val('GRAIN',   false),
-    sharpen:     val('SHARPEN', false),
+    sharpen:     Math.min(val('SHARPEN', false), 0.30),
     clarity:     val('CLARITY', false),
     blur:        val('BLUR',    false),
     fade:        val('FADE',   false),

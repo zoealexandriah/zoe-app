@@ -3387,7 +3387,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   text-shadow: 0 2px 20px rgba(0,0,0,0.50);
 }
 .hv-hero-alchemy {
-  font-family: var(--font-mono);
+  font-family: var(--mono);
   font-size: clamp(7px, 1.8vw, 9px);
   letter-spacing: 0.32em;
   color: rgba(210,188,162,0.55);
@@ -3401,7 +3401,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   padding: 0 22px 28px;
 }
 .hv-hero-label {
-  font-family: var(--font-mono);
+  font-family: var(--mono);
   font-size: 8.5px;
   letter-spacing: 0.38em;
   color: rgba(210,160,90,0.72);
@@ -3470,7 +3470,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   flex-shrink: 0;
 }
 .hv-section-title {
-  font-family: var(--font-mono);
+  font-family: var(--mono);
   font-size: 8.5px;
   letter-spacing: 0.38em;
   color: rgba(172,142,190,0.42);
@@ -3514,7 +3514,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .hv-dna-card-label {
   position: relative;
   z-index: 2;
-  font-family: var(--font-mono);
+  font-family: var(--mono);
   font-size: 8px;
   letter-spacing: 0.26em;
   color: rgba(220,200,240,0.82);
@@ -3530,7 +3530,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   flex-shrink: 0;
 }
 .hv-worlds-title {
-  font-family: var(--font-mono);
+  font-family: var(--mono);
   font-size: 8.5px;
   letter-spacing: 0.38em;
   color: rgba(172,142,190,0.42);
@@ -3545,13 +3545,13 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   margin-bottom: 9px;
 }
 .hv-world-name {
-  font-family: var(--font-mono);
+  font-family: var(--mono);
   font-size: 9px;
   letter-spacing: 0.26em;
   color: rgba(210,188,222,0.68);
 }
 .hv-world-all {
-  font-family: var(--font-mono);
+  font-family: var(--mono);
   font-size: 7.5px;
   letter-spacing: 0.18em;
   color: rgba(172,142,190,0.42);
@@ -3597,14 +3597,15 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   justify-content: space-between;
 }
 .hv-world-card-name {
-  font-family: var(--font-serif);
-  font-size: clamp(10px, 2.8vw, 13px);
+  font-family: var(--mono);
+  font-size: clamp(9px, 2.5vw, 11px);
+  letter-spacing: 0.14em;
   color: rgba(240,228,212,0.90);
   font-weight: 400;
   line-height: 1.2;
 }
 .hv-world-card-arrow {
-  font-family: var(--font-mono);
+  font-family: var(--mono);
   font-size: 10px;
   color: rgba(210,188,165,0.50);
   flex-shrink: 0;
@@ -3615,6 +3616,48 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .hv-forks-1   { background: linear-gradient(160deg, #0e1810 0%, #090f0a 55%, #070c08 100%); }
 .hv-forks-2   { background: linear-gradient(160deg, #121a10 0%, #0c1209 55%, #090e07 100%); }
 .hv-forks-3   { background: linear-gradient(160deg, #14180e 0%, #0e120a 55%, #0a0e07 100%); }
+/* Coming Soon */
+.hv-coming-section {
+  padding: 24px 16px 0;
+  flex-shrink: 0;
+}
+.hv-coming-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.hv-coming-item {
+  background: rgba(14,10,22,0.60);
+  border: 0.5px dashed rgba(172,142,190,0.18);
+  border-radius: 10px;
+  padding: 14px 12px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hv-coming-tag {
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: 0.22em;
+  color: rgba(172,142,190,0.32);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.hv-coming-name {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.20em;
+  color: rgba(210,188,222,0.55);
+  text-transform: uppercase;
+}
+.hv-coming-desc {
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: 0.06em;
+  color: rgba(172,142,190,0.35);
+  line-height: 1.55;
+}
+
 .hv-bottom-pad { height: 90px; flex-shrink: 0; }
 
 /* Sparkle nav icon — slightly larger than standard nav icons */
@@ -3913,6 +3956,33 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <div class="hv-world-card hv-forks-1"><div class="hv-world-card-meta"><span class="hv-world-card-name">Forks, WA</span><span class="hv-world-card-arrow">→</span></div></div>
               <div class="hv-world-card hv-forks-2"><div class="hv-world-card-meta"><span class="hv-world-card-name">La Push</span><span class="hv-world-card-arrow">→</span></div></div>
               <div class="hv-world-card hv-forks-3"><div class="hv-world-card-meta"><span class="hv-world-card-name">The Meadow</span><span class="hv-world-card-arrow">→</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coming Soon -->
+        <div class="hv-coming-section">
+          <div class="hv-section-title">COMING SOON</div>
+          <div class="hv-coming-grid">
+            <div class="hv-coming-item">
+              <div class="hv-coming-tag">✦ UPCOMING</div>
+              <div class="hv-coming-name">BATCH EDIT</div>
+              <div class="hv-coming-desc">Apply a preset to multiple photos at once</div>
+            </div>
+            <div class="hv-coming-item">
+              <div class="hv-coming-tag">✦ UPCOMING</div>
+              <div class="hv-coming-name">VIDEO</div>
+              <div class="hv-coming-desc">Bring your presets to reels and clips</div>
+            </div>
+            <div class="hv-coming-item">
+              <div class="hv-coming-tag">✦ UPCOMING</div>
+              <div class="hv-coming-name">CUSTOM PRESETS</div>
+              <div class="hv-coming-desc">Save and name your own looks</div>
+            </div>
+            <div class="hv-coming-item">
+              <div class="hv-coming-tag">✦ UPCOMING</div>
+              <div class="hv-coming-name">SHARE LINK</div>
+              <div class="hv-coming-desc">Send edits and presets to collaborators</div>
             </div>
           </div>
         </div>

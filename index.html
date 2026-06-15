@@ -10126,6 +10126,7 @@ function evInit() {
   if (edView) {
     edView.classList.toggle('no-image', !userImage);
     edView.classList.remove('adjust-open');
+    edView.classList.remove('crop-mode');
   }
   // Undo/redo button state
   evUpdateUndoRedo();

@@ -5380,7 +5380,7 @@ function buildSectionHTML(p, section, rows, state) {
     const disp = getSliderDisplay(name, t);
     const changed = Math.abs(t - 0.5) > 0.01 || (sliderConfig[name] && !sliderConfig[name][3]);
     html += `<div class="sl-row${changed?' changed':''}">
-      <div class="sl-header">${_sliderIcon(name)}<span class="sl-name">${name}</span><span class="sl-val" id="slv-${p.id}-${name}">${disp}</span></div>
+      <div class="sl-header">${_sliderIcon(name)}<span class="sl-name">${name}</span><span class="sl-val" id="slv-${p.id}-${name}" data-preset="${p.id}" data-param="${name}">${disp}</span></div>
       <div class="sl-track" data-preset="${p.id}" data-param="${name}">
         <div class="sl-fill" style="width:${pct}%"></div>
         <div class="sl-thumb" style="left:${pct}%"></div>
@@ -12477,6 +12477,96 @@ function importSheetChoice(type) {
     else document.getElementById('editor-file-input-files').click();
   }, 80);
 }
+</script>
+
+<!-- ── Slider value direct-entry overlay ── -->
+<div id="sl-val-editor" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9200;background:rgba(14,9,24,0.97);border-top:0.5px solid rgba(201,184,212,0.13);padding:14px 20px calc(14px + env(safe-area-inset-bottom));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span id="sl-val-editor-label" style="font-size:9px;letter-spacing:0.22em;color:rgba(175,155,210,0.50);font-family:var(--mono);flex-shrink:0;min-width:72px;"></span>
+    <input id="sl-val-editor-input" type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"
+      style="flex:1;font-size:16px;background:transparent;border:none;border-bottom:1px solid rgba(200,155,240,0.38);color:rgba(215,190,248,0.96);outline:none;text-align:center;font-family:var(--mono);letter-spacing:0.06em;padding:4px 4px 6px;-webkit-tap-highlight-color:transparent;">
+    <button onclick="_slValEditorApply()" style="background:rgba(218,90,125,0.85);border:none;border-radius:50px;color:rgba(255,255,255,0.95);font-size:8.5px;letter-spacing:0.18em;font-family:var(--mono);padding:9px 18px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;">OK</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var _svPid = null, _svParam = null;
+  var _svTapTimer = null, _svTapEl = null;
+
+  // Double-tap detection on any .sl-val span that has data-preset
+  document.addEventListener('touchend', function(e) {
+    var span = e.target.closest('.sl-val[data-preset]');
+    if (!span) return;
+    if (_svTapEl === span && _svTapTimer) {
+      clearTimeout(_svTapTimer); _svTapTimer = null; _svTapEl = null;
+      _svOpen(span);
+    } else {
+      _svTapEl = span;
+      _svTapTimer = setTimeout(function() { _svTapTimer = null; _svTapEl = null; }, 320);
+    }
+  }, {passive: true});
+
+  function _svOpen(span) {
+    _svPid   = span.dataset.preset;
+    _svParam = span.dataset.param;
+    var cfg = (typeof sliderConfig !== 'undefined' && sliderConfig[_svParam]) || [-1, 1, '', true];
+    var t   = ((typeof sliderState !== 'undefined' && sliderState[_svPid]) || {})[_svParam];
+    if (t === undefined) t = 0.5;
+    var val = cfg[0] + t * (cfg[1] - cfg[0]);
+    var lbl = document.getElementById('sl-val-editor-label');
+    var inp = document.getElementById('sl-val-editor-input');
+    var ov  = document.getElementById('sl-val-editor');
+    if (lbl) lbl.textContent = _svParam;
+    if (inp) inp.value = (val >= 0 ? '+' : '') + val.toFixed(2);
+    if (ov)  ov.style.display = 'block';
+    if (inp) { setTimeout(function() { inp.focus(); inp.select(); }, 60); }
+  }
+
+  window._slValEditorApply = function() {
+    var inp = document.getElementById('sl-val-editor-input');
+    var ov  = document.getElementById('sl-val-editor');
+    if (inp) inp.blur();
+    if (ov)  ov.style.display = 'none';
+    if (!inp || !_svPid || !_svParam) return;
+    var cfg = (typeof sliderConfig !== 'undefined' && sliderConfig[_svParam]) || [-1, 1, '', true];
+    var raw = parseFloat(inp.value.replace(',', '.'));
+    if (isNaN(raw)) return;
+    raw = Math.max(cfg[0], Math.min(cfg[1], raw));
+    var t   = (raw - cfg[0]) / (cfg[1] - cfg[0]);
+    if (typeof sliderState !== 'undefined') {
+      if (!sliderState[_svPid]) sliderState[_svPid] = {};
+      sliderState[_svPid][_svParam] = t;
+    }
+    var pct   = Math.round(t * 100);
+    var track = document.querySelector('.sl-track[data-preset="'+_svPid+'"][data-param="'+_svParam+'"]');
+    if (track) {
+      var fill  = track.querySelector('.sl-fill');
+      var thumb = track.querySelector('.sl-thumb');
+      if (fill)  fill.style.width = pct + '%';
+      if (thumb) thumb.style.left = pct + '%';
+    }
+    var valSpan = document.querySelector('.sl-val[data-preset="'+_svPid+'"][data-param="'+_svParam+'"]');
+    if (valSpan && typeof getSliderDisplay === 'function') valSpan.textContent = getSliderDisplay(_svParam, t);
+    if (typeof scheduleRender === 'function') scheduleRender(_svPid);
+    _svPid = null; _svParam = null;
+  };
+
+  // Enter key submits, Escape closes
+  document.addEventListener('keydown', function(e) {
+    var ov = document.getElementById('sl-val-editor');
+    if (!ov || ov.style.display === 'none') return;
+    if (e.key === 'Enter')  { e.preventDefault(); window._slValEditorApply(); }
+    if (e.key === 'Escape') { ov.style.display = 'none'; var inp = document.getElementById('sl-val-editor-input'); if (inp) inp.blur(); }
+  });
+
+  // Tap backdrop (outside overlay) to dismiss
+  document.addEventListener('touchstart', function(e) {
+    var ov = document.getElementById('sl-val-editor');
+    if (!ov || ov.style.display === 'none') return;
+    if (!ov.contains(e.target)) { window._slValEditorApply(); }
+  }, {passive: true});
+})();
 </script>
 
 </body>

@@ -6573,6 +6573,24 @@ function hslToRgb(h, s, l) {
 // All values normalised: bipolar sliders -1..+1, effects 0..1.
 function applyPixelAdjustments(srcData, adj) {
   const src = srcData.data;
+
+  // Fast-path: guarantee sliders at +0.00 never alter the image.
+  const _noEffect =
+    !adj.exposure && !adj.contrast && !adj.highlights && !adj.shadows &&
+    !adj.whites && !adj.blacks && !adj.temperature && !adj.tint &&
+    !adj.saturation && !adj.vibrance && !(adj.grain > 0.01) && !adj.fade &&
+    !(Math.abs(adj.hue_shift || 0) > 0.5) && !(adj.glow > 0.01) &&
+    !(Math.abs(adj.clarity || 0) > 0.005) && !(adj.sharpen > 0.01) &&
+    !(adj.blur > 0.01) && !(adj.halation > 0.01) && !(adj.vignette > 0.01) &&
+    !adj.skinLift && !adj.colorGlow && !adj.split_tone && !adj.hueTempZones &&
+    !adj.sat_reds && !adj.sat_oranges && !adj.sat_yellows &&
+    !adj.sat_greens && !adj.sat_blues && !adj.sat_purples &&
+    !adj.hue_reds && !adj.hue_oranges && !adj.hue_yellows &&
+    !adj.hue_greens && !adj.hue_blues && !adj.hue_purples &&
+    !adj.lum_reds && !adj.lum_oranges && !adj.lum_yellows &&
+    !adj.lum_greens && !adj.lum_blues && !adj.lum_purples;
+  if (_noEffect) return new Uint8ClampedArray(src);
+
   const out = new Uint8ClampedArray(src.length);
 
   const exp   = adj.exposure    || 0;   // -1..+1 → maps to -2..+2 EV
@@ -6627,11 +6645,20 @@ function applyPixelAdjustments(srcData, adj) {
     if (sh !== 0) {
       const lum = 0.299*r + 0.587*g + 0.114*b;
       if (lum < 75) {
-        const strength = sh * (75 - lum) / 75;
-        const f = 1 + strength;
-        r = Math.min(255, Math.max(0, r * f));
-        g = Math.min(255, Math.max(0, g * f));
-        b = Math.min(255, Math.max(0, b * f));
+        const shWeight = (75 - lum) / 75; // 1.0 at pure black, 0 at threshold
+        if (sh > 0) {
+          // Additive lift — multiplication can't raise pixels at or near 0
+          const lift = sh * shWeight * 38;
+          r = Math.min(255, r + lift);
+          g = Math.min(255, g + lift);
+          b = Math.min(255, b + lift);
+        } else {
+          // Crush: multiplicative works fine for darkening
+          const f = 1 + sh * shWeight;
+          r = Math.min(255, Math.max(0, r * f));
+          g = Math.min(255, Math.max(0, g * f));
+          b = Math.min(255, Math.max(0, b * f));
+        }
       }
     }
 
@@ -6797,14 +6824,26 @@ function applyPixelAdjustments(srcData, adj) {
       b = Math.min(255, Math.max(0, b + finalNoise - (Math.random() - 0.5) * colorShift));
     }
 
-    // ── FADE: lift blacks and lower whites ────────────────────────────────
+    // ── FADE: lift blacks / lower whites (positive) or deepen richness (negative)
     const fd = adj.fade || 0;
     if (fd > 0.001) {
-      const blackLift  = fd * 40;   // 0–40 RGB lift on shadows
-      const whiteCeil  = 255 - fd * 30; // lower ceiling on highlights
+      // Positive: matte/film look — lift shadows, lower highlight ceiling
+      const blackLift = fd * 40;
+      const whiteCeil = 255 - fd * 30;
       r = blackLift + r * (whiteCeil - blackLift) / 255;
       g = blackLift + g * (whiteCeil - blackLift) / 255;
       b = blackLift + b * (whiteCeil - blackLift) / 255;
+    } else if (fd < -0.001) {
+      // Negative: deepen blacks, push highlights brighter (richness / punch)
+      const afd = Math.abs(fd);
+      const blackPull = afd * 0.82; // darken shadows: multiply toward 0
+      const whitePush = 1 + afd * 0.15; // push highlights slightly brighter
+      const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+      const shadowBlend = Math.max(0, 1 - lum * 3); // 1 at black, 0 above ~0.33
+      const highlightBlend = Math.max(0, (lum - 0.67) * 3); // 0 below 0.67, 1 at white
+      r = Math.min(255, Math.max(0, r * (1 - shadowBlend * blackPull) * (1 + highlightBlend * (whitePush - 1))));
+      g = Math.min(255, Math.max(0, g * (1 - shadowBlend * blackPull) * (1 + highlightBlend * (whitePush - 1))));
+      b = Math.min(255, Math.max(0, b * (1 - shadowBlend * blackPull) * (1 + highlightBlend * (whitePush - 1))));
     }
 
     // ── HSL: HUE SHIFT ─────────────────────────────────────────────────

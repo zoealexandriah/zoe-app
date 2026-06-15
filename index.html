@@ -4069,28 +4069,28 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
             <div id="ev-no-photo" style="display:none;flex-direction:column;align-items:center;justify-content:center;position:absolute;inset:0;padding:0 32px;">
               <!-- Pixel folder illustration -->
-              <svg width="172" height="156" viewBox="0 0 172 156" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:18px;flex-shrink:0">
+              <svg width="160" height="140" viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:18px;flex-shrink:0;overflow:visible">
                 <defs>
                   <style>
-                    @keyframes spulse{0%,100%{opacity:1}50%{opacity:0.30}}
+                    @keyframes spulse{0%,100%{opacity:1}50%{opacity:0.28}}
                     .sp1{animation:spulse 2.9s ease-in-out infinite}
                     .sp2{animation:spulse 2.3s ease-in-out infinite .9s}
                     .sp3{animation:spulse 3.2s ease-in-out infinite 1.7s}
                     .sp4{animation:spulse 2.6s ease-in-out infinite .4s}
                     .sp5{animation:spulse 2.8s ease-in-out infinite 1.3s}
                   </style>
-                  <!-- Strong pink→lavender diagonal gradient -->
-                  <linearGradient id="gi3" x1="0" y1="1" x2="0.9" y2="0">
+                  <!-- Interior gradient: strong pink→lavender diagonal -->
+                  <linearGradient id="pfg" x1="0" y1="1" x2="0.9" y2="0">
                     <stop offset="0%" stop-color="#f088bc"/>
                     <stop offset="32%" stop-color="#e8a4e0"/>
                     <stop offset="100%" stop-color="#ccb8f8"/>
                   </linearGradient>
-                  <!-- Warm centre-left glow overlay -->
-                  <radialGradient id="gg3" cx="32%" cy="72%" r="48%">
-                    <stop offset="0%" stop-color="rgba(255,205,235,0.90)"/>
+                  <!-- Warm centre-left glow overlay (large sparkle area) -->
+                  <radialGradient id="pgg" cx="32%" cy="72%" r="48%">
+                    <stop offset="0%" stop-color="rgba(255,210,238,0.92)"/>
                     <stop offset="100%" stop-color="rgba(255,200,235,0)"/>
                   </radialGradient>
-                  <!-- Sparkle filters -->
+                  <!-- Sparkle glow filters -->
                   <filter id="sf1" x="-130%" y="-130%" width="360%" height="360%">
                     <feGaussianBlur stdDeviation="5.5" result="b"/>
                     <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
@@ -4104,103 +4104,72 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                     <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                   </filter>
                   <!-- Bottom glow blur -->
-                  <filter id="sfg" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="11"/>
+                  <filter id="sfg" x="-60%" y="-100%" width="220%" height="320%">
+                    <feGaussianBlur stdDeviation="12"/>
                   </filter>
                 </defs>
 
-                <!-- ── BOTTOM GLOW (replaces oval shadow) ── -->
-                <ellipse cx="82" cy="144" rx="56" ry="16" fill="rgba(190,70,140,0.55)" filter="url(#sfg)"/>
+                <!-- BOTTOM GLOW — uses overflow:visible so it shows below the viewBox -->
+                <ellipse cx="80" cy="148" rx="56" ry="18" fill="rgba(185,65,140,0.58)" filter="url(#sfg)"/>
 
-                <!-- ── BACK FOLDER (offset +10 right, +6 down) ── -->
-                <!-- back left edge (full height of back folder) -->
-                <rect x="18" y="14" width="4" height="114" fill="#2a1050"/>
-                <!-- back tab top -->
-                <rect x="22" y="10" width="40" height="4" fill="#2a1050"/>
-                <!-- back tab top-right step -->
-                <rect x="62" y="14" width="4" height="4" fill="#2a1050"/>
-                <!-- back tab right edge -->
-                <rect x="66" y="18" width="4" height="14" fill="#2a1050"/>
-                <!-- back body top (right of tab) -->
-                <rect x="70" y="28" width="64" height="4" fill="#2a1050"/>
-                <!-- back body top-right step -->
-                <rect x="130" y="24" width="4" height="4" fill="#2a1050"/>
-                <!-- back right edge -->
-                <rect x="134" y="28" width="4" height="96" fill="#2a1050"/>
-                <!-- back bottom-right step -->
-                <rect x="130" y="124" width="4" height="4" fill="#2a1050"/>
-                <!-- back bottom -->
-                <rect x="22" y="128" width="108" height="4" fill="#2a1050"/>
-                <!-- back bottom-left step -->
-                <rect x="18" y="124" width="4" height="4" fill="#2a1050"/>
-                <!-- back tab fill -->
-                <rect x="22" y="14" width="40" height="14" fill="#b698d4"/>
-                <rect x="22" y="10" width="40" height="4" fill="#b698d4"/>
-                <!-- back body fill (header + interior combined, same colour) -->
-                <rect x="22" y="28" width="108" height="96" fill="#b698d4"/>
+                <!-- ── BACK FOLDER (same shape as main, shifted +10 right +6 down) ──
+                     Polygon traces the entire folder silhouette including tab.
+                     Drawn first so main folder sits on top. -->
+                <polygon fill="#2a1050"
+                  points="18,18 18,14 22,14 62,14 62,18 66,18 66,22 70,22 70,34
+                          138,34 138,30 142,30 142,34 146,34
+                          146,130 142,130 142,134
+                          26,134 26,130 22,130 22,18"/>
+                <!-- Back header fill -->
+                <rect x="22" y="34" width="120" height="16" fill="#b898d8"/>
+                <!-- Back interior fill (mostly hidden, flat colour fine) -->
+                <rect x="22" y="54" width="120" height="72" fill="#bea2e0"/>
 
-                <!-- ── MAIN FOLDER ── -->
-                <!-- Full left edge: tab top → body bottom step -->
-                <rect x="8" y="8" width="4" height="114" fill="#2a1050"/>
-                <!-- Bottom-left step -->
-                <rect x="12" y="122" width="4" height="4" fill="#2a1050"/>
-                <!-- Bottom -->
-                <rect x="16" y="126" width="108" height="4" fill="#2a1050"/>
-                <!-- Bottom-right step -->
-                <rect x="120" y="122" width="4" height="4" fill="#2a1050"/>
-                <!-- Right edge -->
-                <rect x="124" y="26" width="4" height="96" fill="#2a1050"/>
-                <!-- Top-right corner step (body) -->
-                <rect x="120" y="22" width="4" height="4" fill="#2a1050"/>
-                <!-- Body top (right of tab) -->
-                <rect x="60" y="22" width="60" height="4" fill="#2a1050"/>
-                <!-- Tab right edge -->
-                <rect x="56" y="10" width="4" height="12" fill="#2a1050"/>
-                <!-- Tab top-right step -->
-                <rect x="52" y="6" width="4" height="4" fill="#2a1050"/>
-                <!-- Tab top -->
-                <rect x="12" y="4" width="40" height="4" fill="#2a1050"/>
-                <!-- TAB fill -->
-                <rect x="12" y="8" width="44" height="14" fill="#c8a8f2"/>
-                <rect x="12" y="4" width="40" height="4" fill="#c8a8f2"/>
-                <!-- HEADER fill (full-width lavender strip below tab junction) -->
-                <rect x="12" y="26" width="112" height="20" fill="#c8a8f2"/>
-                <!-- Header divider -->
-                <rect x="8" y="46" width="120" height="4" fill="#2a1050"/>
-                <!-- INTERIOR gradient fill -->
-                <rect x="12" y="50" width="112" height="70" fill="url(#gi3)"/>
-                <!-- Interior glow overlay -->
-                <rect x="12" y="50" width="112" height="70" fill="url(#gg3)"/>
-                <!-- Interior floor strip -->
-                <rect x="12" y="120" width="112" height="4" fill="#c8a8f2"/>
+                <!-- ── MAIN FOLDER ──
+                     Single polygon for the entire folder outline (tab + body).
+                     Tab: top-left, ~35% of width. Stepped pixel-art corners.
+                     Body: full width below tab. -->
+                <polygon fill="#2a1050"
+                  points="8,12  8,8  12,8  52,8  52,12  56,12  56,16  60,16  60,28
+                          128,28 128,24 132,24 132,28 136,28
+                          136,124 132,124 132,128
+                          16,128 16,124 12,124 12,12"/>
+                <!-- Header fill (lavender, spans full body width, sits between tab junction and divider) -->
+                <rect x="12" y="28" width="120" height="16" fill="#c8a8f0"/>
+                <!-- Interior gradient fill -->
+                <rect x="12" y="48" width="120" height="72" fill="url(#pfg)"/>
+                <!-- Interior warm glow overlay -->
+                <rect x="12" y="48" width="120" height="72" fill="url(#pgg)"/>
+                <!-- Floor strip (thin lavender at bottom of interior, before dark edge) -->
+                <rect x="12" y="120" width="120" height="4" fill="#c8a8f0"/>
 
-                <!-- ── SPARKLES ── interior bounds: x=12–124, y=50–120 -->
-                <!-- LARGE: lower-left, cx=46 cy=98, R=18 r=4 -->
+                <!-- ── SPARKLES ── (interior: x=12–132, y=48–120) -->
+                <!-- LARGE: lower-left, cx=50 cy=98, R=18 r=4 -->
                 <g class="sp1" filter="url(#sf1)">
-                  <polygon points="46,80 50,94 64,98 50,102 46,116 42,102 28,98 42,94" fill="white"/>
+                  <polygon points="50,80 54,94 68,98 54,102 50,116 46,102 32,98 46,94" fill="white"/>
                 </g>
-                <!-- MEDIUM-LARGE: upper-right, cx=106 cy=66, R=12 r=3 -->
+                <!-- MED-LARGE: upper-right, cx=108 cy=64, R=12 r=3 -->
                 <g class="sp2" filter="url(#sf2)">
-                  <polygon points="106,54 109,63 118,66 109,69 106,78 103,69 94,66 103,63" fill="white" opacity="0.93"/>
+                  <polygon points="108,52 111,61 120,64 111,67 108,76 105,67 96,64 105,61" fill="white" opacity="0.93"/>
                 </g>
-                <!-- MEDIUM: lower-right, cx=92 cy=108, R=9 r=2.2 -->
+                <!-- MEDIUM: lower-right, cx=92 cy=110, R=9 r=2.2 -->
                 <g class="sp3" filter="url(#sf2)">
-                  <polygon points="92,99 94.2,105.8 101,108 94.2,110.2 92,117 89.8,110.2 83,108 89.8,105.8" fill="white" opacity="0.84"/>
+                  <polygon points="92,101 94.2,107.8 101,110 94.2,112.2 92,119 89.8,112.2 83,110 89.8,107.8" fill="white" opacity="0.84"/>
                 </g>
-                <!-- SMALL: upper-left interior, cx=26 cy=60, R=6 r=1.5 -->
-                <g class="sp4" filter="url(#sf3)" opacity="0.70">
-                  <polygon points="26,54 27.5,58.5 32,60 27.5,61.5 26,66 24.5,61.5 20,60 24.5,58.5" fill="white"/>
+                <!-- SMALL: upper-left, cx=28 cy=60, R=5.5 r=1.3 -->
+                <g class="sp4" filter="url(#sf3)" opacity="0.68">
+                  <polygon points="28,54.5 29.3,58.7 33.5,60 29.3,61.3 28,65.5 26.7,61.3 22.5,60 26.7,58.7" fill="white"/>
                 </g>
-                <!-- SMALL: mid-right, cx=120 cy=90, R=5 r=1.2 -->
-                <g class="sp5" filter="url(#sf3)" opacity="0.58">
-                  <polygon points="120,85 121.2,88.8 125,90 121.2,91.2 120,95 118.8,91.2 115,90 118.8,88.8" fill="white"/>
+                <!-- SMALL: mid-right, cx=122 cy=90, R=5 r=1.2 -->
+                <g class="sp5" filter="url(#sf3)" opacity="0.56">
+                  <polygon points="122,85 123.2,88.8 127,90 123.2,91.2 122,95 120.8,91.2 117,90 120.8,88.8" fill="white"/>
                 </g>
                 <!-- Micro dots -->
-                <circle cx="78" cy="56" r="1.8" fill="white" opacity="0.50"/>
-                <circle cx="34" cy="112" r="1.4" fill="white" opacity="0.38"/>
-                <circle cx="112" cy="112" r="1.3" fill="white" opacity="0.35"/>
-                <circle cx="60" cy="116" r="1.1" fill="white" opacity="0.30"/>
-                <circle cx="18" cy="80" r="1.0" fill="white" opacity="0.25"/>
+                <circle cx="76" cy="54" r="1.8" fill="white" opacity="0.48"/>
+                <circle cx="36" cy="110" r="1.4" fill="white" opacity="0.36"/>
+                <circle cx="110" cy="112" r="1.3" fill="white" opacity="0.34"/>
+                <circle cx="62" cy="118" r="1.1" fill="white" opacity="0.28"/>
+                <circle cx="20" cy="80" r="1.0" fill="white" opacity="0.24"/>
               </svg>
               <!-- Headline -->
               <div style="font-size:25px;font-family:Georgia,serif;font-weight:400;color:rgba(235,220,242,0.90);text-align:center;line-height:1.28;margin-bottom:9px;">Drop something good.</div>

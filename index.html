@@ -2956,9 +2956,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
   /* In ADJUST mode keep toolbar visible */
   #editor-view.adjust-open #ev-toolbar { display: flex !important; }
-  /* Hide bottomnav + collapse its grid row — gives full-screen canvas height */
-  body:has(#editor-view.active) .bottomnav { display: none !important; }
-  body:has(#editor-view.active) .app { grid-template-rows: 0px 1fr 0px !important; }
+  /* Hide bottomnav + collapse its grid row — gives full-screen canvas height (only when image is loaded) */
+  body:has(#editor-view.active:not(.no-image)) .bottomnav { display: none !important; }
+  body:has(#editor-view.active:not(.no-image)) .app { grid-template-rows: 0px 1fr 0px !important; }
   /* Preset strip — taller so names don't clip */
   #ev-preset-strip { height: 152px !important; overflow: hidden !important; }
   /* Crop mode: hide ATMOSPHERE/ADJUST nav + canvas-area close button */

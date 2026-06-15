@@ -5404,12 +5404,19 @@ function initSliderState(p) {
 }
 
 // Load a preset's default values into sliderState — called only on explicit user selection.
-// All sliders start neutral (0.5 = +0.00) so no unintended effects are applied.
 function applyPresetDefaults(p) {
   if (!p) return;
-  // Always initialize to neutral; ignore non-zero preset defaults
   sliderState[p.id] = {};
-  initSliderState(p);
+  initSliderState(p); // seeds every slider key with its neutral value
+  // Now overwrite with the preset's actual defaults so the main canvas matches
+  // what the thumbnail shows (thumbnail renders from p.defaults directly).
+  if (p.defaults) {
+    Object.keys(p.defaults).forEach(function(key) {
+      if (key in sliderState[p.id] && typeof p.defaults[key] === 'number') {
+        sliderState[p.id][key] = p.defaults[key];
+      }
+    });
+  }
 }
 
 function getSliderDisplay(name, t) {

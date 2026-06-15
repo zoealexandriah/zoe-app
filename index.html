@@ -3067,6 +3067,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #es-intensity-row { display: none !important; }
   #es-intensity-row.visible { display: block !important; }
 
+  /* Intensity overlay slider */
+  #ev-int-slider{-webkit-appearance:none;appearance:none;width:100%;height:2px;background:rgba(255,255,255,0.28);border-radius:1px;outline:none;cursor:pointer;}
+  #ev-int-slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;background:#fff;border-radius:3px;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
+  #ev-int-slider::-moz-range-thumb{width:24px;height:24px;background:#fff;border-radius:3px;cursor:pointer;border:none;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
+
   /* EDITOR.SUITE titlebar: hide on mobile (tabs serve as header) */
   #editor-view > div:last-child > div:first-child { display: none !important; }
 
@@ -10804,14 +10809,8 @@ function evRenderPresets() {
     card.addEventListener('touchend',  function(){ clearTimeout(_lpTimer); }, {passive:true});
     card.addEventListener('touchmove', function(){ clearTimeout(_lpTimer); }, {passive:true});
     card.onclick = function(){
-      var _now = Date.now();
-      // Double-tap on the already-active preset → toggle intensity slider (use live state, not closure)
-      if (evActivePreset && evActivePreset.id === p.id && _now - _evLastTap < 360 && _evLastTapId === p.id) {
-        var _ir = document.getElementById('es-intensity-row');
-        if (_ir) _ir.classList.toggle('visible');
-        _evLastTap = 0; return;
-      }
-      _evLastTap = _now; _evLastTapId = p.id;
+      // Single-tap on already-active preset → open intensity overlay
+      if (evActivePreset && evActivePreset.id === p.id) { evShowIntensityOverlay(p); return; }
       // Push history before changing preset
       evHistoryPush();
       // Swap active highlight without rebuilding the whole list
@@ -10844,6 +10843,57 @@ function evRenderPresets() {
       renderPresetThumb(c, p);
     });
   });
+}
+
+var _evIntPrevIntensity = 1.0;
+function evShowIntensityOverlay(p) {
+  _evIntPrevIntensity = presetIntensity;
+  var overlay = document.getElementById('ev-intensity-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'ev-intensity-overlay';
+    overlay.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:500;padding:20px 28px calc(48px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,rgba(5,3,14,1) 0%,rgba(5,3,14,0.98) 65%,transparent 100%);display:none;';
+    overlay.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;"><span style="font-size:14px;font-weight:500;color:rgba(255,255,255,0.90);">Intensity</span><span id="ev-int-val" style="font-size:14px;font-weight:500;color:rgba(255,255,255,0.90);">100</span></div>'
+      +'<input id="ev-int-slider" type="range" min="0" max="100" value="100" oninput="evIntUpdate(this.value)" style="display:block;margin-bottom:32px;">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;"><div onclick="evIntCancel()" style="cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.70);font-size:20px;-webkit-tap-highlight-color:transparent;">✕</div><div id="ev-int-name" style="font-size:10px;letter-spacing:0.22em;color:rgba(220,210,240,0.85);font-family:var(--mono);font-weight:500;">PRESET</div><div onclick="evIntConfirm()" style="cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.70);font-size:20px;-webkit-tap-highlight-color:transparent;">✓</div></div>';
+    document.body.appendChild(overlay);
+  }
+  document.getElementById('ev-int-name').textContent = (p.name||'PRESET').toUpperCase();
+  var pct = Math.round(presetIntensity * 100);
+  document.getElementById('ev-int-slider').value = pct;
+  document.getElementById('ev-int-val').textContent = pct;
+  var strip = document.getElementById('ev-preset-strip');
+  var mnav = document.getElementById('ev-mobile-nav');
+  if (strip) strip.style.display = 'none';
+  if (mnav) mnav.style.display = 'none';
+  overlay.style.display = 'block';
+}
+function evIntUpdate(val) {
+  presetIntensity = parseInt(val, 10) / 100;
+  document.getElementById('ev-int-val').textContent = val;
+  document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = val; });
+  document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = val + '%'; });
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+}
+function evIntConfirm() {
+  var overlay = document.getElementById('ev-intensity-overlay');
+  if (overlay) overlay.style.display = 'none';
+  var strip = document.getElementById('ev-preset-strip');
+  var mnav = document.getElementById('ev-mobile-nav');
+  if (strip) strip.style.display = '';
+  if (mnav) mnav.style.display = '';
+}
+function evIntCancel() {
+  presetIntensity = _evIntPrevIntensity;
+  var pct = Math.round(_evIntPrevIntensity * 100);
+  var slider = document.getElementById('ev-int-slider');
+  var valEl = document.getElementById('ev-int-val');
+  if (slider) slider.value = pct;
+  if (valEl) valEl.textContent = pct;
+  document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = pct; });
+  document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = pct + '%'; });
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+  evIntConfirm();
 }
 
 function evFilterCat(btn, cat) {

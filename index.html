@@ -10282,6 +10282,13 @@ function evInit() {
   }
   // Undo/redo button state
   evUpdateUndoRedo();
+  // Pre-populate slider state so the first canvas render sees the preset's
+  // fixed effects (splitTone, curve, halation) — without this, evRenderCanvas
+  // fires before evBuildSliders/initSliderState runs, meaning sliderState has
+  // no keys yet and the preset effects are silently skipped on the first draw.
+  // Any slider interaction then triggers a re-render that now finds the keys
+  // and applies the effects, making them appear as a "new" fade/lift.
+  if (activePreset) initSliderState(activePreset);
   // Render canvas (already rAF-deferred internally)
   evRenderCanvas();
   // Defer preset list + sliders so the browser paints the tab transition first

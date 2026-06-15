@@ -10035,10 +10035,22 @@ function globalReset() {
   // Push current state to history (reset is undoable)
   if (hc && activePreset) fix2HistoryPush(activePreset.id);
 
-  // Zero ALL sliders across ALL presets to neutral (0.5 = +0.00)
+  // Cancel any pending render that was queued before this reset — without this,
+  // the stale rAF fires after activePreset is nulled and the doRender monkey-patch
+  // silently re-enables the preset, making the image look still-edited.
+  if (typeof renderTimer !== 'undefined' && renderTimer) {
+    cancelAnimationFrame(renderTimer); renderTimer = null;
+  }
+  if (typeof _renderPid !== 'undefined') _renderPid = null;
+  _evRenderScheduled = false;
+
+  // Zero ALL sliders across ALL presets to neutral
+  // Bipolar (neutral=true)  → 0.5 (maps to +0.00)
+  // Unipolar (neutral=false) → 0.0 (maps to 0, no effect)
   Object.keys(sliderState).forEach(function(pid) {
     Object.keys(sliderState[pid]).forEach(function(k) {
-      sliderState[pid][k] = 0.5;
+      var cfg = sliderConfig[k];
+      sliderState[pid][k] = (cfg && cfg[3] === false) ? 0.0 : 0.5;
     });
   });
 
@@ -10930,11 +10942,9 @@ function evApplyZoom() {
   window.doRender = function(pid){
     var ev = document.getElementById('editor-view');
     if (ev && ev.style.display === 'flex') {
-      // Editor open: ONLY render editor canvas — skipping hero canvas saves ~50% render time
-      if (!activePreset && pid) {
-        var _p = presets.find(function(x){ return x.id === pid; });
-        if (_p) { activePreset = _p; evActivePreset = _p; }
-      }
+      // Editor open: ONLY render editor canvas — skipping hero canvas saves ~50% render time.
+      // NOTE: do NOT auto-restore activePreset here. If it's null (e.g. after globalReset),
+      // let it stay null so _evRenderCanvasImmediate renders a clean, un-adjusted image.
       // Call immediate version — we're already inside a rAF from scheduleRender,
       // so calling evRenderCanvas() would add a second rAF hop (one full extra frame of lag).
       _evRenderCanvasImmediate();

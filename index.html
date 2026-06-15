@@ -10403,10 +10403,11 @@ function _evRenderCanvasImmediate() {
   var baseScale = Math.min(aw/iw, ah/ih, 1);
   var cssW = Math.round(iw * baseScale);
   var cssH = Math.round(ih * baseScale);
-  // Render at zoom-aware resolution so the image stays sharp when zoomed in
-  // Use a lower cap while the user is actively dragging a slider — cuts pixel work in half,
-  // giving near-instant feedback. A quality re-render fires on drag release.
-  var MAX_SIDE = window._slDragging ? 600 : 1200;
+  // Render at zoom-aware resolution. During drag we cap to the physical display
+  // pixel size (cssW/H × dpr) so the canvas is never upscaled by the browser —
+  // upscaling is what causes the blurry look mid-drag. A full 1200px quality
+  // re-render still fires automatically on drag release.
+  var MAX_SIDE = window._slDragging ? Math.round(Math.max(cssW, cssH) * dpr) : 1200;
   var zoomFactor = Math.max(evZoomLevel || 1, 1);
   var renderScale = Math.min(baseScale * zoomFactor * dpr, 1, MAX_SIDE/iw, MAX_SIDE/ih);
   canvas.width  = Math.round(iw * renderScale);
@@ -10472,11 +10473,12 @@ function _evRenderCanvasImmediate() {
     // new canvas + getImageData/putImageData and are the main source of mid-drag lag.
     // A full-quality re-render fires automatically on drag release.
     var _dragging = window._slDragging;
+    // Glow is lightweight enough to show live during drag
+    if ((adj.glow || 0) > 0.01) applyGlow(canvas, adj.glow, 0, 0, canvas.width, canvas.height);
     if (!_dragging) {
       if ((adj.sharpen || 0) > 0.01) applySharpness(canvas, adj.sharpen, 0, 0, canvas.width, canvas.height);
       if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(canvas, adj.clarity, 0, 0, canvas.width, canvas.height);
       if ((adj.blur   || 0) > 0.01) applyBlur(canvas, adj.blur, 0, 0, canvas.width, canvas.height);
-      if ((adj.glow   || 0) > 0.01) applyGlow(canvas, adj.glow, 0, 0, canvas.width, canvas.height);
     }
     if (_hasState && activePreset.splitTone) adj.split_tone = activePreset.splitTone;
     if (_hasState && activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;

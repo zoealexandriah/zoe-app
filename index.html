@@ -5478,19 +5478,31 @@ function initSliderState(p) {
 }
 
 // Load a preset's default values into sliderState — called only on explicit user selection.
+// Sliders are always reset to neutral (zero) so users see a clean starting point.
+// The preset's fixed look (p.defaults) is applied as a base layer during rendering.
 function applyPresetDefaults(p) {
   if (!p) return;
   sliderState[p.id] = {};
-  initSliderState(p); // seeds every slider key with its neutral value
-  // Now overwrite with the preset's actual defaults so the main canvas matches
-  // what the thumbnail shows (thumbnail renders from p.defaults directly).
-  if (p.defaults) {
-    Object.keys(p.defaults).forEach(function(key) {
-      if (key in sliderState[p.id] && typeof p.defaults[key] === 'number') {
-        sliderState[p.id][key] = p.defaults[key];
-      }
-    });
-  }
+  initSliderState(p); // seeds every slider key with its neutral value (all zeros)
+}
+
+// Merge preset's fixed defaults with user's slider adjustments (deltas from neutral).
+// Used by the editor canvas so the preset look is preserved while sliders start at zero.
+function _evMergeAdjState(p, userState) {
+  var merged = {};
+  var defaults = p && p.defaults ? p.defaults : {};
+  var allKeys = {};
+  Object.keys(defaults).forEach(function(k){ allKeys[k] = 1; });
+  Object.keys(userState || {}).forEach(function(k){ allKeys[k] = 1; });
+  Object.keys(allKeys).forEach(function(k) {
+    var cfg = sliderConfig[k];
+    var neutral = (cfg && cfg[3] !== false) ? 0.5 : 0.0;
+    var base    = (defaults[k] !== undefined) ? defaults[k] : neutral;
+    var uVal    = (userState && userState[k] !== undefined) ? userState[k] : neutral;
+    var delta   = uVal - neutral; // user's adjustment delta
+    merged[k]   = Math.max(0, Math.min(1, base + delta));
+  });
+  return merged;
 }
 
 function getSliderDisplay(name, t) {
@@ -10563,7 +10575,7 @@ function _evRenderCanvasImmediate() {
   }
   // Apply slider adjustments + effects (Fix 6)
   if (activePreset && sliderState[activePreset.id] && Object.keys(sliderState[activePreset.id]).length > 0) {
-    var adj = buildAdjustments(sliderState[activePreset.id]);
+    var adj = buildAdjustments(_evMergeAdjState(activePreset, sliderState[activePreset.id]));
     if (!adj.halation && activePreset.defaults && activePreset.defaults.HALATION) adj.halation = activePreset.defaults.HALATION;
     // Inject preset-level engine params before pixel processing
     if (activePreset.hueTempZones) adj.hueTempZones = activePreset.hueTempZones;

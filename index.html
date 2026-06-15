@@ -9155,15 +9155,15 @@ function toolsStraightenUpdate(v) {
   ctx.fillStyle = '#050310';
   ctx.fillRect(0, 0, cw, ch);
 
-  // Fill-scale: ensure rotated image covers entire canvas (no empty corners)
+  // Scale to make rotated image fully cover canvas (correct for non-square images)
   const rad = Math.abs(toolsStraightenVal * Math.PI / 180);
-  const fillScale = rad > 0.001 ? 1 / (Math.cos(rad) + Math.sin(rad)) : 1;
-
-  // Base scale to fit image in canvas
+  const cosA = Math.cos(rad), sinA = Math.sin(rad);
   const iw = _straightenOrigImage.naturalWidth, ih = _straightenOrigImage.naturalHeight;
-  const baseScale = Math.max(cw / iw, ch / ih);
-  const drawW = iw * baseScale / fillScale;
-  const drawH = ih * baseScale / fillScale;
+  const s = rad > 0.001
+    ? Math.max(cw / (iw * cosA + ih * sinA), ch / (iw * sinA + ih * cosA))
+    : Math.max(cw / iw, ch / ih);
+  const drawW = iw * s;
+  const drawH = ih * s;
 
   ctx.save();
   ctx.translate(cw / 2, ch / 2);
@@ -9192,10 +9192,27 @@ function toolsStraightenApply() {
   if (!hc) return;
 
   if (sc) {
-    // Copy work canvas to a temp image
+    // Compute auto-crop rectangle to remove black corners from rotation
+    // (must happen before _straightenOrigImage is cleared below)
+    const angleRad = Math.abs(toolsStraightenVal * Math.PI / 180);
+    let cropX = 0, cropY = 0, cropW = hc.width, cropH = hc.height;
+    if (angleRad > 0.001 && _straightenOrigImage) {
+      const cosA = Math.cos(angleRad), sinA = Math.sin(angleRad);
+      const cos2A = Math.cos(2 * angleRad);
+      const iw = _straightenOrigImage.naturalWidth, ih = _straightenOrigImage.naturalHeight;
+      const s  = Math.max(hc.width  / (iw * cosA + ih * sinA),
+                          hc.height / (iw * sinA + ih * cosA));
+      const dW = iw * s, dH = ih * s;
+      const sw = Math.max(1, (dW * cosA - dH * sinA) / cos2A);
+      const sh = Math.max(1, (dH * cosA - dW * sinA) / cos2A);
+      cropX = Math.max(0, Math.round((hc.width  - sw) / 2));
+      cropY = Math.max(0, Math.round((hc.height - sh) / 2));
+      cropW = Math.min(Math.round(sw), hc.width  - cropX);
+      cropH = Math.min(Math.round(sh), hc.height - cropY);
+    }
     const tmp = document.createElement('canvas');
-    tmp.width = hc.width; tmp.height = hc.height;
-    tmp.getContext('2d').drawImage(sc, 0, 0);
+    tmp.width = cropW; tmp.height = cropH;
+    tmp.getContext('2d').drawImage(sc, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
     const newImg = new Image();
     newImg.onload = () => {
       userImage = newImg;

@@ -11360,21 +11360,11 @@ function toolsCropDrawOnCanvas(hc) {
   ov.style.display = 'none';
 }
 
-// ── Fix 2: editorBackToGallery — save edit state, then navigate ──
+// ── Fix 2: editorBackToGallery — navigate immediately, save/thumbnail in background ──
 window.editorBackToGallery = function editorBackToGallery() {
   clearTimeout(_autoSaveTimer);
-  autoSaveEdit();
-  var _tbEntry = (editingIdx >= 0) ? library[editingIdx] : null;
-  if (_tbEntry && _tbEntry.editState && _tbEntry.editState.presetId && userImage) {
-    _renderBatchThumbnail(_tbEntry, _tbEntry.editState.presetId, _tbEntry.editState.sliders, _tbEntry.editState.intensity, function() {
-      libSaveToStorage();
-      renderLibrary();
-    });
-  } else {
-    libSaveToStorage();
-    renderLibrary();
-  }
 
+  // Switch view instantly — no blocking work before this
   const allNavItems = document.querySelectorAll('.nav-item');
   let galleryNav = null;
   allNavItems.forEach(el => {
@@ -11387,6 +11377,21 @@ window.editorBackToGallery = function editorBackToGallery() {
   if (libView)  libView.classList.remove('hidden');
   if (galleryNav) navClick(galleryNav);
   else switchToTab('GALLERY');
+
+  // Save + re-render thumbnail after navigation (non-blocking)
+  setTimeout(function() {
+    autoSaveEdit();
+    var _tbEntry = (editingIdx >= 0) ? library[editingIdx] : null;
+    if (_tbEntry && _tbEntry.editState && _tbEntry.editState.presetId && userImage) {
+      _renderBatchThumbnail(_tbEntry, _tbEntry.editState.presetId, _tbEntry.editState.sliders, _tbEntry.editState.intensity, function() {
+        libSaveToStorage();
+        renderLibrary();
+      });
+    } else {
+      libSaveToStorage();
+      renderLibrary();
+    }
+  }, 80);
 };
 
 // Patch backToLibrary (← GALLERY hero button) to save before resetting state

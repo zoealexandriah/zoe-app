@@ -3835,6 +3835,22 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <span class="col-l2-count" id="col-l2-count"></span>
           </div>
           <div id="col-l2-grid"></div>
+          <!-- Empty state (shown when collection has 0 photos) -->
+          <div id="col-l2-empty" style="display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:16px;padding:0 36px;">
+            <div style="font-size:9px;letter-spacing:0.22em;color:rgba(175,162,200,0.30);font-family:var(--mono);text-align:center;">NO PHOTOS YET</div>
+            <div onclick="colPickFromGallery()" style="cursor:pointer;width:100%;max-width:280px;padding:15px 0;border-radius:100px;font-size:8.5px;letter-spacing:0.20em;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(135deg,rgba(205,58,92,1),rgba(162,32,62,1));color:rgba(255,255,255,0.95);box-shadow:0 4px 20px rgba(180,48,78,0.38);-webkit-tap-highlight-color:transparent;">
+              <svg width="14" height="13" viewBox="0 0 14 13" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="12" height="9" rx="1.5"/><path d="M1 8l3-2.5L6.5 8l2-1.6 4 2.9"/><circle cx="4" cy="6" r="1" fill="currentColor" stroke="none" opacity="0.7"/></svg>
+              ADD FROM GALLERY
+            </div>
+          </div>
+          <!-- Gallery picker modal -->
+          <div id="col-gallery-picker" style="display:none;position:fixed;inset:0;background:rgba(8,5,16,0.97);z-index:300;flex-direction:column;">
+            <div style="height:46px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:0.5px solid rgba(201,184,212,0.10);">
+              <span style="font-size:9px;letter-spacing:0.22em;color:rgba(201,184,212,0.65);font-family:var(--mono);">SELECT PHOTOS</span>
+              <div onclick="colCloseGalleryPicker()" style="cursor:pointer;font-size:9px;letter-spacing:0.18em;color:rgba(205,58,92,0.80);font-family:var(--mono);padding:6px 0;-webkit-tap-highlight-color:transparent;">DONE</div>
+            </div>
+            <div id="col-picker-grid" style="flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px;-webkit-overflow-scrolling:touch;"></div>
+          </div>
           <input type="file" id="col-file-input" accept="image/*" multiple
                  style="display:none" onchange="colHandleUpload(event)">
         </div>
@@ -8251,9 +8267,18 @@ function colRenderL2() {
   removeBtn.classList.toggle('enabled', colSelectedIdxs.length > 0);
 
   const grid = document.getElementById('col-l2-grid');
+  const emptyEl = document.getElementById('col-l2-empty');
   grid.innerHTML = '';
 
   if (cnt === 0) {
+    if (emptyEl) emptyEl.style.display = 'flex';
+    grid.style.display = 'none';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+  grid.style.display = '';
+
+  if (false && cnt === 0) {
     const empty = document.createElement('div');
     empty.className = 'col-l2-empty';
     empty.innerHTML = `
@@ -8372,6 +8397,51 @@ function colRenderL2() {
 // ── Add photos to collection ──────────────────────────────────────────────
 function colAddPhotos() {
   document.getElementById('col-file-input').click();
+}
+
+// ── Pick from app gallery ──────────────────────────────────────────────────
+function colPickFromGallery() {
+  var picker = document.getElementById('col-gallery-picker');
+  var pickerGrid = document.getElementById('col-picker-grid');
+  if (!picker || !pickerGrid) return;
+  var col = collections.find(function(c) { return c.id === colActiveId; });
+  pickerGrid.innerHTML = '';
+  if (!library || !library.length) {
+    pickerGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;font-size:9px;letter-spacing:0.18em;color:rgba(175,162,200,0.30);font-family:var(--mono);">NO PHOTOS IN GALLERY YET</div>';
+  } else {
+    library.forEach(function(entry, idx) {
+      var inCol = col && col.photos.some(function(p) { return p.dataURL === entry.dataURL; });
+      var cell = document.createElement('div');
+      cell.style.cssText = 'position:relative;aspect-ratio:1/1;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;';
+      cell.innerHTML = '<img src="' + (entry.dataURL || '') + '" style="width:100%;height:100%;object-fit:cover;display:block;">'
+        + (inCol ? '<div style="position:absolute;inset:0;background:rgba(205,58,92,0.30);display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,10 8,14 16,6"/></svg></div>' : '');
+      cell.dataset.idx = idx;
+      cell.addEventListener('click', function() { colAddFromLib(idx, this); });
+      pickerGrid.appendChild(cell);
+    });
+  }
+  picker.style.display = 'flex';
+}
+
+function colCloseGalleryPicker() {
+  var picker = document.getElementById('col-gallery-picker');
+  if (picker) picker.style.display = 'none';
+  colRenderL2();
+}
+
+function colAddFromLib(libIdx, cellEl) {
+  var col = collections.find(function(c) { return c.id === colActiveId; });
+  var entry = library[libIdx];
+  if (!col || !entry) return;
+  var alreadyAdded = col.photos.some(function(p) { return p.dataURL === entry.dataURL; });
+  if (alreadyAdded) return;
+  col.photos.push({ name: entry.name || ('photo-' + libIdx), dataURL: entry.dataURL });
+  colSaveToStorage();
+  // Visual feedback on the tapped cell
+  if (cellEl) {
+    cellEl.innerHTML = '<img src="' + (entry.dataURL || '') + '" style="width:100%;height:100%;object-fit:cover;display:block;">'
+      + '<div style="position:absolute;inset:0;background:rgba(205,58,92,0.30);display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,10 8,14 16,6"/></svg></div>';
+  }
 }
 
 function colHandleUpload(e) {

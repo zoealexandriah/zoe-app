@@ -7834,13 +7834,10 @@ function renderLibrary() {
         galleryOpenInEditor(idx);
         return;
       }
-      // Multi-select mode (other items already selected, or explicit select mode): instant toggle
-      if (libSelected.length > 0 || window.gallerySelectMode) {
-        toggleSelect(idx);
-        return;
-      }
-      // First tap with nothing selected: select immediately, open a 400ms double-tap window
-      toggleSelect(idx);
+      // Always record this tap so the NEXT tap can detect a double-tap, regardless
+      // of whether other items are currently selected. Without this, a leftover
+      // selection from a previous slow/missed double-tap prevents _galLastTapIdx
+      // from ever being set, permanently breaking double-tap.
       window._galLastTapIdx = idx;
       window._galLastTapTime = now;
       clearTimeout(window._galTapTimer);
@@ -7848,6 +7845,13 @@ function renderLibrary() {
         window._galLastTapIdx = -1;
         window._galLastTapTime = 0;
       }, 400);
+      // Multi-select mode (other items already selected, or explicit select mode): instant toggle
+      if (libSelected.length > 0 || window.gallerySelectMode) {
+        toggleSelect(idx);
+        return;
+      }
+      // First tap with nothing selected: select immediately
+      toggleSelect(idx);
     });
     cols[idx % NUM_COLS].appendChild(cell);
   });

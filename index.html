@@ -9066,6 +9066,7 @@ function toolsCropApply() {
 
 function toolsCropCancel() {
   cropRect = null; cropDragging = null;
+  _etPerspOrig = null;
   const ov = document.getElementById('crop-overlay-canvas');
   if (ov) ov.remove();
   toolsPanelClose();
@@ -9960,22 +9961,20 @@ function etCropHTML() {
           <div class="crop-transform-icon-box">${rotateSvg}</div>
           <span class="crop-transform-icon-label">ROTATE</span>
         </div>
-        <div class="crop-transform-icon-btn" onclick="cropPerspActivate('v')">
-          <div class="crop-transform-icon-box" id="crop-persp-v-box">${perspVSvg}</div>
-          <span class="crop-transform-icon-label">VERT</span>
-        </div>
-        <div class="crop-transform-icon-btn" onclick="cropPerspActivate('h')">
-          <div class="crop-transform-icon-box" id="crop-persp-h-box">${perspHSvg}</div>
-          <span class="crop-transform-icon-label">HORIZ</span>
-        </div>
       </div>
-      <div id="crop-persp-slider-row" style="display:none;padding:4px 0 2px;">
+      <div style="padding:6px 0 2px;">
         <div class="crop-sub-row" style="margin-bottom:4px;">
-          <span class="crop-sub-label" id="crop-persp-label">PERSPECTIVE</span>
-          <span class="crop-sub-val" id="crop-persp-val">0.00</span>
+          <span class="crop-sub-label">VERTICAL PERSPECTIVE</span>
+          <span class="crop-sub-val" id="crop-persp-v-val">0</span>
         </div>
-        <input type="range" class="tc-range" id="crop-persp-slider" min="-100" max="100" step="1" value="0"
-               oninput="cropPerspPreview(this.value)">
+        <input type="range" class="tc-range" id="crop-persp-v-slider" min="-100" max="100" step="1" value="0"
+               oninput="etPerspUpdate()">
+        <div class="crop-sub-row" style="margin-top:12px;margin-bottom:4px;">
+          <span class="crop-sub-label">HORIZONTAL PERSPECTIVE</span>
+          <span class="crop-sub-val" id="crop-persp-h-val">0</span>
+        </div>
+        <input type="range" class="tc-range" id="crop-persp-h-slider" min="-100" max="100" step="1" value="0"
+               oninput="etPerspUpdate()">
       </div>
     </div>
     <div class="crop-action-bar">
@@ -12491,8 +12490,13 @@ function cropSelectSubTab(btn, tab) {
   var ov = document.getElementById('crop-overlay-canvas');
   if (ov) ov.style.display = 'none';
   var sw = document.getElementById('crop-straighten-work'); if (sw) sw.remove();
-  // Clean up perspective work canvas when leaving transform
+  // Clean up perspective work canvas when leaving transform; reset sliders
   var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
+  _etPerspOrig = null;
+  var _pvs = document.getElementById('crop-persp-v-slider'); if (_pvs) _pvs.value = 0;
+  var _phs = document.getElementById('crop-persp-h-slider'); if (_phs) _phs.value = 0;
+  var _pvv = document.getElementById('crop-persp-v-val'); if (_pvv) _pvv.textContent = '0';
+  var _phv = document.getElementById('crop-persp-h-val'); if (_phv) _phv.textContent = '0';
   // Clear cropRect when leaving RATIO tab — only RATIO should produce a crop on confirm
   if (tab !== 'ratio') { cropRect = null; cropDragging = null; }
   ['straighten','ratio','transform'].forEach(function(id) {
@@ -12820,6 +12824,127 @@ function cropPerspReset() {
   var vBox = document.getElementById('crop-persp-v-box'), hBox = document.getElementById('crop-persp-h-box');
   if (vBox) vBox.classList.remove('active'); if (hBox) hBox.classList.remove('active');
   _cropPerspOrig = null;
+}
+
+// ── Dual perspective sliders (VERTICAL + HORIZONTAL) ─────────────────────
+var _etPerspOrig = null; // canvas snapshot before any perspective warp
+
+function etPerspUpdate() {
+  var slV = document.getElementById('crop-persp-v-slider');
+  var slH = document.getElementById('crop-persp-h-slider');
+  var amtV = slV ? parseFloat(slV.value) : 0;
+  var amtH = slH ? parseFloat(slH.value) : 0;
+  var vv = document.getElementById('crop-persp-v-val'); if (vv) vv.textContent = Math.round(amtV);
+  var hv = document.getElementById('crop-persp-h-val'); if (hv) hv.textContent = Math.round(amtH);
+
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+  if (!ac) return;
+
+  // Lazy-capture original canvas state on first slider move
+  if (!_etPerspOrig) {
+    _etPerspOrig = document.createElement('canvas');
+    _etPerspOrig.width = ac.width; _etPerspOrig.height = ac.height;
+    _etPerspOrig.getContext('2d').drawImage(ac, 0, 0);
+  }
+
+  // Create/reuse overlay work canvas
+  var sc = document.getElementById('crop-perspective-work');
+  if (!sc) {
+    sc = document.createElement('canvas'); sc.id = 'crop-perspective-work';
+    sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none';
+    ac.parentElement.appendChild(sc);
+  }
+  sc.width = ac.width; sc.height = ac.height;
+  var acW = ac.clientWidth, acH = ac.clientHeight;
+  var arW = ac.parentElement.clientWidth, arH = ac.parentElement.clientHeight;
+  sc.style.width  = acW + 'px'; sc.style.height = acH + 'px';
+  sc.style.left   = Math.round((arW - acW) / 2) + 'px';
+  sc.style.top    = Math.round((arH - acH) / 2) + 'px';
+
+  var ctx = sc.getContext('2d');
+  ctx.clearRect(0, 0, sc.width, sc.height);
+
+  if (amtV === 0 && amtH === 0) {
+    // Pass-through — just copy original
+    ctx.drawImage(_etPerspOrig, 0, 0);
+    cropRect = null;
+  } else {
+    _etPerspCombinedWarp(ctx, _etPerspOrig, amtV / 100, amtH / 100, sc.width, sc.height);
+    // Auto-crop to remove transparent edges
+    var maxSv = 0.48, maxSh = 0.28;
+    var absV = Math.abs(amtV) / 100 * maxSv;
+    var absH = Math.abs(amtH) / 100 * maxSh;
+    var W = sc.width, H = sc.height;
+    cropRect = {
+      x: Math.round(W * absH / 2),
+      y: Math.round(H * absV / 2),
+      w: Math.max(1, Math.round(W * (1 - absH))),
+      h: Math.max(1, Math.round(H * (1 - absV)))
+    };
+  }
+  ac.style.opacity = '0';
+
+  // Show/update crop overlay
+  var ov = document.getElementById('crop-overlay-canvas');
+  if (!ov) {
+    ov = document.createElement('canvas'); ov.id = 'crop-overlay-canvas';
+    ov.style.cssText = 'position:absolute;z-index:5;pointer-events:none';
+    ac.parentElement.appendChild(ov);
+  }
+  ov.width = sc.width; ov.height = sc.height;
+  ov.style.width  = acW + 'px'; ov.style.height = acH + 'px';
+  ov.style.left   = Math.round((arW - acW) / 2) + 'px';
+  ov.style.top    = Math.round((arH - acH) / 2) + 'px';
+  ov.style.display = cropRect ? 'block' : 'none';
+  if (cropRect && typeof toolsCropDrawRect === 'function') toolsCropDrawRect(ov);
+}
+
+function _etPerspCombinedWarp(dstCtx, srcCanvas, amtV, amtH, w, h) {
+  // Combined single-pass bilinear warp for V and H perspective.
+  // amtV, amtH: -1..+1 (slider / 100)
+  // V: maps each output row y to a source row sy (x unchanged per row)
+  // H: maps each output col x to a source col sx (y unchanged per col)
+  // Both are separable — combined into one pixel pass.
+  var maxSv = 0.48, maxSh = 0.28;
+  var effV = amtV * maxSv, effH = amtH * maxSh;
+  var absV = Math.abs(effV), absH = Math.abs(effH);
+  var src = srcCanvas.getContext('2d').getImageData(0, 0, w, h);
+  var dst = dstCtx.createImageData(w, h);
+  var d = dst.data, s = src.data;
+
+  for (var y = 0; y < h; y++) {
+    // Vertical map: which source row does output row y come from?
+    var tV = y / Math.max(h - 1, 1);
+    var uV = effV >= 0 ? (1 - tV) : tV;
+    var kV = 1.0 - absV * uV;
+    if (kV < 0.01) continue;
+    var sy = (y - h * 0.5) / kV + h * 0.5;
+    if (sy < 0 || sy >= h) continue;
+    var sy0 = sy | 0, fy = sy - sy0, sy1 = Math.min(h - 1, sy0 + 1);
+
+    for (var x = 0; x < w; x++) {
+      // Horizontal map: which source col does output col x come from?
+      var tH = x / Math.max(w - 1, 1);
+      var uH = effH >= 0 ? (1 - tH) : tH;
+      var kH = 1.0 - absH * uH;
+      if (kH < 0.01) continue;
+      var sx = (x - w * 0.5) / kH + w * 0.5;
+      if (sx < 0 || sx >= w) continue;
+      var sx0 = sx | 0, fx = sx - sx0, sx1 = Math.min(w - 1, sx0 + 1);
+
+      // Bilinear interpolation from 4 source samples
+      var di = (y * w + x) * 4;
+      var i00 = (sy0 * w + sx0) * 4, i10 = (sy0 * w + sx1) * 4;
+      var i01 = (sy1 * w + sx0) * 4, i11 = (sy1 * w + sx1) * 4;
+      for (var c = 0; c < 3; c++) {
+        var top = s[i00+c] + (s[i10+c] - s[i00+c]) * fx;
+        var bot = s[i01+c] + (s[i11+c] - s[i01+c]) * fx;
+        d[di+c] = top + (bot - top) * fy;
+      }
+      d[di+3] = 255;
+    }
+  }
+  dstCtx.putImageData(dst, 0, 0);
 }
 
 // ── Fix 10: Collections level 2 header editable ──────────────────────────

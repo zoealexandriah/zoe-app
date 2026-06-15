@@ -10796,9 +10796,9 @@ function evRenderPresets() {
     var isFav = evFavPresets.includes(p.id);
     card.innerHTML = '<canvas id="evt-'+p.id+'" width="'+(_pcW*_tdpr)+'" height="'+(_pcH*_tdpr)+'" style="position:absolute;top:0;left:0;width:'+_pcW+'px;height:'+_pcH+'px;display:block;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
       +(isFav ? '<div style="position:absolute;bottom:20px;left:5px;z-index:2;pointer-events:none;opacity:0.88;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));"><svg width="9" height="11" viewBox="0 0 24 28" fill="none" stroke="rgba(220,185,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M4 2h16a2 2 0 0 1 2 2v22l-10-7L2 26V4a2 2 0 0 1 2-2z"/></svg></div>' : '')
+      +(isActive ? '<div class="ev-int-hint" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;background:rgba(10,6,20,0.52);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:20px;padding:5px 9px;display:flex;align-items:center;gap:4px;"><svg width="18" height="10" viewBox="0 0 18 10" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="2.5" x2="18" y2="2.5" stroke="#e8d0f0" stroke-width="1.2"/><circle cx="12" cy="2.5" r="2.5" fill="#e8d0f0"/><line x1="0" y1="7.5" x2="18" y2="7.5" stroke="#e8d0f0" stroke-width="1.2"/><circle cx="6" cy="7.5" r="2.5" fill="#e8d0f0"/></svg></div>' : '')
       +'<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.82),transparent);pointer-events:none;z-index:1;">'
-      +(isActive ? '<div class="ev-int-hint" style="display:flex;align-items:center;justify-content:center;margin-bottom:3px;"><svg width="18" height="10" viewBox="0 0 18 10" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="2.5" x2="18" y2="2.5" stroke="#e8cce8" stroke-width="1.2"/><circle cx="12" cy="2.5" r="2.5" fill="#e8cce8"/><line x1="0" y1="7.5" x2="18" y2="7.5" stroke="#e8cce8" stroke-width="1.2"/><circle cx="6" cy="7.5" r="2.5" fill="#e8cce8"/></svg></div>' : '')
-      +'<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.78')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;">'+p.name.toUpperCase()+'</div>'
+      +'<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,'+(isActive?'0.96':'0.78')+');font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.name.toUpperCase()+'</div>'
       +'</div>';
     var _lpTimer;
     card.addEventListener('touchstart', function(){ _lpTimer = setTimeout(function(){
@@ -10824,11 +10824,9 @@ function evRenderPresets() {
       card.style.boxShadow = '0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)';
       var _hint = document.createElement('div');
       _hint.className = 'ev-int-hint';
-      _hint.style.cssText = 'display:flex;align-items:center;justify-content:center;margin-bottom:3px;';
-      _hint.innerHTML = '<svg width="18" height="10" viewBox="0 0 18 10" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="2.5" x2="18" y2="2.5" stroke="#e8cce8" stroke-width="1.2"/><circle cx="12" cy="2.5" r="2.5" fill="#e8cce8"/><line x1="0" y1="7.5" x2="18" y2="7.5" stroke="#e8cce8" stroke-width="1.2"/><circle cx="6" cy="7.5" r="2.5" fill="#e8cce8"/></svg>';
-      var _labelBox = card.querySelector('div[style*="bottom:0"]');
-      if (_labelBox) _labelBox.insertBefore(_hint, _labelBox.firstChild);
-      else card.appendChild(_hint);
+      _hint.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;background:rgba(10,6,20,0.52);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:20px;padding:5px 9px;display:flex;align-items:center;gap:4px;';
+      _hint.innerHTML = '<svg width="18" height="10" viewBox="0 0 18 10" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="2.5" x2="18" y2="2.5" stroke="#e8d0f0" stroke-width="1.2"/><circle cx="12" cy="2.5" r="2.5" fill="#e8d0f0"/><line x1="0" y1="7.5" x2="18" y2="7.5" stroke="#e8d0f0" stroke-width="1.2"/><circle cx="6" cy="7.5" r="2.5" fill="#e8d0f0"/></svg>';
+      card.appendChild(_hint);
       // Set both evActivePreset AND activePreset — evRenderCanvas reads activePreset
       evActivePreset = p; activePreset = p;
       applyPresetDefaults(p); presetIntensity=1.0;

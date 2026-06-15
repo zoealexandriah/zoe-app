@@ -6739,10 +6739,24 @@ function applyPixelAdjustments(srcData, adj) {
     }
 
     // ── VIBRANCE ─────────────────────────────────────────────────────────
+    // Smart saturation: boosts undersaturated pixels, protects skin tones,
+    // barely touches already-saturated colors — avoids neon blowout.
     if (vib !== 0) {
       const [h3, s3, l3] = rgbToHsl(r, g, b);
-      const weight = 1 - s3;
-      const newS = Math.min(1, Math.max(0, s3 + vib * weight * 0.55));
+      let newS = s3;
+      if (vib > 0) {
+        // Inverse-saturation curve: already-saturated pixels get almost nothing
+        const satWeight = Math.pow(1 - s3, 2.2);
+        // Skin tone protection (~15°–50°): reduce boost near orange/red skin hues
+        const hueDeg = h3 * 360;
+        const skinDist = Math.min(Math.abs(hueDeg - 30), 360 - Math.abs(hueDeg - 30));
+        const skinProtect = skinDist < 25 ? (0.25 + 0.75 * skinDist / 25) : 1.0;
+        newS = Math.min(1, s3 + vib * satWeight * skinProtect * 0.72);
+      } else {
+        // Negative: desaturate more-saturated pixels first (inverse of above)
+        const satWeight = Math.pow(s3, 1.5);
+        newS = Math.max(0, s3 + vib * satWeight * 0.65);
+      }
       if (Math.abs(newS - s3) > 0.001) {
         const [nr, ng, nb] = hslToRgb(h3, newS, l3);
         r = nr; g = ng; b = nb;

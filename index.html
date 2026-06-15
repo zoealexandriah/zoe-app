@@ -5392,9 +5392,12 @@ function buildSectionHTML(p, section, rows, state) {
 
 // ── Slider drag: global delegation — document listeners registered ONCE ──
 var _slDragTrack = null, _slDragPreset = null;
+var _slTouchStartX = 0, _slTouchStartY = 0, _slTouchLocked = null; // 'h'=horiz drag, 'v'=vert scroll
 
 function _slApplyDrag(e) {
   if (!_slDragTrack) return;
+  // For touch events, only apply after direction is confirmed horizontal
+  if (e.touches && _slTouchLocked !== 'h') return;
   if (!document.contains(_slDragTrack)) { _slDragTrack = null; return; }
   var clientX = e.touches ? e.touches[0].clientX : e.clientX;
   var rect  = _slDragTrack.getBoundingClientRect();
@@ -5450,12 +5453,34 @@ function attachSliderListeners(p) {
       e.preventDefault();
     });
     track.addEventListener('touchstart', function(e) {
-      e.preventDefault(); // block native scroll so horizontal drag is reliable
-      evHistoryPush();
+      // Record start position — don't drag yet; wait to confirm horizontal intent
+      _slTouchStartX = e.touches[0].clientX;
+      _slTouchStartY = e.touches[0].clientY;
+      _slTouchLocked = null;
       _slDragTrack = track; _slDragPreset = track.dataset.preset;
-      window._slDragging = true;
-      track.classList.add('dragging');
-      _slApplyDrag(e);
+    }, {passive: true});
+    track.addEventListener('touchmove', function(e) {
+      if (!_slDragTrack) return;
+      var dx = Math.abs(e.touches[0].clientX - _slTouchStartX);
+      var dy = Math.abs(e.touches[0].clientY - _slTouchStartY);
+      if (_slTouchLocked === null) {
+        if (dx < 5 && dy < 5) return; // too small to decide yet
+        if (dy > dx) {
+          // Vertical scroll — cancel drag and let the page scroll
+          _slTouchLocked = 'v';
+          _slDragTrack = null; window._slDragging = false;
+          return;
+        }
+        // Horizontal drag confirmed — lock in and start slider
+        _slTouchLocked = 'h';
+        evHistoryPush();
+        window._slDragging = true;
+        track.classList.add('dragging');
+      }
+      if (_slTouchLocked === 'h') {
+        e.preventDefault();
+        _slApplyDrag(e);
+      }
     }, {passive: false});
   });
 }

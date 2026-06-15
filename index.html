@@ -6589,7 +6589,9 @@ function applyPixelAdjustments(srcData, adj) {
   const sharpen = adj.sharpen     || 0;   // 0..1
   const blur    = adj.blur        || 0;   // 0..1
 
-  const exposureEV = exp * 2;           // map -1..+1 to -2..+2 EV
+  // Positive exposure is gentler (×1.2 EV max) to avoid blowing out too fast;
+  // negative stays at full range (×2 EV) since it feels fine.
+  const exposureEV = exp > 0 ? exp * 1.2 : exp * 2;
 
   // Pre-generate grain noise array (same per-call, varied per-pixel position)
   // Using pseudo-random seeded by pixel index for organic feel
@@ -6606,9 +6608,11 @@ function applyPixelAdjustments(srcData, adj) {
     }
 
     // ── CONTRAST ─────────────────────────────────────────────────────────
-    // pivot at 128: stretch or compress around midpoint
+    // pivot at 128: stretch or compress around midpoint.
+    // Positive contrast is scaled back so darks don't crush too fast;
+    // negative stays at full strength since it feels fine.
     if (cont !== 0) {
-      const factor = 1 + cont;
+      const factor = cont > 0 ? 1 + cont * 0.55 : 1 + cont;
       r = (r/255 - 0.5) * factor * 255 + 128;
       g = (g/255 - 0.5) * factor * 255 + 128;
       b = (b/255 - 0.5) * factor * 255 + 128;

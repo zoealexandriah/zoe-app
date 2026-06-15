@@ -12485,13 +12485,17 @@ function cropPerspPreview(val) {
   _cropPerspWarp(ctx, tmp, _cropPerspAxis, amount, sc.width, sc.height);
   ac.style.opacity = '0';
 
-  // Auto-crop: compute inscribed rectangle (largest rect with no empty corners)
-  var maxS = 0.48, absEff = Math.abs(amount) * maxS;
+  // Auto-crop: remove transparent edges produced by the keystone warp
+  // V (vertical tilt): rows compressed toward top/bottom → crop top+bottom
+  // H (horizontal pan): columns compressed toward left/right → crop left+right
+  var maxS_v = 0.48, maxS_h = 0.28;
+  var maxS = (_cropPerspAxis === 'v') ? maxS_v : maxS_h;
+  var absEff = Math.abs(amount) * maxS;
   var W = sc.width, H = sc.height;
   if (_cropPerspAxis === 'v') {
-    cropRect = { x: Math.round(W * absEff / 2), y: 0, w: Math.round(W * (1 - absEff)), h: H };
-  } else {
     cropRect = { x: 0, y: Math.round(H * absEff / 2), w: W, h: Math.round(H * (1 - absEff)) };
+  } else {
+    cropRect = { x: Math.round(W * absEff / 2), y: 0, w: Math.round(W * (1 - absEff)), h: H };
   }
 
   // Show crop overlay to visualise the valid region
@@ -12510,17 +12514,22 @@ function cropPerspPreview(val) {
 }
 
 function _cropPerspWarp(dstCtx, srcCanvas, axis, amount, w, h) {
-  // True keystone / perspective warp:
-  //   One edge fills the full dimension; the opposite edge compresses inward.
-  //   Empty corner pixels are left transparent (alpha 0).
-  // axis='v': scale varies per ROW, affects horizontal width
-  //   amount > 0 → top narrower, bottom full-width
-  //   amount < 0 → top full-width, bottom narrower
-  // axis='h': scale varies per COLUMN, affects vertical height
-  //   amount > 0 → left narrower, right full-height
-  //   amount < 0 → left full-height, right narrower
-  var maxS = 0.48;
-  var eff = amount * maxS;          // effective warp: ±0 … ±maxS
+  // Keystone / perspective warp — one edge full-size, opposite edge compressed.
+  // Empty corner pixels stay transparent (alpha 0).
+  //
+  // axis='v' — VERTICAL TILT (camera tilts up/down, converging vertical lines):
+  //   Rows vary in Y: each output row y maps to a different source row sy.
+  //   amount > 0 → top compressed, bottom full-height
+  //   amount < 0 → bottom compressed, top full-height
+  //   Crop: top + bottom edges (y-axis)
+  //
+  // axis='h' — HORIZONTAL PAN (camera pans left/right, converging horizontal):
+  //   Columns vary in X: each output column x maps to a different source column sx.
+  //   amount > 0 → left compressed, right full-width
+  //   amount < 0 → right compressed, left full-width
+  //   Crop: left + right edges (x-axis)
+  var maxS = (axis === 'v') ? 0.48 : 0.28;
+  var eff = amount * maxS;
   var abs = Math.abs(eff);
   var srcCtx = srcCanvas.getContext('2d');
   var src = srcCtx.getImageData(0, 0, w, h);
@@ -12528,42 +12537,42 @@ function _cropPerspWarp(dstCtx, srcCanvas, axis, amount, w, h) {
   var t, u, k, sx, sy, sx0, sy0, fx, fy, sx1, sy1, si, si2, di;
 
   if (axis === 'v') {
+    // Per-row: sy varies by output row y (vertical compression at top or bottom)
     for (var y = 0; y < h; y++) {
       t = y / Math.max(h - 1, 1);
-      // u = 1 at the narrow end, 0 at the wide (full-width) end
-      u = eff >= 0 ? (1 - t) : t;
+      u = eff >= 0 ? (1 - t) : t;   // 1 at the narrow (compressed) end
       k = 1.0 - abs * u;
       if (k < 0.01) continue;
+      sy = (y - h * 0.5) / k + h * 0.5;
+      if (sy < 0 || sy >= h) continue;  // outside source → transparent
+      sy0 = sy | 0; fy = sy - sy0; sy1 = Math.min(h - 1, sy0 + 1);
       for (var x = 0; x < w; x++) {
-        // Inverse warp: where in the source does this destination pixel come from?
-        sx = (x - w * 0.5) / k + w * 0.5;
-        if (sx < 0 || sx >= w) continue;   // outside image → transparent
-        sx0 = sx | 0; fx = sx - sx0; sx1 = Math.min(w - 1, sx0 + 1);
-        si  = (y * w + sx0) * 4;
-        si2 = (y * w + sx1) * 4;
-        di  = (y * w + x)   * 4;
-        dst.data[di]   = src.data[si]   + (src.data[si2]   - src.data[si])   * fx;
-        dst.data[di+1] = src.data[si+1] + (src.data[si2+1] - src.data[si+1]) * fx;
-        dst.data[di+2] = src.data[si+2] + (src.data[si2+2] - src.data[si+2]) * fx;
+        si  = (sy0 * w + x) * 4;
+        si2 = (sy1 * w + x) * 4;
+        di  = (y   * w + x) * 4;
+        dst.data[di]   = src.data[si]   + (src.data[si2]   - src.data[si])   * fy;
+        dst.data[di+1] = src.data[si+1] + (src.data[si2+1] - src.data[si+1]) * fy;
+        dst.data[di+2] = src.data[si+2] + (src.data[si2+2] - src.data[si+2]) * fy;
         dst.data[di+3] = 255;
       }
     }
   } else {
+    // Per-column: sx varies by output column x (horizontal compression at left or right)
     for (var x2 = 0; x2 < w; x2++) {
       t = x2 / Math.max(w - 1, 1);
       u = eff >= 0 ? (1 - t) : t;
       k = 1.0 - abs * u;
       if (k < 0.01) continue;
+      sx = (x2 - w * 0.5) / k + w * 0.5;
+      if (sx < 0 || sx >= w) continue;
+      sx0 = sx | 0; fx = sx - sx0; sx1 = Math.min(w - 1, sx0 + 1);
       for (var y2 = 0; y2 < h; y2++) {
-        sy = (y2 - h * 0.5) / k + h * 0.5;
-        if (sy < 0 || sy >= h) continue;
-        sy0 = sy | 0; fy = sy - sy0; sy1 = Math.min(h - 1, sy0 + 1);
-        si  = (sy0 * w + x2) * 4;
-        si2 = (sy1 * w + x2) * 4;
-        di  = (y2 * w + x2) * 4;
-        dst.data[di]   = src.data[si]   + (src.data[si2]   - src.data[si])   * fy;
-        dst.data[di+1] = src.data[si+1] + (src.data[si2+1] - src.data[si+1]) * fy;
-        dst.data[di+2] = src.data[si+2] + (src.data[si2+2] - src.data[si+2]) * fy;
+        si  = (y2 * w + sx0) * 4;
+        si2 = (y2 * w + sx1) * 4;
+        di  = (y2 * w + x2)  * 4;
+        dst.data[di]   = src.data[si]   + (src.data[si2]   - src.data[si])   * fx;
+        dst.data[di+1] = src.data[si+1] + (src.data[si2+1] - src.data[si+1]) * fx;
+        dst.data[di+2] = src.data[si+2] + (src.data[si2+2] - src.data[si+2]) * fx;
         dst.data[di+3] = 255;
       }
     }

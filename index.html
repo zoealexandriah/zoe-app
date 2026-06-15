@@ -4085,107 +4085,105 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
             <div id="ev-no-photo" style="display:none;flex-direction:column;align-items:center;justify-content:center;position:absolute;inset:0;padding:0 32px;">
               <!-- Pixel folder illustration -->
-              <svg width="160" height="140" viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:18px;flex-shrink:0;overflow:visible">
+              <svg width="180" height="160" viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:18px;flex-shrink:0;overflow:visible">
                 <defs>
                   <style>
-                    @keyframes spulse{0%,100%{opacity:1}50%{opacity:0.28}}
+                    @keyframes spulse{0%,100%{opacity:1}50%{opacity:0.22}}
                     .sp1{animation:spulse 2.9s ease-in-out infinite}
                     .sp2{animation:spulse 2.3s ease-in-out infinite .9s}
                     .sp3{animation:spulse 3.2s ease-in-out infinite 1.7s}
                     .sp4{animation:spulse 2.6s ease-in-out infinite .4s}
                     .sp5{animation:spulse 2.8s ease-in-out infinite 1.3s}
+                    .sp6{animation:spulse 3.5s ease-in-out infinite 2.1s}
                   </style>
-                  <!-- Interior gradient: strong pink→lavender diagonal -->
-                  <linearGradient id="pfg" x1="0" y1="1" x2="0.9" y2="0">
-                    <stop offset="0%" stop-color="#f088bc"/>
-                    <stop offset="32%" stop-color="#e8a4e0"/>
-                    <stop offset="100%" stop-color="#ccb8f8"/>
+                  <linearGradient id="pfg2" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#d4aaee"/>
+                    <stop offset="40%" stop-color="#e8a8d8"/>
+                    <stop offset="100%" stop-color="#f4b8d0"/>
                   </linearGradient>
-                  <!-- Warm centre-left glow overlay (large sparkle area) -->
-                  <radialGradient id="pgg" cx="32%" cy="72%" r="48%">
-                    <stop offset="0%" stop-color="rgba(255,210,238,0.92)"/>
-                    <stop offset="100%" stop-color="rgba(255,200,235,0)"/>
+                  <radialGradient id="pgg2" cx="35%" cy="65%" r="52%">
+                    <stop offset="0%" stop-color="rgba(255,220,245,0.95)"/>
+                    <stop offset="60%" stop-color="rgba(255,200,235,0.4)"/>
+                    <stop offset="100%" stop-color="rgba(255,180,220,0)"/>
                   </radialGradient>
-                  <!-- Sparkle glow filters -->
-                  <filter id="sf1" x="-130%" y="-130%" width="360%" height="360%">
-                    <feGaussianBlur stdDeviation="5.5" result="b"/>
+                  <radialGradient id="pgg3" cx="70%" cy="30%" r="38%">
+                    <stop offset="0%" stop-color="rgba(220,195,255,0.55)"/>
+                    <stop offset="100%" stop-color="rgba(200,170,255,0)"/>
+                  </radialGradient>
+                  <filter id="sf1" x="-150%" y="-150%" width="400%" height="400%">
+                    <feGaussianBlur stdDeviation="6" result="b"/>
                     <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                   </filter>
-                  <filter id="sf2" x="-90%" y="-90%" width="280%" height="280%">
-                    <feGaussianBlur stdDeviation="3.2" result="b"/>
+                  <filter id="sf2" x="-100%" y="-100%" width="300%" height="300%">
+                    <feGaussianBlur stdDeviation="3.5" result="b"/>
                     <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                   </filter>
-                  <filter id="sf3" x="-70%" y="-70%" width="240%" height="240%">
+                  <filter id="sf3" x="-80%" y="-80%" width="260%" height="260%">
                     <feGaussianBlur stdDeviation="2" result="b"/>
                     <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                   </filter>
-                  <!-- Bottom glow blur -->
-                  <filter id="sfg" x="-60%" y="-100%" width="220%" height="320%">
-                    <feGaussianBlur stdDeviation="12"/>
+                  <filter id="sfg" x="-80%" y="-60%" width="260%" height="260%">
+                    <feGaussianBlur stdDeviation="14"/>
                   </filter>
+                  <clipPath id="folder-clip">
+                    <rect x="14" y="44" width="152" height="100" rx="0"/>
+                  </clipPath>
                 </defs>
 
-                <!-- BOTTOM GLOW — uses overflow:visible so it shows below the viewBox -->
-                <ellipse cx="80" cy="148" rx="56" ry="18" fill="rgba(185,65,140,0.58)" filter="url(#sfg)"/>
+                <!-- BOTTOM GLOW -->
+                <ellipse cx="90" cy="158" rx="62" ry="16" fill="rgba(180,60,140,0.55)" filter="url(#sfg)"/>
 
-                <!-- ── BACK FOLDER (same shape as main, shifted +10 right +6 down) ──
-                     Polygon traces the entire folder silhouette including tab.
-                     Drawn first so main folder sits on top. -->
-                <polygon fill="#2a1050"
-                  points="18,18 18,14 22,14 62,14 62,18 66,18 66,22 70,22 70,34
-                          138,34 138,30 142,30 142,34 146,34
-                          146,130 142,130 142,134
-                          26,134 26,130 22,130 22,18"/>
-                <!-- Back header fill -->
-                <rect x="22" y="34" width="120" height="16" fill="#b898d8"/>
-                <!-- Back interior fill (mostly hidden, flat colour fine) -->
-                <rect x="22" y="54" width="120" height="72" fill="#bea2e0"/>
+                <!-- ── BACK FOLDER (offset +8,+8) ── -->
+                <rect x="24" y="14" width="56" height="8"  fill="#3a1868"/>
+                <rect x="20" y="22" width="64" height="4"  fill="#3a1868"/>
+                <rect x="20" y="26" width="144" height="108" fill="#3a1868"/>
+                <rect x="20" y="26" width="144" height="14" fill="#9070c0"/>
 
-                <!-- ── MAIN FOLDER ──
-                     Single polygon for the entire folder outline (tab + body).
-                     Tab: top-left, ~35% of width. Stepped pixel-art corners.
-                     Body: full width below tab. -->
-                <polygon fill="#2a1050"
-                  points="8,12  8,8  12,8  52,8  52,12  56,12  56,16  60,16  60,28
-                          128,28 128,24 132,24 132,28 136,28
-                          136,124 132,124 132,128
-                          16,128 16,124 12,124 12,12"/>
-                <!-- Header fill (lavender, spans full body width, sits between tab junction and divider) -->
-                <rect x="12" y="28" width="120" height="16" fill="#c8a8f0"/>
-                <!-- Interior gradient fill -->
-                <rect x="12" y="48" width="120" height="72" fill="url(#pfg)"/>
-                <!-- Interior warm glow overlay -->
-                <rect x="12" y="48" width="120" height="72" fill="url(#pgg)"/>
-                <!-- Floor strip (thin lavender at bottom of interior, before dark edge) -->
-                <rect x="12" y="120" width="120" height="4" fill="#c8a8f0"/>
+                <!-- ── MAIN FOLDER ── -->
+                <rect x="8"  y="6"  width="60" height="8"  fill="#1e0c42"/>
+                <rect x="4"  y="14" width="68" height="4"  fill="#1e0c42"/>
+                <rect x="4"  y="18" width="172" height="4"  fill="#1e0c42"/>
+                <rect x="0"  y="22" width="180" height="116" fill="#1e0c42"/>
+                <rect x="8"  y="6"  width="58" height="8"  fill="#b898e8"/>
+                <rect x="4"  y="14" width="66" height="4"  fill="#b898e8"/>
+                <rect x="4"  y="22" width="172" height="14" fill="#c8a8f4"/>
+                <rect x="4"  y="36" width="172" height="4"  fill="#1e0c42"/>
+                <rect x="4"  y="40" width="172" height="90" fill="url(#pfg2)"/>
+                <rect x="4"  y="40" width="172" height="90" fill="url(#pgg2)"/>
+                <rect x="4"  y="40" width="172" height="90" fill="url(#pgg3)"/>
+                <rect x="4"  y="130" width="172" height="4" fill="#c8a8f4"/>
+                <rect x="0"  y="134" width="180" height="4" fill="#1e0c42"/>
+                <rect x="0"  y="22" width="4"   height="116" fill="#1e0c42"/>
+                <rect x="176" y="22" width="4"  height="116" fill="#1e0c42"/>
 
-                <!-- ── SPARKLES ── (interior: x=12–132, y=48–120) -->
-                <!-- LARGE: lower-left, cx=50 cy=98, R=18 r=4 -->
+                <!-- ── SPARKLES ── -->
                 <g class="sp1" filter="url(#sf1)">
-                  <polygon points="50,80 54,94 68,98 54,102 50,116 46,102 32,98 46,94" fill="white"/>
+                  <polygon points="52,82 57,97 72,102 57,107 52,122 47,107 32,102 47,97" fill="white"/>
                 </g>
-                <!-- MED-LARGE: upper-right, cx=108 cy=64, R=12 r=3 -->
                 <g class="sp2" filter="url(#sf2)">
-                  <polygon points="108,52 111,61 120,64 111,67 108,76 105,67 96,64 105,61" fill="white" opacity="0.93"/>
+                  <polygon points="130,52 134,63 145,67 134,71 130,82 126,71 115,67 126,63" fill="white" opacity="0.92"/>
                 </g>
-                <!-- MEDIUM: lower-right, cx=92 cy=110, R=9 r=2.2 -->
                 <g class="sp3" filter="url(#sf2)">
-                  <polygon points="92,101 94.2,107.8 101,110 94.2,112.2 92,119 89.8,112.2 83,110 89.8,107.8" fill="white" opacity="0.84"/>
+                  <polygon points="148,108 151,116 159,119 151,122 148,130 145,122 137,119 145,116" fill="white" opacity="0.80"/>
                 </g>
-                <!-- SMALL: upper-left, cx=28 cy=60, R=5.5 r=1.3 -->
-                <g class="sp4" filter="url(#sf3)" opacity="0.68">
-                  <polygon points="28,54.5 29.3,58.7 33.5,60 29.3,61.3 28,65.5 26.7,61.3 22.5,60 26.7,58.7" fill="white"/>
+                <g class="sp4" filter="url(#sf3)" opacity="0.65">
+                  <polygon points="30,56 32,62 38,64 32,66 30,72 28,66 22,64 28,62" fill="white"/>
                 </g>
-                <!-- SMALL: mid-right, cx=122 cy=90, R=5 r=1.2 -->
-                <g class="sp5" filter="url(#sf3)" opacity="0.56">
-                  <polygon points="122,85 123.2,88.8 127,90 123.2,91.2 122,95 120.8,91.2 117,90 120.8,88.8" fill="white"/>
+                <g class="sp5" filter="url(#sf3)" opacity="0.58">
+                  <polygon points="158,84 160,89 165,91 160,93 158,98 156,93 151,91 156,89" fill="white"/>
                 </g>
+                <g class="sp6" filter="url(#sf3)" opacity="0.45">
+                  <polygon points="96,46 97.5,50.5 102,52 97.5,53.5 96,58 94.5,53.5 90,52 94.5,50.5" fill="white"/>
+                </g>
+
                 <!-- Micro dots -->
-                <circle cx="76" cy="54" r="1.8" fill="white" opacity="0.48"/>
-                <circle cx="36" cy="110" r="1.4" fill="white" opacity="0.36"/>
-                <circle cx="110" cy="112" r="1.3" fill="white" opacity="0.34"/>
-                <circle cx="62" cy="118" r="1.1" fill="white" opacity="0.28"/>
-                <circle cx="20" cy="80" r="1.0" fill="white" opacity="0.24"/>
+                <circle cx="80"  cy="48"  r="2.0" fill="white" opacity="0.45" class="sp3"/>
+                <circle cx="38"  cy="118" r="1.6" fill="white" opacity="0.35" class="sp5"/>
+                <circle cx="122" cy="124" r="1.4" fill="white" opacity="0.30" class="sp2"/>
+                <circle cx="68"  cy="128" r="1.2" fill="white" opacity="0.26" class="sp6"/>
+                <circle cx="18"  cy="82"  r="1.0" fill="white" opacity="0.22" class="sp4"/>
+                <circle cx="160" cy="58"  r="1.2" fill="white" opacity="0.28" class="sp1"/>
+                <circle cx="110" cy="118" r="1.0" fill="white" opacity="0.22" class="sp5"/>
               </svg>
               <!-- Headline -->
               <div style="font-size:25px;font-family:Georgia,serif;font-weight:400;color:rgba(235,220,242,0.90);text-align:center;line-height:1.28;margin-bottom:9px;">Drop something good.</div>

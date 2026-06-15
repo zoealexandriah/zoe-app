@@ -10423,7 +10423,10 @@ function _evRenderCanvasImmediate() {
   // re-render still fires automatically on drag release.
   var MAX_SIDE = window._slDragging ? Math.round(Math.max(cssW, cssH) * dpr) : 1200;
   var zoomFactor = Math.max(evZoomLevel || 1, 1);
-  var renderScale = Math.min(baseScale * zoomFactor * dpr, 1, MAX_SIDE/iw, MAX_SIDE/ih);
+  // No "1" cap here: capping at 1 means a small source (e.g. a previously-exported
+  // 780px canvas) can't render at 2× DPR, so CSS has to stretch it → blurry.
+  // We let it render up to baseScale*dpr (matching the physical display) or MAX_SIDE.
+  var renderScale = Math.min(baseScale * zoomFactor * dpr, MAX_SIDE/iw, MAX_SIDE/ih);
   canvas.width  = Math.round(iw * renderScale);
   canvas.height = Math.round(ih * renderScale);
   canvas.style.width  = cssW + 'px';
@@ -11039,7 +11042,17 @@ function galleryOpenInEditor(idx) {
       if (_thumbEl)  { _thumbEl.width=36; _thumbEl.height=46; renderPhoto(_thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
       buildEditorSliders(p);
     }
-    if (es.originalDataURL) {
+    // Prefer the stored original in this order:
+    // 1. editState.originalDataURL (set when the edit was first created)
+    // 2. localStorage '_original' key (set on very first editor open of this photo)
+    // 3. entry.dataURL (fresh import — should still be full-res at this point)
+    // Without this fallback chain, photos saved with older code (before originalDataURL
+    // was stored) would re-open using entry.img (the downscaled export) → blurry editor.
+    var _origSrc = es.originalDataURL
+      || (entry.id ? (localStorage.getItem('zoe_edit_' + entry.id + '_original') || null) : null)
+      || entry.dataURL
+      || null;
+    if (_origSrc) {
       var origImg = new Image();
       origImg.onload = function() {
         userImage = origImg;
@@ -11049,11 +11062,10 @@ function galleryOpenInEditor(idx) {
         evHistory.push({ presetId: null, sliders: {}, intensity: 1.0 });
         if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
       };
-      origImg.src = es.originalDataURL;
+      origImg.src = _origSrc;
     } else {
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
       evRenderPresets();
-      // Push clean state into history so undo goes back to no-preset (original)
       evHistory.push({ presetId: null, sliders: {}, intensity: 1.0 });
       if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
     }

@@ -470,16 +470,13 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   grid-row:3;
   display:flex;align-items:center;justify-content:center;
   background:rgba(6,4,14,0.88);
-  border-top:0.5px solid var(--border);
   backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);
 }
 .bn-item{
   display:flex;align-items:center;gap:8px;
   padding:0 24px;height:100%;cursor:pointer;
-  border-right:0.5px solid rgba(200,168,232,0.05);
   transition:background 0.25s;position:relative;overflow:hidden;
 }
-.bn-item:last-child{border-right:none}
 .bn-item::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent,rgba(200,168,232,0.06),transparent);transform:translateX(-100%);transition:transform 0.48s ease}
 .bn-item:hover::after{transform:translateX(120%)}
 .bn-item:hover{background:rgba(255,255,255,0.02)}
@@ -3833,6 +3830,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div class="col-back-btn" onclick="colGoBack()">← BACK</div>
             <span class="col-l2-name" id="col-l2-name" ondblclick="colStartRename(this,colActiveId)" style="cursor:text"></span>
             <span class="col-l2-count" id="col-l2-count"></span>
+            <div class="col-l2-add" onclick="colPickFromGallery()">+ ADD</div>
           </div>
           <div id="col-l2-grid"></div>
           <!-- Empty state (shown when collection has 0 photos) -->

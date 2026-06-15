@@ -10777,7 +10777,9 @@ function evRenderPresets() {
     }
   });
 
-  var _presetsToRender = presets.slice();
+  var _presetsToRender = presets.slice().sort(function(a, b) {
+    return (evFavPresets.includes(b.id) ? 1 : 0) - (evFavPresets.includes(a.id) ? 1 : 0);
+  });
   _presetsToRender.forEach(function(p){
     if (evCatFilter && evCatFilter !== 'ALL') {
       if ((p.series||'').toUpperCase() !== evCatFilter) return;

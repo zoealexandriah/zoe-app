@@ -3871,6 +3871,98 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
         <!-- Level 1: grid -->
         <div id="col-level1">
           <div class="col-grid" id="col-grid"></div>
+          <!-- Empty state: shown when no collections exist -->
+          <div id="col-l1-empty" style="display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:0;padding:0 36px;text-align:center;min-height:calc(100% - 28px);">
+            <!-- Open binder SVG illustration -->
+            <svg width="210" height="164" viewBox="0 0 210 164" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:22px;flex-shrink:0;overflow:visible">
+              <defs>
+                <style>
+                  @keyframes bp1{0%,100%{opacity:0.15}50%{opacity:0.32}}
+                  @keyframes bp2{0%,100%{opacity:0.10}50%{opacity:0.26}}
+                  .bp1{animation:bp1 3.4s ease-in-out infinite}
+                  .bp2{animation:bp1 2.9s ease-in-out infinite 0.7s}
+                  .bp3{animation:bp2 3.8s ease-in-out infinite 1.3s}
+                  .bp4{animation:bp1 3.1s ease-in-out infinite 0.4s}
+                </style>
+                <linearGradient id="b-pg-l" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#130b22"/>
+                  <stop offset="100%" stop-color="#1c1030"/>
+                </linearGradient>
+                <linearGradient id="b-pg-r" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#1c1030"/>
+                  <stop offset="100%" stop-color="#130b22"/>
+                </linearGradient>
+                <linearGradient id="b-cover-l" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#251540"/>
+                  <stop offset="100%" stop-color="#160d2c"/>
+                </linearGradient>
+                <linearGradient id="b-cover-r" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#1e1038"/>
+                  <stop offset="100%" stop-color="#120a22"/>
+                </linearGradient>
+                <filter id="b-glow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feGaussianBlur stdDeviation="10"/>
+                </filter>
+              </defs>
+
+              <!-- Ambient glow -->
+              <ellipse cx="105" cy="158" rx="72" ry="12" fill="rgba(192,64,90,0.22)" filter="url(#b-glow)"/>
+
+              <!-- ── LEFT PAGE (back cover + page) ── -->
+              <!-- Cover -->
+              <rect x="6" y="14" width="92" height="130" rx="4" fill="url(#b-cover-l)" stroke="rgba(201,184,212,0.09)" stroke-width="0.8"/>
+              <!-- Page inset -->
+              <rect x="11" y="19" width="82" height="120" rx="2" fill="url(#b-pg-l)" stroke="rgba(201,184,212,0.06)" stroke-width="0.5"/>
+              <!-- Photo slots left page — 3×3 grid -->
+              <rect x="17" y="25" width="32" height="36" rx="2" fill="rgba(201,184,212,0.04)" stroke="rgba(201,184,212,0.11)" stroke-width="0.7" class="bp1"/>
+              <rect x="55" y="25" width="32" height="36" rx="2" fill="rgba(201,184,212,0.04)" stroke="rgba(201,184,212,0.11)" stroke-width="0.7" class="bp3"/>
+              <rect x="17" y="67" width="32" height="36" rx="2" fill="rgba(201,184,212,0.04)" stroke="rgba(201,184,212,0.11)" stroke-width="0.7" class="bp2"/>
+              <rect x="55" y="67" width="32" height="36" rx="2" fill="rgba(201,184,212,0.04)" stroke="rgba(201,184,212,0.11)" stroke-width="0.7" class="bp4"/>
+              <rect x="17" y="109" width="32" height="24" rx="2" fill="rgba(201,184,212,0.04)" stroke="rgba(201,184,212,0.11)" stroke-width="0.7" class="bp3"/>
+              <rect x="55" y="109" width="32" height="24" rx="2" fill="rgba(201,184,212,0.04)" stroke="rgba(201,184,212,0.11)" stroke-width="0.7" class="bp1"/>
+
+              <!-- ── SPINE ── -->
+              <rect x="97" y="14" width="16" height="130" rx="3" fill="#0b0618" stroke="rgba(201,184,212,0.08)" stroke-width="0.6"/>
+              <!-- Ring binders (3 rings) -->
+              <ellipse cx="105" cy="40"  rx="6" ry="5" fill="none" stroke="rgba(190,172,215,0.40)" stroke-width="2"/>
+              <ellipse cx="105" cy="40"  rx="2.5" ry="2" fill="rgba(190,172,215,0.18)"/>
+              <ellipse cx="105" cy="82"  rx="6" ry="5" fill="none" stroke="rgba(190,172,215,0.40)" stroke-width="2"/>
+              <ellipse cx="105" cy="82"  rx="2.5" ry="2" fill="rgba(190,172,215,0.18)"/>
+              <ellipse cx="105" cy="124" rx="6" ry="5" fill="none" stroke="rgba(190,172,215,0.40)" stroke-width="2"/>
+              <ellipse cx="105" cy="124" rx="2.5" ry="2" fill="rgba(190,172,215,0.18)"/>
+
+              <!-- ── RIGHT PAGE (front cover) ── -->
+              <rect x="112" y="14" width="92" height="130" rx="4" fill="url(#b-cover-r)" stroke="rgba(201,184,212,0.09)" stroke-width="0.8"/>
+              <!-- Page inset -->
+              <rect x="117" y="19" width="82" height="120" rx="2" fill="url(#b-pg-r)" stroke="rgba(201,184,212,0.06)" stroke-width="0.5"/>
+              <!-- Snap clasp on right edge -->
+              <rect x="198" y="72" width="8" height="18" rx="4" fill="rgba(190,172,215,0.18)" stroke="rgba(201,184,212,0.18)" stroke-width="0.7"/>
+              <circle cx="202" cy="81" r="2.5" fill="rgba(190,172,215,0.30)"/>
+              <!-- Photo slots right page -->
+              <rect x="122" y="25" width="32" height="36" rx="2" fill="rgba(201,184,212,0.05)" stroke="rgba(201,184,212,0.12)" stroke-width="0.7" class="bp2"/>
+              <rect x="160" y="25" width="32" height="36" rx="2" fill="rgba(201,184,212,0.05)" stroke="rgba(201,184,212,0.12)" stroke-width="0.7" class="bp4"/>
+              <rect x="122" y="67" width="32" height="36" rx="2" fill="rgba(201,184,212,0.05)" stroke="rgba(201,184,212,0.12)" stroke-width="0.7" class="bp1"/>
+              <rect x="160" y="67" width="32" height="36" rx="2" fill="rgba(201,184,212,0.05)" stroke="rgba(201,184,212,0.12)" stroke-width="0.7" class="bp3"/>
+              <rect x="122" y="109" width="32" height="24" rx="2" fill="rgba(201,184,212,0.05)" stroke="rgba(201,184,212,0.12)" stroke-width="0.7" class="bp4"/>
+              <rect x="160" y="109" width="32" height="24" rx="2" fill="rgba(201,184,212,0.05)" stroke="rgba(201,184,212,0.12)" stroke-width="0.7" class="bp2"/>
+            </svg>
+
+            <!-- Headline -->
+            <div style="font-size:11px;letter-spacing:0.28em;color:rgba(220,200,235,0.82);font-family:var(--mono);margin-bottom:10px;">NOTHING HERE YET</div>
+            <!-- Divider -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;width:100%;max-width:180px;justify-content:center;">
+              <div style="flex:1;height:0.5px;background:rgba(201,184,212,0.14);"></div>
+              <div style="font-size:7px;color:rgba(192,64,90,0.60);">✦</div>
+              <div style="flex:1;height:0.5px;background:rgba(201,184,212,0.14);"></div>
+            </div>
+            <!-- Subtext -->
+            <div style="font-size:10px;color:rgba(175,162,200,0.42);font-family:Georgia,serif;font-style:italic;line-height:1.6;margin-bottom:24px;">This collection is waiting<br>for its first photo.</div>
+            <!-- CTA -->
+            <div onclick="colNewCollection()" style="cursor:pointer;width:100%;max-width:260px;padding:15px 0;border-radius:100px;font-size:8.5px;letter-spacing:0.20em;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(135deg,rgba(205,58,92,1),rgba(162,32,62,1));color:rgba(255,255,255,0.95);box-shadow:0 4px 20px rgba(180,48,78,0.38);-webkit-tap-highlight-color:transparent;">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
+              CREATE COLLECTION
+            </div>
+          </div>
         </div>
         <!-- Level 2: inside a collection -->
         <div id="col-level2">
@@ -8183,6 +8275,13 @@ var _colDragFromIdx = null, _colDragOverEl = null, _colDragFromEl = null;
 function colRenderGrid() {
   var grid = document.getElementById('col-grid');
   grid.innerHTML = '';
+
+  // Show empty state when no collections exist, hide grid
+  var _l1empty = document.getElementById('col-l1-empty');
+  if (_l1empty) _l1empty.style.display = collections.length === 0 ? 'flex' : 'none';
+  grid.style.display = collections.length === 0 ? 'none' : '';
+
+  if (collections.length === 0) return;
 
   // Always-first: Create Collection card
   var createCard = document.createElement('div');

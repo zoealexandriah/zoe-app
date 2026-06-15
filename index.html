@@ -12310,46 +12310,58 @@ function cropSelectSubTab(btn, tab) {
 }
 
 var _cropStraightenOrig = null;
+var _cropStraightenRafId = null;
 function cropStraightenPreview(val) {
   var valEl = document.getElementById('crop-straighten-val');
   if (valEl) valEl.textContent = parseFloat(val).toFixed(2);
   if (!_cropStraightenOrig) return;
-  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
-  if (!ac) return;
-  var sc = document.getElementById('crop-straighten-work');
-  if (!sc) {
-    sc = document.createElement('canvas');
-    sc.id = 'crop-straighten-work';
-    sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none';
-    ac.parentElement.appendChild(sc);
-  }
-  sc.width  = ac.width;  sc.height  = ac.height;
-  var _acWs = ac.clientWidth, _acHs = ac.clientHeight;
-  var _arWs = ac.parentElement.clientWidth, _arHs = ac.parentElement.clientHeight;
-  sc.style.width  = _acWs + 'px';
-  sc.style.height = _acHs + 'px';
-  sc.style.left   = Math.round((_arWs - _acWs) / 2) + 'px';
-  sc.style.top    = Math.round((_arHs - _acHs) / 2) + 'px';
-  var ctx = sc.getContext('2d');
-  ctx.clearRect(0, 0, sc.width, sc.height);
-  ctx.fillStyle = '#050310'; ctx.fillRect(0, 0, sc.width, sc.height);
-  var rad = parseFloat(val) * Math.PI / 180;
-  var absR = Math.abs(rad);
-  var fs = absR > 0.001 ? 1 / (Math.cos(absR) + Math.sin(absR)) : 1;
-  var iw = _cropStraightenOrig.naturalWidth, ih = _cropStraightenOrig.naturalHeight;
-  var base = Math.max(sc.width / iw, sc.height / ih);
-  var dw = iw * base / fs, dh = ih * base / fs;
-  ctx.save();
-  ctx.translate(sc.width / 2, sc.height / 2);
-  ctx.rotate(rad);
-  ctx.drawImage(_cropStraightenOrig, -dw/2, -dh/2, dw, dh);
-  // Rule-of-thirds overlay: 2 lines each direction
-  ctx.strokeStyle = 'rgba(201,184,212,0.35)'; ctx.lineWidth = 0.8;
-  for (var i = 1; i < 3; i++) {
-    ctx.beginPath(); ctx.moveTo(-dw/2 + dw*i/3, -dh/2); ctx.lineTo(-dw/2 + dw*i/3, dh/2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-dw/2, -dh/2 + dh*i/3); ctx.lineTo(dw/2,  -dh/2 + dh*i/3); ctx.stroke();
-  }
-  ctx.restore();
+  // rAF throttle — only paint one frame per animation tick to eliminate jumps
+  if (_cropStraightenRafId) return;
+  _cropStraightenRafId = requestAnimationFrame(function() {
+    _cropStraightenRafId = null;
+    var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+    if (!ac) return;
+    var sc = document.getElementById('crop-straighten-work');
+    if (!sc) {
+      sc = document.createElement('canvas');
+      sc.id = 'crop-straighten-work';
+      sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none';
+      ac.parentElement.appendChild(sc);
+    }
+    sc.width  = ac.width;  sc.height  = ac.height;
+    var _acWs = ac.clientWidth, _acHs = ac.clientHeight;
+    var _arWs = ac.parentElement.clientWidth, _arHs = ac.parentElement.clientHeight;
+    sc.style.width  = _acWs + 'px';
+    sc.style.height = _acHs + 'px';
+    sc.style.left   = Math.round((_arWs - _acWs) / 2) + 'px';
+    sc.style.top    = Math.round((_arHs - _acHs) / 2) + 'px';
+    var ctx = sc.getContext('2d');
+    ctx.clearRect(0, 0, sc.width, sc.height);
+    ctx.fillStyle = '#050310'; ctx.fillRect(0, 0, sc.width, sc.height);
+    var rad = parseFloat(val) * Math.PI / 180;
+    var absR = Math.abs(rad);
+    var cosR = Math.cos(absR), sinR = Math.sin(absR);
+    var iw = _cropStraightenOrig.naturalWidth, ih = _cropStraightenOrig.naturalHeight;
+    // Exact inscribed-rectangle scale for any aspect ratio:
+    // largest rectangle of the original ratio that fits inside the rotated canvas
+    var base = Math.max(sc.width / iw, sc.height / ih);
+    var dw0 = iw * base, dh0 = ih * base;
+    var fs = absR > 0.001
+      ? Math.min((dw0*cosR + dh0*sinR) / sc.width, (dh0*cosR + dw0*sinR) / sc.height)
+      : 1;
+    var dw = dw0 / fs, dh = dh0 / fs;
+    ctx.save();
+    ctx.translate(sc.width / 2, sc.height / 2);
+    ctx.rotate(rad);
+    ctx.drawImage(_cropStraightenOrig, -dw/2, -dh/2, dw, dh);
+    // Rule-of-thirds overlay: 2 lines each direction
+    ctx.strokeStyle = 'rgba(201,184,212,0.35)'; ctx.lineWidth = 0.8;
+    for (var i = 1; i < 3; i++) {
+      ctx.beginPath(); ctx.moveTo(-dw/2 + dw*i/3, -dh/2); ctx.lineTo(-dw/2 + dw*i/3, dh/2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-dw/2, -dh/2 + dh*i/3); ctx.lineTo(dw/2,  -dh/2 + dh*i/3); ctx.stroke();
+    }
+    ctx.restore();
+  });
 }
 
 

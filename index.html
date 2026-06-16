@@ -9067,6 +9067,7 @@ function toolsCropApply() {
 function toolsCropCancel() {
   cropRect = null; cropDragging = null;
   _etPerspOrig = null;
+  _etPerspOrigDataURL = null;
   const ov = document.getElementById('crop-overlay-canvas');
   if (ov) ov.remove();
   toolsPanelClose();
@@ -12493,6 +12494,7 @@ function cropSelectSubTab(btn, tab) {
   // Clean up perspective work canvas when leaving transform; reset sliders
   var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
   _etPerspOrig = null;
+  _etPerspOrigDataURL = null;
   var _pvs = document.getElementById('crop-persp-v-slider'); if (_pvs) _pvs.value = 0;
   var _phs = document.getElementById('crop-persp-h-slider'); if (_phs) _phs.value = 0;
   var _pvv = document.getElementById('crop-persp-v-val'); if (_pvv) _pvv.textContent = '0';
@@ -12827,7 +12829,8 @@ function cropPerspReset() {
 }
 
 // ── Dual perspective sliders (VERTICAL + HORIZONTAL) ─────────────────────
-var _etPerspOrig = null; // canvas snapshot before any perspective warp
+var _etPerspOrig = null;
+var _etPerspOrigDataURL = null;
 
 function etPerspUpdate() {
   var slV = document.getElementById('crop-persp-v-slider');
@@ -12837,24 +12840,27 @@ function etPerspUpdate() {
   var vv = document.getElementById('crop-persp-v-val'); if (vv) vv.textContent = Math.round(amtV);
   var hv = document.getElementById('crop-persp-h-val'); if (hv) hv.textContent = Math.round(amtH);
 
-  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
-  if (!ac) return;
+  var ac = document.getElementById('hero-canvas') || document.getElementById('ev-canvas');
+  if (!ac || !userImage) return;
 
-  // Lazy-capture original canvas state on first slider move
-  if (!_etPerspOrig) {
-    _etPerspOrig = document.createElement('canvas');
-    _etPerspOrig.width = ac.width; _etPerspOrig.height = ac.height;
-    _etPerspOrig.getContext('2d').drawImage(ac, 0, 0);
+  // Capture original image pixels ONCE on first interaction — always from userImage, not canvas
+  if (!_etPerspOrigDataURL) {
+    var tmp = document.createElement('canvas');
+    tmp.width = userImage.naturalWidth; tmp.height = userImage.naturalHeight;
+    tmp.getContext('2d').drawImage(userImage, 0, 0);
+    _etPerspOrigDataURL = tmp;
   }
 
-  // Create/reuse overlay work canvas
+  // Create/reuse work canvas positioned over hero canvas
   var sc = document.getElementById('crop-perspective-work');
   if (!sc) {
-    sc = document.createElement('canvas'); sc.id = 'crop-perspective-work';
-    sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none';
+    sc = document.createElement('canvas');
+    sc.id = 'crop-perspective-work';
+    sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none;';
     ac.parentElement.appendChild(sc);
   }
-  sc.width = ac.width; sc.height = ac.height;
+  sc.width  = ac.width;
+  sc.height = ac.height;
   var acW = ac.clientWidth, acH = ac.clientHeight;
   var arW = ac.parentElement.clientWidth, arH = ac.parentElement.clientHeight;
   sc.style.width  = acW + 'px'; sc.style.height = acH + 'px';
@@ -12863,88 +12869,84 @@ function etPerspUpdate() {
 
   var ctx = sc.getContext('2d');
   ctx.clearRect(0, 0, sc.width, sc.height);
-
-  if (amtV === 0 && amtH === 0) {
-    // Pass-through — just copy original
-    ctx.drawImage(_etPerspOrig, 0, 0);
-    cropRect = null;
-  } else {
-    _etPerspCombinedWarp(ctx, _etPerspOrig, amtV / 100, amtH / 100, sc.width, sc.height);
-    // Auto-crop to remove transparent edges
-    var maxSv = 0.48, maxSh = 0.28;
-    var absV = Math.abs(amtV) / 100 * maxSv;
-    var absH = Math.abs(amtH) / 100 * maxSh;
-    var W = sc.width, H = sc.height;
-    cropRect = {
-      x: Math.round(W * absH / 2),
-      y: Math.round(H * absV / 2),
-      w: Math.max(1, Math.round(W * (1 - absH))),
-      h: Math.max(1, Math.round(H * (1 - absV)))
-    };
-  }
   ac.style.opacity = '0';
 
-  // Show/update crop overlay
-  var ov = document.getElementById('crop-overlay-canvas');
-  if (!ov) {
-    ov = document.createElement('canvas'); ov.id = 'crop-overlay-canvas';
-    ov.style.cssText = 'position:absolute;z-index:5;pointer-events:none';
-    ac.parentElement.appendChild(ov);
+  if (amtV === 0 && amtH === 0) {
+    // Draw unwarped original at display size
+    ctx.drawImage(_etPerspOrigDataURL, 0, 0, sc.width, sc.height);
+    cropRect = null;
+  } else {
+    _etPerspTrapezoidWarp(ctx, _etPerspOrigDataURL, amtV / 100, amtH / 100, sc.width, sc.height);
   }
-  ov.width = sc.width; ov.height = sc.height;
-  ov.style.width  = acW + 'px'; ov.style.height = acH + 'px';
-  ov.style.left   = Math.round((arW - acW) / 2) + 'px';
-  ov.style.top    = Math.round((arH - acH) / 2) + 'px';
-  ov.style.display = cropRect ? 'block' : 'none';
-  if (cropRect && typeof toolsCropDrawRect === 'function') toolsCropDrawRect(ov);
 }
 
-function _etPerspCombinedWarp(dstCtx, srcCanvas, amtV, amtH, w, h) {
-  // Combined single-pass bilinear warp for V and H perspective.
-  // amtV, amtH: -1..+1 (slider / 100)
-  // V: maps each output row y to a source row sy (x unchanged per row)
-  // H: maps each output col x to a source col sx (y unchanged per col)
-  // Both are separable — combined into one pixel pass.
-  var maxSv = 0.48, maxSh = 0.28;
-  var effV = amtV * maxSv, effH = amtH * maxSh;
-  var absV = Math.abs(effV), absH = Math.abs(effH);
-  var src = srcCanvas.getContext('2d').getImageData(0, 0, w, h);
-  var dst = dstCtx.createImageData(w, h);
-  var d = dst.data, s = src.data;
+function _etPerspTrapezoidWarp(dstCtx, srcCanvas, amtV, amtH, W, H) {
+  // True trapezoid (keystone) perspective warp matching iPhone Photos behaviour.
+  // amtV: -1..+1  positive = top narrows (tilted away at top)
+  // amtH: -1..+1  positive = right narrows (tilted away at right)
+  //
+  // Approach: for each destination pixel (dx, dy), compute the corresponding
+  // source pixel via inverse bilinear mapping of a quad.
+  // The destination quad is always the full W×H rectangle.
+  // The source quad is a trapezoid derived from amtV and amtH.
 
-  for (var y = 0; y < h; y++) {
-    // Vertical map: which source row does output row y come from?
-    var tV = y / Math.max(h - 1, 1);
-    var uV = effV >= 0 ? (1 - tV) : tV;
-    var kV = 1.0 - absV * uV;
-    if (kV < 0.01) continue;
-    var sy = (y - h * 0.5) / kV + h * 0.5;
-    if (sy < 0 || sy >= h) continue;
-    var sy0 = sy | 0, fy = sy - sy0, sy1 = Math.min(h - 1, sy0 + 1);
+  var maxInset = 0.38; // max fraction of width/height that can be inset
 
-    for (var x = 0; x < w; x++) {
-      // Horizontal map: which source col does output col x come from?
-      var tH = x / Math.max(w - 1, 1);
-      var uH = effH >= 0 ? (1 - tH) : tH;
-      var kH = 1.0 - absH * uH;
-      if (kH < 0.01) continue;
-      var sx = (x - w * 0.5) / kH + w * 0.5;
-      if (sx < 0 || sx >= w) continue;
-      var sx0 = sx | 0, fx = sx - sx0, sx1 = Math.min(w - 1, sx0 + 1);
+  // Source trapezoid corners (in srcCanvas coordinate space, scaled to W×H display)
+  // Positive amtV: top edge narrows — inset top-left and top-right
+  // Negative amtV: bottom edge narrows
+  var topInset  = amtV > 0 ?  amtV * maxInset * W : 0;
+  var botInset  = amtV < 0 ? -amtV * maxInset * W : 0;
+  var leftInset = amtH < 0 ? -amtH * maxInset * H : 0;
+  var rightInset= amtH > 0 ?  amtH * maxInset * H : 0;
 
-      // Bilinear interpolation from 4 source samples
-      var di = (y * w + x) * 4;
-      var i00 = (sy0 * w + sx0) * 4, i10 = (sy0 * w + sx1) * 4;
-      var i01 = (sy1 * w + sx0) * 4, i11 = (sy1 * w + sx1) * 4;
+  // Source quad corners: [x, y] for TL, TR, BR, BL
+  var TL = [topInset,   rightInset];
+  var TR = [W - topInset,  rightInset];
+  var BR = [W - botInset,  H - leftInset];
+  var BL = [botInset,   H - leftInset];
+
+  // Read source at display scale
+  var srcW = srcCanvas.width, srcH = srcCanvas.height;
+  var scaleX = srcW / W, scaleY = srcH / H;
+
+  var srcCtx = srcCanvas.getContext('2d');
+  var srcData = srcCtx.getImageData(0, 0, srcW, srcH);
+  var dstData = dstCtx.createImageData(W, H);
+  var s = srcData.data, d = dstData.data;
+
+  for (var dy = 0; dy < H; dy++) {
+    var tv = dy / (H - 1);
+    for (var dx = 0; dx < W; dx++) {
+      var tu = dx / (W - 1);
+
+      // Bilinear interpolation of source quad to find source point
+      var sx = (1-tu)*(1-tv)*TL[0] + tu*(1-tv)*TR[0] + tu*tv*BR[0] + (1-tu)*tv*BL[0];
+      var sy = (1-tu)*(1-tv)*TL[1] + tu*(1-tv)*TR[1] + tu*tv*BR[1] + (1-tu)*tv*BL[1];
+
+      // Scale to actual srcCanvas dimensions
+      sx *= scaleX; sy *= scaleY;
+
+      if (sx < 0 || sy < 0 || sx >= srcW || sy >= srcH) continue;
+
+      // Bilinear sample from source
+      var sx0 = sx|0, sy0 = sy|0;
+      var fx = sx - sx0, fy = sy - sy0;
+      var sx1 = Math.min(srcW-1, sx0+1), sy1 = Math.min(srcH-1, sy0+1);
+
+      var di   = (dy * W + dx) * 4;
+      var i00  = (sy0*srcW + sx0)*4, i10 = (sy0*srcW + sx1)*4;
+      var i01  = (sy1*srcW + sx0)*4, i11 = (sy1*srcW + sx1)*4;
+
       for (var c = 0; c < 3; c++) {
-        var top = s[i00+c] + (s[i10+c] - s[i00+c]) * fx;
-        var bot = s[i01+c] + (s[i11+c] - s[i01+c]) * fx;
-        d[di+c] = top + (bot - top) * fy;
+        var top = s[i00+c] + (s[i10+c]-s[i00+c])*fx;
+        var bot = s[i01+c] + (s[i11+c]-s[i01+c])*fx;
+        d[di+c] = top + (bot-top)*fy;
       }
       d[di+3] = 255;
     }
   }
-  dstCtx.putImageData(dst, 0, 0);
+  dstCtx.putImageData(dstData, 0, 0);
 }
 
 // ── Fix 10: Collections level 2 header editable ──────────────────────────

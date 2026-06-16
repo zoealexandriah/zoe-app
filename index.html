@@ -9962,19 +9962,21 @@ function etCropHTML() {
           <div class="crop-transform-icon-box">${rotateSvg}</div>
           <span class="crop-transform-icon-label">ROTATE</span>
         </div>
+        <div class="crop-transform-icon-btn" id="persp-v-btn" onclick="cropPerspSelectAxis('v')">
+          <div class="crop-transform-icon-box" id="persp-v-box">${perspVSvg}</div>
+          <span class="crop-transform-icon-label" id="persp-v-lbl">VERT</span>
+        </div>
+        <div class="crop-transform-icon-btn" id="persp-h-btn" onclick="cropPerspSelectAxis('h')">
+          <div class="crop-transform-icon-box" id="persp-h-box">${perspHSvg}</div>
+          <span class="crop-transform-icon-label" id="persp-h-lbl">HORIZ</span>
+        </div>
       </div>
-      <div style="padding:6px 0 2px;">
+      <div id="crop-persp-slider-row" style="display:none;padding:6px 0 2px;">
         <div class="crop-sub-row" style="margin-bottom:4px;">
-          <span class="crop-sub-label">VERTICAL PERSPECTIVE</span>
-          <span class="crop-sub-val" id="crop-persp-v-val">0</span>
+          <span class="crop-sub-label" id="crop-persp-axis-label">PERSPECTIVE</span>
+          <span class="crop-sub-val" id="crop-persp-axis-val">0</span>
         </div>
-        <input type="range" class="tc-range" id="crop-persp-v-slider" min="-100" max="100" step="1" value="0"
-               oninput="etPerspUpdate()">
-        <div class="crop-sub-row" style="margin-top:12px;margin-bottom:4px;">
-          <span class="crop-sub-label">HORIZONTAL PERSPECTIVE</span>
-          <span class="crop-sub-val" id="crop-persp-h-val">0</span>
-        </div>
-        <input type="range" class="tc-range" id="crop-persp-h-slider" min="-100" max="100" step="1" value="0"
+        <input type="range" class="tc-range" id="crop-persp-slider" min="-100" max="100" step="1" value="0"
                oninput="etPerspUpdate()">
       </div>
     </div>
@@ -10180,13 +10182,19 @@ function globalReset() {
     });
   });
 
-  // Clear crop overlay, straighten, flip
+  // Clear crop overlay, straighten, flip, perspective
   const cropOv = document.getElementById('crop-overlay-canvas');
   if (cropOv) cropOv.remove();
+  const perspWork = document.getElementById('crop-perspective-work');
+  if (perspWork) perspWork.remove();
+  const _resetAc = document.getElementById('hero-canvas') || document.getElementById('ev-canvas');
+  if (_resetAc) _resetAc.style.opacity = '1';
   cropRect = null;
   toolsStraightenVal = 0;
   _straightenOrigImage = null;
   _flipPreState = null;
+  _etPerspOrig = null; _etPerspOrigDataURL = null;
+  _etPerspVVal = 0; _etPerspHVal = 0; _etPerspActiveAxis = null;
   // Restore pre-crop image if crop was applied
   if (_preCropState) {
     userImage   = _preCropState.userImage;
@@ -12495,10 +12503,14 @@ function cropSelectSubTab(btn, tab) {
   var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
   _etPerspOrig = null;
   _etPerspOrigDataURL = null;
-  var _pvs = document.getElementById('crop-persp-v-slider'); if (_pvs) _pvs.value = 0;
-  var _phs = document.getElementById('crop-persp-h-slider'); if (_phs) _phs.value = 0;
-  var _pvv = document.getElementById('crop-persp-v-val'); if (_pvv) _pvv.textContent = '0';
-  var _phv = document.getElementById('crop-persp-h-val'); if (_phv) _phv.textContent = '0';
+  _etPerspVVal = 0; _etPerspHVal = 0; _etPerspActiveAxis = null;
+  var _psl = document.getElementById('crop-persp-slider'); if (_psl) _psl.value = 0;
+  var _pav = document.getElementById('crop-persp-axis-val'); if (_pav) _pav.textContent = '0';
+  var _prow = document.getElementById('crop-persp-slider-row'); if (_prow) _prow.style.display = 'none';
+  var _pvb = document.getElementById('persp-v-box'); if (_pvb) _pvb.classList.remove('active');
+  var _phb = document.getElementById('persp-h-box'); if (_phb) _phb.classList.remove('active');
+  var _pvl = document.getElementById('persp-v-lbl'); if (_pvl) _pvl.textContent = 'VERT';
+  var _phl = document.getElementById('persp-h-lbl'); if (_phl) _phl.textContent = 'HORIZ';
   // Clear cropRect when leaving RATIO tab — only RATIO should produce a crop on confirm
   if (tab !== 'ratio') { cropRect = null; cropDragging = null; }
   ['straighten','ratio','transform'].forEach(function(id) {
@@ -12831,19 +12843,54 @@ function cropPerspReset() {
 // ── Dual perspective sliders (VERTICAL + HORIZONTAL) ─────────────────────
 var _etPerspOrig = null;
 var _etPerspOrigDataURL = null;
+var _etPerspActiveAxis = null; // 'v' or 'h'
+var _etPerspVVal = 0;
+var _etPerspHVal = 0;
+
+function cropPerspSelectAxis(axis) {
+  _etPerspActiveAxis = axis;
+  // Highlight the selected circle
+  var vb = document.getElementById('persp-v-box');
+  var hb = document.getElementById('persp-h-box');
+  if (vb) vb.classList.toggle('active', axis === 'v');
+  if (hb) hb.classList.toggle('active', axis === 'h');
+  // Show the shared slider row
+  var row = document.getElementById('crop-persp-slider-row');
+  if (row) row.style.display = '';
+  // Sync slider to current value for this axis
+  var sl  = document.getElementById('crop-persp-slider');
+  var lbl = document.getElementById('crop-persp-axis-label');
+  var av  = document.getElementById('crop-persp-axis-val');
+  var cur = axis === 'v' ? _etPerspVVal : _etPerspHVal;
+  if (sl)  sl.value = cur;
+  if (lbl) lbl.textContent = axis === 'v' ? 'VERTICAL' : 'HORIZONTAL';
+  if (av)  av.textContent  = Math.round(cur);
+}
 
 function etPerspUpdate() {
-  var slV = document.getElementById('crop-persp-v-slider');
-  var slH = document.getElementById('crop-persp-h-slider');
-  var amtV = slV ? parseFloat(slV.value) : 0;
-  var amtH = slH ? parseFloat(slH.value) : 0;
-  var vv = document.getElementById('crop-persp-v-val'); if (vv) vv.textContent = Math.round(amtV);
-  var hv = document.getElementById('crop-persp-h-val'); if (hv) hv.textContent = Math.round(amtH);
+  var sl  = document.getElementById('crop-persp-slider');
+  var amt = sl ? parseFloat(sl.value) : 0;
+
+  // Store value in the correct axis
+  if (_etPerspActiveAxis === 'v') _etPerspVVal = amt;
+  else if (_etPerspActiveAxis === 'h') _etPerspHVal = amt;
+
+  var amtV = _etPerspVVal;
+  var amtH = _etPerspHVal;
+
+  // Update numeric displays
+  var av = document.getElementById('crop-persp-axis-val');
+  if (av) av.textContent = Math.round(amt);
+  // Show live value on circle label when non-zero
+  var vlbl = document.getElementById('persp-v-lbl');
+  var hlbl = document.getElementById('persp-h-lbl');
+  if (vlbl) vlbl.textContent = _etPerspVVal !== 0 ? Math.round(_etPerspVVal) : 'VERT';
+  if (hlbl) hlbl.textContent = _etPerspHVal !== 0 ? Math.round(_etPerspHVal) : 'HORIZ';
 
   var ac = document.getElementById('hero-canvas') || document.getElementById('ev-canvas');
   if (!ac || !userImage) return;
 
-  // Capture original image pixels ONCE on first interaction — always from userImage, not canvas
+  // Capture source pixels once from userImage (never from canvas — avoids preset-pipeline staleness)
   if (!_etPerspOrigDataURL) {
     var tmp = document.createElement('canvas');
     tmp.width = userImage.naturalWidth; tmp.height = userImage.naturalHeight;
@@ -12872,7 +12919,6 @@ function etPerspUpdate() {
   ac.style.opacity = '0';
 
   if (amtV === 0 && amtH === 0) {
-    // Draw unwarped original at display size
     ctx.drawImage(_etPerspOrigDataURL, 0, 0, sc.width, sc.height);
     cropRect = null;
   } else {

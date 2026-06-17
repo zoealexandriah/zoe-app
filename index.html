@@ -12932,8 +12932,15 @@ function cropSelectSubTab(btn, tab) {
 var _cropStraightenOrig = null;
 var _cropStraightenRafId = null;
 function cropStraightenPreview(val) {
+  val = parseFloat(val);
+  // Snap to zero within ±0.3°
+  if (Math.abs(val) < 0.3) {
+    val = 0;
+    var _snapSl = document.getElementById('crop-straighten-slider');
+    if (_snapSl) _snapSl.value = 0;
+  }
   var valEl = document.getElementById('crop-straighten-val');
-  if (valEl) valEl.textContent = parseFloat(val).toFixed(2);
+  if (valEl) valEl.textContent = val.toFixed(2);
   if (!_cropStraightenOrig) return;
   // rAF throttle — only paint one frame per animation tick to eliminate jumps
   if (_cropStraightenRafId) return;
@@ -12941,6 +12948,13 @@ function cropStraightenPreview(val) {
     _cropStraightenRafId = null;
     var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
     if (!ac) return;
+    // At 0°: remove work canvas, restore underlying canvas
+    if (val === 0) {
+      var _sc0 = document.getElementById('crop-straighten-work');
+      if (_sc0) _sc0.remove();
+      ac.style.opacity = '';
+      return;
+    }
     var sc = document.getElementById('crop-straighten-work');
     if (!sc) {
       sc = document.createElement('canvas');
@@ -12957,24 +12971,26 @@ function cropStraightenPreview(val) {
     sc.style.top    = Math.round((_arHs - _acHs) / 2) + 'px';
     var ctx = sc.getContext('2d');
     ctx.clearRect(0, 0, sc.width, sc.height);
-    ctx.fillStyle = '#050310'; ctx.fillRect(0, 0, sc.width, sc.height);
-    var rad = parseFloat(val) * Math.PI / 180;
+    var rad = val * Math.PI / 180;
     var absR = Math.abs(rad);
     var cosR = Math.cos(absR), sinR = Math.sin(absR);
+    var cw = sc.width, ch = sc.height;
     var iw = _cropStraightenOrig.naturalWidth, ih = _cropStraightenOrig.naturalHeight;
-    // Exact inscribed-rectangle scale for any aspect ratio:
-    // largest rectangle of the original ratio that fits inside the rotated canvas
-    var base = Math.max(sc.width / iw, sc.height / ih);
-    var dw0 = iw * base, dh0 = ih * base;
-    var fs = absR > 0.001
-      ? Math.min((dw0*cosR + dh0*sinR) / sc.width, (dh0*cosR + dw0*sinR) / sc.height)
-      : 1;
-    var dw = dw0 / fs, dh = dh0 / fs;
+    // Scale so the inscribed rectangle of the rotated image exactly fills the canvas.
+    // inscribed_w = s*(iw*cosR - ih*sinR)/cos2R => s = cw*cos2R/(iw*cosR-ih*sinR)
+    // inscribed_h = s*(ih*cosR - iw*sinR)/cos2R => s = ch*cos2R/(ih*cosR-iw*sinR)
+    // Take max(s1,s2) so both canvas dims are covered; canvas clips the excess.
+    // This makes the preview show EXACTLY what will remain after apply (no black corners).
+    var cos2R = Math.cos(2 * absR);
+    var s1 = cw * cos2R / Math.max(0.001, iw * cosR - ih * sinR);
+    var s2 = ch * cos2R / Math.max(0.001, ih * cosR - iw * sinR);
+    var s  = Math.max(s1, s2, Math.max(cw / iw, ch / ih));
+    var dw = iw * s, dh = ih * s;
     ctx.save();
-    ctx.translate(sc.width / 2, sc.height / 2);
+    ctx.translate(cw / 2, ch / 2);
     ctx.rotate(rad);
     ctx.drawImage(_cropStraightenOrig, -dw/2, -dh/2, dw, dh);
-    // Rule-of-thirds overlay: 2 lines each direction
+    // Rule-of-thirds overlay
     ctx.strokeStyle = 'rgba(201,184,212,0.35)'; ctx.lineWidth = 0.8;
     for (var i = 1; i < 3; i++) {
       ctx.beginPath(); ctx.moveTo(-dw/2 + dw*i/3, -dh/2); ctx.lineTo(-dw/2 + dw*i/3, dh/2); ctx.stroke();

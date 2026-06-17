@@ -10974,16 +10974,28 @@ function _evRenderCanvasImmediate() {
       ctx.globalCompositeOperation='source-over';
     });
   }
-  // Apply slider adjustments + effects (Fix 6)
-  if (activePreset && sliderState[activePreset.id] && Object.keys(sliderState[activePreset.id]).length > 0) {
-    var adj = buildAdjustments(_evMergeAdjState(activePreset, sliderState[activePreset.id]));
-    if (!adj.halation && activePreset.defaults && activePreset.defaults.HALATION) adj.halation = activePreset.defaults.HALATION;
-    // Inject preset-level engine params before pixel processing
-    if (activePreset.hueTempZones) adj.hueTempZones = activePreset.hueTempZones;
-    if (activePreset.colorGlow !== undefined) adj.colorGlow = activePreset.colorGlow;
-    if (activePreset.skinLift !== undefined) adj.skinLift = activePreset.skinLift;
-    if (activePreset.splitTone) adj.split_tone = activePreset.splitTone;
-    if (activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
+  // Apply slider adjustments + effects.
+  // Resolve the "current edit preset" — either the applied look (activePreset) or,
+  // when no look is applied, the preset whose sliders are currently shown in the DOM.
+  var _evCurPreset = activePreset;
+  if (!_evCurPreset) {
+    var _evTrack = document.querySelector(
+      '#es-details-sliders .sl-track[data-preset],' +
+      '#es-color-sliders .sl-track[data-preset],' +
+      '#es-atmosphere-sliders .sl-track[data-preset]');
+    if (_evTrack) _evCurPreset = presets.find(function(x){ return x.id === _evTrack.dataset.preset; }) || null;
+  }
+  if (_evCurPreset && sliderState[_evCurPreset.id] && Object.keys(sliderState[_evCurPreset.id]).length > 0) {
+    var adj = buildAdjustments(_evMergeAdjState(_evCurPreset, sliderState[_evCurPreset.id]));
+    if (!adj.halation && _evCurPreset.defaults && _evCurPreset.defaults.HALATION) adj.halation = _evCurPreset.defaults.HALATION;
+    // Only inject preset color-science when a look is actually applied
+    if (activePreset) {
+      if (activePreset.hueTempZones) adj.hueTempZones = activePreset.hueTempZones;
+      if (activePreset.colorGlow !== undefined) adj.colorGlow = activePreset.colorGlow;
+      if (activePreset.skinLift !== undefined) adj.skinLift = activePreset.skinLift;
+      if (activePreset.splitTone) adj.split_tone = activePreset.splitTone;
+      if (activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
+    }
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var processed = applyPixelAdjustments(origData, adj);
     // Blend with original based on presetIntensity (0 = original, 1 = full effect)
@@ -10997,8 +11009,7 @@ function _evRenderCanvasImmediate() {
       }
     }
     ctx.putImageData(new ImageData(processed, canvas.width, canvas.height), 0, 0);
-    const _hasState = activePreset && sliderState[activePreset.id] && Object.keys(sliderState[activePreset.id]).length > 0;
-    if (_hasState && activePreset.curve) applyCurveLUTs(canvas, activePreset.curve, 0, 0, canvas.width, canvas.height);
+    if (activePreset && activePreset.curve) applyCurveLUTs(canvas, activePreset.curve, 0, 0, canvas.width, canvas.height);
     // Skip heavy offscreen-canvas effects while slider is being dragged — they each allocate a
     // new canvas + getImageData/putImageData and are the main source of mid-drag lag.
     // A full-quality re-render fires automatically on drag release.
@@ -11010,8 +11021,8 @@ function _evRenderCanvasImmediate() {
       if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(canvas, adj.clarity, 0, 0, canvas.width, canvas.height);
       if ((adj.blur   || 0) > 0.01) applyBlur(canvas, adj.blur, 0, 0, canvas.width, canvas.height);
     }
-    if (_hasState && activePreset.splitTone) adj.split_tone = activePreset.splitTone;
-    if (_hasState && activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
+    if (activePreset && activePreset.splitTone) adj.split_tone = activePreset.splitTone;
+    if (activePreset && activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
     if (!_dragging) {
       if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
     }

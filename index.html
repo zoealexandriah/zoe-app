@@ -5154,6 +5154,199 @@ const presets = [
       HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.04',SAT_ORANGES:'+0.07',SAT_YELLOWS:'+0.04',SAT_GREENS:'+0.02',SAT_BLUES:'+0.12',SAT_PURPLES:'-0.00'}
     }
   },
+  {
+    id:'winnie', num:'20', name:'Winnie', series:'FILM',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#b8722a', warm:true,
+    skinLift: 0.16,
+    colorGlow: 0.07,
+    hueTempZones: [{ center: 24, halfWidth: 24, warm: 0.08 }],
+    splitTone:{
+      shadows:    {r:55,  g:28,  b:8,   a:0.18},
+      midtones:   {r:225, g:185, b:135, a:0.05},
+      highlights: {r:255, g:242, b:210, a:0.08}
+    },
+    curve:{
+      master: [[0,0],[64,60],[128,128],[192,188],[220,214],[255,250]],
+      r:      [[0,2],[128,132],[220,218],[255,252]],
+      g:      [[0,0],[128,127],[220,214],[255,246]],
+      b:      [[0,0],[128,120],[220,210],[255,238]]
+    },
+    defaults:{
+      EXPOSURE:0.498, CONTRAST:0.582, HIGHLIGHTS:0.440, SHADOWS:0.545,
+      WHITES:0.490, BLACKS:0.488, TEMPERATURE:0.598, TINT:0.504,
+      VIBRANCE:0.558, SATURATION:0.528,
+      GLOW:0.0, GRAIN:0.12, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.01,
+      SAT_REDS:0.528, SAT_ORANGES:0.542, SAT_YELLOWS:0.522,
+      SAT_GREENS:0.472, SAT_BLUES:0.458, SAT_PURPLES:0.472, HUE_SHIFT:0.499,
+      HUE_REDS:0.500, HUE_ORANGES:0.498, HUE_YELLOWS:0.502,
+      HUE_GREENS:0.488, HUE_BLUES:0.492, HUE_PURPLES:0.500,
+      LUM_REDS:0.514, LUM_ORANGES:0.520, LUM_YELLOWS:0.510,
+      LUM_GREENS:0.486, LUM_BLUES:0.482, LUM_PURPLES:0.490,
+      VIGNETTE:0.10, HALATION:0.0
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'-0.00',CONTRAST:'+0.16',HIGHLIGHTS:'-0.12',SHADOWS:'+0.09',WHITES:'-0.02',BLACKS:'-0.02'},
+      COLOR:{TEMPERATURE:'+0.20',TINT:'+0.01',VIBRANCE:'+0.12',SATURATION:'+0.06'},
+      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.12',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.01',HALATION:'+0.00'},
+      HSL:{HUE_SHIFT:'-1°',SAT_REDS:'+0.06',SAT_ORANGES:'+0.08',SAT_YELLOWS:'+0.04',SAT_GREENS:'-0.06',SAT_BLUES:'-0.08',SAT_PURPLES:'-0.06'}
+    }
+  },
+  {
+    id:'moss', num:'21', name:'Moss', series:'ETHEREAL',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#2a5c3a', warm:false,
+    skinLift: 0.0,
+    colorGlow: 0.0,
+    halationBloom: { threshold: 0.70, radius: 18, hue: 80, intensity: 0.35 },
+    scanLines: { opacity: 0.04, spacing: 2 },
+    splitTone:{
+      shadows:    {r:8,   g:28,  b:22,  a:0.18},
+      midtones:   {r:80,  g:120, b:90,  a:0.04},
+      highlights: {r:210, g:235, b:195, a:0.10}
+    },
+    curve:{
+      master: [[0,0],[64,55],[128,122],[192,185],[255,245]],
+      r:      [[0,0],[128,118],[255,232]],
+      g:      [[0,2],[128,130],[255,248]],
+      b:      [[0,2],[128,124],[255,238]]
+    },
+    defaults:{
+      EXPOSURE:0.468, CONTRAST:0.598, HIGHLIGHTS:0.520, SHADOWS:0.508,
+      WHITES:0.492, BLACKS:0.478, TEMPERATURE:0.438, TINT:0.492,
+      VIBRANCE:0.498, SATURATION:0.488,
+      GLOW:0.0, GRAIN:0.14, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.0,
+      SAT_REDS:0.468, SAT_ORANGES:0.472, SAT_YELLOWS:0.490,
+      SAT_GREENS:0.558, SAT_BLUES:0.498, SAT_PURPLES:0.468, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.496,
+      HUE_GREENS:0.482, HUE_BLUES:0.492, HUE_PURPLES:0.500,
+      LUM_REDS:0.488, LUM_ORANGES:0.490, LUM_YELLOWS:0.494,
+      LUM_GREENS:0.508, LUM_BLUES:0.492, LUM_PURPLES:0.488,
+      VIGNETTE:0.14, HALATION:0.0
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'-0.06',CONTRAST:'+0.20',HIGHLIGHTS:'+0.04',SHADOWS:'+0.02',WHITES:'-0.02',BLACKS:'-0.04'},
+      COLOR:{TEMPERATURE:'-0.12',TINT:'-0.02',VIBRANCE:'-0.00',SATURATION:'-0.02'},
+      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.14',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00',HALATION:'+0.00'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'-0.06',SAT_ORANGES:'-0.06',SAT_YELLOWS:'-0.02',SAT_GREENS:'+0.12',SAT_BLUES:'-0.00',SAT_PURPLES:'-0.06'}
+    }
+  },
+  {
+    id:'entity', num:'22', name:'Entity', series:'CINEMATIC',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#8a8a1a', warm:false,
+    skinLift: 0.0,
+    colorGlow: 0.0,
+    halationBloom: { threshold: 0.62, radius: 28, hue: 65, intensity: 0.55 },
+    scanLines: { opacity: 0.07, spacing: 2 },
+    matteFade: { lift: 0.0, rolloff: 0.88 },
+    splitTone:{
+      shadows:    {r:12,  g:12,  b:8,   a:0.22},
+      midtones:   {r:165, g:158, b:80,  a:0.06},
+      highlights: {r:235, g:240, b:165, a:0.14}
+    },
+    curve:{
+      master: [[0,0],[64,48],[128,118],[200,188],[255,242]],
+      r:      [[0,0],[128,118],[255,235]],
+      g:      [[0,0],[128,122],[255,240]],
+      b:      [[0,0],[128,108],[255,218]]
+    },
+    defaults:{
+      EXPOSURE:0.448, CONTRAST:0.638, HIGHLIGHTS:0.548, SHADOWS:0.472,
+      WHITES:0.480, BLACKS:0.448, TEMPERATURE:0.448, TINT:0.488,
+      VIBRANCE:0.468, SATURATION:0.458,
+      GLOW:0.0, GRAIN:0.32, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.0,
+      SAT_REDS:0.448, SAT_ORANGES:0.452, SAT_YELLOWS:0.518,
+      SAT_GREENS:0.468, SAT_BLUES:0.432, SAT_PURPLES:0.438, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.498, HUE_YELLOWS:0.504,
+      HUE_GREENS:0.496, HUE_BLUES:0.500, HUE_PURPLES:0.500,
+      LUM_REDS:0.488, LUM_ORANGES:0.490, LUM_YELLOWS:0.508,
+      LUM_GREENS:0.488, LUM_BLUES:0.482, LUM_PURPLES:0.486,
+      VIGNETTE:0.24, HALATION:0.0
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'-0.10',CONTRAST:'+0.28',HIGHLIGHTS:'+0.10',SHADOWS:'-0.06',WHITES:'-0.04',BLACKS:'-0.10'},
+      COLOR:{TEMPERATURE:'-0.10',TINT:'-0.02',VIBRANCE:'-0.06',SATURATION:'-0.08'},
+      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.32',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00',HALATION:'+0.00'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'-0.10',SAT_ORANGES:'-0.10',SAT_YELLOWS:'+0.04',SAT_GREENS:'-0.06',SAT_BLUES:'-0.14',SAT_PURPLES:'-0.10'}
+    }
+  },
+  {
+    id:'motel', num:'23', name:'Motel', series:'FILM',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#2a5c4a', warm:false,
+    skinLift: 0.05,
+    colorGlow: 0.0,
+    splitTone:{
+      shadows:    {r:18,  g:55,  b:45,  a:0.16},
+      midtones:   {r:180, g:210, b:195, a:0.04},
+      highlights: {r:200, g:230, b:215, a:0.08}
+    },
+    curve:{
+      master: [[0,2],[64,64],[128,126],[192,186],[255,246]],
+      r:      [[0,0],[128,120],[255,238]],
+      g:      [[0,2],[128,128],[255,246]],
+      b:      [[0,2],[128,126],[255,244]]
+    },
+    defaults:{
+      EXPOSURE:0.468, CONTRAST:0.548, HIGHLIGHTS:0.462, SHADOWS:0.538,
+      WHITES:0.488, BLACKS:0.492, TEMPERATURE:0.418, TINT:0.488,
+      VIBRANCE:0.488, SATURATION:0.472,
+      GLOW:0.0, GRAIN:0.18, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.03,
+      SAT_REDS:0.462, SAT_ORANGES:0.465, SAT_YELLOWS:0.478,
+      SAT_GREENS:0.528, SAT_BLUES:0.488, SAT_PURPLES:0.468, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
+      HUE_GREENS:0.488, HUE_BLUES:0.488, HUE_PURPLES:0.500,
+      LUM_REDS:0.490, LUM_ORANGES:0.492, LUM_YELLOWS:0.494,
+      LUM_GREENS:0.498, LUM_BLUES:0.490, LUM_PURPLES:0.490,
+      VIGNETTE:0.12, HALATION:0.0
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'-0.06',CONTRAST:'+0.10',HIGHLIGHTS:'-0.08',SHADOWS:'+0.08',WHITES:'-0.02',BLACKS:'-0.02'},
+      COLOR:{TEMPERATURE:'-0.16',TINT:'-0.02',VIBRANCE:'-0.02',SATURATION:'-0.06'},
+      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.18',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.03',HALATION:'+0.00'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'-0.08',SAT_ORANGES:'-0.07',SAT_YELLOWS:'-0.04',SAT_GREENS:'+0.06',SAT_BLUES:'-0.02',SAT_PURPLES:'-0.06'}
+    }
+  },
+  {
+    id:'limbo', num:'24', name:'Limbo', series:'CINEMATIC',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#6a4a6a', warm:false,
+    skinLift: 0.0,
+    colorGlow: 0.0,
+    chromaticAberration: { intensity: 3 },
+    scanLines: { opacity: 0.06, spacing: 2 },
+    splitTone:{
+      shadows:    {r:55,  g:18,  b:22,  a:0.14},
+      midtones:   {r:185, g:175, b:195, a:0.04},
+      highlights: {r:210, g:200, b:225, a:0.09}
+    },
+    curve:{
+      master: [[0,2],[64,62],[128,124],[192,184],[255,244]],
+      r:      [[0,2],[128,122],[255,238]],
+      g:      [[0,0],[128,120],[255,235]],
+      b:      [[0,2],[128,126],[255,242]]
+    },
+    defaults:{
+      EXPOSURE:0.468, CONTRAST:0.518, HIGHLIGHTS:0.468, SHADOWS:0.528,
+      WHITES:0.482, BLACKS:0.488, TEMPERATURE:0.432, TINT:0.492,
+      VIBRANCE:0.462, SATURATION:0.448,
+      GLOW:0.0, GRAIN:0.28, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.06,
+      SAT_REDS:0.448, SAT_ORANGES:0.452, SAT_YELLOWS:0.468,
+      SAT_GREENS:0.462, SAT_BLUES:0.468, SAT_PURPLES:0.472, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
+      HUE_GREENS:0.500, HUE_BLUES:0.500, HUE_PURPLES:0.500,
+      LUM_REDS:0.490, LUM_ORANGES:0.490, LUM_YELLOWS:0.492,
+      LUM_GREENS:0.490, LUM_BLUES:0.490, LUM_PURPLES:0.490,
+      VIGNETTE:0.16, HALATION:0.0
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'-0.06',CONTRAST:'+0.04',HIGHLIGHTS:'-0.06',SHADOWS:'+0.06',WHITES:'-0.04',BLACKS:'-0.02'},
+      COLOR:{TEMPERATURE:'-0.14',TINT:'-0.02',VIBRANCE:'-0.08',SATURATION:'-0.10'},
+      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.28',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.06',HALATION:'+0.00'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'-0.10',SAT_ORANGES:'-0.10',SAT_YELLOWS:'-0.06',SAT_GREENS:'-0.08',SAT_BLUES:'-0.06',SAT_PURPLES:'-0.04'}
+    }
+  },
 ];
 
 // ══════════════════════════════════════
@@ -5912,6 +6105,10 @@ function doRender(presetId) {
   if (p.splitTone) adj.split_tone = p.splitTone;
   if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
   if (p.curve) adj.curve = p.curve;
+  if (p.halationBloom) adj.halationBloom = p.halationBloom;
+  if (p.matteFade) adj.matteFade = p.matteFade;
+  if (p.scanLines) adj.scanLines = p.scanLines;
+  if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
 
   // Update hero canvas if user has image loaded
   if (userImage && activePreset && activePreset.id === presetId) {
@@ -6963,11 +7160,22 @@ function applyPixelAdjustments(srcData, adj) {
     }
 
     // ── TEMPERATURE ──────────────────────────────────────────────────────
-    // Warm (+): R up, G slight up, B down. Cool (-): R down, B up.
+    // Selective warm/cool: neutrals get full shift, saturated colors get
+    // a fraction — so a warm preset doesn't contaminate blues/greens.
     if (temp !== 0) {
-      r = Math.min(255, Math.max(0, r + temp * 28));
-      g = Math.min(255, Math.max(0, g + temp * 8));
-      b = Math.min(255, Math.max(0, b - temp * 32));
+      const rn_t = r/255, gn_t = g/255, bn_t = b/255;
+      const cmax_t = Math.max(rn_t,gn_t,bn_t), cmin_t = Math.min(rn_t,gn_t,bn_t);
+      const chroma_t = cmax_t - cmin_t; // 0=grey, 1=fully saturated
+      // Neutrality weight: grey pixels (chroma≈0) get full shift;
+      // saturated pixels get reduced shift proportional to how colorful they are.
+      // Power curve so shift falls off quickly once color is established.
+      const neutralWeight = Math.pow(Math.max(0, 1 - chroma_t * 2.2), 1.4);
+      const tempStr = temp * neutralWeight;
+      if (Math.abs(tempStr) > 0.001) {
+        r = Math.min(255, Math.max(0, r + tempStr * 28));
+        g = Math.min(255, Math.max(0, g + tempStr * 8));
+        b = Math.min(255, Math.max(0, b - tempStr * 32));
+      }
     }
 
     // ── HUE-TARGETED TEMPERATURE SHIFT ──────────────────────────────────
@@ -7026,13 +7234,25 @@ function applyPixelAdjustments(srcData, adj) {
     }
 
     // ── SATURATION ───────────────────────────────────────────────────────
+    // Luminosity-protected: already-saturated pixels get diminishing boost
+    // to prevent clipping. Uses additive delta capped by headroom.
     if (sat !== 0) {
       const [h2, s2, l2] = rgbToHsl(r, g, b);
-      const scaledSat = sat > 0 ? sat * 0.65 : sat;
-      const newS = Math.min(1, Math.max(0, s2 * (1 + scaledSat)));
-      if (newS !== s2) {
-        const [nr, ng, nb] = hslToRgb(h2, newS, l2);
-        r = nr; g = ng; b = nb;
+      if (sat > 0) {
+        // Protection: the more saturated a pixel already is, the less boost it gets
+        const headroom = Math.max(0, 1 - s2); // 0 if fully saturated, 1 if grey
+        const protectedSat = sat * 0.65 * (0.25 + 0.75 * headroom);
+        const newS = Math.min(1, s2 + s2 * protectedSat);
+        if (Math.abs(newS - s2) > 0.001) {
+          const [nr, ng, nb] = hslToRgb(h2, newS, l2);
+          r = nr; g = ng; b = nb;
+        }
+      } else {
+        const newS = Math.min(1, Math.max(0, s2 * (1 + sat)));
+        if (Math.abs(newS - s2) > 0.001) {
+          const [nr, ng, nb] = hslToRgb(h2, newS, l2);
+          r = nr; g = ng; b = nb;
+        }
       }
     }
 
@@ -7792,11 +8012,136 @@ function renderWithAdjustments(canvas, adj) {
     applyGlow(canvas, adj.glow, _origOffX, _origOffY, _origW, _origH);
   }
   if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, _origOffX, _origOffY, _origW, _origH);
+  if (adj.halationBloom) applyHalationBloom(canvas, adj.halationBloom, _origOffX, _origOffY, _origW, _origH);
+  if (adj.matteFade) applyMatteFade(canvas, adj.matteFade, _origOffX, _origOffY, _origW, _origH);
+  if (adj.scanLines) applyScanLines(canvas, adj.scanLines, _origOffX, _origOffY, _origW, _origH);
+  if (adj.chromaticAberration) applyChromaticAberration(canvas, adj.chromaticAberration.intensity || 3, _origOffX, _origOffY, _origW, _origH);
   // Vignette
   if ((adj.vignette || 0) > 0.01) {
     applyVignette(canvas, adj.vignette, _origOffX, _origOffY, _origW, _origH);
   }
-  // (STARS removed)
+}
+
+// ── CHROMATIC ABERRATION: RGB channel shift ───────────────────────────────
+function applyChromaticAberration(canvas, intensity, offX, offY, imgW, imgH) {
+  if (!intensity || intensity < 0.1) return;
+  const ctx = canvas.getContext('2d');
+  const orig = ctx.getImageData(offX, offY, imgW, imgH);
+  const src = orig.data;
+  const out = new Uint8ClampedArray(src.length);
+  const shift = Math.round(intensity); // px shift per channel
+  for (let y = 0; y < imgH; y++) {
+    for (let x = 0; x < imgW; x++) {
+      const i = (y * imgW + x) * 4;
+      // Red channel: shift right
+      const rx = Math.min(imgW - 1, x + shift);
+      const ri = (y * imgW + rx) * 4;
+      // Green channel: centered
+      // Blue channel: shift left
+      const bx = Math.max(0, x - shift);
+      const bi = (y * imgW + bx) * 4;
+      out[i]   = src[ri];     // R from shifted-right
+      out[i+1] = src[i+1];   // G centered
+      out[i+2] = src[bi+2];  // B from shifted-left
+      out[i+3] = src[i+3];
+    }
+  }
+  ctx.putImageData(new ImageData(out, imgW, imgH), offX, offY);
+}
+
+// ── HALATION BLOOM: light bleed from highlights into surrounding darks ────
+function applyHalationBloom(canvas, params, offX, offY, imgW, imgH) {
+  if (!params || !params.intensity || params.intensity < 0.01) return;
+  const ctx = canvas.getContext('2d');
+  const orig = ctx.getImageData(offX, offY, imgW, imgH);
+  const src = orig.data;
+  const threshold = (params.threshold || 0.75) * 255;
+  const radius = Math.round((params.radius || 12) * (imgW / 400));
+  const intensity = params.intensity || 0.4;
+  const hue = params.hue || 28; // degrees
+  // Convert hue to RGB tint for the bloom color
+  const hueR = Math.cos((hue - 30) * Math.PI / 180) * 0.5 + 0.5;
+  const hueG = Math.cos((hue - 120) * Math.PI / 180) * 0.3 + 0.3;
+  const hueB = Math.cos((hue - 240) * Math.PI / 180) * 0.2 + 0.1;
+  // Create bloom mask: bright pixels only
+  const bloom = new Float32Array(imgW * imgH);
+  for (let y = 0; y < imgH; y++) {
+    for (let x = 0; x < imgW; x++) {
+      const i = (y * imgW + x) * 4;
+      const lum = 0.299*src[i] + 0.587*src[i+1] + 0.114*src[i+2];
+      bloom[y * imgW + x] = lum > threshold ? (lum - threshold) / (255 - threshold) : 0;
+    }
+  }
+  // Box blur the bloom mask
+  const blurred = new Float32Array(imgW * imgH);
+  const tmp = new Float32Array(imgW * imgH);
+  for (let y = 0; y < imgH; y++) {
+    for (let x = 0; x < imgW; x++) {
+      let sum = 0, n = 0;
+      for (let kx = Math.max(0, x-radius); kx <= Math.min(imgW-1, x+radius); kx++) {
+        sum += bloom[y*imgW+kx]; n++;
+      }
+      tmp[y*imgW+x] = sum/n;
+    }
+  }
+  for (let y = 0; y < imgH; y++) {
+    for (let x = 0; x < imgW; x++) {
+      let sum = 0, n = 0;
+      for (let ky = Math.max(0, y-radius); ky <= Math.min(imgH-1, y+radius); ky++) {
+        sum += tmp[ky*imgW+x]; n++;
+      }
+      blurred[y*imgW+x] = sum/n;
+    }
+  }
+  // Composite bloom onto canvas
+  const out = ctx.getImageData(offX, offY, imgW, imgH);
+  const od = out.data;
+  for (let y = 0; y < imgH; y++) {
+    for (let x = 0; x < imgW; x++) {
+      const i = (y * imgW + x) * 4;
+      const b = blurred[y*imgW+x] * intensity;
+      if (b > 0.001) {
+        od[i]   = Math.min(255, od[i]   + b * hueR * 255);
+        od[i+1] = Math.min(255, od[i+1] + b * hueG * 255);
+        od[i+2] = Math.min(255, od[i+2] + b * hueB * 255);
+      }
+    }
+  }
+  ctx.putImageData(out, offX, offY);
+}
+
+// ── SCAN LINES: horizontal banding overlay ────────────────────────────────
+function applyScanLines(canvas, params, offX, offY, imgW, imgH) {
+  if (!params || !params.opacity || params.opacity < 0.005) return;
+  const ctx = canvas.getContext('2d');
+  const spacing = params.spacing || 2;
+  const opacity = params.opacity || 0.08;
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  ctx.fillStyle = '#000000';
+  for (let y = offY; y < offY + imgH; y += spacing * 2) {
+    ctx.fillRect(offX, y, imgW, spacing);
+  }
+  ctx.restore();
+}
+
+// ── MATTE FADE: organic highlight rolloff ─────────────────────────────────
+function applyMatteFade(canvas, params, offX, offY, imgW, imgH) {
+  if (!params || !params.lift || params.lift < 0.001) return;
+  const ctx = canvas.getContext('2d');
+  const orig = ctx.getImageData(offX, offY, imgW, imgH);
+  const od = orig.data;
+  const lift = params.lift || 0.08;       // shadow floor lift (0–0.3)
+  const rolloff = params.rolloff || 0.85; // highlight ceiling (0.7–1.0)
+  const blackFloor = lift * 255;
+  const whiteCeil  = rolloff * 255;
+  const range = whiteCeil - blackFloor;
+  for (let i = 0; i < od.length; i += 4) {
+    od[i]   = blackFloor + (od[i]   / 255) * range;
+    od[i+1] = blackFloor + (od[i+1] / 255) * range;
+    od[i+2] = blackFloor + (od[i+2] / 255) * range;
+  }
+  ctx.putImageData(orig, offX, offY);
 }
 
 function applyVignette(canvas, amount, offX, offY, imgW, imgH) {

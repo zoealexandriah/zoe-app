@@ -2112,24 +2112,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .crop-transform-icon-box.active { background:rgba(192,64,90,0.20); border-color:rgba(218,90,125,0.55); }
 .crop-transform-icon-label { font-size:7.5px; color:rgba(255,255,255,0.38); font-family:var(--mono); letter-spacing:0.09em; }
 /* Action bar */
-.crop-action-bar {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:8px 22px 10px; border-top:0.5px solid rgba(255,255,255,0.07); margin-top:4px;
-}
-.crop-action-btn {
-  background:none; border:none; color:rgba(255,255,255,0.50); font-size:20px;
-  cursor:pointer; padding:4px 6px; border-radius:8px; touch-action:manipulation;
-  line-height:1; -webkit-tap-highlight-color:transparent;
-}
-.crop-action-btn.apply { color:rgba(218,90,125,1); }
-.crop-action-label {
-  font-size:9.5px; letter-spacing:0.22em; color:rgba(255,255,255,0.45);
-  font-family:var(--mono); font-weight:500;
-}
 /* Ratio grid */
 .crop-ratios { display:flex; justify-content:space-around; align-items:flex-end; padding:8px 8px 6px; gap:4px; }
-/* Hide outer adjust sub-nav while in crop mode so crop's own tabs show */
-#editor-view.crop-mode #ev-adjust-subnav { display:none !important; }
 /* Hide TOOLS header and tool-row buttons during crop — keep et-tool-controls visible */
 #editor-view.crop-mode .et-section-header,
 #editor-view.crop-mode .et-tool-row { display:none !important; }
@@ -2956,8 +2940,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
   /* In ADJUST mode keep toolbar visible */
   #editor-view.adjust-open #ev-toolbar { display: flex !important; }
-  /* In CROP mode hide toolbar — bottom ✕/✓ are the only exit controls */
-  #editor-view.crop-mode #ev-toolbar { display: none !important; }
+  /* In CROP mode keep toolbar visible — users navigate back via ADJUST sub-nav tabs */
   /* Hide bottomnav + collapse its grid row — gives full-screen canvas height (only when image is loaded) */
   body:has(#editor-view.active:not(.no-image)) .bottomnav { display: none !important; }
   body:has(#editor-view.active:not(.no-image)) .app { grid-template-rows: 0px 1fr 0px !important; }
@@ -6034,17 +6017,13 @@ function evAdjustSubTab(name) {
   // is open so sliders are visible. evMobileNavToggle adds suite.open; tapping
   // sub-nav tabs directly bypasses that, so we add it here.
   if (name !== 'crop') {
-    if (typeof _cropExitMode === 'function') _cropExitMode();
+    _cropApplySilent = true;
+    if (typeof toolsCropApply === 'function') toolsCropApply();
+    _cropApplySilent = false;
     var _suite = document.getElementById('ev-editor-suite');
     if (_suite) _suite.classList.add('open');
-    // Hide the primary mobile nav (ATMOSPHERE/ADJUST/EFFECTS) — same as evMobileNavToggle('adjust').
-    // Without this, both navs are visible at once and collapse the slider panel space.
     var _mnav = document.getElementById('ev-mobile-nav');
     if (_mnav) _mnav.classList.add('ev-mnav-hidden');
-    var _ov = document.getElementById('crop-overlay-canvas');
-    if (_ov) _ov.remove();
-    if (typeof cropRect !== 'undefined') cropRect = null;
-    if (typeof cropDragging !== 'undefined') cropDragging = null;
   }
   // Auto-select the specific tool so only crop OR flip controls show
   if (name === 'crop' || name === 'flip') {
@@ -10404,11 +10383,6 @@ function etCropHTML() {
         </div>
       </div>
     </div>
-    <div class="crop-action-bar" id="crop-action-bar">
-      <button class="crop-action-btn" onclick="toolsCropCancel()">✕</button>
-      <span class="crop-action-label">CROP</span>
-      <button class="crop-action-btn apply" onclick="toolsCropApply()">✓</button>
-    </div>
   </div>`;
 }
 
@@ -12924,6 +12898,7 @@ window.toolsCropApply = function() {
   var scaleX = src.width  / hc.width;
   var scaleY = src.height / hc.height;
   function _finish(srcCanvas, toast) {
+    var _silent = _cropApplySilent;
     var newImg = new Image();
     newImg.onload = function() {
       // Save pre-crop state for reset — only the FIRST apply so reset always goes back to original
@@ -12951,7 +12926,7 @@ window.toolsCropApply = function() {
       var ev = document.getElementById('editor-view');
       if (ev && ev.classList.contains('active')) { if (typeof evRenderCanvas === 'function') evRenderCanvas(); }
       else { loadImageToCanvas(hc, newImg); }
-      showToast(toast);
+      if (!_silent && toast) showToast(toast);
     };
     newImg.src = srcCanvas.toDataURL();
   }
@@ -12978,6 +12953,7 @@ window.toolsCropApply = function() {
   toolsCropCancel();
 };
 
+var _cropApplySilent = false;
 // Patch toolsCropCancel — restore pre-ratio-crop image on ✕, clean up and exit
 var _ratioPreCropUserImage = null;
 var _origToolsCropCancelFinal = window.toolsCropCancel;

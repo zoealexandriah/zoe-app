@@ -9257,12 +9257,11 @@ function toolsCropSetRatio(r) {
     // Initialize crop box if not yet drawn
     const hc = document.getElementById('hero-canvas');
     if (hc && userImage) {
-      const margin = 0.1;
-      let bw = hc.width * (1 - 2*margin), bh = hc.height * (1 - 2*margin);
+      let bw = hc.width, bh = hc.height;
       if (r !== 'FREEFORM') {
         const [rw, rh] = r.split(':').map(Number);
         bh = bw * rh / rw;
-        if (bh > hc.height * (1 - 2*margin)) { bh = hc.height * (1 - 2*margin); bw = bh * rw / rh; }
+        if (bh > hc.height) { bh = hc.height; bw = bh * rw / rh; }
       }
       cropRect = { x: (hc.width-bw)/2, y: (hc.height-bh)/2, w: bw, h: bh };
       toolsCropDraw();
@@ -9277,7 +9276,7 @@ function toolsCropDraw() {
   if (!ov) {
     ov = document.createElement('canvas');
     ov.id = 'crop-overlay-canvas';
-    ov.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:crosshair;z-index:5';
+    ov.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:crosshair;z-index:5;touch-action:none';
     hc.parentElement.appendChild(ov);
   }
   // Match canvas display size and position within parent
@@ -9291,13 +9290,12 @@ function toolsCropDraw() {
   ov.style.top    = (hcRect.top  - hcPRect.top)  + 'px';
 
   if (!cropRect) {
-    // Default: 80% of canvas, centered, respecting current ratio
-    const margin = 0.1;
-    let bw = hc.width * 0.8, bh = hc.height * 0.8;
+    // Default: full canvas, respecting current ratio
+    let bw = hc.width, bh = hc.height;
     if (toolsCropRatio !== 'FREEFORM') {
       const [rw, rh] = toolsCropRatio.split(':').map(Number);
       bh = bw * rh / rw;
-      if (bh > hc.height * 0.8) { bh = hc.height * 0.8; bw = bh * rw / rh; }
+      if (bh > hc.height) { bh = hc.height; bw = bh * rw / rh; }
     }
     cropRect = { x: (hc.width-bw)/2, y: (hc.height-bh)/2, w: bw, h: bh };
   }
@@ -9396,6 +9394,68 @@ function toolsCropBindDrag(ov, hc) {
   };
   ov.onmouseup    = () => { cropDragging = null };
   ov.onmouseleave = () => { cropDragging = null };
+
+  // Touch: single finger = pan, two fingers = pinch-to-zoom
+  let _ctPinch = null;
+  ov.ontouchstart = (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      const r = ov.getBoundingClientRect();
+      const mx = (t.clientX - r.left) * (ov.width / r.width);
+      const my = (t.clientY - r.top)  * (ov.height / r.height);
+      cropDragging = { type:'move', sx:mx, sy:my, sr:{...cropRect} };
+      _ctPinch = null;
+    } else if (e.touches.length === 2) {
+      const t1 = e.touches[0], t2 = e.touches[1];
+      _ctPinch = { dist: Math.hypot(t2.clientX-t1.clientX, t2.clientY-t1.clientY), rect:{...cropRect} };
+      cropDragging = null;
+    }
+  };
+  ov.ontouchmove = (e) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && cropDragging && cropDragging.type === 'move') {
+      const t = e.touches[0];
+      const r = ov.getBoundingClientRect();
+      const mx = (t.clientX - r.left) * (ov.width / r.width);
+      const my = (t.clientY - r.top)  * (ov.height / r.height);
+      cropRect.x = Math.max(0, Math.min(hc.width  - cropRect.w, cropDragging.sr.x + (mx - cropDragging.sx)));
+      cropRect.y = Math.max(0, Math.min(hc.height - cropRect.h, cropDragging.sr.y + (my - cropDragging.sy)));
+      toolsCropDrawRect(ov);
+    } else if (e.touches.length === 2 && _ctPinch) {
+      const t1 = e.touches[0], t2 = e.touches[1];
+      const dist = Math.hypot(t2.clientX-t1.clientX, t2.clientY-t1.clientY);
+      const scale = dist / _ctPinch.dist;
+      const sr = _ctPinch.rect;
+      const cx = sr.x + sr.w / 2, cy = sr.y + sr.h / 2;
+      let nw = Math.min(hc.width,  Math.max(40, sr.w * scale));
+      let nh = Math.min(hc.height, Math.max(40, sr.h * scale));
+      if (toolsCropRatio !== 'FREEFORM') {
+        const [rw, rh] = toolsCropRatio.split(':').map(Number);
+        nh = nw * rh / rw;
+        if (nh > hc.height) { nh = hc.height; nw = nh * rw / rh; }
+        nw = Math.min(nw, hc.width);
+      }
+      cropRect = {
+        x: Math.max(0, Math.min(hc.width  - nw, cx - nw/2)),
+        y: Math.max(0, Math.min(hc.height - nh, cy - nh/2)),
+        w: nw, h: nh
+      };
+      toolsCropDrawRect(ov);
+    }
+  };
+  ov.ontouchend = (e) => {
+    e.preventDefault();
+    if (e.touches.length === 0) { cropDragging = null; _ctPinch = null; }
+    else if (e.touches.length === 1 && _ctPinch) {
+      _ctPinch = null;
+      const t = e.touches[0];
+      const r = ov.getBoundingClientRect();
+      const mx = (t.clientX - r.left) * (ov.width / r.width);
+      const my = (t.clientY - r.top)  * (ov.height / r.height);
+      cropDragging = { type:'move', sx:mx, sy:my, sr:{...cropRect} };
+    }
+  };
 }
 
 let _preCropState = null; // saved before crop apply so reset can restore it
@@ -12271,8 +12331,7 @@ function toolsCropDrawOnCanvas(hc) {
   ov.style.left   = (hcRect.left - hcPRect2.left) + 'px';
   ov.style.top    = (hcRect.top  - hcPRect2.top)  + 'px';
   if (!cropRect) {
-    const bw = hc.width * 0.8, bh = hc.height * 0.8;
-    cropRect = { x: (hc.width-bw)/2, y: (hc.height-bh)/2, w: bw, h: bh };
+    cropRect = { x: 0, y: 0, w: hc.width, h: hc.height };
   }
   toolsCropDrawRect(ov);
   toolsCropBindDrag(ov, hc);
@@ -12984,8 +13043,7 @@ function cropSelectSubTab(btn, tab) {
       _ov2.style.top    = (_acRect.top  - _parRect.top)  + 'px';
       if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
           || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
-        var _bw = ac.width * 0.8, _bh = ac.height * 0.8;
-        cropRect = { x: (ac.width - _bw) / 2, y: (ac.height - _bh) / 2, w: _bw, h: _bh };
+        cropRect = { x: 0, y: 0, w: ac.width, h: ac.height };
       }
       if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(_ov2);
       _ov2.style.display = 'block';

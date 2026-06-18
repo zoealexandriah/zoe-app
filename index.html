@@ -12849,8 +12849,22 @@ window.toolsCropSetRatio = function(r) {
   });
   if (r === 'FREEFORM') {
     cropRect = null;
+    if (typeof _ratioPreCropUserImage !== 'undefined' && _ratioPreCropUserImage) {
+      userImage = _ratioPreCropUserImage;
+      _ratioPreCropUserImage = null;
+      if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
+      if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = 0;
+      var _rsl = document.getElementById('crop-straighten-slider'); if (_rsl) _rsl.value = 0;
+      var _rvl = document.getElementById('crop-straighten-val'); if (_rvl) _rvl.textContent = '0.00';
+      var _rsw = document.getElementById('crop-straighten-work'); if (_rsw) _rsw.remove();
+      var _rac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+      if (_rac) _rac.style.opacity = '';
+      var _rev = document.getElementById('editor-view');
+      if (_rev && _rev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
+      else if (_rac && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac, userImage);
+    }
     var _fov = document.getElementById('crop-overlay-canvas');
-    if (_fov) { _fov.style.display = 'none'; }
+    if (_fov) _fov.style.display = 'none';
   } else {
     var pts = r.split(':').map(Number);
     var newW = ac.width, newH = ac.width * pts[1] / pts[0];
@@ -12952,14 +12966,78 @@ window.toolsCropApply = function() {
   toolsCropCancel();
 };
 
-// Patch toolsCropCancel — clean up work canvases and exit crop-mode
+// Patch toolsCropCancel — restore pre-ratio-crop image on ✕, clean up and exit
+var _ratioPreCropUserImage = null;
 var _origToolsCropCancelFinal = window.toolsCropCancel;
 window.toolsCropCancel = function() {
+  if (_ratioPreCropUserImage) {
+    userImage = _ratioPreCropUserImage;
+    _ratioPreCropUserImage = null;
+    var _cac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+    var _cev = document.getElementById('editor-view');
+    if (_cev && _cev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
+    else if (_cac && typeof loadImageToCanvas === 'function') loadImageToCanvas(_cac, userImage);
+  }
   _cropExitMode();
   if (_origToolsCropCancelFinal) _origToolsCropCancelFinal();
 };
 
+// Bake the ratio crop into the working canvas without exiting crop mode
+function _cropApplyRatioInPlace() {
+  if (!cropRect || typeof toolsCropRatio === 'undefined' || toolsCropRatio === 'FREEFORM') return;
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+  if (!ac) return;
+  var sc = document.getElementById('crop-straighten-work');
+  var src = ac;
+  if (sc && sc.width > 0 && sc.height > 0) {
+    if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig && Math.abs(_cropStraightenVal) > 0.001) {
+      var _cc = document.createElement('canvas');
+      _cc.width = sc.width; _cc.height = sc.height;
+      var _ctx = _cc.getContext('2d');
+      var _rad = _cropStraightenVal * Math.PI / 180;
+      var _absR = Math.abs(_rad), _cosR = Math.cos(_absR), _sinR = Math.sin(_absR);
+      var _cos2R = Math.cos(2 * _absR);
+      var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
+      var _s1 = sc.width  * _cos2R / Math.max(0.001, _iw * _cosR - _ih * _sinR);
+      var _s2 = sc.height * _cos2R / Math.max(0.001, _ih * _cosR - _iw * _sinR);
+      var _s  = Math.max(_s1, _s2, Math.max(sc.width / _iw, sc.height / _ih));
+      _ctx.save();
+      _ctx.translate(sc.width / 2, sc.height / 2);
+      _ctx.rotate(_rad);
+      _ctx.drawImage(_cropStraightenOrig, -_iw * _s / 2, -_ih * _s / 2, _iw * _s, _ih * _s);
+      _ctx.restore();
+      src = _cc;
+    } else { src = sc; }
+  }
+  var scaleX = src.width / ac.width, scaleY = src.height / ac.height;
+  var tmp = document.createElement('canvas');
+  tmp.width  = Math.round(cropRect.w);
+  tmp.height = Math.round(cropRect.h);
+  tmp.getContext('2d').drawImage(src,
+    cropRect.x * scaleX, cropRect.y * scaleY,
+    cropRect.w * scaleX, cropRect.h * scaleY,
+    0, 0, tmp.width, tmp.height);
+  var newImg = new Image();
+  newImg.onload = function() {
+    if (!_ratioPreCropUserImage) _ratioPreCropUserImage = userImage;
+    if (!_preCropState) _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH };
+    userImage = newImg;
+    _cropStraightenOrig = newImg;
+    _cropStraightenVal = 0;
+    var _sl = document.getElementById('crop-straighten-slider'); if (_sl) _sl.value = 0;
+    var _vl = document.getElementById('crop-straighten-val'); if (_vl) _vl.textContent = '0.00';
+    if (sc) { sc.remove(); ac.style.opacity = ''; }
+    cropRect = null;
+    var ov2 = document.getElementById('crop-overlay-canvas'); if (ov2) ov2.style.display = 'none';
+    var ev = document.getElementById('editor-view');
+    if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
+    else if (typeof loadImageToCanvas === 'function') loadImageToCanvas(ac, newImg);
+  };
+  newImg.src = tmp.toDataURL();
+}
+
 function _cropExitMode() {
+  _ratioPreCropUserImage = null;
   var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
   var _pw = document.getElementById('crop-perspective-work'); if (_pw) _pw.remove();
   if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
@@ -12986,10 +13064,8 @@ function cropSelectSubTab(btn, tab) {
   document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
   var ov = document.getElementById('crop-overlay-canvas');
-  if (tab !== 'ratio' && ov && cropRect && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM') {
-    // Keep overlay visible as a passive indicator when a ratio crop is active
-    ov.style.pointerEvents = 'none';
-    ov.style.display = 'block';
+  if (tab !== 'ratio' && cropRect && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM') {
+    _cropApplyRatioInPlace();
   } else if (ov) {
     ov.style.display = 'none';
   }

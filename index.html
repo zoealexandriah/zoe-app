@@ -10550,8 +10550,13 @@ function globalReset() {
   _straightenOrigImage = null;
   _flipPreState = null;
   _etPerspOrig = null; _etPerspOrigDataURL = null; _etPerspOrigImg = null;
-  // Remove straighten work canvas and restore opacity
-  var _rstSc = document.getElementById('straighten-work-canvas');
+  // Cancel any pending straighten rAF before removing canvas (prevents re-creation after reset)
+  if (typeof _cropStraightenRafId !== 'undefined' && _cropStraightenRafId) {
+    cancelAnimationFrame(_cropStraightenRafId); _cropStraightenRafId = null;
+  }
+  if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
+  // Remove all crop/straighten/perspective work canvases
+  var _rstSc = document.getElementById('crop-straighten-work');
   if (_rstSc) _rstSc.remove();
   var _rstPw = document.getElementById('crop-perspective-work');
   if (_rstPw) _rstPw.remove();

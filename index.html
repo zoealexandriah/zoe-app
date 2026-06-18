@@ -2956,6 +2956,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
   /* In ADJUST mode keep toolbar visible */
   #editor-view.adjust-open #ev-toolbar { display: flex !important; }
+  /* In CROP mode hide toolbar — bottom ✕/✓ are the only exit controls */
+  #editor-view.crop-mode #ev-toolbar { display: none !important; }
   /* Hide bottomnav + collapse its grid row — gives full-screen canvas height (only when image is loaded) */
   body:has(#editor-view.active:not(.no-image)) .bottomnav { display: none !important; }
   body:has(#editor-view.active:not(.no-image)) .app { grid-template-rows: 0px 1fr 0px !important; }
@@ -10300,8 +10302,7 @@ function etCropHTML() {
       </div>
       <input type="range" class="tc-range" id="crop-straighten-slider"
              min="-45" max="45" step="0.1" value="0"
-             oninput="cropStraightenPreview(this.value)"
-             onchange="cropStraightenAutoApply()">
+             oninput="cropStraightenPreview(this.value)">
     </div>
     <div class="crop-sub-content" id="crop-sub-ratio" style="display:${_st==='ratio'?'block':'none'};padding-left:4px;padding-right:4px">
       <div class="crop-ratios">${ratioBtns}</div>
@@ -10348,7 +10349,7 @@ function etCropHTML() {
         </div>
       </div>
     </div>
-    <div class="crop-action-bar" id="crop-action-bar" style="${_st==='ratio'?'':'display:none'}">
+    <div class="crop-action-bar" id="crop-action-bar">
       <button class="crop-action-btn" onclick="toolsCropCancel()">✕</button>
       <span class="crop-action-label">CROP</span>
       <button class="crop-action-btn apply" onclick="toolsCropApply()">✓</button>
@@ -12957,8 +12958,6 @@ function cropSelectSubTab(btn, tab) {
     var el = document.getElementById('crop-sub-' + id);
     if (el) el.style.display = id === tab ? '' : 'none';
   });
-  var _cab = document.getElementById('crop-action-bar');
-  if (_cab) _cab.style.display = tab === 'ratio' ? '' : 'none';
   if (tab === 'ratio') {
     // Use RAF so panel reflow settles before measuring positions.
     // Always use getActiveCanvas() — never hardcode hero-canvas (wrong in editor view).

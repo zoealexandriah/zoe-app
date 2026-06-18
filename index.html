@@ -9234,20 +9234,15 @@ function toolsCropSetRatio(r) {
   if (cropRect) {
     const hc = document.getElementById('hero-canvas');
     if (hc) {
-      if (r === 'FREEFORM') {
-        // No change to dimensions in freeform
-      } else {
+      if (r !== 'FREEFORM') {
+        // Always fit against the full canvas so switching ratios never shrinks
         const [rw, rh] = r.split(':').map(Number);
-        // Fit within current cropRect maintaining center
-        const cx = cropRect.x + cropRect.w / 2;
-        const cy = cropRect.y + cropRect.h / 2;
-        let newW = cropRect.w, newH = cropRect.w * rh / rw;
-        if (newH > cropRect.h) { newH = cropRect.h; newW = cropRect.h * rw / rh; }
+        let newW = hc.width, newH = hc.width * rh / rw;
+        if (newH > hc.height) { newH = hc.height; newW = hc.height * rw / rh; }
         cropRect = {
-          x: Math.max(0, cx - newW/2),
-          y: Math.max(0, cy - newH/2),
-          w: Math.min(newW, hc.width),
-          h: Math.min(newH, hc.height)
+          x: (hc.width  - newW) / 2,
+          y: (hc.height - newH) / 2,
+          w: newW, h: newH
         };
       }
       const ov = document.getElementById('crop-overlay-canvas');

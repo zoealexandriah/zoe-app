@@ -12317,6 +12317,57 @@ function toolsCropDrawOnCanvas(hc) {
   ov.style.display = 'none';
 }
 
+// Bake any pending crop/straighten/transform into userImage synchronously before saving
+function _bakePendingCropForSave() {
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+  if (!ac) return;
+  var sc = document.getElementById('crop-straighten-work');
+  var pw = document.getElementById('crop-perspective-work');
+  var src = ac;
+  if (pw && pw.width > 0) { src = pw; }
+  else if (sc && sc.width > 0) {
+    // Rebuild clean straighten (no grid overlay) from _cropStraightenOrig
+    if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
+      var _cc = document.createElement('canvas');
+      _cc.width = sc.width; _cc.height = sc.height;
+      var _ctx = _cc.getContext('2d');
+      var _rad = _cropStraightenVal * Math.PI / 180;
+      var _absR = Math.abs(_rad), _cosR = Math.cos(_absR), _sinR = Math.sin(_absR);
+      var _cos2R = Math.cos(2 * _absR);
+      var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
+      var _s1 = sc.width  * _cos2R / Math.max(0.001, _iw * _cosR - _ih * _sinR);
+      var _s2 = sc.height * _cos2R / Math.max(0.001, _ih * _cosR - _iw * _sinR);
+      var _s  = Math.max(_s1, _s2, Math.max(sc.width / _iw, sc.height / _ih));
+      _ctx.save();
+      _ctx.translate(sc.width / 2, sc.height / 2);
+      _ctx.rotate(_rad);
+      _ctx.drawImage(_cropStraightenOrig, -_iw * _s / 2, -_ih * _s / 2, _iw * _s, _ih * _s);
+      _ctx.restore();
+      src = _cc;
+    } else { src = sc; }
+  }
+  var hasPendingCrop = typeof cropRect !== 'undefined' && cropRect && cropRect.w > 0 && cropRect.h > 0
+    && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM';
+  var out = null;
+  if (hasPendingCrop) {
+    var scaleX = src.width / ac.width, scaleY = src.height / ac.height;
+    out = document.createElement('canvas');
+    out.width  = Math.round(cropRect.w);
+    out.height = Math.round(cropRect.h);
+    out.getContext('2d').drawImage(src, cropRect.x * scaleX, cropRect.y * scaleY, cropRect.w * scaleX, cropRect.h * scaleY, 0, 0, out.width, out.height);
+  } else if (src !== ac) {
+    out = document.createElement('canvas');
+    out.width = src.width; out.height = src.height;
+    out.getContext('2d').drawImage(src, 0, 0);
+  }
+  if (out) {
+    var _newImg = new Image();
+    _newImg.src = out.toDataURL(); // data: URL — available synchronously
+    if (!_ratioPreCropUserImage) _ratioPreCropUserImage = userImage;
+    userImage = _newImg;
+  }
+}
+
 // ── Fix 2: editorBackToGallery — navigate immediately, save/thumbnail in background ──
 window.editorBackToGallery = function editorBackToGallery() {
   clearTimeout(_autoSaveTimer);
@@ -12327,8 +12378,9 @@ window.editorBackToGallery = function editorBackToGallery() {
   var _mnavI = document.getElementById('ev-mobile-nav');
   if (_strip) _strip.style.display = '';
   if (_mnavI) _mnavI.style.display = '';
-  // Exit crop mode before saving — removes crop-straighten-work canvas so it
-  // doesn't persist in the DOM and reappear when the image is reopened
+  // Bake any pending crop/straighten into userImage before saving
+  _bakePendingCropForSave();
+  // Exit crop mode cleanup
   if (typeof _cropExitMode === 'function') _cropExitMode();
   cropRect = null;
   autoSaveEdit(); // flush BEFORE clearing state — autoSaveEdit needs userImage
@@ -12382,6 +12434,7 @@ window.backToLibrary = function() {
   var _mnav2  = document.getElementById('ev-mobile-nav');
   if (_strip2) _strip2.style.display = '';
   if (_mnav2)  _mnav2.style.display  = '';
+  _bakePendingCropForSave();
   if (typeof _cropExitMode === 'function') _cropExitMode();
   cropRect = null;
   autoSaveEdit();

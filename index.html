@@ -13040,11 +13040,49 @@ window.toolsCropCancel = function() {
 };
 
 // Bake the ratio crop into the working canvas without exiting crop mode
-function _cropApplyRatioInPlace() {
+function _cropApplyRatioInPlace(keepStraighten) {
   if (!cropRect || typeof toolsCropRatio === 'undefined' || toolsCropRatio === 'FREEFORM') return;
   var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!ac) return;
   var sc = document.getElementById('crop-straighten-work');
+
+  // When switching back to STRAIGHTEN tab: bake only the ratio crop from the unrotated
+  // original so the straighten slider stays at the same value and remains functional.
+  if (keepStraighten && typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig) {
+    var _savedVal = _cropStraightenVal;
+    var _origIW = _cropStraightenOrig.naturalWidth || _cropStraightenOrig.width;
+    var _origIH = _cropStraightenOrig.naturalHeight || _cropStraightenOrig.height;
+    var _ksx = _origIW / ac.width, _ksy = _origIH / ac.height;
+    var _kTmp = document.createElement('canvas');
+    _kTmp.width  = Math.round(cropRect.w);
+    _kTmp.height = Math.round(cropRect.h);
+    _kTmp.getContext('2d').drawImage(_cropStraightenOrig,
+      cropRect.x * _ksx, cropRect.y * _ksy,
+      cropRect.w * _ksx, cropRect.h * _ksy,
+      0, 0, _kTmp.width, _kTmp.height);
+    var _kImg = new Image();
+    _kImg.onload = function() {
+      if (!_ratioPreCropUserImage) _ratioPreCropUserImage = userImage;
+      if (!_preCropState) _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH };
+      userImage = _kImg;
+      _cropStraightenOrig = _kImg;
+      // Keep _cropStraightenVal — slider stays at saved angle
+      if (sc) { sc.remove(); ac.style.opacity = ''; }
+      cropRect = null;
+      var ov2 = document.getElementById('crop-overlay-canvas'); if (ov2) ov2.style.display = 'none';
+      // Rebuild work canvas from new (cropped) unrotated origin at the saved angle
+      if (Math.abs(_savedVal) > 0.001 && typeof cropStraightenPreview === 'function') {
+        cropStraightenPreview(_savedVal);
+      } else {
+        var ev2 = document.getElementById('editor-view');
+        if (ev2 && ev2.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
+        else if (typeof loadImageToCanvas === 'function') loadImageToCanvas(ac, _kImg);
+      }
+    };
+    _kImg.src = _kTmp.toDataURL();
+    return;
+  }
+
   var src = ac;
   if (sc && sc.width > 0 && sc.height > 0) {
     if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig && Math.abs(_cropStraightenVal) > 0.001) {
@@ -13122,7 +13160,7 @@ function cropSelectSubTab(btn, tab) {
   btn.classList.add('active');
   var ov = document.getElementById('crop-overlay-canvas');
   if (tab !== 'ratio' && cropRect && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM') {
-    _cropApplyRatioInPlace();
+    _cropApplyRatioInPlace(tab === 'straighten');
   } else if (ov) {
     ov.style.display = 'none';
   }

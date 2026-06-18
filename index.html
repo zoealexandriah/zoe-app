@@ -12287,6 +12287,10 @@ function toolsCropDrawOnCanvas(hc) {
 // ── Fix 2: editorBackToGallery — navigate immediately, save/thumbnail in background ──
 window.editorBackToGallery = function editorBackToGallery() {
   clearTimeout(_autoSaveTimer);
+  // Exit crop mode before saving — removes crop-straighten-work canvas so it
+  // doesn't persist in the DOM and reappear when the image is reopened
+  if (typeof _cropExitMode === 'function') _cropExitMode();
+  cropRect = null;
   autoSaveEdit(); // flush BEFORE clearing state — autoSaveEdit needs userImage
 
   // Switch view instantly — no blocking work before this
@@ -12332,6 +12336,8 @@ window.editorBackToGallery = function editorBackToGallery() {
 const _origBackToLibrary = window.backToLibrary;
 window.backToLibrary = function() {
   clearTimeout(_autoSaveTimer);
+  if (typeof _cropExitMode === 'function') _cropExitMode();
+  cropRect = null;
   autoSaveEdit();
   var _blImg = userImage, _blIdx = editingIdx;
   if (_origBackToLibrary) _origBackToLibrary.call(this);

@@ -6043,12 +6043,6 @@ function evAdjustSubTab(name) {
     if (_ov) _ov.remove();
     if (typeof cropRect !== 'undefined') cropRect = null;
     if (typeof cropDragging !== 'undefined') cropDragging = null;
-    // Rebuild sliders if a preset is active — the no-preset else branch in evBuildSliders
-    // may have cleared them, leaving LIGHT/COLOR/DETAILS containers empty while HSL
-    // retains old content from before the clear.
-    if (typeof activePreset !== 'undefined' && activePreset && typeof evBuildSliders === 'function') {
-      evBuildSliders();
-    }
   }
   // Auto-select the specific tool so only crop OR flip controls show
   if (name === 'crop' || name === 'flip') {
@@ -11003,13 +10997,6 @@ function _evRenderCanvasImmediate() {
   // Resolve the "current edit preset" — either the applied look (activePreset) or,
   // when no look is applied, the preset whose sliders are currently shown in the DOM.
   var _evCurPreset = activePreset;
-  if (!_evCurPreset) {
-    var _evTrack = document.querySelector(
-      '#es-details-sliders .sl-track[data-preset],' +
-      '#es-color-sliders .sl-track[data-preset],' +
-      '#es-atmosphere-sliders .sl-track[data-preset]');
-    if (_evTrack) _evCurPreset = presets.find(function(x){ return x.id === _evTrack.dataset.preset; }) || null;
-  }
   if (_evCurPreset && sliderState[_evCurPreset.id] && Object.keys(sliderState[_evCurPreset.id]).length > 0) {
     var adj = buildAdjustments(_evMergeAdjState(_evCurPreset, sliderState[_evCurPreset.id]));
     if (!adj.halation && _evCurPreset.defaults && _evCurPreset.defaults.HALATION) adj.halation = _evCurPreset.defaults.HALATION;
@@ -11509,14 +11496,6 @@ function evBuildSliders() {
       var src2 = document.getElementById('editor-sliders');
       if (src2) { sc.innerHTML = src2.innerHTML; attachSliderListeners(activePreset); }
     }
-  } else {
-    // No preset selected — clear slider containers so DOM fallback in
-    // _evRenderCanvasImmediate can't find stale data-preset tracks and apply
-    // a previous preset's defaults to an unedited image
-    ['#es-details-sliders','#es-color-sliders','#es-atmosphere-sliders','#es-hsl-sliders'].forEach(function(sel) {
-      var _evClearEl = document.querySelector(sel);
-      if (_evClearEl) _evClearEl.innerHTML = '';
-    });
   }
   if (tc) {
     buildEditorToolsSection();

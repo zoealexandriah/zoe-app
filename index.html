@@ -11687,7 +11687,8 @@ function galleryOpenInEditor(idx) {
     // 3. entry.dataURL (fresh import — should still be full-res at this point)
     // Without this fallback chain, photos saved with older code (before originalDataURL
     // was stored) would re-open using entry.img (the downscaled export) → blurry editor.
-    var _origSrc = es.originalDataURL
+    var _origSrc = es.editedDataURL
+      || es.originalDataURL
       || (entry.id ? (localStorage.getItem('zoe_edit_' + entry.id + '_original') || null) : null)
       || entry.dataURL
       || null;
@@ -11968,12 +11969,20 @@ function autoSaveEdit() {
   const originalDataURL = (entry.editState && entry.editState.originalDataURL)
     ? entry.editState.originalDataURL
     : entry.dataURL;
+  // Capture post-crop/straighten base image so reopen and thumbnail stay in sync
+  var editedDataURL = null;
+  if (userImage && userImage.src && userImage.src.startsWith('data:') && userImage.src !== originalDataURL) {
+    editedDataURL = userImage.src;
+  } else if (entry.editState && entry.editState.editedDataURL) {
+    editedDataURL = entry.editState.editedDataURL;
+  }
   // Write directly to library entry so galleryOpenInEditor can restore it
   entry.editState = {
     presetId:        _asp.id,
     sliders:         JSON.parse(JSON.stringify(sliderState[_asp.id] || {})),
     intensity:       presetIntensity,
-    originalDataURL: originalDataURL
+    originalDataURL: originalDataURL,
+    editedDataURL:   editedDataURL
   };
   libSaveToStorage();
 }
@@ -12097,7 +12106,7 @@ function galleryCopyEdits(imageId) {
 function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
   const p = presets.find(x => x.id === presetId);
   if (!p) { onDone && onDone(); return; }
-  const srcURL = (entry.editState && entry.editState.originalDataURL) || entry.dataURL;
+  const srcURL = (entry.editState && (entry.editState.editedDataURL || entry.editState.originalDataURL)) || entry.dataURL;
   const src = new Image();
   src.onload = () => {
     const MAX = 800;

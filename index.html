@@ -12320,6 +12320,13 @@ function toolsCropDrawOnCanvas(hc) {
 // ── Fix 2: editorBackToGallery — navigate immediately, save/thumbnail in background ──
 window.editorBackToGallery = function editorBackToGallery() {
   clearTimeout(_autoSaveTimer);
+  // Hide intensity overlay — it's fixed on body and persists across views
+  var _intOv = document.getElementById('ev-intensity-overlay');
+  if (_intOv) { _intOv.style.display = 'none'; }
+  var _strip = document.getElementById('ev-preset-strip');
+  var _mnavI = document.getElementById('ev-mobile-nav');
+  if (_strip) _strip.style.display = '';
+  if (_mnavI) _mnavI.style.display = '';
   // Exit crop mode before saving — removes crop-straighten-work canvas so it
   // doesn't persist in the DOM and reappear when the image is reopened
   if (typeof _cropExitMode === 'function') _cropExitMode();
@@ -12369,6 +12376,12 @@ window.editorBackToGallery = function editorBackToGallery() {
 const _origBackToLibrary = window.backToLibrary;
 window.backToLibrary = function() {
   clearTimeout(_autoSaveTimer);
+  var _intOv2 = document.getElementById('ev-intensity-overlay');
+  if (_intOv2) { _intOv2.style.display = 'none'; }
+  var _strip2 = document.getElementById('ev-preset-strip');
+  var _mnav2  = document.getElementById('ev-mobile-nav');
+  if (_strip2) _strip2.style.display = '';
+  if (_mnav2)  _mnav2.style.display  = '';
   if (typeof _cropExitMode === 'function') _cropExitMode();
   cropRect = null;
   autoSaveEdit();

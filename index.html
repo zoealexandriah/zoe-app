@@ -12994,6 +12994,7 @@ function cropSelectSubTab(btn, tab) {
 var _cropStraightenOrig = null;
 var _cropStraightenRafId = null;
 var _cropStraightenVal = 0;
+var _cropStraightenPending = null;
 function cropStraightenPreview(val) {
   val = parseFloat(val);
   // Snap to zero within ±0.3°
@@ -13005,10 +13006,15 @@ function cropStraightenPreview(val) {
   var valEl = document.getElementById('crop-straighten-val');
   if (valEl) valEl.textContent = val.toFixed(2);
   if (!_cropStraightenOrig) return;
-  // rAF throttle — only paint one frame per animation tick to eliminate jumps
+  // Always store the latest value so a queued rAF uses it, not the value at schedule time.
+  // Without this, dragging back to 0 while a rAF is pending silently drops the zero.
+  _cropStraightenPending = val;
   if (_cropStraightenRafId) return;
   _cropStraightenRafId = requestAnimationFrame(function() {
     _cropStraightenRafId = null;
+    var _val = _cropStraightenPending !== null ? _cropStraightenPending : _cropStraightenVal;
+    _cropStraightenPending = null;
+    val = _val;
     var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
     if (!ac) return;
     _cropStraightenVal = val;

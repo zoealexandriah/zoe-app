@@ -6035,6 +6035,10 @@ function evAdjustSubTab(name) {
     if (typeof _cropExitMode === 'function') _cropExitMode();
     var _suite = document.getElementById('ev-editor-suite');
     if (_suite) _suite.classList.add('open');
+    // Hide the primary mobile nav (ATMOSPHERE/ADJUST/EFFECTS) — same as evMobileNavToggle('adjust').
+    // Without this, both navs are visible at once and collapse the slider panel space.
+    var _mnav = document.getElementById('ev-mobile-nav');
+    if (_mnav) _mnav.classList.add('ev-mnav-hidden');
     var _ov = document.getElementById('crop-overlay-canvas');
     if (_ov) _ov.remove();
     if (typeof cropRect !== 'undefined') cropRect = null;

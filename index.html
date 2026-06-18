@@ -10514,29 +10514,25 @@ window.globalRedo = function() {
 function globalReset() {
   var _evViewR = document.getElementById('editor-view');
   var _evOpenR = _evViewR && _evViewR.classList.contains('active');
-  if (!userImage || !activePreset) { showToast('NOTHING TO RESET'); return; }
+  if (!userImage) { showToast('NOTHING TO RESET'); return; }
+  var _hasAnyEdits = activePreset ||
+    Object.keys(sliderState).some(function(k){ return Object.keys(sliderState[k]).length > 0; }) ||
+    !!_preCropState || Math.abs(toolsStraightenVal) > 0.01 || Math.abs(_etPerspVVal) > 0.01 || Math.abs(_etPerspHVal) > 0.01;
+  if (!_hasAnyEdits) { showToast('NOTHING TO RESET'); return; }
   const hc = document.getElementById('hero-canvas');
   // Push current state to history (reset is undoable)
   if (hc && activePreset) fix2HistoryPush(activePreset.id);
 
-  // Cancel any pending render that was queued before this reset — without this,
-  // the stale rAF fires after activePreset is nulled and the doRender monkey-patch
-  // silently re-enables the preset, making the image look still-edited.
+  // Cancel any pending render that was queued before this reset
   if (typeof renderTimer !== 'undefined' && renderTimer) {
     cancelAnimationFrame(renderTimer); renderTimer = null;
   }
   if (typeof _renderPid !== 'undefined') _renderPid = null;
   _evRenderScheduled = false;
 
-  // Zero ALL sliders across ALL presets to neutral
-  // Bipolar (neutral=true)  → 0.5 (maps to +0.00)
-  // Unipolar (neutral=false) → 0.0 (maps to 0, no effect)
-  Object.keys(sliderState).forEach(function(pid) {
-    Object.keys(sliderState[pid]).forEach(function(k) {
-      var cfg = sliderConfig[k];
-      sliderState[pid][k] = (cfg && cfg[3] === false) ? 0.0 : 0.5;
-    });
-  });
+  // Clear ALL slider state — emptying (not just neutralizing) prevents _evRenderCanvasImmediate
+  // from picking up preset defaults via the DOM fallback after activePreset is set to null.
+  Object.keys(sliderState).forEach(function(pid) { sliderState[pid] = {}; });
 
   // Clear crop overlay, straighten, flip, perspective
   const cropOv = document.getElementById('crop-overlay-canvas');
@@ -10842,12 +10838,16 @@ function _evDoSave() {
       }
     }
     ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
-    if (p.curve)                      applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
-    if ((adj.sharpen  || 0) > 0.01)   applySharpness(off, adj.sharpen,  0, 0, iw, ih);
-    if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, iw, ih);
-    if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, iw, ih);
-    if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
-    if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, iw, ih);
+    if (p.curve)                            applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
+    if ((adj.sharpen  || 0) > 0.01)         applySharpness(off, adj.sharpen,  0, 0, iw, ih);
+    if ((adj.blur     || 0) > 0.01)         applyBlur(off,     adj.blur,      0, 0, iw, ih);
+    if ((adj.glow     || 0) > 0.01)         applyGlow(off,     adj.glow,      0, 0, iw, ih);
+    if ((adj.halation || 0) > 0.01)         applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
+    if (adj.halationBloom)                  applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
+    if (adj.matteFade)                      applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
+    if (adj.scanLines)                      applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
+    if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
+    if ((adj.vignette || 0) > 0.01)         applyVignette(off, adj.vignette, 0, 0, iw, ih);
   }
   var d  = new Date();
   var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
@@ -11645,17 +11645,18 @@ function galleryOpenInEditor(idx) {
       origImg.onload = function() {
         userImage = origImg;
         if (typeof evRenderCanvas === 'function') evRenderCanvas();
-        evRenderPresets();
         // Push clean state into history so undo goes back to no-preset (original)
         evHistory.push({ presetId: null, sliders: {}, intensity: 1.0 });
         if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+        // Defer preset strip rendering — lets the editor appear instantly
+        setTimeout(function() { evRenderPresets(); }, 60);
       };
       origImg.src = _origSrc;
     } else {
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
-      evRenderPresets();
       evHistory.push({ presetId: null, sliders: {}, intensity: 1.0 });
       if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+      setTimeout(function() { evRenderPresets(); }, 60);
     }
   }
 }
@@ -11723,16 +11724,7 @@ window.toggleSelect = function(idx) {
 
 // ── Fix 5: Batch DELETE ───────────────────────────────────────────────────
 function galleryBatchDeleteConfirm() {
-  if (libSelected.length === 0) return;
-  const conf = document.getElementById('gallery-delete-confirm');
-  if (!conf) return;
-  if (conf.style.display === 'none' || !conf.style.display) {
-    conf.textContent = '_ DELETE ' + libSelected.length + ' PHOTO' + (libSelected.length===1?'':'S') + '? CLICK AGAIN TO CONFIRM';
-    conf.style.display = 'inline';
-    conf.onclick = galleryBatchDelete;
-  } else {
-    galleryBatchDelete();
-  }
+  galleryBatchDelete();
 }
 
 function galleryBatchDelete() {
@@ -12014,6 +12006,10 @@ function evSaveAndReturn() {
       if ((adj.blur     || 0) > 0.01) applyBlur(off,  adj.blur,      0, 0, iw, ih);
       if ((adj.glow     || 0) > 0.01) applyGlow(off,  adj.glow,      0, 0, iw, ih);
       if ((adj.halation || 0) > 0.01) applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
+      if (adj.halationBloom)           applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
+      if (adj.matteFade)               applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
+      if (adj.scanLines)               applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
+      if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
     }
     var dataURL = off.toDataURL('image/jpeg', 0.93);
@@ -12083,6 +12079,10 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
     if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, w, h);
     if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, w, h);
     if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, w, h);
+    if (adj.halationBloom)             applyHalationBloom(off, adj.halationBloom, 0, 0, w, h);
+    if (adj.matteFade)                 applyMatteFade(off, adj.matteFade, 0, 0, w, h);
+    if (adj.scanLines)                 applyScanLines(off, adj.scanLines, 0, 0, w, h);
+    if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, w, h);
     if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
     entry.dataURL = off.toDataURL('image/jpeg', 0.90);
     const img = new Image();
@@ -12162,12 +12162,16 @@ function _exportEntry(entry, onDone) {
         }
       }
       ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
-      if (p.curve)                      applyCurveLUTs(off, p.curve,      0, 0, iw, ih);
-      if ((adj.sharpen  || 0) > 0.01)   applySharpness(off, adj.sharpen,  0, 0, iw, ih);
-      if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, iw, ih);
-      if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, iw, ih);
-      if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
-      if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, iw, ih);
+      if (p.curve)                            applyCurveLUTs(off, p.curve,      0, 0, iw, ih);
+      if ((adj.sharpen  || 0) > 0.01)         applySharpness(off, adj.sharpen,  0, 0, iw, ih);
+      if ((adj.blur     || 0) > 0.01)         applyBlur(off,     adj.blur,      0, 0, iw, ih);
+      if ((adj.glow     || 0) > 0.01)         applyGlow(off,     adj.glow,      0, 0, iw, ih);
+      if ((adj.halation || 0) > 0.01)         applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
+      if (adj.halationBloom)                  applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
+      if (adj.matteFade)                      applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
+      if (adj.scanLines)                      applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
+      if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
+      if ((adj.vignette || 0) > 0.01)         applyVignette(off, adj.vignette, 0, 0, iw, ih);
     }
     const a = document.createElement('a');
     a.download = name + '.jpg';
@@ -12324,12 +12328,22 @@ window.editorBackToGallery = function editorBackToGallery() {
   }, 80);
 };
 
-// Patch backToLibrary (← GALLERY hero button) to save before resetting state
+// Patch backToLibrary (← GALLERY hero button) to save + render thumbnail before resetting state
 const _origBackToLibrary = window.backToLibrary;
 window.backToLibrary = function() {
   clearTimeout(_autoSaveTimer);
   autoSaveEdit();
+  var _blImg = userImage, _blIdx = editingIdx;
   if (_origBackToLibrary) _origBackToLibrary.call(this);
+  setTimeout(function() {
+    var _blEntry = (_blIdx >= 0) ? library[_blIdx] : null;
+    if (_blEntry && _blEntry.editState && _blEntry.editState.presetId && _blImg) {
+      _renderBatchThumbnail(_blEntry, _blEntry.editState.presetId, _blEntry.editState.sliders, _blEntry.editState.intensity, function() {
+        libSaveToStorage();
+        renderLibrary();
+      });
+    }
+  }, 80);
 };
 
 // Patch switchToTab to save before switching, refresh gallery on arrival
@@ -12803,7 +12817,31 @@ window.toolsCropApply = function() {
   if (!hc) { toolsCropCancel(); return; }
   // Use work canvas as pixel source if present and valid; otherwise fall back to ev-canvas
   var sc = document.getElementById('crop-straighten-work');
-  var src = (sc && sc.width > 0 && sc.height > 0) ? sc : hc;
+  var src = hc;
+  if (sc && sc.width > 0 && sc.height > 0) {
+    // Rebuild a clean source from _cropStraightenOrig — without the rule-of-thirds grid overlay
+    // that was drawn on the work canvas for UX purposes. Baking the grid would make it permanent.
+    if (_cropStraightenOrig && Math.abs(_cropStraightenVal) > 0.001) {
+      var _cleanC = document.createElement('canvas');
+      _cleanC.width = sc.width; _cleanC.height = sc.height;
+      var _cleanCtx = _cleanC.getContext('2d');
+      var _rad = _cropStraightenVal * Math.PI / 180;
+      var _absR = Math.abs(_rad), _cosR = Math.cos(_absR), _sinR = Math.sin(_absR);
+      var _cos2R = Math.cos(2 * _absR);
+      var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
+      var _s1 = sc.width  * _cos2R / Math.max(0.001, _iw * _cosR - _ih * _sinR);
+      var _s2 = sc.height * _cos2R / Math.max(0.001, _ih * _cosR - _iw * _sinR);
+      var _s  = Math.max(_s1, _s2, Math.max(sc.width / _iw, sc.height / _ih));
+      _cleanCtx.save();
+      _cleanCtx.translate(sc.width / 2, sc.height / 2);
+      _cleanCtx.rotate(_rad);
+      _cleanCtx.drawImage(_cropStraightenOrig, -_iw * _s / 2, -_ih * _s / 2, _iw * _s, _ih * _s);
+      _cleanCtx.restore();
+      src = _cleanC;
+    } else {
+      src = sc;
+    }
+  }
   var scaleX = src.width  / hc.width;
   var scaleY = src.height / hc.height;
   function _finish(srcCanvas, toast) {
@@ -12858,7 +12896,14 @@ window.toolsCropCancel = function() {
 
 function _cropExitMode() {
   var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
+  var _pw = document.getElementById('crop-perspective-work'); if (_pw) _pw.remove();
   if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
+  if (typeof _cropStraightenRafId !== 'undefined' && _cropStraightenRafId) {
+    cancelAnimationFrame(_cropStraightenRafId); _cropStraightenRafId = null;
+  }
+  // Restore hero-canvas visibility in case straighten/perspective hid it
+  var _hcExit = document.getElementById('hero-canvas');
+  if (_hcExit) _hcExit.style.opacity = '';
   var edV = document.getElementById('editor-view');
   if (edV) {
     edV.classList.remove('crop-mode');
@@ -12936,6 +12981,7 @@ function cropSelectSubTab(btn, tab) {
 
 var _cropStraightenOrig = null;
 var _cropStraightenRafId = null;
+var _cropStraightenVal = 0;
 function cropStraightenPreview(val) {
   val = parseFloat(val);
   // Snap to zero within ±0.3°
@@ -12953,8 +12999,10 @@ function cropStraightenPreview(val) {
     _cropStraightenRafId = null;
     var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
     if (!ac) return;
+    _cropStraightenVal = val;
     // At 0°: remove work canvas, restore underlying canvas
     if (val === 0) {
+      _cropStraightenVal = 0;
       var _sc0 = document.getElementById('crop-straighten-work');
       if (_sc0) _sc0.remove();
       ac.style.opacity = '';

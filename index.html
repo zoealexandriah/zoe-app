@@ -6017,9 +6017,13 @@ function evAdjustSubTab(name) {
   // is open so sliders are visible. evMobileNavToggle adds suite.open; tapping
   // sub-nav tabs directly bypasses that, so we add it here.
   if (name !== 'crop') {
-    _cropApplySilent = true;
-    if (typeof toolsCropApply === 'function') toolsCropApply();
-    _cropApplySilent = false;
+    // Only auto-apply crop when actually leaving crop mode
+    var _edV2 = document.getElementById('editor-view');
+    if (_edV2 && _edV2.classList.contains('crop-mode')) {
+      _cropApplySilent = true;
+      if (typeof toolsCropApply === 'function') toolsCropApply();
+      _cropApplySilent = false;
+    }
     var _suite = document.getElementById('ev-editor-suite');
     if (_suite) _suite.classList.add('open');
     var _mnav = document.getElementById('ev-mobile-nav');
@@ -6037,7 +6041,7 @@ function evAdjustSubnavBack() {
   var suite  = document.getElementById('ev-editor-suite');
   var edView = document.getElementById('editor-view');
   if (subnav) subnav.style.display = 'none';
-  if (mnav)   mnav.classList.remove('ev-mnav-hidden');
+  if (mnav) { mnav.classList.remove('ev-mnav-hidden'); mnav.style.display = ''; }
   if (suite)  suite.classList.remove('open');
   if (edView) edView.classList.remove('adjust-open');
   document.querySelectorAll('.ev-mnav-btn').forEach(function(b){ b.classList.remove('active'); });

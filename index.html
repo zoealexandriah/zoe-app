@@ -12847,7 +12847,9 @@ window.toolsCropSetRatio = function(r) {
     var key = item.getAttribute('onclick') && item.getAttribute('onclick').match(/'([^']+)'/);
     if (key) item.classList.toggle('active', key[1] === r);
   });
-  if (r !== 'FREEFORM') {
+  if (r === 'FREEFORM') {
+    cropRect = { x: 0, y: 0, w: ac.width, h: ac.height };
+  } else {
     var pts = r.split(':').map(Number);
     var newW = ac.width, newH = ac.width * pts[1] / pts[0];
     if (newH > ac.height) { newH = ac.height; newW = ac.height * pts[0] / pts[1]; }
@@ -13000,8 +13002,7 @@ function cropSelectSubTab(btn, tab) {
   var _phb = document.getElementById('persp-h-box'); if (_phb) _phb.classList.remove('active');
   var _pvl = document.getElementById('persp-v-lbl'); if (_pvl) _pvl.textContent = 'VERT';
   var _phl = document.getElementById('persp-h-lbl'); if (_phl) _phl.textContent = 'HORIZ';
-  // Clear cropRect when leaving RATIO tab — only RATIO should produce a crop on confirm
-  if (tab !== 'ratio') { cropRect = null; cropDragging = null; }
+  // cropRect intentionally kept — selection persists across sub-tab switches until ✕ or ✓
   ['straighten','ratio','transform'].forEach(function(id) {
     var el = document.getElementById('crop-sub-' + id);
     if (el) el.style.display = id === tab ? '' : 'none';

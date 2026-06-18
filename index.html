@@ -12847,24 +12847,18 @@ window.toolsCropSetRatio = function(r) {
     var key = item.getAttribute('onclick') && item.getAttribute('onclick').match(/'([^']+)'/);
     if (key) item.classList.toggle('active', key[1] === r);
   });
-  if (cropRect) {
-    if (r !== 'FREEFORM') {
-      var pts = r.split(':').map(Number);
-      var cx = cropRect.x + cropRect.w / 2;
-      var cy = cropRect.y + cropRect.h / 2;
-      var newW = cropRect.w, newH = cropRect.w * pts[1] / pts[0];
-      if (newH > cropRect.h) { newH = cropRect.h; newW = cropRect.h * pts[0] / pts[1]; }
-      newW = Math.min(newW, ac.width);
-      newH = Math.min(newH, ac.height);
-      cropRect = {
-        x: Math.max(0, Math.min(ac.width  - newW, cx - newW / 2)),
-        y: Math.max(0, Math.min(ac.height - newH, cy - newH / 2)),
-        w: newW, h: newH
-      };
-    }
-    var ov = document.getElementById('crop-overlay-canvas');
-    if (ov) toolsCropDrawRect(ov);
+  if (r !== 'FREEFORM') {
+    var pts = r.split(':').map(Number);
+    var newW = ac.width, newH = ac.width * pts[1] / pts[0];
+    if (newH > ac.height) { newH = ac.height; newW = ac.height * pts[0] / pts[1]; }
+    cropRect = {
+      x: (ac.width  - newW) / 2,
+      y: (ac.height - newH) / 2,
+      w: newW, h: newH
+    };
   }
+  var ov = document.getElementById('crop-overlay-canvas');
+  if (ov) toolsCropDrawRect(ov);
 };
 
 // Patch toolsCropApply — bake transforms then crop, never clears ev-canvas directly

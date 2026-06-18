@@ -6028,8 +6028,10 @@ function evAdjustSubTab(name) {
     var tabEl = document.querySelector('.es-tab[data-tab="'+panelTab+'"]');
     if (tabEl) esTab(tabEl);
   }
-  // Clear crop overlay whenever we switch away from crop
+  // Exit crop mode whenever we switch away from crop — removes crop-mode CSS class
+  // so the sliders panel is visible, and cleans up work canvases / state.
   if (name !== 'crop') {
+    if (typeof _cropExitMode === 'function') _cropExitMode();
     var _ov = document.getElementById('crop-overlay-canvas');
     if (_ov) _ov.remove();
     if (typeof cropRect !== 'undefined') cropRect = null;

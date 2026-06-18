@@ -12689,9 +12689,11 @@ window.galleryCopyEdits = function(imageId) {
     cropRect = null; cropDragging = null;
     var _oldFlash = document.getElementById('crop-overlay-canvas');
     if (_oldFlash) _oldFlash.remove();
-    // Set straighten reference immediately so slider works without waiting for setTimeout
-    if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
     _prevEtSelectToolFinal(name); // run chain for UI setup
+    // Set straighten reference AFTER the chain — the chain calls toolsCropCancel which
+    // calls _cropExitMode and nulls _cropStraightenOrig, so assigning before the call
+    // would get overwritten and break re-straighten after a previous straighten+apply.
+    if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
     setTimeout(function() {
       var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
       if (!ac || !userImage) return;

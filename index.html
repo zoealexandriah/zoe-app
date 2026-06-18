@@ -10300,7 +10300,8 @@ function etCropHTML() {
       </div>
       <input type="range" class="tc-range" id="crop-straighten-slider"
              min="-45" max="45" step="0.1" value="0"
-             oninput="cropStraightenPreview(this.value)">
+             oninput="cropStraightenPreview(this.value)"
+             onchange="cropStraightenAutoApply()">
     </div>
     <div class="crop-sub-content" id="crop-sub-ratio" style="display:${_st==='ratio'?'block':'none'};padding-left:4px;padding-right:4px">
       <div class="crop-ratios">${ratioBtns}</div>
@@ -10347,7 +10348,7 @@ function etCropHTML() {
         </div>
       </div>
     </div>
-    <div class="crop-action-bar">
+    <div class="crop-action-bar" id="crop-action-bar" style="${_st==='ratio'?'':'display:none'}">
       <button class="crop-action-btn" onclick="toolsCropCancel()">✕</button>
       <span class="crop-action-label">CROP</span>
       <button class="crop-action-btn apply" onclick="toolsCropApply()">✓</button>
@@ -12956,6 +12957,8 @@ function cropSelectSubTab(btn, tab) {
     var el = document.getElementById('crop-sub-' + id);
     if (el) el.style.display = id === tab ? '' : 'none';
   });
+  var _cab = document.getElementById('crop-action-bar');
+  if (_cab) _cab.style.display = tab === 'ratio' ? '' : 'none';
   if (tab === 'ratio') {
     // Use RAF so panel reflow settles before measuring positions.
     // Always use getActiveCanvas() — never hardcode hero-canvas (wrong in editor view).
@@ -13071,6 +13074,51 @@ function cropStraightenPreview(val) {
   });
 }
 
+function cropStraightenAutoApply() {
+  if (!_cropStraightenVal || Math.abs(_cropStraightenVal) < 0.01) return;
+  var sc = document.getElementById('crop-straighten-work');
+  if (!sc) return;
+  var tmp = document.createElement('canvas');
+  tmp.width = sc.width; tmp.height = sc.height;
+  tmp.getContext('2d').drawImage(sc, 0, 0);
+  var newImg = new Image();
+  newImg.onload = function() {
+    if (!_preCropState) {
+      _preCropState = {
+        userImage: userImage,
+        origPixels: _origPixels,
+        origOffX: _origOffX, origOffY: _origOffY,
+        origW: _origW, origH: _origH
+      };
+    }
+    var _p = evActivePreset || activePreset;
+    var _snap = {
+      presetId:  _p ? _p.id : null,
+      sliders:   _p ? JSON.parse(JSON.stringify(sliderState[_p.id] || {})) : {},
+      intensity: presetIntensity,
+      _userImage: userImage
+    };
+    if (evHistory.length >= 30) evHistory.shift();
+    evHistory.push(_snap);
+    evFuture.length = 0;
+    if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+    userImage = newImg;
+    _cropStraightenOrig = newImg;
+    _cropStraightenVal = 0;
+    var sl = document.getElementById('crop-straighten-slider');
+    if (sl) sl.value = 0;
+    var valEl = document.getElementById('crop-straighten-val');
+    if (valEl) valEl.textContent = '0.00';
+    var _sw = document.getElementById('crop-straighten-work');
+    if (_sw) _sw.remove();
+    var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+    if (ac) ac.style.opacity = '';
+    var ev = document.getElementById('editor-view');
+    if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
+    else if (ac && typeof loadImageToCanvas === 'function') loadImageToCanvas(ac, newImg);
+  };
+  newImg.src = tmp.toDataURL();
+}
 
 function cropRotate90(dir) {
   if (typeof _cropPerspFlush === 'function') _cropPerspFlush();

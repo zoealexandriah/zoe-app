@@ -12961,6 +12961,9 @@ window.toolsCropApply = function() {
     tmp2.width = src.width; tmp2.height = src.height;
     tmp2.getContext('2d').drawImage(src, 0, 0);
     _finish(tmp2, 'APPLIED');
+  } else {
+    // Ratio was already baked in-place — finalize with current canvas contents
+    _finish(hc, 'APPLIED');
   }
   _cropExitMode();
   toolsCropCancel();

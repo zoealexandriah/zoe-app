@@ -6028,10 +6028,13 @@ function evAdjustSubTab(name) {
     var tabEl = document.querySelector('.es-tab[data-tab="'+panelTab+'"]');
     if (tabEl) esTab(tabEl);
   }
-  // Exit crop mode whenever we switch away from crop — removes crop-mode CSS class
-  // so the sliders panel is visible, and cleans up work canvases / state.
+  // Exit crop mode whenever we switch away from crop, and ensure the suite panel
+  // is open so sliders are visible. evMobileNavToggle adds suite.open; tapping
+  // sub-nav tabs directly bypasses that, so we add it here.
   if (name !== 'crop') {
     if (typeof _cropExitMode === 'function') _cropExitMode();
+    var _suite = document.getElementById('ev-editor-suite');
+    if (_suite) _suite.classList.add('open');
     var _ov = document.getElementById('crop-overlay-canvas');
     if (_ov) _ov.remove();
     if (typeof cropRect !== 'undefined') cropRect = null;

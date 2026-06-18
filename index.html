@@ -12848,7 +12848,9 @@ window.toolsCropSetRatio = function(r) {
     if (key) item.classList.toggle('active', key[1] === r);
   });
   if (r === 'FREEFORM') {
-    cropRect = { x: 0, y: 0, w: ac.width, h: ac.height };
+    cropRect = null;
+    var _fov = document.getElementById('crop-overlay-canvas');
+    if (_fov) { _fov.style.display = 'none'; }
   } else {
     var pts = r.split(':').map(Number);
     var newW = ac.width, newH = ac.width * pts[1] / pts[0];
@@ -12983,9 +12985,14 @@ function _cropExitMode() {
 function cropSelectSubTab(btn, tab) {
   document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  // Always clean up overlays immediately to prevent flash
   var ov = document.getElementById('crop-overlay-canvas');
-  if (ov) ov.style.display = 'none';
+  if (tab !== 'ratio' && ov && cropRect && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM') {
+    // Keep overlay visible as a passive indicator when a ratio crop is active
+    ov.style.pointerEvents = 'none';
+    ov.style.display = 'block';
+  } else if (ov) {
+    ov.style.display = 'none';
+  }
   // crop-straighten-work intentionally kept — straighten state persists across sub-tab switches
   // Clean up perspective work canvas when leaving transform; reset sliders
   var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
@@ -13021,6 +13028,7 @@ function cropSelectSubTab(btn, tab) {
       }
       var _ov2 = document.getElementById('crop-overlay-canvas');
       if (!_ov2) return;
+      _ov2.style.pointerEvents = 'auto';
       // Re-parent if it ended up under the wrong container
       if (_ov2.parentElement !== ac.parentElement) ac.parentElement.appendChild(_ov2);
       var _acRect  = ac.getBoundingClientRect();

@@ -12936,7 +12936,7 @@ function cropSelectSubTab(btn, tab) {
   // Always clean up overlays immediately to prevent flash
   var ov = document.getElementById('crop-overlay-canvas');
   if (ov) ov.style.display = 'none';
-  var sw = document.getElementById('crop-straighten-work'); if (sw) sw.remove();
+  // crop-straighten-work intentionally kept — straighten state persists across sub-tab switches
   // Clean up perspective work canvas when leaving transform; reset sliders
   var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
   _etPerspOrig = null; _etPerspOrigDataURL = null; _etPerspOrigImg = null;

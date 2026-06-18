@@ -10519,7 +10519,9 @@ function globalReset() {
   if (!userImage) { showToast('NOTHING TO RESET'); return; }
   var _hasAnyEdits = activePreset ||
     Object.keys(sliderState).some(function(k){ return Object.keys(sliderState[k]).length > 0; }) ||
-    !!_preCropState || Math.abs(toolsStraightenVal) > 0.01 || Math.abs(_etPerspVVal) > 0.01 || Math.abs(_etPerspHVal) > 0.01;
+    !!_preCropState || Math.abs(toolsStraightenVal) > 0.01 || Math.abs(_etPerspVVal) > 0.01 || Math.abs(_etPerspHVal) > 0.01 ||
+    Math.abs(typeof _cropStraightenVal !== 'undefined' ? _cropStraightenVal : 0) > 0.01 ||
+    !!document.getElementById('crop-straighten-work');
   if (!_hasAnyEdits) { showToast('NOTHING TO RESET'); return; }
   const hc = document.getElementById('hero-canvas');
   // Push current state to history (reset is undoable)
@@ -10553,6 +10555,7 @@ function globalReset() {
     cancelAnimationFrame(_cropStraightenRafId); _cropStraightenRafId = null;
   }
   if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
+  if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = 0;
   // Remove all crop/straighten/perspective work canvases
   var _rstSc = document.getElementById('crop-straighten-work');
   if (_rstSc) _rstSc.remove();
@@ -12844,6 +12847,15 @@ window.toolsCropApply = function() {
   function _finish(srcCanvas, toast) {
     var newImg = new Image();
     newImg.onload = function() {
+      // Save pre-crop state for reset — only the FIRST apply so reset always goes back to original
+      if (!_preCropState) {
+        _preCropState = {
+          userImage: userImage,
+          origPixels: _origPixels,
+          origOffX: _origOffX, origOffY: _origOffY,
+          origW: _origW, origH: _origH
+        };
+      }
       // Push pre-crop snapshot so undo can restore original image
       var _p = evActivePreset || activePreset;
       var _snap = {
@@ -12898,6 +12910,7 @@ function _cropExitMode() {
   if (typeof _cropStraightenRafId !== 'undefined' && _cropStraightenRafId) {
     cancelAnimationFrame(_cropStraightenRafId); _cropStraightenRafId = null;
   }
+  if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = 0;
   // Restore hero-canvas visibility in case straighten/perspective hid it
   var _hcExit = document.getElementById('hero-canvas');
   if (_hcExit) _hcExit.style.opacity = '';

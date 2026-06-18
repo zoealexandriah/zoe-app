@@ -12354,11 +12354,20 @@ function _bakePendingCropForSave() {
     && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM';
   var out = null;
   if (hasPendingCrop) {
-    var scaleX = src.width / ac.width, scaleY = src.height / ac.height;
+    // When no work canvas exists, src is still ac (filtered). Use userImage instead.
+    var _cropSrc = src, _scaleX, _scaleY;
+    if (_cropSrc === ac) {
+      var _bNW = userImage.naturalWidth || userImage.width;
+      var _bNH = userImage.naturalHeight || userImage.height;
+      _cropSrc = userImage;
+      _scaleX = _bNW / ac.width; _scaleY = _bNH / ac.height;
+    } else {
+      _scaleX = _cropSrc.width / ac.width; _scaleY = _cropSrc.height / ac.height;
+    }
     out = document.createElement('canvas');
     out.width  = Math.round(cropRect.w);
     out.height = Math.round(cropRect.h);
-    out.getContext('2d').drawImage(src, cropRect.x * scaleX, cropRect.y * scaleY, cropRect.w * scaleX, cropRect.h * scaleY, 0, 0, out.width, out.height);
+    out.getContext('2d').drawImage(_cropSrc, cropRect.x * _scaleX, cropRect.y * _scaleY, cropRect.w * _scaleX, cropRect.h * _scaleY, 0, 0, out.width, out.height);
   } else if (src !== ac) {
     out = document.createElement('canvas');
     out.width = src.width; out.height = src.height;
@@ -13104,7 +13113,19 @@ function _cropApplyRatioInPlace(keepStraighten) {
       src = _cc;
     } else { src = sc; }
   }
-  var scaleX = src.width / ac.width, scaleY = src.height / ac.height;
+  // If no work canvas exists, src is still ac (hero canvas with filters applied).
+  // Use userImage directly so filters are not baked permanently into the crop.
+  var scaleX, scaleY;
+  if (src === ac) {
+    var _srcNW = userImage.naturalWidth || userImage.width;
+    var _srcNH = userImage.naturalHeight || userImage.height;
+    src = userImage;
+    scaleX = _srcNW / ac.width;
+    scaleY = _srcNH / ac.height;
+  } else {
+    scaleX = src.width / ac.width;
+    scaleY = src.height / ac.height;
+  }
   var tmp = document.createElement('canvas');
   tmp.width  = Math.round(cropRect.w);
   tmp.height = Math.round(cropRect.h);

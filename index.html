@@ -5881,9 +5881,11 @@ function _slEndDrag() {
   _slDragTrack = null; _slDragPreset = null;
   // Always fire a final render after drag ends — this is the full-quality pass
   // (full resolution + sharpen/clarity/blur/halation) that was skipped during dragging.
-  if (pid) scheduleRender(pid);
-  var _ev = document.getElementById('editor-view');
-  if (_ev && _ev.classList.contains('active')) evRenderCanvas();
+  if (pid) {
+    scheduleRender(pid);
+    var _ev = document.getElementById('editor-view');
+    if (_ev && _ev.classList.contains('active')) evRenderCanvas();
+  }
 }
 document.addEventListener('mousemove', _slApplyDrag);
 document.addEventListener('touchmove', _slApplyDrag, {passive:true}); // touch-action:none on tracks handles scroll prevention
@@ -11490,18 +11492,13 @@ function evBuildSliders() {
       if (src2) { sc.innerHTML = src2.innerHTML; attachSliderListeners(activePreset); }
     }
   } else {
-    // No preset selected — rebuild existing slider DOM with zeroed state so
-    // stale values from the previous session don't show
-    var existingTrack = document.querySelector(
-      '#es-details-sliders .sl-track[data-preset],' +
-      '#es-color-sliders .sl-track[data-preset],' +
-      '#es-atmosphere-sliders .sl-track[data-preset]'
-    );
-    if (existingTrack) {
-      var _pid = existingTrack.dataset.preset;
-      var _p0  = presets.find(function(x){ return x.id === _pid; });
-      if (_p0) buildEditorSliders(_p0); // sliderState[_pid] was cleared → shows zeros
-    }
+    // No preset selected — clear slider containers so DOM fallback in
+    // _evRenderCanvasImmediate can't find stale data-preset tracks and apply
+    // a previous preset's defaults to an unedited image
+    ['#es-details-sliders','#es-color-sliders','#es-atmosphere-sliders'].forEach(function(sel) {
+      var _evClearEl = document.querySelector(sel);
+      if (_evClearEl) _evClearEl.innerHTML = '';
+    });
   }
   if (tc) {
     buildEditorToolsSection();

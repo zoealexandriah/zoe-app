@@ -13828,8 +13828,11 @@ function etPerspUpdate() {
       var _pvTmp = document.createElement('canvas');
       _pvTmp.width = _pvCropW; _pvTmp.height = _pvCropH;
       _pvTmp.getContext('2d').drawImage(sc, _pvMinX, _pvMinY, _pvCropW, _pvCropH, 0, 0, _pvCropW, _pvCropH);
-      ctx.clearRect(0, 0, _pvW, _pvH);
-      ctx.drawImage(_pvTmp, 0, 0, _pvW, _pvH);
+      // Draw stretched preview to ac; leave sc untouched so _cropPerspFlush reads clean trapezoid
+      ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
+      ac.getContext('2d').drawImage(_pvTmp, 0, 0, ac.width, ac.height);
+      ac.style.opacity = '1';
+      sc.style.opacity = '0';
     }
   }
 }

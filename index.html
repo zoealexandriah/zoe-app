@@ -13302,6 +13302,15 @@ function cropSelectSubTab(btn, tab) {
   var _phb = document.getElementById('persp-h-box'); if (_phb) _phb.classList.remove('active');
   var _pvl = document.getElementById('persp-v-lbl'); if (_pvl) _pvl.textContent = 'VERT';
   var _phl = document.getElementById('persp-h-lbl'); if (_phl) _phl.textContent = 'HORIZ';
+  // When re-entering transform, restore slider positions to the last-applied perspective values
+  // so the user can continue adjusting from where they left off instead of starting from 0
+  if (tab === 'transform' && _perspBaseURL && (_perspBaseV !== 0 || _perspBaseH !== 0)) {
+    if (_pvs) _pvs.value = _perspBaseV;
+    if (_phs) _phs.value = _perspBaseH;
+    if (_pvv) _pvv.textContent = Math.round(_perspBaseV);
+    if (_phv) _phv.textContent = Math.round(_perspBaseH);
+    _etPerspVVal = _perspBaseV; _etPerspHVal = _perspBaseH;
+  }
   // cropRect intentionally kept — selection persists across sub-tab switches until ✕ or ✓
   ['straighten','ratio','transform'].forEach(function(id) {
     var el = document.getElementById('crop-sub-' + id);

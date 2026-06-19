@@ -13005,10 +13005,32 @@ window.toolsCropSetRatio = function(r) {
 
 // Patch toolsCropApply — bake transforms then crop, never clears ev-canvas directly
 window.toolsCropApply = function() {
-  // Flush any pending perspective preview before cropping
+  // If a perspective warp is active, flush it and bake directly — bypass cropRect logic
+  var _hadPersp = !!_etPerspOrigImg;
   if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
   var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!hc) { toolsCropCancel(); return; }
+  if (_hadPersp) {
+    var _perspTmp = document.createElement('canvas');
+    _perspTmp.width = hc.width; _perspTmp.height = hc.height;
+    _perspTmp.getContext('2d').drawImage(hc, 0, 0);
+    function _perspFinish(srcCanvas, toast) {
+      var newImg = new Image();
+      newImg.onload = function() {
+        if (!_preCropState) { _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH }; }
+        userImage = newImg;
+        var ev = document.getElementById('editor-view');
+        if (ev && ev.classList.contains('active')) { if (typeof evRenderCanvas === 'function') evRenderCanvas(); }
+        else { loadImageToCanvas(hc, newImg); }
+        showToast(toast);
+      };
+      newImg.src = srcCanvas.toDataURL();
+    }
+    _perspFinish(_perspTmp, 'APPLIED');
+    _cropExitMode();
+    toolsCropCancel();
+    return;
+  }
   // Use work canvas as pixel source if present and valid; otherwise fall back to ev-canvas
   var sc = document.getElementById('crop-straighten-work');
   var src = hc;

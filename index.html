@@ -10655,6 +10655,7 @@ function globalReset() {
   _straightenOrigImage = null;
   _flipPreState = null;
   _etPerspOrig = null; _etPerspOrigDataURL = null; _etPerspOrigImg = null;
+  _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
   // Cancel any pending straighten rAF before removing canvas (prevents re-creation after reset)
   if (typeof _cropStraightenRafId !== 'undefined' && _cropStraightenRafId) {
     cancelAnimationFrame(_cropStraightenRafId); _cropStraightenRafId = null;
@@ -11688,6 +11689,7 @@ function galleryOpenInEditor(idx) {
   // Set up globals
   editingIdx = idx;
   userImage  = entry.img;
+  _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0; // reset perspective re-edit state
   _clearPresetThumbCaches(); // new image — invalidate all cached thumbnails
   evHistory.length = 0;
   evFuture.length  = 0;
@@ -11719,6 +11721,12 @@ function galleryOpenInEditor(idx) {
       if (_seriesEl) _seriesEl.textContent = p.series;
       if (_thumbEl)  { _thumbEl.width=36; _thumbEl.height=46; renderPhoto(_thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
       buildEditorSliders(p);
+    }
+    // Restore perspective re-edit state so slider-to-zero returns the pre-warp original
+    if (es.perspState && es.perspState.baseURL) {
+      _perspBaseURL = es.perspState.baseURL;
+      _perspBaseV   = es.perspState.v || 0;
+      _perspBaseH   = es.perspState.h || 0;
     }
     // Prefer the stored original in this order:
     // 1. editState.originalDataURL (set when the edit was first created)
@@ -12020,7 +12028,8 @@ function autoSaveEdit() {
     sliders:         _asp ? JSON.parse(JSON.stringify(sliderState[_asp.id] || {})) : (entry.editState && entry.editState.sliders) || {},
     intensity:       _asp ? presetIntensity : (entry.editState && entry.editState.intensity != null ? entry.editState.intensity : 1.0),
     originalDataURL: originalDataURL,
-    editedDataURL:   editedDataURL
+    editedDataURL:   editedDataURL,
+    perspState:      _perspBaseURL ? { baseURL: _perspBaseURL, v: _perspBaseV, h: _perspBaseH } : null
   };
   libSaveToStorage();
 }
@@ -12775,8 +12784,8 @@ window.etSelectTool = function(name) {
 // ── Fix 5: Flip using getActiveCanvas ────────────────────────────────────
 window.toolsFlipApply = function(dir) {
   if (!userImage) return;
-  // Operate on userImage (clean source) — NOT the canvas, which has adjustments baked in.
-  // Drawing from the canvas would double-apply all sliders/presets on the next render.
+  evHistoryPush();
+  _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
   _flipPreState = { userImage };
   const undoBtn = document.getElementById('et-flip-undo') || document.getElementById('flip-undo-btn');
   if (undoBtn) undoBtn.style.display = 'block';
@@ -12791,6 +12800,7 @@ window.toolsFlipApply = function(dir) {
   const newImg = new Image();
   newImg.onload = function() {
     userImage = newImg; _origPixels = null;
+    if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
     showToast('FLIPPED');
     if (typeof evRenderCanvas === 'function') {
       const ev = document.getElementById('editor-view');
@@ -13494,8 +13504,10 @@ function cropRotate90(dir) {
   var newImg = new Image();
   newImg.onload = function() {
     userImage = newImg;
+    _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
     _cropStraightenOrig = newImg;
     cropRect = null;
+    if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
     var ev = document.getElementById('editor-view');
     if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') {
       evRenderCanvas();
@@ -13569,29 +13581,46 @@ function _cropPerspFlush() {
   var ov = document.getElementById('crop-overlay-canvas');
   if (ov) ov.style.display = 'none';
   sc.remove();
-  // Bake at ORIGINAL resolution — userImage.naturalWidth × naturalHeight.
-  // The display-size _cropped above is only used for the immediate canvas preview.
-  // Performing the warp again at full res preserves original quality on export.
-  var _fullW = userImage.naturalWidth, _fullH = userImage.naturalHeight;
-  var _fullCanvas = document.createElement('canvas');
-  _fullCanvas.width = _fullW; _fullCanvas.height = _fullH;
-  _etPerspTrapezoidWarp(_fullCanvas.getContext('2d'), userImage, _amtV, _amtH, _fullW, _fullH);
-  var _fxInset = Math.ceil(_fullW * 0.5 * (1 - 1 / _scaleVedge));
-  var _fyInset = Math.ceil(_fullH * 0.5 * (1 - 1 / _scaleVedge));
-  var _fMinX = _fxInset, _fMaxX = _fullW - 1 - _fxInset;
-  var _fMinY = _amtV < 0 ? _fyInset : 0, _fMaxY = _amtV > 0 ? _fullH - 1 - _fyInset : _fullH - 1;
-  var _fCropW = _fMaxX - _fMinX + 1, _fCropH = _fMaxY - _fMinY + 1;
-  if (_fCropW < 4 || _fCropH < 4) { _fCropW = _fullW; _fCropH = _fullH; _fMinX = 0; _fMinY = 0; }
-  var _fCropped = document.createElement('canvas');
-  _fCropped.width = _fCropW; _fCropped.height = _fCropH;
-  _fCropped.getContext('2d').drawImage(_fullCanvas, _fMinX, _fMinY, _fCropW, _fCropH, 0, 0, _fCropW, _fCropH);
-  var _flushDU = _fCropped.toDataURL('image/jpeg', 0.95);
-  var _flushImg = new Image();
-  _flushImg.onload = function() {
-    userImage = _flushImg;
-    if (typeof evRenderCanvas === 'function') evRenderCanvas();
-  };
-  _flushImg.src = _flushDU;
+
+  // Save raw slider values so re-entry can report the correct saved state
+  var _rawV = _slV ? parseFloat(_slV.value) : 0;
+  var _rawH = _slH ? parseFloat(_slH.value) : 0;
+  _perspBaseV = _rawV;
+  _perspBaseH = _rawH;
+
+  // Bake full-res — always from the pre-perspective original (_perspBaseURL) when available
+  // so re-applying warp at the same value is idempotent and sliding to 0 yields the exact original.
+  function _doPerspBake(srcImg) {
+    var _fullW = srcImg.naturalWidth, _fullH = srcImg.naturalHeight;
+    var _fullCanvas = document.createElement('canvas');
+    _fullCanvas.width = _fullW; _fullCanvas.height = _fullH;
+    _etPerspTrapezoidWarp(_fullCanvas.getContext('2d'), srcImg, _amtV, _amtH, _fullW, _fullH);
+    var _fxInset = Math.ceil(_fullW * 0.5 * (1 - 1 / _scaleVedge));
+    var _fyInset = Math.ceil(_fullH * 0.5 * (1 - 1 / _scaleVedge));
+    var _fMinX = _fxInset, _fMaxX = _fullW - 1 - _fxInset;
+    var _fMinY = _amtV < 0 ? _fyInset : 0, _fMaxY = _amtV > 0 ? _fullH - 1 - _fyInset : _fullH - 1;
+    var _fCropW = _fMaxX - _fMinX + 1, _fCropH = _fMaxY - _fMinY + 1;
+    if (_fCropW < 4 || _fCropH < 4) { _fCropW = _fullW; _fCropH = _fullH; _fMinX = 0; _fMinY = 0; }
+    var _fCropped = document.createElement('canvas');
+    _fCropped.width = _fCropW; _fCropped.height = _fCropH;
+    _fCropped.getContext('2d').drawImage(_fullCanvas, _fMinX, _fMinY, _fCropW, _fCropH, 0, 0, _fCropW, _fCropH);
+    var _flushDU = _fCropped.toDataURL('image/jpeg', 0.95);
+    var _flushImg = new Image();
+    _flushImg.onload = function() {
+      userImage = _flushImg;
+      if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    };
+    _flushImg.src = _flushDU;
+  }
+
+  if (_perspBaseURL) {
+    var _pbImg = new Image();
+    _pbImg.onload = function() { _doPerspBake(_pbImg); };
+    _pbImg.src = _perspBaseURL;
+  } else {
+    _doPerspBake(userImage);
+  }
 }
 
 function cropPerspActivate(axis) {
@@ -13759,6 +13788,9 @@ var _etPerspOrigImg = null;
 var _etPerspActiveAxis = null; // 'v' or 'h'
 var _etPerspVVal = 0;
 var _etPerspHVal = 0;
+var _perspBaseURL  = null; // data URL of image before first perspective warp (enables re-editability)
+var _perspBaseV    = 0;    // raw V slider value at last flush
+var _perspBaseH    = 0;    // raw H slider value at last flush
 
 function cropPerspSelectAxis(axis) {
   _etPerspActiveAxis = axis;
@@ -13793,15 +13825,29 @@ function etPerspUpdate() {
   var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!ac || !userImage) return;
 
-  // Capture current RENDERED canvas state once on first slider move
+  // Set warp source once per editing session — re-use saved original on re-entry after save
   if (!_etPerspOrigImg) {
-    ac.style.opacity = '1';
-    var _snapC = document.createElement('canvas');
-    _snapC.width = ac.width; _snapC.height = ac.height;
-    _snapC.getContext('2d').drawImage(ac, 0, 0);
-    var _snapImg = new Image();
-    _snapImg.onload = function() { _etPerspOrigImg = _snapImg; etPerspUpdate(); };
-    _snapImg.src = _snapC.toDataURL('image/jpeg', 0.92);
+    if (_perspBaseURL) {
+      // Re-entering after save: load saved pre-perspective original as warp source so
+      // sliding back to 0 always returns the exact pre-warp image
+      var _reOrigImg = new Image();
+      _reOrigImg.onload = function() { _etPerspOrigImg = _reOrigImg; etPerspUpdate(); };
+      _reOrigImg.src = _perspBaseURL;
+    } else {
+      // First use: push to history so undo restores pre-perspective image, then use
+      // userImage directly — avoids JPEG encode/decode cycle that caused preview blur
+      evHistoryPush();
+      if (userImage.src && userImage.src.startsWith('data:')) {
+        _perspBaseURL = userImage.src;
+      } else {
+        var _pCapC = document.createElement('canvas');
+        _pCapC.width = userImage.naturalWidth; _pCapC.height = userImage.naturalHeight;
+        _pCapC.getContext('2d').drawImage(userImage, 0, 0);
+        _perspBaseURL = _pCapC.toDataURL('image/jpeg', 0.95);
+      }
+      _etPerspOrigImg = userImage;
+      etPerspUpdate();
+    }
     return;
   }
 

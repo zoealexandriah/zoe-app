@@ -10506,10 +10506,11 @@ const evFuture  = [];
 function evHistoryPush() {
   const p = evActivePreset || activePreset;
   evHistory.push({
-    presetId:   p ? p.id : null,
-    sliders:    p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
-    intensity:  presetIntensity,
-    _userImage: userImage
+    presetId:    p ? p.id : null,
+    sliders:     p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
+    intensity:   presetIntensity,
+    _userImage:  userImage,
+    _perspState: _perspBaseURL ? { url: _perspBaseURL, v: _perspBaseV, h: _perspBaseH } : null
   });
   if (evHistory.length > 30) evHistory.shift();
   evFuture.length = 0;
@@ -10544,6 +10545,21 @@ function _evRestoreSnap(snap) {
   // Restore userImage if the snap captured a different image (crop/flip/rotate ops)
   if (snap._userImage && snap._userImage !== userImage) {
     userImage = snap._userImage;
+  }
+  // Restore perspective re-edit state from snap (field present = snap was made with new code)
+  if ('_perspState' in snap) {
+    if (snap._perspState) {
+      _perspBaseURL = snap._perspState.url;
+      _perspBaseV   = snap._perspState.v || 0;
+      _perspBaseH   = snap._perspState.h || 0;
+    } else {
+      _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
+    }
+    _etPerspOrigImg = null;
+    var _rvS = document.getElementById('crop-persp-v-slider'); if (_rvS) _rvS.value = _perspBaseV;
+    var _rhS = document.getElementById('crop-persp-h-slider'); if (_rhS) _rhS.value = _perspBaseH;
+    var _rvV = document.getElementById('crop-persp-v-val'); if (_rvV) _rvV.textContent = Math.round(_perspBaseV);
+    var _rhV = document.getElementById('crop-persp-h-val'); if (_rhV) _rhV.textContent = Math.round(_perspBaseH);
   }
   if (p) {
     if (typeof evRenderCanvas === 'function') evRenderCanvas();
@@ -10626,7 +10642,7 @@ function globalReset() {
     Object.keys(sliderState).some(function(k){ return Object.keys(sliderState[k]).length > 0; }) ||
     !!_preCropState || Math.abs(toolsStraightenVal) > 0.01 || Math.abs(_etPerspVVal) > 0.01 || Math.abs(_etPerspHVal) > 0.01 ||
     Math.abs(typeof _cropStraightenVal !== 'undefined' ? _cropStraightenVal : 0) > 0.01 ||
-    !!document.getElementById('crop-straighten-work');
+    !!document.getElementById('crop-straighten-work') || !!_perspBaseURL;
   if (!_hasAnyEdits) { showToast('NOTHING TO RESET'); return; }
   const hc = document.getElementById('hero-canvas');
   // Push current state to history (reset is undoable)
@@ -10655,6 +10671,7 @@ function globalReset() {
   _straightenOrigImage = null;
   _flipPreState = null;
   _etPerspOrig = null; _etPerspOrigDataURL = null; _etPerspOrigImg = null;
+  var _savedPerspBaseURL = _perspBaseURL;
   _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
   // Cancel any pending straighten rAF before removing canvas (prevents re-creation after reset)
   if (typeof _cropStraightenRafId !== 'undefined' && _cropStraightenRafId) {
@@ -10727,6 +10744,15 @@ function globalReset() {
       };
       _restoreImg.src = _origUrl;
       // _finishReset is called inside onload — do NOT call it synchronously here
+    } else if (_savedPerspBaseURL && hc) {
+      const _pbRestoreImg = new Image();
+      _pbRestoreImg.onload = function() {
+        userImage = _pbRestoreImg;
+        if (_resetEntry) _resetEntry.img = _pbRestoreImg;
+        loadImageToCanvas(hc, _pbRestoreImg);
+        _finishReset();
+      };
+      _pbRestoreImg.src = _savedPerspBaseURL;
     } else if (hc && _origPixels) {
       hc.getContext('2d').fillStyle = '#050310';
       hc.getContext('2d').fillRect(0, 0, hc.width, hc.height);
@@ -11744,16 +11770,31 @@ function galleryOpenInEditor(idx) {
       origImg.onload = function() {
         userImage = origImg;
         if (typeof evRenderCanvas === 'function') evRenderCanvas();
-        // Push clean state into history so undo goes back to no-preset (original)
-        evHistory.push({ presetId: null, sliders: {}, intensity: 1.0 });
-        if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+        // If perspective was saved, push a pre-warp history entry so undo restores the original
+        if (_perspBaseURL) {
+          var _preWarpImg = new Image();
+          _preWarpImg.onload = function() {
+            evHistory.push({
+              presetId:    es.presetId || null,
+              sliders:     JSON.parse(JSON.stringify(es.sliders || {})),
+              intensity:   typeof es.intensity === 'number' ? es.intensity : 1.0,
+              _userImage:  _preWarpImg,
+              _perspState: null
+            });
+            if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+          };
+          _preWarpImg.src = _perspBaseURL;
+        } else {
+          evHistory.push({ presetId: null, sliders: {}, intensity: 1.0, _perspState: null });
+          if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+        }
         // Defer preset strip rendering — lets the editor appear instantly
         setTimeout(function() { evRenderPresets(); }, 60);
       };
       origImg.src = _origSrc;
     } else {
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
-      evHistory.push({ presetId: null, sliders: {}, intensity: 1.0 });
+      evHistory.push({ presetId: null, sliders: {}, intensity: 1.0, _perspState: null });
       if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
       setTimeout(function() { evRenderPresets(); }, 60);
     }

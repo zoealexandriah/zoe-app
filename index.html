@@ -13024,12 +13024,12 @@ window.toolsCropApply = function() {
       evFuture.length = 0;
       if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
       userImage = _perspNewImg;
-      if (typeof captureOriginal === 'function') captureOriginal(_perspNewImg);
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
       showToast('APPLIED');
+      _cropExitMode();
+      toolsCropCancel();
     };
     _perspNewImg.src = _perspTmp.toDataURL();
-    _cropExitMode();
-    toolsCropCancel();
     return;
   }
   // Use work canvas as pixel source if present and valid; otherwise fall back to ev-canvas

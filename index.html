@@ -10517,6 +10517,17 @@ function evHistoryPush() {
 }
 
 function _evRestoreSnap(snap) {
+  var _pwR = document.getElementById('crop-perspective-work');
+  if (_pwR) {
+    _pwR.remove();
+    var _acR = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+    if (_acR) _acR.style.opacity = '';
+    if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
+    var _pvR = document.getElementById('crop-persp-v-slider'); if (_pvR) _pvR.value = 0;
+    var _phR = document.getElementById('crop-persp-h-slider'); if (_phR) _phR.value = 0;
+    var _pvvR = document.getElementById('crop-persp-v-val'); if (_pvvR) _pvvR.textContent = '0';
+    var _phvR = document.getElementById('crop-persp-h-val'); if (_phvR) _phvR.textContent = '0';
+  }
   const p = snap.presetId ? presets.find(x => x.id === snap.presetId) : null;
   if (p) {
     evActivePreset = p; activePreset = p;

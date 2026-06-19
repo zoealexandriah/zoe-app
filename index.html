@@ -12029,7 +12029,18 @@ function autoSaveEdit() {
     intensity:       _asp ? presetIntensity : (entry.editState && entry.editState.intensity != null ? entry.editState.intensity : 1.0),
     originalDataURL: originalDataURL,
     editedDataURL:   editedDataURL,
-    perspState:      _perspBaseURL ? { baseURL: _perspBaseURL, v: _perspBaseV, h: _perspBaseH } : null
+    perspState:      (function() {
+      if (!_perspBaseURL) return null;
+      var _psV = _perspBaseV, _psH = _perspBaseH;
+      // If live preview is active (flush hasn't run yet), read sliders directly
+      var _psvSlider = document.getElementById('crop-persp-v-slider');
+      var _pshSlider = document.getElementById('crop-persp-h-slider');
+      if (document.getElementById('crop-perspective-work') && _psvSlider) {
+        _psV = parseFloat(_psvSlider.value) || 0;
+        _psH = _pshSlider ? (parseFloat(_pshSlider.value) || 0) : 0;
+      }
+      return { baseURL: _perspBaseURL, v: _psV, h: _psH };
+    })()
   };
   libSaveToStorage();
 }

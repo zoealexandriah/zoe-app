@@ -13495,25 +13495,26 @@ function _cropPerspFlush() {
   var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
   if (!ac) { sc.remove(); return; }
   ac.style.opacity = '1';
-  // Fast canvas-to-canvas copy (no JPEG encoding — avoids UI-thread lag)
-  // Autocrop: find tightest non-transparent bounds in the warped overlay
-  var _scCtx = sc.getContext('2d');
-  var _scPx  = _scCtx.getImageData(0, 0, sc.width, sc.height).data;
+  // Autocrop: analytically compute inscribed rectangle from slider values.
+  // Alpha-scanning fails for keystone because the wide edge spans full canvas width,
+  // making the bounding box always equal to the full canvas.
+  var _slV = document.getElementById('crop-persp-v-slider');
+  var _slH = document.getElementById('crop-persp-h-slider');
+  var _amtV = _slV ? parseFloat(_slV.value) / 100 : 0;
+  var _amtH = _slH ? parseFloat(_slH.value) / 100 : 0;
+  var _maxInsetF = 0.32;
+  var _xInset = Math.max(
+    _amtV > 0 ?  _amtV * _maxInsetF * sc.width  : 0,
+    _amtV < 0 ? -_amtV * _maxInsetF * sc.width  : 0
+  );
+  var _yInset = Math.max(
+    _amtH > 0 ?  _amtH * _maxInsetF * sc.height : 0,
+    _amtH < 0 ? -_amtH * _maxInsetF * sc.height : 0
+  );
   var _cW = sc.width, _cH = sc.height;
-  var _minX = _cW, _minY = _cH, _maxX = 0, _maxY = 0;
-  for (var _cy = 0; _cy < _cH; _cy++) {
-    for (var _cx = 0; _cx < _cW; _cx++) {
-      if (_scPx[(_cy * _cW + _cx) * 4 + 3] > 10) {
-        if (_cx < _minX) _minX = _cx;
-        if (_cx > _maxX) _maxX = _cx;
-        if (_cy < _minY) _minY = _cy;
-        if (_cy > _maxY) _maxY = _cy;
-      }
-    }
-  }
-  // Clamp to canvas bounds
-  _minX = Math.max(0, _minX); _minY = Math.max(0, _minY);
-  _maxX = Math.min(_cW - 1, _maxX); _maxY = Math.min(_cH - 1, _maxY);
+  var _minX = Math.round(_xInset), _minY = Math.round(_yInset);
+  var _maxX = _cW - 1 - Math.round(_xInset);
+  var _maxY = _cH - 1 - Math.round(_yInset);
   var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
   if (_cropW < 4 || _cropH < 4) { _cropW = _cW; _cropH = _cH; _minX = 0; _minY = 0; }
 

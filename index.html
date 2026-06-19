@@ -13809,25 +13809,21 @@ function etPerspUpdate() {
 }
 
 function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
-  // amtV: -1..+1, positive = top edge narrows horizontally
-  // amtH: -1..+1, positive = right edge narrows vertically
   var maxInset = 0.25;
-
-  // How much each edge insets (in pixels)
   var topInset   = amtV > 0 ?  amtV * maxInset * W : 0;
   var botInset   = amtV < 0 ? -amtV * maxInset * W : 0;
   var rightInset = amtH > 0 ?  amtH * maxInset * H : 0;
   var leftInset  = amtH < 0 ? -amtH * maxInset * H : 0;
 
-  // Destination quad corners — where each source corner lands in dest space
-  // At zero, these are just the four corners of the canvas.
-  // Insets pull one edge inward to create keystone.
-  var TL = [topInset,      leftInset];
-  var TR = [W - topInset,  leftInset];
-  var BR = [W - botInset,  H - rightInset];
-  var BL = [botInset,      H - rightInset];
+  // Four corners of the DESTINATION trapezoid (where source corners land in dest space).
+  // At zero all insets are 0 so corners are exactly the canvas rectangle.
+  // TL/TR/BL/BR = [x, y]
+  var TL = [topInset,       leftInset];
+  var TR = [W - topInset,   leftInset];
+  var BR = [W - botInset,   H - rightInset];
+  var BL = [botInset,       H - rightInset];
 
-  // Rasterise source into pixel buffer
+  // Rasterise source into a pixel buffer at canvas resolution
   var tmp = document.createElement('canvas');
   tmp.width = W; tmp.height = H;
   tmp.getContext('2d').drawImage(src, 0, 0, W, H);
@@ -13835,60 +13831,57 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   var dstData = dstCtx.createImageData(W, H);
   var s = srcData.data, d = dstData.data;
 
-  // Scanline reverse mapping: for each dest pixel find its source pixel
+  // For each destination pixel, find which source pixel feeds it.
+  // The trapezoid corners define the dest-space shape. We invert:
+  // given dest (dx, dy), compute normalized (tu, tv) within the trapezoid,
+  // then sample source at (tu*W, tv*H).
   for (var dy = 0; dy < H; dy++) {
     var tv = dy / (H - 1 || 1);
 
-    // Left/right X boundary of this scanline (interpolate top→bottom)
-    var scanX0 = TL[0] * (1 - tv) + BL[0] * tv;  // left edge X
-    var scanX1 = TR[0] * (1 - tv) + BR[0] * tv;  // right edge X
-    // Top/bottom Y offset of this scanline
-    var scanY0 = TL[1] * (1 - tv) + BL[1] * tv;  // Y at left side
-    var scanY1 = TR[1] * (1 - tv) + BR[1] * tv;  // Y at right side
+    // X extent of this scanline in dest space (left and right edges of trapezoid)
+    var rowX0 = TL[0] + (BL[0] - TL[0]) * tv;   // left edge X at this Y
+    var rowX1 = TR[0] + (BR[0] - TR[0]) * tv;   // right edge X at this Y
+    // Y extent at this scanline (for the vertical keystone)
+    var rowY0 = TL[1] + (TR[1] - TL[1]) * (0);  // top Y (constant = leftInset or rightInset)
+    var rowY1 = BL[1] + (BR[1] - BL[1]) * (0);  // bot Y
 
-    var scanW = scanX1 - scanX0;
-    if (scanW <= 0) continue;
+    // Vertical: is this scanline inside the trapezoid's Y bounds?
+    var topY  = TL[1] + (TR[1] - TL[1]) * tv;   // top boundary at this tv (for horiz squeeze)
+    var botY  = BL[1] + (BR[1] - BL[1]) * tv;   // bottom boundary
+
+    var rowW = rowX1 - rowX0;
+    if (rowW <= 0) continue;
 
     for (var dx = 0; dx < W; dx++) {
-      // Map destination dx back to source x,y
-      var srcX = scanX0 + (dx / (W - 1 || 1)) * scanW;
-      var srcY = scanY0 + (dx / (W - 1 || 1)) * (scanY1 - scanY0)
-               + (tv * H);  // vertical position comes from dy directly
+      // Is this dest pixel inside the trapezoid?
+      if (dx < rowX0 || dx > rowX1) continue;
+      if (dy < topY  || dy > botY)  continue;
 
-      // srcY is already dy mapped through the vertical inset
-      // Recompute cleanly:
-      var tu = dx / (W - 1 || 1);
-      srcX = TL[0]*(1-tu)*(1-tv) + TR[0]*tu*(1-tv) + BR[0]*tu*tv + BL[0]*(1-tu)*tv;
-      srcY = TL[1]*(1-tu)*(1-tv) + TR[1]*tu*(1-tv) + BR[1]*tu*tv + BL[1]*(1-tu)*tv;
+      // Normalized position within trapezoid → source coords
+      var tu = (dx - rowX0) / rowW;
+      // Vertical: normalise dy within [topY..botY] for this column
+      var colTopY = TL[1] + (BL[1] - TL[1]) * tu;   // top Y at this tu
+      var colBotY = TR[1] + (BR[1] - TR[1]) * tu;   // bot Y at this tu
+      var colH = colBotY - colTopY;
+      var tvN = colH > 0 ? (dy - colTopY) / colH : tv;
 
-      // srcX/srcY are now in DEST space — convert back to full source coords
-      // The trapezoid maps dest→src by inverting: src fills 0..W, 0..H
-      // We need to un-inset: scale srcX from [scanX0..scanX1] → [0..W]
-      var rowX0 = TL[0]*(1-tv) + BL[0]*tv;
-      var rowX1 = TR[0]*(1-tv) + BR[0]*tv;
-      var rowY0 = TL[1]*(1-tu) + TR[1]*tu;  // top Y at this tu
-      var rowY1 = BL[1]*(1-tu) + BR[1]*tu;  // bot Y at this tu
-      var finalSrcX = rowX0 > 0 || rowX1 < W
-        ? ((dx - rowX0) / (rowX1 - rowX0 || 1)) * W
-        : dx;
-      var finalSrcY = rowY0 > 0 || rowY1 < H
-        ? ((dy - rowY0) / (rowY1 - rowY0 || 1)) * H
-        : dy;
+      var finalSrcX = tu  * W;
+      var finalSrcY = tvN * H;
 
       if (finalSrcX < 0 || finalSrcX >= W || finalSrcY < 0 || finalSrcY >= H) continue;
 
-      var sx0 = finalSrcX|0, sy0 = finalSrcY|0;
-      var fx = finalSrcX - sx0, fy = finalSrcY - sy0;
-      var sx1 = Math.min(W-1, sx0+1), sy1 = Math.min(H-1, sy0+1);
-      var di  = (dy*W + dx)*4;
-      var i00 = (sy0*W+sx0)*4, i10 = (sy0*W+sx1)*4;
-      var i01 = (sy1*W+sx0)*4, i11 = (sy1*W+sx1)*4;
+      var sx0 = finalSrcX | 0, sy0 = finalSrcY | 0;
+      var fx  = finalSrcX - sx0, fy = finalSrcY - sy0;
+      var sx1 = Math.min(W - 1, sx0 + 1), sy1 = Math.min(H - 1, sy0 + 1);
+      var di  = (dy * W + dx) * 4;
+      var i00 = (sy0 * W + sx0) * 4, i10 = (sy0 * W + sx1) * 4;
+      var i01 = (sy1 * W + sx0) * 4, i11 = (sy1 * W + sx1) * 4;
       for (var c = 0; c < 3; c++) {
-        var top = s[i00+c] + (s[i10+c]-s[i00+c])*fx;
-        var bot = s[i01+c] + (s[i11+c]-s[i01+c])*fx;
-        d[di+c] = top + (bot-top)*fy;
+        var top = s[i00 + c] + (s[i10 + c] - s[i00 + c]) * fx;
+        var bot = s[i01 + c] + (s[i11 + c] - s[i01 + c]) * fx;
+        d[di + c] = top + (bot - top) * fy;
       }
-      d[di+3] = 255;
+      d[di + 3] = 255;
     }
   }
   dstCtx.putImageData(dstData, 0, 0);

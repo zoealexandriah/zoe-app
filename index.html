@@ -13538,7 +13538,7 @@ function _cropPerspFlush() {
   var _xInset = Math.ceil(_cW * 0.5 * (1 - 1 / _scaleVedge));
   var _yInset = Math.ceil(_cH * 0.5 * (1 - 1 / _scaleHedge));
   var _minX = _xInset, _maxX = _cW - 1 - _xInset;
-  var _minY = _yInset, _maxY = _cH - 1 - _yInset;
+  var _minY = _amtV < 0 ? _yInset : 0, _maxY = _amtV > 0 ? _cH - 1 - _yInset : _cH - 1;
   var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
   if (_cropW < 4 || _cropH < 4) { _cropW = _cW; _cropH = _cH; _minX = 0; _minY = 0; }
 
@@ -13823,7 +13823,7 @@ function etPerspUpdate() {
     var _pvXInset = Math.ceil(_pvW * 0.5 * (1 - 1 / _pvScaleVedge));
     var _pvYInset = Math.ceil(_pvH * 0.5 * (1 - 1 / _pvScaleHedge));
     var _pvMinX = _pvXInset, _pvMaxX = _pvW - 1 - _pvXInset;
-    var _pvMinY = 0, _pvMaxY = _pvH - 1;
+    var _pvMinY = _warpV < 0 ? _pvYInset : 0, _pvMaxY = _warpV > 0 ? _pvH - 1 - _pvYInset : _pvH - 1;
     var _pvCropW = _pvMaxX - _pvMinX + 1, _pvCropH = _pvMaxY - _pvMinY + 1;
     if (_pvCropW > 4 && _pvCropH > 4 && (_pvMinX > 0 || _pvMinY > 0)) {
       var _pvTmp = document.createElement('canvas');
@@ -13860,8 +13860,8 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
       var scaleH = kH !== 0 ? 1 / (1 - kH * tu) : 1;
       if (scaleH <= 0) continue;
 
-      var srcX = W * 0.5 + (dx - W * 0.5) * scaleH;
-      var srcY = H * 0.5 + (dy - H * 0.5) * scaleV;
+      var srcX = W * 0.5 + (dx - W * 0.5) * scaleV * scaleH;
+      var srcY = H * 0.5 + (dy - H * 0.5) * scaleV * scaleH;
 
       if (srcX < 0 || srcX > W - 1 || srcY < 0 || srcY > H - 1) continue;
 

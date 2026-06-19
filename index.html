@@ -13005,31 +13005,37 @@ window.toolsCropSetRatio = function(r) {
 
 // Patch toolsCropApply — bake transforms then crop, never clears ev-canvas directly
 window.toolsCropApply = function() {
-  // If a perspective warp is active, flush it and bake directly — bypass cropRect logic
+  // Flush any active perspective warp — _cropPerspFlush bakes full-res into userImage async.
+  var _hadPerspImg = userImage;
   var _hadPersp = !!_etPerspOrigImg;
   if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
   var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!hc) { toolsCropCancel(); return; }
   if (_hadPersp) {
-    var _perspTmp = document.createElement('canvas');
-    _perspTmp.width = hc.width; _perspTmp.height = hc.height;
-    _perspTmp.getContext('2d').drawImage(hc, 0, 0);
-    var _perspNewImg = new Image();
-    _perspNewImg.onload = function() {
-      if (!_preCropState) { _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH }; }
-      var _p = evActivePreset || activePreset;
-      var _snap = { presetId: _p ? _p.id : null, sliders: _p ? JSON.parse(JSON.stringify(sliderState[_p.id] || {})) : {}, intensity: presetIntensity, _userImage: userImage };
-      if (evHistory.length >= 30) evHistory.shift();
-      evHistory.push(_snap);
-      evFuture.length = 0;
-      if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
-      userImage = _perspNewImg;
-      if (typeof evRenderCanvas === 'function') evRenderCanvas();
-      showToast('APPLIED');
-      _cropExitMode();
-      toolsCropCancel();
-    };
-    _perspNewImg.src = _perspTmp.toDataURL();
+    // _cropPerspFlush is async (image onload sets userImage). Poll until it lands, then exit.
+    var _perspPollStart = Date.now();
+    function _perspPollApply() {
+      if (userImage !== _hadPerspImg) {
+        // flush onload completed — userImage is now the full-res warped image
+        if (!_preCropState) { _preCropState = { userImage: _hadPerspImg, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH }; }
+        var _p = evActivePreset || activePreset;
+        var _snap = { presetId: _p ? _p.id : null, sliders: _p ? JSON.parse(JSON.stringify(sliderState[_p.id] || {})) : {}, intensity: presetIntensity, _userImage: _hadPerspImg };
+        if (evHistory.length >= 30) evHistory.shift();
+        evHistory.push(_snap);
+        evFuture.length = 0;
+        if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+        showToast('APPLIED');
+        _cropExitMode();
+        toolsCropCancel();
+      } else if (Date.now() - _perspPollStart < 5000) {
+        setTimeout(_perspPollApply, 30);
+      } else {
+        showToast('APPLIED');
+        _cropExitMode();
+        toolsCropCancel();
+      }
+    }
+    setTimeout(_perspPollApply, 30);
     return;
   }
   // Use work canvas as pixel source if present and valid; otherwise fall back to ev-canvas

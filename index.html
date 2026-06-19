@@ -13834,9 +13834,6 @@ function etPerspUpdate() {
 }
 
 function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
-  // Projective perspective warp. Linear scale falloff from center.
-  // amtV > 0 = top narrows (shot from below). amtV < 0 = bottom narrows.
-  // amtH > 0 = right narrows. amtH < 0 = left narrows.
   var maxK = 0.35;
   var kV = amtV * maxK;
   var kH = amtH * maxK;
@@ -13849,16 +13846,18 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   var s = srcData.data, d = dstData.data;
 
   for (var dy = 0; dy < H; dy++) {
-    var tv = H > 1 ? dy / (H - 1) - 0.5 : 0; // -0.5 to +0.5 centered
+    var tv = H > 1 ? dy / (H - 1) - 0.5 : 0;
     var scaleV = 1 / (1 - kV * tv);
     if (scaleV <= 0) continue;
+    var srcX0 = W * 0.5 * (1 - scaleV);
+    var srcX1 = W * 0.5 * (1 + scaleV);
 
     for (var dx = 0; dx < W; dx++) {
-      var tu = W > 1 ? dx / (W - 1) - 0.5 : 0; // -0.5 to +0.5 centered
-      var scaleH = 1 / (1 - kH * tu);
+      var tu = W > 1 ? dx / (W - 1) : 0;
+      var scaleH = kH !== 0 ? 1 / (1 - kH * (tu - 0.5)) : 1;
       if (scaleH <= 0) continue;
 
-      var srcX = W * 0.5 + (dx - W * 0.5) * scaleV;
+      var srcX = srcX0 + tu * (srcX1 - srcX0);
       var srcY = H * 0.5 + (dy - H * 0.5) * scaleH;
 
       if (srcX < 0 || srcX > W - 1 || srcY < 0 || srcY > H - 1) continue;

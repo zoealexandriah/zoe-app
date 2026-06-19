@@ -13496,14 +13496,46 @@ function _cropPerspFlush() {
   if (!ac) { sc.remove(); return; }
   ac.style.opacity = '1';
   // Fast canvas-to-canvas copy (no JPEG encoding — avoids UI-thread lag)
-  ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
-  ac.getContext('2d').drawImage(sc, 0, 0);
-  // Keep a canvas snapshot as the new perspective base (drawImage accepts canvas elements)
+  // Autocrop: find tightest non-transparent bounds in the warped overlay
+  var _scCtx = sc.getContext('2d');
+  var _scPx  = _scCtx.getImageData(0, 0, sc.width, sc.height).data;
+  var _cW = sc.width, _cH = sc.height;
+  var _minX = _cW, _minY = _cH, _maxX = 0, _maxY = 0;
+  for (var _cy = 0; _cy < _cH; _cy++) {
+    for (var _cx = 0; _cx < _cW; _cx++) {
+      if (_scPx[(_cy * _cW + _cx) * 4 + 3] > 10) {
+        if (_cx < _minX) _minX = _cx;
+        if (_cx > _maxX) _maxX = _cx;
+        if (_cy < _minY) _minY = _cy;
+        if (_cy > _maxY) _maxY = _cy;
+      }
+    }
+  }
+  // Clamp to canvas bounds
+  _minX = Math.max(0, _minX); _minY = Math.max(0, _minY);
+  _maxX = Math.min(_cW - 1, _maxX); _maxY = Math.min(_cH - 1, _maxY);
+  var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
+  if (_cropW < 4 || _cropH < 4) { _cropW = _cW; _cropH = _cH; _minX = 0; _minY = 0; }
+
+  // Build a cropped canvas at the inscribed bounds
+  var _cropped = document.createElement('canvas');
+  _cropped.width = _cropW; _cropped.height = _cropH;
+  _cropped.getContext('2d').drawImage(sc, _minX, _minY, _cropW, _cropH, 0, 0, _cropW, _cropH);
+
+  // Resize ac to the cropped dimensions and paint
+  ac.width  = _cropW;
+  ac.height = _cropH;
+  ac.style.opacity = '1';
+  ac.getContext('2d').clearRect(0, 0, _cropW, _cropH);
+  ac.getContext('2d').drawImage(_cropped, 0, 0);
+
+  // Keep cropped canvas as new perspective base
   var snap = document.createElement('canvas');
-  snap.width = ac.width; snap.height = ac.height;
-  snap.getContext('2d').drawImage(sc, 0, 0);
+  snap.width = _cropW; snap.height = _cropH;
+  snap.getContext('2d').drawImage(_cropped, 0, 0);
   _cropPerspOrig = snap;
-  // Hide the overlay when leaving perspective mode
+
+  // Hide overlay
   var ov = document.getElementById('crop-overlay-canvas');
   if (ov) ov.style.display = 'none';
   sc.remove();

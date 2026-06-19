@@ -9671,6 +9671,8 @@ function toolsFlipApply(dir) {
   _flipPreState = { userImage };
   const undoBtn = document.getElementById('flip-undo-btn');
   if (undoBtn) undoBtn.style.display = 'block';
+  var _cropUndoRow = document.getElementById('crop-transform-undo-row');
+  if (_cropUndoRow) _cropUndoRow.style.display = '';
 
   // Flip from userImage (unfiltered) so filter effects are not baked in
   var iw = userImage.naturalWidth || userImage.width;
@@ -9701,12 +9703,19 @@ function toolsFlipApply(dir) {
 
 function toolsFlipUndo() {
   if (!_flipPreState) return;
-  const hc = document.getElementById('hero-canvas');
-  if (hc) hc.getContext('2d').putImageData(_flipPreState.canvasData, 0, 0);
   userImage = _flipPreState.userImage;
   _flipPreState = null;
+  var ev = document.getElementById('editor-view');
+  if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') {
+    evRenderCanvas();
+  } else {
+    var hc = document.getElementById('hero-canvas');
+    if (hc && typeof scheduleRender === 'function') scheduleRender((activePreset || evActivePreset || {}).id);
+  }
   const undoBtn = document.getElementById('flip-undo-btn');
   if (undoBtn) undoBtn.style.display = 'none';
+  var _cropUndoRow = document.getElementById('crop-transform-undo-row');
+  if (_cropUndoRow) _cropUndoRow.style.display = 'none';
   showToast('UNDO');
 }
 
@@ -10382,6 +10391,9 @@ function etCropHTML() {
           <div class="crop-transform-icon-box" id="persp-h-box">${perspHSvg}</div>
           <span class="crop-transform-icon-label" id="persp-h-lbl">HORIZ</span>
         </div>
+      </div>
+      <div id="crop-transform-undo-row" style="display:none;padding:6px 0 2px;text-align:center;">
+        <div class="tc-btn tc-btn-ghost" onclick="toolsFlipUndo()" style="display:inline-flex;">UNDO</div>
       </div>
       <div id="crop-persp-slider-row" style="display:none;padding:6px 0 2px;">
         <div id="crop-persp-v-section" style="display:none;">

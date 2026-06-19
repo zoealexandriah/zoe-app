@@ -13762,9 +13762,9 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   var leftInset  = amtH < 0 ? -amtH * maxInset * H : 0;
 
   // Source quad corners [x,y]: TL, TR, BR, BL
-  var TL = [topInset,          rightInset];
+  var TL = [topInset,          leftInset];
   var TR = [W - topInset,      rightInset];
-  var BR = [W - botInset,      H - leftInset];
+  var BR = [W - botInset,      H - rightInset];
   var BL = [botInset,          H - leftInset];
 
   // Draw src image into a tmp canvas at W×H to get pixel data

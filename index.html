@@ -13536,7 +13536,7 @@ function _cropPerspFlush() {
   var _scaleVedge = 1 / (1 - _kV * 0.5);
   var _scaleHedge = 1 / (1 - _kH * 0.5);
   var _xInset = Math.ceil(_cW * 0.5 * (1 - 1 / _scaleVedge));
-  var _yInset = Math.ceil(_cH * 0.5 * (1 - 1 / _scaleHedge));
+  var _yInset = Math.ceil(_cH * 0.5 * (1 - 1 / _scaleVedge));
   var _minX = _xInset, _maxX = _cW - 1 - _xInset;
   var _minY = _amtV < 0 ? _yInset : 0, _maxY = _amtV > 0 ? _cH - 1 - _yInset : _cH - 1;
   var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
@@ -13795,12 +13795,12 @@ function etPerspUpdate() {
   }
   sc.width  = ac.width;
   sc.height = ac.height;
-  var acRect  = ac.getBoundingClientRect();
-  var parRect = ac.parentElement.getBoundingClientRect();
-  sc.style.width  = acRect.width  + 'px';
-  sc.style.height = acRect.height + 'px';
-  sc.style.left   = (acRect.left - parRect.left) + 'px';
-  sc.style.top    = (acRect.top  - parRect.top)  + 'px';
+  var _acW = ac.clientWidth, _acH = ac.clientHeight;
+  var _arW = ac.parentElement.clientWidth, _arH = ac.parentElement.clientHeight;
+  sc.style.width  = _acW + 'px';
+  sc.style.height = _acH + 'px';
+  sc.style.left   = Math.round((_arW - _acW) / 2) + 'px';
+  sc.style.top    = Math.round((_arH - _acH) / 2) + 'px';
 
   var ctx = sc.getContext('2d');
   ctx.clearRect(0, 0, sc.width, sc.height);
@@ -13822,8 +13822,9 @@ function etPerspUpdate() {
     var _pvScaleHedge = 1 / (1 - _pvKH * 0.5);
     var _pvXInset = Math.ceil(_pvW * 0.5 * (1 - 1 / _pvScaleVedge));
     var _pvYInset = Math.ceil(_pvH * 0.5 * (1 - 1 / _pvScaleHedge));
+    var _pvYInsetV = Math.ceil(_pvH * 0.5 * (1 - 1 / _pvScaleVedge));
     var _pvMinX = _pvXInset, _pvMaxX = _pvW - 1 - _pvXInset;
-    var _pvMinY = _warpV < 0 ? _pvYInset : 0, _pvMaxY = _warpV > 0 ? _pvH - 1 - _pvYInset : _pvH - 1;
+    var _pvMinY = _warpV < 0 ? _pvYInsetV : 0, _pvMaxY = _warpV > 0 ? _pvH - 1 - _pvYInsetV : _pvH - 1;
     var _pvCropW = _pvMaxX - _pvMinX + 1, _pvCropH = _pvMaxY - _pvMinY + 1;
     if (_pvCropW > 4 && _pvCropH > 4 && (_pvMinX > 0 || _pvMinY > 0)) {
       var _pvTmp = document.createElement('canvas');

@@ -13860,7 +13860,9 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
       var tvN = (dy - yT) / colH;
 
       // Sample source at (tu, tvN) — full source image
-      var srcX = tu  * (W - 1);
+      // srcX: map dest position to source proportionally to full canvas width
+      // xL..xR is the trapezoid width at this scanline; center it in source
+      var srcX = (xL + tu * rowW) / W * (W - 1);
       var srcY = tvN * (H - 1);
 
       var sx0 = srcX | 0, sy0 = srcY | 0;

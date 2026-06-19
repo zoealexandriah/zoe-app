@@ -13530,7 +13530,7 @@ function _cropPerspFlush() {
   _amtH = (_amtH >= 0 ? 1 : -1) * Math.pow(Math.abs(_amtH), 2);
   // Inscribed rectangle for shear: both sides inset equally by shear * 0.5 * dimension.
   // Must match maxShear in _etPerspTrapezoidWarp and _pvMaxShear in live preview.
-  var _maxShearF = 0.5;
+  var _maxShearF = 0.22;
   var _cW = sc.width, _cH = sc.height;
   var _xInset = Math.ceil(Math.abs(_amtV) * _maxShearF * 0.5 * _cW);
   var _yInset = Math.ceil(Math.abs(_amtH) * _maxShearF * 0.5 * _cH);
@@ -13813,7 +13813,7 @@ function etPerspUpdate() {
     _etPerspTrapezoidWarp(ctx, _etPerspOrigImg, _warpV, _warpH, sc.width, sc.height);
     // Live-preview autocrop: extract inscribed rect and stretch to fill, hiding transparent corners.
     // Shear geometry: both sides inset equally by shear * 0.5 * dimension.
-    var _pvMaxShear = 0.5; // must match maxShear in _etPerspTrapezoidWarp
+    var _pvMaxShear = 0.22; // must match maxShear in _etPerspTrapezoidWarp
     var _pvW = sc.width, _pvH = sc.height;
     var _pvXInset = Math.ceil(Math.abs(_warpV) * _pvMaxShear * 0.5 * _pvW);
     var _pvYInset = Math.ceil(Math.abs(_warpH) * _pvMaxShear * 0.5 * _pvH);
@@ -13836,7 +13836,7 @@ function etPerspUpdate() {
 function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   // Affine shear (parallelogram lean): amtV shifts rows horizontally, amtH shifts cols vertically.
   // Centered so the middle row/col stays fixed; top and bottom lean in opposite directions.
-  var maxShear = 0.5;
+  var maxShear = 0.22;
   var shearV = amtV * maxShear; // horizontal shift per half-height (fraction of W)
   var shearH = amtH * maxShear; // vertical shift per half-width (fraction of H)
 

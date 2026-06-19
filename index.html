@@ -13014,19 +13014,20 @@ window.toolsCropApply = function() {
     var _perspTmp = document.createElement('canvas');
     _perspTmp.width = hc.width; _perspTmp.height = hc.height;
     _perspTmp.getContext('2d').drawImage(hc, 0, 0);
-    function _perspFinish(srcCanvas, toast) {
-      var newImg = new Image();
-      newImg.onload = function() {
-        if (!_preCropState) { _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH }; }
-        userImage = newImg;
-        var ev = document.getElementById('editor-view');
-        if (ev && ev.classList.contains('active')) { if (typeof evRenderCanvas === 'function') evRenderCanvas(); }
-        else { loadImageToCanvas(hc, newImg); }
-        showToast(toast);
-      };
-      newImg.src = srcCanvas.toDataURL();
-    }
-    _perspFinish(_perspTmp, 'APPLIED');
+    var _perspNewImg = new Image();
+    _perspNewImg.onload = function() {
+      if (!_preCropState) { _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH }; }
+      var _p = evActivePreset || activePreset;
+      var _snap = { presetId: _p ? _p.id : null, sliders: _p ? JSON.parse(JSON.stringify(sliderState[_p.id] || {})) : {}, intensity: presetIntensity, _userImage: userImage };
+      if (evHistory.length >= 30) evHistory.shift();
+      evHistory.push(_snap);
+      evFuture.length = 0;
+      if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+      userImage = _perspNewImg;
+      if (typeof captureOriginal === 'function') captureOriginal(_perspNewImg);
+      showToast('APPLIED');
+    };
+    _perspNewImg.src = _perspTmp.toDataURL();
     _cropExitMode();
     toolsCropCancel();
     return;

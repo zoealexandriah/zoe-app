@@ -13528,20 +13528,14 @@ function _cropPerspFlush() {
   // Apply same quadratic curve used in etPerspUpdate so inscribed rect matches actual warp
   _amtV = (_amtV >= 0 ? 1 : -1) * Math.pow(Math.abs(_amtV), 2);
   _amtH = (_amtH >= 0 ? 1 : -1) * Math.pow(Math.abs(_amtH), 2);
-  // Inscribed rectangle: the largest axis-aligned rect fully inside the trapezoid.
-  // For VERT (amtV): the narrow end insets horizontally — use that inset as minX/maxX.
-  // For HORIZ (amtH): the narrow end insets vertically — use that inset as minY/maxY.
-  var _maxInsetF = 0.22;
+  // Inscribed rectangle for shear: both sides inset equally by shear * 0.5 * dimension.
+  // Must match maxShear in _etPerspTrapezoidWarp and _pvMaxShear in live preview.
+  var _maxShearF = 0.5;
   var _cW = sc.width, _cH = sc.height;
-  var _topInset   = _amtV > 0 ?  _amtV * _maxInsetF * _cW : 0;
-  var _botInset   = _amtV < 0 ? -_amtV * _maxInsetF * _cW : 0;
-  var _rightInset = _amtH > 0 ?  _amtH * _maxInsetF * _cH : 0;
-  var _leftInset  = _amtH < 0 ? -_amtH * _maxInsetF * _cH : 0;
-  // Inscribed rect: inset from the narrower of the two opposite edges on each axis
-  var _minX = Math.ceil(Math.max(_topInset, _botInset));
-  var _maxX = _cW - 1 - Math.ceil(Math.max(_topInset, _botInset));
-  var _minY = Math.ceil(Math.max(_leftInset, _rightInset));
-  var _maxY = _cH - 1 - Math.ceil(Math.max(_leftInset, _rightInset));
+  var _xInset = Math.ceil(Math.abs(_amtV) * _maxShearF * 0.5 * _cW);
+  var _yInset = Math.ceil(Math.abs(_amtH) * _maxShearF * 0.5 * _cH);
+  var _minX = _xInset, _maxX = _cW - 1 - _xInset;
+  var _minY = _yInset, _maxY = _cH - 1 - _yInset;
   var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
   if (_cropW < 4 || _cropH < 4) { _cropW = _cW; _cropH = _cH; _minX = 0; _minY = 0; }
 
@@ -13817,18 +13811,14 @@ function etPerspUpdate() {
     var _warpV = (amtV >= 0 ? 1 : -1) * Math.pow(Math.abs(amtV) / 100, 2);
     var _warpH = (amtH >= 0 ? 1 : -1) * Math.pow(Math.abs(amtH) / 100, 2);
     _etPerspTrapezoidWarp(ctx, _etPerspOrigImg, _warpV, _warpH, sc.width, sc.height);
-    // Live-preview autocrop: extract inscribed rect and stretch to fill, hiding white corners
-    var _pvMaxInset = 0.22;
+    // Live-preview autocrop: extract inscribed rect and stretch to fill, hiding transparent corners.
+    // Shear geometry: both sides inset equally by shear * 0.5 * dimension.
+    var _pvMaxShear = 0.5; // must match maxShear in _etPerspTrapezoidWarp
     var _pvW = sc.width, _pvH = sc.height;
-    var _pvAmtV = _warpV, _pvAmtH = _warpH;
-    var _pvTopInset   = _pvAmtV > 0 ?  _pvAmtV * _pvMaxInset * _pvW : 0;
-    var _pvBotInset   = _pvAmtV < 0 ? -_pvAmtV * _pvMaxInset * _pvW : 0;
-    var _pvRightInset = _pvAmtH > 0 ?  _pvAmtH * _pvMaxInset * _pvH : 0;
-    var _pvLeftInset  = _pvAmtH < 0 ? -_pvAmtH * _pvMaxInset * _pvH : 0;
-    var _pvMinX = Math.ceil(Math.max(_pvTopInset, _pvBotInset));
-    var _pvMaxX = _pvW - 1 - Math.ceil(Math.max(_pvTopInset, _pvBotInset));
-    var _pvMinY = Math.ceil(Math.max(_pvLeftInset, _pvRightInset));
-    var _pvMaxY = _pvH - 1 - Math.ceil(Math.max(_pvLeftInset, _pvRightInset));
+    var _pvXInset = Math.ceil(Math.abs(_warpV) * _pvMaxShear * 0.5 * _pvW);
+    var _pvYInset = Math.ceil(Math.abs(_warpH) * _pvMaxShear * 0.5 * _pvH);
+    var _pvMinX = _pvXInset, _pvMaxX = _pvW - 1 - _pvXInset;
+    var _pvMinY = _pvYInset, _pvMaxY = _pvH - 1 - _pvYInset;
     var _pvCropW = _pvMaxX - _pvMinX + 1, _pvCropH = _pvMaxY - _pvMinY + 1;
     if (_pvCropW > 4 && _pvCropH > 4 && (_pvMinX > 0 || _pvMinY > 0)) {
       var _pvTmp = document.createElement('canvas');
@@ -13844,14 +13834,12 @@ function etPerspUpdate() {
 }
 
 function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
-  // maxInset=0.4 means slider at 100 insets 40% of the edge — felt range
-  var maxInset = 0.22;
-  var topInset   = amtV > 0 ?  amtV * maxInset * W : 0;  // top edge narrows by this many px each side
-  var botInset   = amtV < 0 ? -amtV * maxInset * W : 0;  // bottom edge narrows
-  var rightInset = amtH > 0 ?  amtH * maxInset * H : 0;  // right edge narrows
-  var leftInset  = amtH < 0 ? -amtH * maxInset * H : 0;  // left edge narrows
+  // Affine shear (parallelogram lean): amtV shifts rows horizontally, amtH shifts cols vertically.
+  // Centered so the middle row/col stays fixed; top and bottom lean in opposite directions.
+  var maxShear = 0.5;
+  var shearV = amtV * maxShear; // horizontal shift per half-height (fraction of W)
+  var shearH = amtH * maxShear; // vertical shift per half-width (fraction of H)
 
-  // Rasterise source
   var tmp = document.createElement('canvas');
   tmp.width = W; tmp.height = H;
   tmp.getContext('2d').drawImage(src, 0, 0, W, H);
@@ -13860,44 +13848,17 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   var s = srcData.data, d = dstData.data;
 
   for (var dy = 0; dy < H; dy++) {
-    // tv: 0 at top, 1 at bottom
-    var tv = H > 1 ? dy / (H - 1) : 0;
-
-    // At this scanline, the trapezoid spans from xL to xR in dest space.
-    // VERT: top edge is narrower, so xL grows and xR shrinks as tv→0.
-    var xL = topInset  * (1 - tv) + botInset  * tv;
-    var xR = (W - topInset) * (1 - tv) + (W - botInset) * tv;
-    var rowW = xR - xL;
-    if (rowW < 1) continue;
-
-    // At this scanline, the trapezoid spans from yT to yB in dest space.
-    // HORIZ: right edge is narrower, so yT grows and yB shrinks as tu→1.
-    // We compute yT and yB per-pixel below since they depend on tu.
+    var tv = H > 1 ? dy / (H - 1) - 0.5 : 0; // -0.5 to +0.5 (centered)
+    var xOff = shearV * tv * W;
 
     for (var dx = 0; dx < W; dx++) {
-      // Skip pixels outside horizontal trapezoid bounds
-      if (dx < xL || dx > xR) continue;
+      var tu = W > 1 ? dx / (W - 1) - 0.5 : 0; // -0.5 to +0.5 (centered)
+      var yOff = shearH * tu * H;
 
-      // tu: 0 at left, 1 at right — normalized within this scanline's width
-      var tu = (dx - xL) / rowW;
+      var srcX = dx - xOff;
+      var srcY = dy - yOff;
 
-      // Vertical bounds at this tu (HORIZ keystone)
-      var yT = leftInset  * (1 - tu) + rightInset * tu;
-      var yB = (H - leftInset) * (1 - tu) + (H - rightInset) * tu;
-      var colH = yB - yT;
-      if (colH < 1) continue;
-
-      // Skip pixels outside vertical trapezoid bounds
-      if (dy < yT || dy > yB) continue;
-
-      // tv normalized within this column's height
-      var tvN = (dy - yT) / colH;
-
-      // Sample source at (tu, tvN) — full source image
-      // srcX: map dest position to source proportionally to full canvas width
-      // xL..xR is the trapezoid width at this scanline; center it in source
-      var srcX = tu * (W - 1);
-      var srcY = tvN * (H - 1);
+      if (srcX < 0 || srcX > W - 1 || srcY < 0 || srcY > H - 1) continue;
 
       var sx0 = srcX | 0, sy0 = srcY | 0;
       var fx = srcX - sx0, fy = srcY - sy0;

@@ -13563,9 +13563,23 @@ function _cropPerspFlush() {
   var ov = document.getElementById('crop-overlay-canvas');
   if (ov) ov.style.display = 'none';
   sc.remove();
-  // Update userImage with data: URL so autoSaveEdit can persist it,
-  // then re-render so the display reflects the autocropped result.
-  var _flushDU = _cropped.toDataURL('image/jpeg', 0.92);
+  // Bake at ORIGINAL resolution — userImage.naturalWidth × naturalHeight.
+  // The display-size _cropped above is only used for the immediate canvas preview.
+  // Performing the warp again at full res preserves original quality on export.
+  var _fullW = userImage.naturalWidth, _fullH = userImage.naturalHeight;
+  var _fullCanvas = document.createElement('canvas');
+  _fullCanvas.width = _fullW; _fullCanvas.height = _fullH;
+  _etPerspTrapezoidWarp(_fullCanvas.getContext('2d'), userImage, _amtV, _amtH, _fullW, _fullH);
+  var _fxInset = Math.ceil(_fullW * 0.5 * (1 - 1 / _scaleVedge));
+  var _fyInset = Math.ceil(_fullH * 0.5 * (1 - 1 / _scaleVedge));
+  var _fMinX = _fxInset, _fMaxX = _fullW - 1 - _fxInset;
+  var _fMinY = _amtV < 0 ? _fyInset : 0, _fMaxY = _amtV > 0 ? _fullH - 1 - _fyInset : _fullH - 1;
+  var _fCropW = _fMaxX - _fMinX + 1, _fCropH = _fMaxY - _fMinY + 1;
+  if (_fCropW < 4 || _fCropH < 4) { _fCropW = _fullW; _fCropH = _fullH; _fMinX = 0; _fMinY = 0; }
+  var _fCropped = document.createElement('canvas');
+  _fCropped.width = _fCropW; _fCropped.height = _fCropH;
+  _fCropped.getContext('2d').drawImage(_fullCanvas, _fMinX, _fMinY, _fCropW, _fCropH, 0, 0, _fCropW, _fCropH);
+  var _flushDU = _fCropped.toDataURL('image/jpeg', 0.95);
   var _flushImg = new Image();
   _flushImg.onload = function() {
     userImage = _flushImg;

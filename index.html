@@ -9666,24 +9666,36 @@ function toolsFlipApply(dir) {
   if (!_preCropState) {
     _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH };
   }
-  const hc = document.getElementById('hero-canvas');
-  if (!hc || !userImage) return;
+  if (!userImage) return;
   // Save state for undo
-  _flipPreState = { userImage, canvasData: hc.getContext('2d').getImageData(0,0,hc.width,hc.height) };
+  _flipPreState = { userImage };
   const undoBtn = document.getElementById('flip-undo-btn');
   if (undoBtn) undoBtn.style.display = 'block';
 
+  // Flip from userImage (unfiltered) so filter effects are not baked in
+  var iw = userImage.naturalWidth || userImage.width;
+  var ih = userImage.naturalHeight || userImage.height;
   const tmp = document.createElement('canvas');
-  tmp.width = hc.width; tmp.height = hc.height;
+  tmp.width = iw; tmp.height = ih;
   const ctx = tmp.getContext('2d');
   ctx.save();
-  if (dir === 'h') { ctx.scale(-1, 1); ctx.drawImage(hc, -hc.width, 0); }
-  else             { ctx.scale(1, -1); ctx.drawImage(hc, 0, -hc.height); }
+  if (dir === 'h') { ctx.scale(-1, 1); ctx.drawImage(userImage, -iw, 0, iw, ih); }
+  else             { ctx.scale(1, -1); ctx.drawImage(userImage, 0, -ih, iw, ih); }
   ctx.restore();
-  hc.getContext('2d').drawImage(tmp, 0, 0);
-  // Capture new userImage
   const newImg = new Image();
-  newImg.onload = async () => { userImage = newImg; _origPixels = null; await captureOriginal(hc, newImg); showToast('FLIPPED'); };
+  newImg.onload = function() {
+    userImage = newImg;
+    _origPixels = null;
+    var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+    var ev = document.getElementById('editor-view');
+    if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') {
+      evRenderCanvas();
+    } else if (ac) {
+      if (typeof captureOriginal === 'function') captureOriginal(ac, newImg);
+      if (typeof scheduleRender === 'function') scheduleRender((activePreset || evActivePreset || {}).id);
+    }
+    showToast('FLIPPED');
+  };
   newImg.src = tmp.toDataURL();
 }
 

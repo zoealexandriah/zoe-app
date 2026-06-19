@@ -13786,32 +13786,13 @@ function etPerspUpdate() {
   if (amtV === 0 && amtH === 0) {
     ctx.drawImage(_etPerspOrigImg, 0, 0, sc.width, sc.height);
   } else {
-    // Draw warp to temp canvas, then crop inscribed rect to fill sc (no transparent corners)
-    var _tmpWC = document.createElement('canvas');
-    _tmpWC.width = sc.width; _tmpWC.height = sc.height;
-    _etPerspTrapezoidWarp(_tmpWC.getContext('2d'), _etPerspOrigImg, amtV / 100, amtH / 100, sc.width, sc.height);
-    var _maxInset = 0.25;
-    var _xInset = Math.max(
-      amtV > 0 ?  (amtV / 100) * _maxInset * sc.width  : 0,
-      amtV < 0 ? -(amtV / 100) * _maxInset * sc.width  : 0
-    );
-    var _yInset = Math.max(
-      amtH > 0 ?  (amtH / 100) * _maxInset * sc.height : 0,
-      amtH < 0 ? -(amtH / 100) * _maxInset * sc.height : 0
-    );
-    var _iW = sc.width  - 2 * _xInset;
-    var _iH = sc.height - 2 * _yInset;
-    if (_iW > 4 && _iH > 4) {
-      ctx.drawImage(_tmpWC, _xInset, _yInset, _iW, _iH, 0, 0, sc.width, sc.height);
-    } else {
-      ctx.drawImage(_tmpWC, 0, 0);
-    }
+    _etPerspTrapezoidWarp(ctx, _etPerspOrigImg, amtV / 100, amtH / 100, sc.width, sc.height);
   }
 }
 
 function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   // maxInset=0.4 means slider at 100 insets 40% of the edge — felt range
-  var maxInset = 0.4;
+  var maxInset = 0.32;
   var topInset   = amtV > 0 ?  amtV * maxInset * W : 0;  // top edge narrows by this many px each side
   var botInset   = amtV < 0 ? -amtV * maxInset * W : 0;  // bottom edge narrows
   var rightInset = amtH > 0 ?  amtH * maxInset * H : 0;  // right edge narrows

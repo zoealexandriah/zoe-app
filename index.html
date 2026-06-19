@@ -13564,16 +13564,15 @@ function _cropPerspFlush() {
   var ov = document.getElementById('crop-overlay-canvas');
   if (ov) ov.style.display = 'none';
   sc.remove();
-  // Update userImage asynchronously so subsequent operations use correct source
-  if (ac.toBlob) {
-    ac.toBlob(function(blob) {
-      if (!blob) return;
-      var url = URL.createObjectURL(blob);
-      var img = new Image();
-      img.onload = function() { userImage = img; URL.revokeObjectURL(url); };
-      img.src = url;
-    }, 'image/jpeg', 0.92);
-  }
+  // Update userImage with data: URL so autoSaveEdit can persist it,
+  // then re-render so the display reflects the autocropped result.
+  var _flushDU = _cropped.toDataURL('image/jpeg', 0.92);
+  var _flushImg = new Image();
+  _flushImg.onload = function() {
+    userImage = _flushImg;
+    if (typeof evRenderCanvas === 'function') evRenderCanvas();
+  };
+  _flushImg.src = _flushDU;
 }
 
 function cropPerspActivate(axis) {

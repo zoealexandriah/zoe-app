@@ -13704,7 +13704,7 @@ function etPerspUpdate() {
   if (vlbl) vlbl.textContent = amtV !== 0 ? Math.round(amtV) : 'VERT';
   if (hlbl) hlbl.textContent = amtH !== 0 ? Math.round(amtH) : 'HORIZ';
 
-  var ac = document.getElementById('hero-canvas');
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!ac || !userImage) return;
 
   // Capture original userImage ONCE on first slider move

@@ -13846,16 +13846,15 @@ function etPerspUpdate() {
     var _pvMinX = _pvXInset, _pvMaxX = _pvW - 1 - _pvXInset;
     var _pvMinY = _warpV < 0 ? _pvYInsetV : 0, _pvMaxY = _warpV > 0 ? _pvH - 1 - _pvYInsetV : _pvH - 1;
     var _pvCropW = _pvMaxX - _pvMinX + 1, _pvCropH = _pvMaxY - _pvMinY + 1;
-    if (_pvCropW > 4 && _pvCropH > 4 && (_pvMinX > 0 || _pvMinY > 0)) {
-      var _pvTmp = document.createElement('canvas');
-      _pvTmp.width = _pvCropW; _pvTmp.height = _pvCropH;
-      _pvTmp.getContext('2d').drawImage(sc, _pvMinX, _pvMinY, _pvCropW, _pvCropH, 0, 0, _pvCropW, _pvCropH);
-      // Draw stretched preview to ac; leave sc untouched so _cropPerspFlush reads clean trapezoid
-      ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
-      ac.getContext('2d').drawImage(_pvTmp, 0, 0, ac.width, ac.height);
-      ac.style.opacity = '1';
-      sc.style.opacity = '0';
-    }
+    var _pvTmp = document.createElement('canvas');
+    _pvTmp.width = _pvCropW; _pvTmp.height = _pvCropH;
+    _pvTmp.getContext('2d').drawImage(sc, _pvMinX, _pvMinY, _pvCropW, _pvCropH, 0, 0, _pvCropW, _pvCropH);
+    // Always draw back to ac (stretched to fill) so transparent corners never show.
+    // Leave sc untouched so _cropPerspFlush can read the clean trapezoid from it.
+    ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
+    ac.getContext('2d').drawImage(_pvTmp, 0, 0, ac.width, ac.height);
+    ac.style.opacity = '1';
+    sc.style.opacity = '0';
   }
 }
 

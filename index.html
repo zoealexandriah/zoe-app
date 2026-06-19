@@ -13217,7 +13217,7 @@ function _cropApplyRatioInPlace(keepStraighten) {
 function _cropExitMode() {
   _ratioPreCropUserImage = null;
   var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
-  var _pw = document.getElementById('crop-perspective-work'); if (_pw) _pw.remove();
+  if (typeof _cropPerspFlush === 'function') _cropPerspFlush(); var _pw = document.getElementById('crop-perspective-work'); if (_pw) _pw.remove();
   if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
   if (typeof _cropStraightenRafId !== 'undefined' && _cropStraightenRafId) {
     cancelAnimationFrame(_cropStraightenRafId); _cropStraightenRafId = null;
@@ -13249,7 +13249,7 @@ function cropSelectSubTab(btn, tab) {
   }
   // crop-straighten-work intentionally kept — straighten state persists across sub-tab switches
   // Clean up perspective work canvas when leaving transform; reset sliders
-  var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
+  if (typeof _cropPerspFlush === 'function') _cropPerspFlush(); var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
   _etPerspOrig = null; _etPerspOrigDataURL = null; _etPerspOrigImg = null;
   _etPerspVVal = 0; _etPerspHVal = 0; _etPerspActiveAxis = null;
   var _pvs = document.getElementById('crop-persp-v-slider'); if (_pvs) _pvs.value = 0;

@@ -13532,8 +13532,11 @@ function _cropPerspFlush() {
   // Must match maxShear in _etPerspTrapezoidWarp and _pvMaxShear in live preview.
   var _maxK = 0.35;
   var _cW = sc.width, _cH = sc.height;
-  var _xInset = Math.ceil(Math.abs(_amtV) * _maxK * 0.25 * _cW);
-  var _yInset = Math.ceil(Math.abs(_amtH) * _maxK * 0.25 * _cH);
+  var _kV = Math.abs(_amtV) * _maxK, _kH = Math.abs(_amtH) * _maxK;
+  var _scaleVedge = 1 / (1 - _kV * 0.5);
+  var _scaleHedge = 1 / (1 - _kH * 0.5);
+  var _xInset = Math.ceil(_cW * 0.5 * (1 - 1 / _scaleVedge));
+  var _yInset = Math.ceil(_cH * 0.5 * (1 - 1 / _scaleHedge));
   var _minX = _xInset, _maxX = _cW - 1 - _xInset;
   var _minY = _yInset, _maxY = _cH - 1 - _yInset;
   var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
@@ -13813,10 +13816,13 @@ function etPerspUpdate() {
     _etPerspTrapezoidWarp(ctx, _etPerspOrigImg, _warpV, _warpH, sc.width, sc.height);
     // Live-preview autocrop: extract inscribed rect and stretch to fill, hiding transparent corners.
     // Shear geometry: both sides inset equally by shear * 0.5 * dimension.
-    var _pvMaxK = 0.35; // must match maxK in _etPerspTrapezoidWarp
+    var _pvMaxK = 0.35;
     var _pvW = sc.width, _pvH = sc.height;
-    var _pvXInset = Math.ceil(Math.abs(_warpV) * _pvMaxK * 0.25 * _pvW);
-    var _pvYInset = Math.ceil(Math.abs(_warpH) * _pvMaxK * 0.25 * _pvH);
+    var _pvKV = Math.abs(_warpV) * _pvMaxK, _pvKH = Math.abs(_warpH) * _pvMaxK;
+    var _pvScaleVedge = 1 / (1 - _pvKV * 0.5);
+    var _pvScaleHedge = 1 / (1 - _pvKH * 0.5);
+    var _pvXInset = Math.ceil(_pvW * 0.5 * (1 - 1 / _pvScaleVedge));
+    var _pvYInset = Math.ceil(_pvH * 0.5 * (1 - 1 / _pvScaleHedge));
     var _pvMinX = _pvXInset, _pvMaxX = _pvW - 1 - _pvXInset;
     var _pvMinY = _pvYInset, _pvMaxY = _pvH - 1 - _pvYInset;
     var _pvCropW = _pvMaxX - _pvMinX + 1, _pvCropH = _pvMaxY - _pvMinY + 1;

@@ -9840,10 +9840,18 @@ function globalHistoryPush() {
 }
 
 function globalUndo() {
+  var _edV = document.getElementById('editor-view');
+  if (_edV && _edV.classList.contains('active')) {
+    if (evHistory.length === 0) return;
+    var _p = evActivePreset || activePreset;
+    evFuture.push({ presetId: _p ? _p.id : null, sliders: _p ? JSON.parse(JSON.stringify(sliderState[_p.id] || {})) : {}, intensity: presetIntensity, _userImage: userImage });
+    _evRestoreSnap(evHistory.pop());
+    _evUpdateUndoRedoBtns();
+    return;
+  }
   if (globalHistory.length === 0) return;
   const hc = document.getElementById('hero-canvas');
   if (!hc) return;
-  // Push current to future
   globalFuture.push(hc.getContext('2d').getImageData(0, 0, hc.width, hc.height));
   const prev = globalHistory.pop();
   hc.getContext('2d').putImageData(prev, 0, 0);
@@ -9851,6 +9859,15 @@ function globalUndo() {
 }
 
 function globalRedo() {
+  var _edV = document.getElementById('editor-view');
+  if (_edV && _edV.classList.contains('active')) {
+    if (evFuture.length === 0) return;
+    var _p = evActivePreset || activePreset;
+    evHistory.push({ presetId: _p ? _p.id : null, sliders: _p ? JSON.parse(JSON.stringify(sliderState[_p.id] || {})) : {}, intensity: presetIntensity, _userImage: userImage });
+    _evRestoreSnap(evFuture.pop());
+    _evUpdateUndoRedoBtns();
+    return;
+  }
   if (globalFuture.length === 0) return;
   const hc = document.getElementById('hero-canvas');
   if (!hc) return;
@@ -9878,7 +9895,8 @@ window.toolsCropApply = function() {
 const _origToolsFlipApply = window.toolsFlipApply;
 window.toolsFlipApply = function(dir) {
   if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
-  globalHistoryPush();
+  var _edVF = document.getElementById('editor-view');
+  if (_edVF && _edVF.classList.contains('active')) { evHistoryPush(); } else { globalHistoryPush(); }
   _origToolsFlipApply(dir);
 };
 const _origToolsStraightenApply = window.toolsStraightenApply;
@@ -10488,9 +10506,10 @@ const evFuture  = [];
 function evHistoryPush() {
   const p = evActivePreset || activePreset;
   evHistory.push({
-    presetId:  p ? p.id : null,
-    sliders:   p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
-    intensity: presetIntensity
+    presetId:   p ? p.id : null,
+    sliders:    p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
+    intensity:  presetIntensity,
+    _userImage: userImage
   });
   if (evHistory.length > 30) evHistory.shift();
   evFuture.length = 0;
@@ -10511,6 +10530,10 @@ function _evRestoreSnap(snap) {
   presetIntensity = snap.intensity ?? 1.0;
   document.querySelectorAll('.intensity-slider').forEach(el => { el.value = Math.round(presetIntensity * 100); });
   document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = Math.round(presetIntensity * 100) + '%'; });
+  // Restore userImage if the snap captured a different image (crop/flip/rotate ops)
+  if (snap._userImage && snap._userImage !== userImage) {
+    userImage = snap._userImage;
+  }
   if (p) {
     if (typeof evRenderCanvas === 'function') evRenderCanvas();
     const hc = document.getElementById('hero-canvas');
@@ -13399,6 +13422,7 @@ function cropRotate90(dir) {
   if (!_preCropState) {
     _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH };
   }
+  evHistoryPush();
   if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
   var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!hc || !userImage) return;

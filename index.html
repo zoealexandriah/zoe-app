@@ -13810,13 +13810,14 @@ function etPerspUpdate() {
 }
 
 function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
-  var maxInset = 0.25;
-  var topInset   = amtV > 0 ?  amtV * maxInset * W : 0;
-  var botInset   = amtV < 0 ? -amtV * maxInset * W : 0;
-  var rightInset = amtH > 0 ?  amtH * maxInset * H : 0;
-  var leftInset  = amtH < 0 ? -amtH * maxInset * H : 0;
+  // maxInset=0.4 means slider at 100 insets 40% of the edge — felt range
+  var maxInset = 0.4;
+  var topInset   = amtV > 0 ?  amtV * maxInset * W : 0;  // top edge narrows by this many px each side
+  var botInset   = amtV < 0 ? -amtV * maxInset * W : 0;  // bottom edge narrows
+  var rightInset = amtH > 0 ?  amtH * maxInset * H : 0;  // right edge narrows
+  var leftInset  = amtH < 0 ? -amtH * maxInset * H : 0;  // left edge narrows
 
-  // Rasterise source into pixel buffer
+  // Rasterise source
   var tmp = document.createElement('canvas');
   tmp.width = W; tmp.height = H;
   tmp.getContext('2d').drawImage(src, 0, 0, W, H);
@@ -13825,48 +13826,54 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   var s = srcData.data, d = dstData.data;
 
   for (var dy = 0; dy < H; dy++) {
-    var tv = dy / (H - 1 || 1);
+    // tv: 0 at top, 1 at bottom
+    var tv = H > 1 ? dy / (H - 1) : 0;
 
-    // X bounds of trapezoid at this scanline (VERT keystone: top narrows, bottom full)
-    var xLeft  = topInset  * (1 - tv) + botInset  * tv;       // left boundary
-    var xRight = (W - topInset) * (1 - tv) + (W - botInset) * tv; // right boundary
-
-    // Y bounds of trapezoid at this scanline (HORIZ keystone: right or left edge narrows)
-    // For each dx column, top and bottom Y boundaries are constant for pure VERT,
-    // but vary with tu for HORIZ. We handle this per-pixel below.
-
-    var rowW = xRight - xLeft;
+    // At this scanline, the trapezoid spans from xL to xR in dest space.
+    // VERT: top edge is narrower, so xL grows and xR shrinks as tv→0.
+    var xL = topInset  * (1 - tv) + botInset  * tv;
+    var xR = (W - topInset) * (1 - tv) + (W - botInset) * tv;
+    var rowW = xR - xL;
     if (rowW < 1) continue;
 
-    for (var dx = 0; dx < W; dx++) {
-      // Check X bounds
-      if (dx < xLeft || dx > xRight) continue;
-      var tu = (dx - xLeft) / rowW;
+    // At this scanline, the trapezoid spans from yT to yB in dest space.
+    // HORIZ: right edge is narrower, so yT grows and yB shrinks as tu→1.
+    // We compute yT and yB per-pixel below since they depend on tu.
 
-      // Y bounds for this column (HORIZ keystone: narrows top/bottom on one side)
-      var yTop = leftInset  * (1 - tu) + rightInset * tu;
-      var yBot = (H - leftInset) * (1 - tu) + (H - rightInset) * tu;
-      var colH = yBot - yTop;
+    for (var dx = 0; dx < W; dx++) {
+      // Skip pixels outside horizontal trapezoid bounds
+      if (dx < xL || dx > xR) continue;
+
+      // tu: 0 at left, 1 at right — normalized within this scanline's width
+      var tu = (dx - xL) / rowW;
+
+      // Vertical bounds at this tu (HORIZ keystone)
+      var yT = leftInset  * (1 - tu) + rightInset * tu;
+      var yB = (H - leftInset) * (1 - tu) + (H - rightInset) * tu;
+      var colH = yB - yT;
       if (colH < 1) continue;
 
-      // Check Y bounds
-      if (dy < yTop || dy > yBot) continue;
-      var tvN = (dy - yTop) / colH;
+      // Skip pixels outside vertical trapezoid bounds
+      if (dy < yT || dy > yB) continue;
 
-      // Sample source at normalized (tu, tvN)
+      // tv normalized within this column's height
+      var tvN = (dy - yT) / colH;
+
+      // Sample source at (tu, tvN) — full source image
       var srcX = tu  * (W - 1);
       var srcY = tvN * (H - 1);
 
       var sx0 = srcX | 0, sy0 = srcY | 0;
       var fx = srcX - sx0, fy = srcY - sy0;
-      var sx1 = Math.min(W - 1, sx0 + 1), sy1 = Math.min(H - 1, sy0 + 1);
+      var sx1 = Math.min(W - 1, sx0 + 1);
+      var sy1 = Math.min(H - 1, sy0 + 1);
       var di  = (dy * W + dx) * 4;
       var i00 = (sy0 * W + sx0) * 4, i10 = (sy0 * W + sx1) * 4;
       var i01 = (sy1 * W + sx0) * 4, i11 = (sy1 * W + sx1) * 4;
       for (var c = 0; c < 3; c++) {
-        var top = s[i00+c] + (s[i10+c] - s[i00+c]) * fx;
-        var bot = s[i01+c] + (s[i11+c] - s[i01+c]) * fx;
-        d[di+c] = top + (bot - top) * fy;
+        var t = s[i00+c] + (s[i10+c] - s[i00+c]) * fx;
+        var b = s[i01+c] + (s[i11+c] - s[i01+c]) * fx;
+        d[di+c] = t + (b - t) * fy;
       }
       d[di+3] = 255;
     }

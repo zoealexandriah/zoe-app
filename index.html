@@ -13538,7 +13538,7 @@ function _cropPerspFlush() {
   var _xInset = Math.ceil(_cW * 0.5 * (1 - 1 / _scaleVedge));
   var _yInset = Math.ceil(_cH * 0.5 * (1 - 1 / _scaleHedge));
   var _minX = _xInset, _maxX = _cW - 1 - _xInset;
-  var _minY = 0, _maxY = _cH - 1;
+  var _minY = _yInset, _maxY = _cH - 1 - _yInset;
   var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
   if (_cropW < 4 || _cropH < 4) { _cropW = _cW; _cropH = _cH; _minX = 0; _minY = 0; }
 
@@ -13860,8 +13860,8 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
       var scaleH = kH !== 0 ? 1 / (1 - kH * tu) : 1;
       if (scaleH <= 0) continue;
 
-      var srcX = W * 0.5 + (dx - W * 0.5) * scaleV;
-      var srcY = H * 0.5 + (dy - H * 0.5) * scaleH;
+      var srcX = W * 0.5 + (dx - W * 0.5) * scaleH;
+      var srcY = H * 0.5 + (dy - H * 0.5) * scaleV;
 
       if (srcX < 0 || srcX > W - 1 || srcY < 0 || srcY > H - 1) continue;
 

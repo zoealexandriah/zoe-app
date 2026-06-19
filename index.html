@@ -13502,19 +13502,20 @@ function _cropPerspFlush() {
   var _slH = document.getElementById('crop-persp-h-slider');
   var _amtV = _slV ? parseFloat(_slV.value) / 100 : 0;
   var _amtH = _slH ? parseFloat(_slH.value) / 100 : 0;
-  var _maxInsetF = 0.32;
-  var _xInset = Math.max(
-    _amtV > 0 ?  _amtV * _maxInsetF * sc.width  : 0,
-    _amtV < 0 ? -_amtV * _maxInsetF * sc.width  : 0
-  );
-  var _yInset = Math.max(
-    _amtH > 0 ?  _amtH * _maxInsetF * sc.height : 0,
-    _amtH < 0 ? -_amtH * _maxInsetF * sc.height : 0
-  );
+  // Inscribed rectangle: the largest axis-aligned rect fully inside the trapezoid.
+  // For VERT (amtV): the narrow end insets horizontally — use that inset as minX/maxX.
+  // For HORIZ (amtH): the narrow end insets vertically — use that inset as minY/maxY.
+  var _maxInsetF = 0.22;
   var _cW = sc.width, _cH = sc.height;
-  var _minX = Math.round(_xInset), _minY = Math.round(_yInset);
-  var _maxX = _cW - 1 - Math.round(_xInset);
-  var _maxY = _cH - 1 - Math.round(_yInset);
+  var _topInset   = _amtV > 0 ?  _amtV * _maxInsetF * _cW : 0;
+  var _botInset   = _amtV < 0 ? -_amtV * _maxInsetF * _cW : 0;
+  var _rightInset = _amtH > 0 ?  _amtH * _maxInsetF * _cH : 0;
+  var _leftInset  = _amtH < 0 ? -_amtH * _maxInsetF * _cH : 0;
+  // Inscribed rect: inset from the narrower of the two opposite edges on each axis
+  var _minX = Math.ceil(Math.max(_topInset, _botInset));
+  var _maxX = _cW - 1 - Math.ceil(Math.max(_topInset, _botInset));
+  var _minY = Math.ceil(Math.max(_leftInset, _rightInset));
+  var _maxY = _cH - 1 - Math.ceil(Math.max(_leftInset, _rightInset));
   var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
   if (_cropW < 4 || _cropH < 4) { _cropW = _cW; _cropH = _cH; _minX = 0; _minY = 0; }
 
@@ -13793,7 +13794,7 @@ function etPerspUpdate() {
 
 function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   // maxInset=0.4 means slider at 100 insets 40% of the edge — felt range
-  var maxInset = 0.32;
+  var maxInset = 0.22;
   var topInset   = amtV > 0 ?  amtV * maxInset * W : 0;  // top edge narrows by this many px each side
   var botInset   = amtV < 0 ? -amtV * maxInset * W : 0;  // bottom edge narrows
   var rightInset = amtH > 0 ?  amtH * maxInset * H : 0;  // right edge narrows

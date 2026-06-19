@@ -13530,10 +13530,10 @@ function _cropPerspFlush() {
   _amtH = (_amtH >= 0 ? 1 : -1) * Math.pow(Math.abs(_amtH), 2);
   // Inscribed rectangle for shear: both sides inset equally by shear * 0.5 * dimension.
   // Must match maxShear in _etPerspTrapezoidWarp and _pvMaxShear in live preview.
-  var _maxInsetF = 0.18;
+  var _maxK = 0.7;
   var _cW = sc.width, _cH = sc.height;
-  var _xInset = Math.ceil(Math.abs(_amtV) * _maxInsetF * _cW);
-  var _yInset = Math.ceil(Math.abs(_amtH) * _maxInsetF * _cH);
+  var _xInset = Math.ceil(Math.abs(_amtV) * _maxK * 0.25 * _cW);
+  var _yInset = Math.ceil(Math.abs(_amtH) * _maxK * 0.25 * _cH);
   var _minX = _xInset, _maxX = _cW - 1 - _xInset;
   var _minY = _yInset, _maxY = _cH - 1 - _yInset;
   var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
@@ -13813,10 +13813,10 @@ function etPerspUpdate() {
     _etPerspTrapezoidWarp(ctx, _etPerspOrigImg, _warpV, _warpH, sc.width, sc.height);
     // Live-preview autocrop: extract inscribed rect and stretch to fill, hiding transparent corners.
     // Shear geometry: both sides inset equally by shear * 0.5 * dimension.
-    var _pvMaxInset = 0.18; // must match maxInset in _etPerspTrapezoidWarp
+    var _pvMaxK = 0.7; // must match maxK in _etPerspTrapezoidWarp
     var _pvW = sc.width, _pvH = sc.height;
-    var _pvXInset = Math.ceil(Math.abs(_warpV) * _pvMaxInset * _pvW);
-    var _pvYInset = Math.ceil(Math.abs(_warpH) * _pvMaxInset * _pvH);
+    var _pvXInset = Math.ceil(Math.abs(_warpV) * _pvMaxK * 0.25 * _pvW);
+    var _pvYInset = Math.ceil(Math.abs(_warpH) * _pvMaxK * 0.25 * _pvH);
     var _pvMinX = _pvXInset, _pvMaxX = _pvW - 1 - _pvXInset;
     var _pvMinY = _pvYInset, _pvMaxY = _pvH - 1 - _pvYInset;
     var _pvCropW = _pvMaxX - _pvMinX + 1, _pvCropH = _pvMaxY - _pvMinY + 1;
@@ -13834,9 +13834,14 @@ function etPerspUpdate() {
 }
 
 function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
-  // True keystone: top/bottom edge narrows (VERT) or left/right edge narrows (HORIZ).
-  // maxInset: fraction of dimension that the narrow edge insets on each side at amtV/H = 1.
-  var maxInset = 0.18;
+  // Projective perspective warp.
+  // VERT (amtV > 0): top edge narrows — simulates shot from below looking up.
+  // VERT (amtV < 0): bottom edge narrows — simulates shot from above looking down.
+  // HORIZ (amtH > 0): right edge narrows. HORIZ (amtH < 0): left edge narrows.
+  // maxK controls strength: at amtV=1, scale at top = 1/(1 + maxK*0.5).
+  var maxK = 0.7;
+  var kV = amtV * maxK;  // vertical perspective strength
+  var kH = amtH * maxK;  // horizontal perspective strength
 
   var tmp = document.createElement('canvas');
   tmp.width = W; tmp.height = H;
@@ -13847,46 +13852,18 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
 
   for (var dy = 0; dy < H; dy++) {
     var tv = H > 1 ? dy / (H - 1) : 0; // 0=top, 1=bottom
-
-    // VERT keystone: positive amtV → top narrows, bottom full.
-    // At this scanline, inset on each side = amtV * maxInset * (1 - tv)  [positive: top narrows]
-    //                                      + (-amtV) * maxInset * tv     [negative: bottom narrows]
-    var xInsetL, xInsetR;
-    if (amtV >= 0) {
-      xInsetL = amtV * maxInset * (1 - tv) * W;
-      xInsetR = amtV * maxInset * (1 - tv) * W;
-    } else {
-      xInsetL = (-amtV) * maxInset * tv * W;
-      xInsetR = (-amtV) * maxInset * tv * W;
-    }
+    // Scale factor for this row: >1 means this row samples wider than dest (top narrows in dest)
+    var scaleV = 1 / (1 - kV * (tv - 0.5));
+    if (scaleV <= 0) continue;
 
     for (var dx = 0; dx < W; dx++) {
       var tu = W > 1 ? dx / (W - 1) : 0; // 0=left, 1=right
+      var scaleH = 1 / (1 - kH * (tu - 0.5));
+      if (scaleH <= 0) continue;
 
-      // HORIZ keystone: positive amtH → right edge narrows, left full.
-      var yInsetT, yInsetB;
-      if (amtH >= 0) {
-        yInsetT = amtH * maxInset * tu * H;
-        yInsetB = amtH * maxInset * tu * H;
-      } else {
-        yInsetT = (-amtH) * maxInset * (1 - tu) * H;
-        yInsetB = (-amtH) * maxInset * (1 - tu) * H;
-      }
-
-      // Dest pixel (dx,dy) maps to source:
-      // srcX: scale dx into the narrowed row width
-      var rowLeft  = xInsetL;
-      var rowRight = W - xInsetR;
-      var rowW = rowRight - rowLeft;
-      if (rowW < 1) continue;
-      var srcX = rowLeft + tu * rowW;
-
-      // srcY: scale dy into the narrowed col height
-      var colTop    = yInsetT;
-      var colBottom = H - yInsetB;
-      var colH = colBottom - colTop;
-      if (colH < 1) continue;
-      var srcY = colTop + tv * colH;
+      // Reverse map: dest pixel (dx,dy) samples source at:
+      var srcX = W * 0.5 + (dx - W * 0.5) * scaleV;
+      var srcY = H * 0.5 + (dy - H * 0.5) * scaleH;
 
       if (srcX < 0 || srcX > W - 1 || srcY < 0 || srcY > H - 1) continue;
 

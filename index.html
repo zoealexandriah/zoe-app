@@ -13893,12 +13893,22 @@ function etPerspUpdate() {
   ac.style.opacity = '0';
 
   if (amtV === 0 && amtH === 0) {
-    // No warp — draw original directly to ac and keep sc hidden, matching the warp-path pattern.
-    // Previously only drew to sc then left ac hidden → both ended up invisible after a non-zero warp.
-    ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
-    ac.getContext('2d').drawImage(_etPerspOrigImg, 0, 0, ac.width, ac.height);
-    ac.style.opacity = '1';
-    sc.style.opacity = '0';
+    // Show pre-warp original via sc overlay at its natural aspect ratio.
+    // ac may have been baked to warp+autocrop dimensions (different AR), so stretching into it distorts.
+    var _origNW = _etPerspOrigImg.naturalWidth || sc.width;
+    var _origNH = _etPerspOrigImg.naturalHeight || sc.height;
+    var _zScale = Math.min(_acW / _origNW, _acH / _origNH);
+    var _zDispW = Math.round(_origNW * _zScale);
+    var _zDispH = Math.round(_origNH * _zScale);
+    sc.width = _origNW; sc.height = _origNH;
+    sc.getContext('2d').clearRect(0, 0, _origNW, _origNH);
+    sc.getContext('2d').drawImage(_etPerspOrigImg, 0, 0, _origNW, _origNH);
+    sc.style.width  = _zDispW + 'px';
+    sc.style.height = _zDispH + 'px';
+    sc.style.left   = Math.round((_arW - _zDispW) / 2) + 'px';
+    sc.style.top    = Math.round((_arH - _zDispH) / 2) + 'px';
+    sc.style.opacity = '1';
+    // ac stays at opacity:0 (set above)
   } else {
     // Quadratic curve so low slider values are subtle; max slider still reaches full effect
     var _warpV = (amtV >= 0 ? 1 : -1) * Math.pow(Math.abs(amtV) / 100, 2);

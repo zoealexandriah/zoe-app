@@ -13547,12 +13547,11 @@ function _cropPerspFlush() {
   _cropped.width = _cropW; _cropped.height = _cropH;
   _cropped.getContext('2d').drawImage(sc, _minX, _minY, _cropW, _cropH, 0, 0, _cropW, _cropH);
 
-  // Resize ac to the cropped dimensions and paint
-  ac.width  = _cropW;
-  ac.height = _cropH;
+  // Keep ac at original dimensions — scale cropped region up to fill (zoom in)
+  var _origW = ac.width, _origH = ac.height;
   ac.style.opacity = '1';
-  ac.getContext('2d').clearRect(0, 0, _cropW, _cropH);
-  ac.getContext('2d').drawImage(_cropped, 0, 0);
+  ac.getContext('2d').clearRect(0, 0, _origW, _origH);
+  ac.getContext('2d').drawImage(_cropped, 0, 0, _origW, _origH);
 
   // Keep cropped canvas as new perspective base
   var snap = document.createElement('canvas');
@@ -13832,7 +13831,7 @@ function etPerspUpdate() {
       _pvTmp.getContext('2d').drawImage(sc, _pvMinX, _pvMinY, _pvCropW, _pvCropH, 0, 0, _pvCropW, _pvCropH);
       // Draw stretched preview to ac; leave sc untouched so _cropPerspFlush reads clean trapezoid
       ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
-      ac.getContext('2d').drawImage(_pvTmp, _pvMinX, _pvMinY, _pvCropW, _pvCropH);
+      ac.getContext('2d').drawImage(_pvTmp, 0, 0, ac.width, ac.height);
       ac.style.opacity = '1';
       sc.style.opacity = '0';
     }

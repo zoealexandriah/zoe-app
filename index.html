@@ -13525,6 +13525,9 @@ function _cropPerspFlush() {
   var _slH = document.getElementById('crop-persp-h-slider');
   var _amtV = _slV ? parseFloat(_slV.value) / 100 : 0;
   var _amtH = _slH ? parseFloat(_slH.value) / 100 : 0;
+  // Apply same quadratic curve used in etPerspUpdate so inscribed rect matches actual warp
+  _amtV = (_amtV >= 0 ? 1 : -1) * Math.pow(Math.abs(_amtV), 2);
+  _amtH = (_amtH >= 0 ? 1 : -1) * Math.pow(Math.abs(_amtH), 2);
   // Inscribed rectangle: the largest axis-aligned rect fully inside the trapezoid.
   // For VERT (amtV): the narrow end insets horizontally — use that inset as minX/maxX.
   // For HORIZ (amtH): the narrow end insets vertically — use that inset as minY/maxY.
@@ -13810,11 +13813,14 @@ function etPerspUpdate() {
   if (amtV === 0 && amtH === 0) {
     ctx.drawImage(_etPerspOrigImg, 0, 0, sc.width, sc.height);
   } else {
-    _etPerspTrapezoidWarp(ctx, _etPerspOrigImg, amtV / 100, amtH / 100, sc.width, sc.height);
+    // Quadratic curve so low slider values are subtle; max slider still reaches full effect
+    var _warpV = (amtV >= 0 ? 1 : -1) * Math.pow(Math.abs(amtV) / 100, 2);
+    var _warpH = (amtH >= 0 ? 1 : -1) * Math.pow(Math.abs(amtH) / 100, 2);
+    _etPerspTrapezoidWarp(ctx, _etPerspOrigImg, _warpV, _warpH, sc.width, sc.height);
     // Live-preview autocrop: extract inscribed rect and stretch to fill, hiding white corners
     var _pvMaxInset = 0.22;
     var _pvW = sc.width, _pvH = sc.height;
-    var _pvAmtV = amtV / 100, _pvAmtH = amtH / 100;
+    var _pvAmtV = _warpV, _pvAmtH = _warpH;
     var _pvTopInset   = _pvAmtV > 0 ?  _pvAmtV * _pvMaxInset * _pvW : 0;
     var _pvBotInset   = _pvAmtV < 0 ? -_pvAmtV * _pvMaxInset * _pvW : 0;
     var _pvRightInset = _pvAmtH > 0 ?  _pvAmtH * _pvMaxInset * _pvH : 0;

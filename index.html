@@ -13834,14 +13834,12 @@ function etPerspUpdate() {
 }
 
 function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
-  // Projective perspective warp.
-  // VERT (amtV > 0): top edge narrows — simulates shot from below looking up.
-  // VERT (amtV < 0): bottom edge narrows — simulates shot from above looking down.
-  // HORIZ (amtH > 0): right edge narrows. HORIZ (amtH < 0): left edge narrows.
-  // maxK controls strength: at amtV=1, scale at top = 1/(1 + maxK*0.5).
+  // Projective perspective warp. Linear scale falloff from center.
+  // amtV > 0 = top narrows (shot from below). amtV < 0 = bottom narrows.
+  // amtH > 0 = right narrows. amtH < 0 = left narrows.
   var maxK = 0.35;
-  var kV = amtV * maxK;  // vertical perspective strength
-  var kH = amtH * maxK;  // horizontal perspective strength
+  var kV = amtV * maxK;
+  var kH = amtH * maxK;
 
   var tmp = document.createElement('canvas');
   tmp.width = W; tmp.height = H;
@@ -13851,21 +13849,15 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   var s = srcData.data, d = dstData.data;
 
   for (var dy = 0; dy < H; dy++) {
-    var tv = H > 1 ? dy / (H - 1) : 0; // 0=top, 1=bottom
-    // Scale factor for this row: >1 means this row samples wider than dest (top narrows in dest)
-    var _tvC = tv - 0.5; // centered: -0.5 to +0.5
-    var _tvCurved = (_tvC >= 0 ? 1 : -1) * _tvC * _tvC * 4; // squared falloff, range -1 to +1
-    var scaleV = 1 / (1 - kV * _tvCurved * 0.5);
+    var tv = H > 1 ? dy / (H - 1) - 0.5 : 0; // -0.5 to +0.5 centered
+    var scaleV = 1 / (1 - kV * tv);
     if (scaleV <= 0) continue;
 
     for (var dx = 0; dx < W; dx++) {
-      var tu = W > 1 ? dx / (W - 1) : 0; // 0=left, 1=right
-      var _tuC = tu - 0.5;
-      var _tuCurved = (_tuC >= 0 ? 1 : -1) * _tuC * _tuC * 4;
-      var scaleH = 1 / (1 - kH * _tuCurved * 0.5);
+      var tu = W > 1 ? dx / (W - 1) - 0.5 : 0; // -0.5 to +0.5 centered
+      var scaleH = 1 / (1 - kH * tu);
       if (scaleH <= 0) continue;
 
-      // Reverse map: dest pixel (dx,dy) samples source at:
       var srcX = W * 0.5 + (dx - W * 0.5) * scaleV;
       var srcY = H * 0.5 + (dy - H * 0.5) * scaleH;
 

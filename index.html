@@ -9663,6 +9663,9 @@ function toolsFlipHTML() {
 let _flipPreState = null;
 
 function toolsFlipApply(dir) {
+  if (!_preCropState) {
+    _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH };
+  }
   const hc = document.getElementById('hero-canvas');
   if (!hc || !userImage) return;
   // Save state for undo
@@ -13369,6 +13372,9 @@ function cropStraightenAutoApply() {
 }
 
 function cropRotate90(dir) {
+  if (!_preCropState) {
+    _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH };
+  }
   if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
   var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!hc || !userImage) return;
@@ -13668,12 +13674,10 @@ function etPerspUpdate() {
   }
   sc.width  = ac.width;
   sc.height = ac.height;
-  var acRect = ac.getBoundingClientRect();
-  var parRect = ac.parentElement.getBoundingClientRect();
-  sc.style.width  = acRect.width + 'px';
-  sc.style.height = acRect.height + 'px';
-  sc.style.left   = (acRect.left - parRect.left) + 'px';
-  sc.style.top    = (acRect.top  - parRect.top)  + 'px';
+  sc.style.width  = ac.clientWidth  + 'px';
+  sc.style.height = ac.clientHeight + 'px';
+  sc.style.left   = '0';
+  sc.style.top    = '0';
 
   var ctx = sc.getContext('2d');
   ctx.clearRect(0, 0, sc.width, sc.height);
@@ -13690,7 +13694,7 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   // True trapezoid keystone matching iPhone Photos perspective tool.
   // amtV: -1..+1, positive = top narrows
   // amtH: -1..+1, positive = right narrows
-  var maxInset = 0.35;
+  var maxInset = 0.25;
   var topInset   = amtV > 0 ?  amtV * maxInset * W : 0;
   var botInset   = amtV < 0 ? -amtV * maxInset * W : 0;
   var rightInset = amtH > 0 ?  amtH * maxInset * H : 0;

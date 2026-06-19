@@ -13882,7 +13882,12 @@ function etPerspUpdate() {
   ac.style.opacity = '0';
 
   if (amtV === 0 && amtH === 0) {
-    ctx.drawImage(_etPerspOrigImg, 0, 0, sc.width, sc.height);
+    // No warp — draw original directly to ac and keep sc hidden, matching the warp-path pattern.
+    // Previously only drew to sc then left ac hidden → both ended up invisible after a non-zero warp.
+    ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
+    ac.getContext('2d').drawImage(_etPerspOrigImg, 0, 0, ac.width, ac.height);
+    ac.style.opacity = '1';
+    sc.style.opacity = '0';
   } else {
     // Quadratic curve so low slider values are subtle; max slider still reaches full effect
     var _warpV = (amtV >= 0 ? 1 : -1) * Math.pow(Math.abs(amtV) / 100, 2);

@@ -13752,6 +13752,7 @@ function etPerspUpdate() {
 
   // Capture current RENDERED canvas state once on first slider move
   if (!_etPerspOrigImg) {
+    ac.style.opacity = '1';
     var _snapC = document.createElement('canvas');
     _snapC.width = ac.width; _snapC.height = ac.height;
     _snapC.getContext('2d').drawImage(ac, 0, 0);

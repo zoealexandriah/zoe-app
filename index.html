@@ -13777,24 +13777,36 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
 
   for (var dy = 0; dy < H; dy++) {
     var tv = dy / (H - 1 || 1);
+
+    // Left and right X boundaries of this scanline in destination
+    var xL = TL[0] + (BL[0] - TL[0]) * tv;
+    var xR = TR[0] + (BR[0] - TR[0]) * tv;
+    // Top and bottom Y offsets for this scanline (for horiz keystone)
+    var yT = TL[1] + (TR[1] - TL[1]) * tv;
+    var yB = BL[1] + (BR[1] - BL[1]) * tv;
+
     for (var dx = 0; dx < W; dx++) {
       var tu = dx / (W - 1 || 1);
-      // Bilinear map from dest pixel to source quad
-      var sx = (1-tu)*(1-tv)*TL[0] + tu*(1-tv)*TR[0] + tu*tv*BR[0] + (1-tu)*tv*BL[0];
-      var sy = (1-tu)*(1-tv)*TL[1] + tu*(1-tv)*TR[1] + tu*tv*BR[1] + (1-tu)*tv*BL[1];
-      if (sx < 0 || sy < 0 || sx >= W || sy >= H) continue;
-      var sx0 = sx|0, sy0 = sy|0;
-      var fx = sx - sx0, fy = sy - sy0;
-      var sx1 = Math.min(W-1, sx0+1), sy1 = Math.min(H-1, sy0+1);
-      var di  = (dy*W + dx)*4;
-      var i00 = (sy0*W+sx0)*4, i10 = (sy0*W+sx1)*4;
-      var i01 = (sy1*W+sx0)*4, i11 = (sy1*W+sx1)*4;
+
+      // Map destination pixel back to source coordinates
+      var srcX = xL + (xR - xL) * tu;
+      var srcY = yT + (yB - yT) * tu;
+
+      if (srcX < 0 || srcX >= W || srcY < 0 || srcY >= H) continue;
+
+      var sx0 = srcX | 0, sy0 = srcY | 0;
+      var fx = srcX - sx0, fy = srcY - sy0;
+      var sx1 = Math.min(W - 1, sx0 + 1), sy1 = Math.min(H - 1, sy0 + 1);
+
+      var di  = (dy * W + dx) * 4;
+      var i00 = (sy0 * W + sx0) * 4, i10 = (sy0 * W + sx1) * 4;
+      var i01 = (sy1 * W + sx0) * 4, i11 = (sy1 * W + sx1) * 4;
       for (var c = 0; c < 3; c++) {
-        var top = s[i00+c] + (s[i10+c]-s[i00+c])*fx;
-        var bot = s[i01+c] + (s[i11+c]-s[i01+c])*fx;
-        d[di+c] = top + (bot-top)*fy;
+        var top = s[i00 + c] + (s[i10 + c] - s[i00 + c]) * fx;
+        var bot = s[i01 + c] + (s[i11 + c] - s[i01 + c]) * fx;
+        d[di + c] = top + (bot - top) * fy;
       }
-      d[di+3] = 255;
+      d[di + 3] = 255;
     }
   }
   dstCtx.putImageData(dstData, 0, 0);

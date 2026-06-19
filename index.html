@@ -13811,6 +13811,26 @@ function etPerspUpdate() {
     ctx.drawImage(_etPerspOrigImg, 0, 0, sc.width, sc.height);
   } else {
     _etPerspTrapezoidWarp(ctx, _etPerspOrigImg, amtV / 100, amtH / 100, sc.width, sc.height);
+    // Live-preview autocrop: extract inscribed rect and stretch to fill, hiding white corners
+    var _pvMaxInset = 0.22;
+    var _pvW = sc.width, _pvH = sc.height;
+    var _pvAmtV = amtV / 100, _pvAmtH = amtH / 100;
+    var _pvTopInset   = _pvAmtV > 0 ?  _pvAmtV * _pvMaxInset * _pvW : 0;
+    var _pvBotInset   = _pvAmtV < 0 ? -_pvAmtV * _pvMaxInset * _pvW : 0;
+    var _pvRightInset = _pvAmtH > 0 ?  _pvAmtH * _pvMaxInset * _pvH : 0;
+    var _pvLeftInset  = _pvAmtH < 0 ? -_pvAmtH * _pvMaxInset * _pvH : 0;
+    var _pvMinX = Math.ceil(Math.max(_pvTopInset, _pvBotInset));
+    var _pvMaxX = _pvW - 1 - Math.ceil(Math.max(_pvTopInset, _pvBotInset));
+    var _pvMinY = Math.ceil(Math.max(_pvLeftInset, _pvRightInset));
+    var _pvMaxY = _pvH - 1 - Math.ceil(Math.max(_pvLeftInset, _pvRightInset));
+    var _pvCropW = _pvMaxX - _pvMinX + 1, _pvCropH = _pvMaxY - _pvMinY + 1;
+    if (_pvCropW > 4 && _pvCropH > 4 && (_pvMinX > 0 || _pvMinY > 0)) {
+      var _pvTmp = document.createElement('canvas');
+      _pvTmp.width = _pvCropW; _pvTmp.height = _pvCropH;
+      _pvTmp.getContext('2d').drawImage(sc, _pvMinX, _pvMinY, _pvCropW, _pvCropH, 0, 0, _pvCropW, _pvCropH);
+      ctx.clearRect(0, 0, _pvW, _pvH);
+      ctx.drawImage(_pvTmp, 0, 0, _pvW, _pvH);
+    }
   }
 }
 

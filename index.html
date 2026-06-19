@@ -13750,9 +13750,15 @@ function etPerspUpdate() {
   var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!ac || !userImage) return;
 
-  // Capture original userImage ONCE on first slider move
+  // Capture current RENDERED canvas state once on first slider move
   if (!_etPerspOrigImg) {
-    _etPerspOrigImg = userImage;
+    var _snapC = document.createElement('canvas');
+    _snapC.width = ac.width; _snapC.height = ac.height;
+    _snapC.getContext('2d').drawImage(ac, 0, 0);
+    var _snapImg = new Image();
+    _snapImg.onload = function() { _etPerspOrigImg = _snapImg; etPerspUpdate(); };
+    _snapImg.src = _snapC.toDataURL('image/jpeg', 0.92);
+    return;
   }
 
   // Get/create overlay work canvas

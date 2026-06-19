@@ -13853,12 +13853,16 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
   for (var dy = 0; dy < H; dy++) {
     var tv = H > 1 ? dy / (H - 1) : 0; // 0=top, 1=bottom
     // Scale factor for this row: >1 means this row samples wider than dest (top narrows in dest)
-    var scaleV = 1 / (1 - kV * (tv - 0.5));
+    var _tvC = tv - 0.5; // centered: -0.5 to +0.5
+    var _tvCurved = (_tvC >= 0 ? 1 : -1) * _tvC * _tvC * 4; // squared falloff, range -1 to +1
+    var scaleV = 1 / (1 - kV * _tvCurved * 0.5);
     if (scaleV <= 0) continue;
 
     for (var dx = 0; dx < W; dx++) {
       var tu = W > 1 ? dx / (W - 1) : 0; // 0=left, 1=right
-      var scaleH = 1 / (1 - kH * (tu - 0.5));
+      var _tuC = tu - 0.5;
+      var _tuCurved = (_tuC >= 0 ? 1 : -1) * _tuC * _tuC * 4;
+      var scaleH = 1 / (1 - kH * _tuCurved * 0.5);
       if (scaleH <= 0) continue;
 
       // Reverse map: dest pixel (dx,dy) samples source at:

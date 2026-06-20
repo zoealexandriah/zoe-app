@@ -12451,7 +12451,24 @@ function _bakePendingCropForSave() {
   var sc = document.getElementById('crop-straighten-work');
   var pw = document.getElementById('crop-perspective-work');
   var src = ac;
-  if (pw && pw.width > 0) { src = pw; }
+  if (pw && pw.width > 0) {
+    // pw = raw warp canvas (dark/transparent corners) — use ac instead, which has
+    // the autocropped live preview drawn by etPerspUpdate (no dark corners).
+    var _pvVS = document.getElementById('crop-persp-v-slider');
+    var _pvHS = document.getElementById('crop-persp-h-slider');
+    var _pvVV = _pvVS ? (parseFloat(_pvVS.value) || 0) : 0;
+    var _pvHV = _pvHS ? (parseFloat(_pvHS.value) || 0) : 0;
+    if (Math.abs(_pvVV) > 0.5 || Math.abs(_pvHV) > 0.5) {
+      var _pvOut = document.createElement('canvas');
+      _pvOut.width = ac.width; _pvOut.height = ac.height;
+      _pvOut.getContext('2d').drawImage(ac, 0, 0);
+      var _pvImg = new Image();
+      _pvImg.src = _pvOut.toDataURL('image/jpeg', 0.92);
+      if (!_ratioPreCropUserImage) _ratioPreCropUserImage = userImage;
+      userImage = _pvImg;
+    }
+    return; // _cropPerspFlush (via _cropExitMode) handles the async full-res bake
+  }
   else if (sc && sc.width > 0) {
     // Rebuild clean straighten (no grid overlay) from _cropStraightenOrig
     if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {

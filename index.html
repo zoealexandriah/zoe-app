@@ -12451,24 +12451,7 @@ function _bakePendingCropForSave() {
   var sc = document.getElementById('crop-straighten-work');
   var pw = document.getElementById('crop-perspective-work');
   var src = ac;
-  if (pw && pw.width > 0) {
-    // pw = raw warp canvas (dark/transparent corners) — use ac instead, which has
-    // the autocropped live preview drawn by etPerspUpdate (no dark corners).
-    var _pvVS = document.getElementById('crop-persp-v-slider');
-    var _pvHS = document.getElementById('crop-persp-h-slider');
-    var _pvVV = _pvVS ? (parseFloat(_pvVS.value) || 0) : 0;
-    var _pvHV = _pvHS ? (parseFloat(_pvHS.value) || 0) : 0;
-    if (Math.abs(_pvVV) > 0.5 || Math.abs(_pvHV) > 0.5) {
-      var _pvOut = document.createElement('canvas');
-      _pvOut.width = ac.width; _pvOut.height = ac.height;
-      _pvOut.getContext('2d').drawImage(ac, 0, 0);
-      var _pvImg = new Image();
-      _pvImg.src = _pvOut.toDataURL('image/jpeg', 0.92);
-      if (!_ratioPreCropUserImage) _ratioPreCropUserImage = userImage;
-      userImage = _pvImg;
-    }
-    return; // _cropPerspFlush (via _cropExitMode) handles the async full-res bake
-  }
+  if (pw && pw.width > 0) { return; } // perspective handled entirely by _cropPerspFlush via _cropExitMode
   else if (sc && sc.width > 0) {
     // Rebuild clean straighten (no grid overlay) from _cropStraightenOrig
     if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
@@ -13666,6 +13649,9 @@ function _cropPerspFlush() {
   _perspBaseV = _rawV;
   _perspBaseH = _rawH;
 
+  // Capture editingIdx now — the bake is async and editingIdx may be -1 by the time it completes.
+  var _flushIdx = (typeof editingIdx !== 'undefined') ? editingIdx : -1;
+
   // Bake full-res — always from the pre-perspective original (_perspBaseURL) when available
   // so re-applying warp at the same value is idempotent and sliding to 0 yields the exact original.
   function _doPerspBake(srcImg) {
@@ -13688,6 +13674,18 @@ function _cropPerspFlush() {
       userImage = _flushImg;
       if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
+      // If user navigated to gallery before bake finished, save full-res result directly
+      if ((typeof editingIdx === 'undefined' || editingIdx === -1) && _flushIdx >= 0 &&
+          typeof library !== 'undefined' && library[_flushIdx] && library[_flushIdx].editState) {
+        library[_flushIdx].editState.editedDataURL = _flushImg.src;
+        if (typeof _renderBatchThumbnail === 'function') {
+          var _fe = library[_flushIdx];
+          _renderBatchThumbnail(_fe, _fe.editState.presetId, _fe.editState.sliders || {}, _fe.editState.intensity || 1.0, function() {
+            if (typeof libSaveToStorage === 'function') libSaveToStorage();
+            if (typeof renderLibrary === 'function') renderLibrary();
+          });
+        } else if (typeof libSaveToStorage === 'function') libSaveToStorage();
+      }
     };
     _flushImg.src = _flushDU;
   }

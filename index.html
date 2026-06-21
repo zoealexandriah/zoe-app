@@ -11760,7 +11760,12 @@ function galleryOpenInEditor(idx) {
     // 3. entry.dataURL (fresh import — should still be full-res at this point)
     // Without this fallback chain, photos saved with older code (before originalDataURL
     // was stored) would re-open using entry.img (the downscaled export) → blurry editor.
-    var _origSrc = es.editedDataURL
+    // For perspective edits, only use editedDataURL if it was saved by v2+ code (full-res bake).
+    // Older saves may have a low-res editedDataURL (bug in f273bce) — fall back to the
+    // pre-warp original so the editor shows a sharp image and the bake can re-run correctly.
+    var _perspOk = !es.perspState || !es.perspState.baseURL || es.perspState.version === 2;
+    var _origSrc = (_perspOk ? es.editedDataURL : null)
+      || (es.perspState && es.perspState.baseURL ? es.perspState.baseURL : null)
       || es.originalDataURL
       || (entry.id ? (localStorage.getItem('zoe_edit_' + entry.id + '_original') || null) : null)
       || entry.dataURL
@@ -12080,7 +12085,7 @@ function autoSaveEdit() {
         _psV = parseFloat(_psvSlider.value) || 0;
         _psH = _pshSlider ? (parseFloat(_pshSlider.value) || 0) : 0;
       }
-      return { baseURL: _perspBaseURL, v: _psV, h: _psH };
+      return { baseURL: _perspBaseURL, v: _psV, h: _psH, version: 2 };
     })()
   };
   libSaveToStorage();

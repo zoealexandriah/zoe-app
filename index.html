@@ -13625,10 +13625,14 @@ function _cropPerspFlush() {
   var _kV = Math.abs(_amtV) * _maxK, _kH = Math.abs(_amtH) * _maxK;
   var _scaleVedge = 1 / (1 - _kV * 0.5);
   var _scaleHedge = 1 / (1 - _kH * 0.5);
-  var _xInset = Math.ceil(_cW * 0.5 * (1 - 1 / _scaleVedge));
-  var _yInset = Math.ceil(_cH * 0.5 * (1 - 1 / _scaleVedge));
-  var _minX = _xInset, _maxX = _cW - 1 - _xInset;
-  var _minY = _amtV < 0 ? _yInset : 0, _maxY = _amtV > 0 ? _cH - 1 - _yInset : _cH - 1;
+  var _xInsetV = Math.ceil(_cW * 0.5 * (1 - 1 / _scaleVedge));
+  var _xInsetH = Math.ceil(_cW * 0.5 * (1 - 1 / _scaleHedge));
+  var _yInsetV = Math.ceil(_cH * 0.5 * (1 - 1 / _scaleVedge));
+  var _yInsetH = Math.ceil(_cH * 0.5 * (1 - 1 / _scaleHedge));
+  var _minX = Math.max(_xInsetV, _amtH < 0 ? _xInsetH : 0);
+  var _maxX = _cW - 1 - Math.max(_xInsetV, _amtH > 0 ? _xInsetH : 0);
+  var _minY = Math.max(_yInsetH, _amtV < 0 ? _yInsetV : 0);
+  var _maxY = _cH - 1 - Math.max(_yInsetH, _amtV > 0 ? _yInsetV : 0);
   var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
   if (_cropW < 4 || _cropH < 4) { _cropW = _cW; _cropH = _cH; _minX = 0; _minY = 0; }
 
@@ -13670,10 +13674,14 @@ function _cropPerspFlush() {
     var _fullCanvas = document.createElement('canvas');
     _fullCanvas.width = _fullW; _fullCanvas.height = _fullH;
     _etPerspTrapezoidWarp(_fullCanvas.getContext('2d'), srcImg, _amtV, _amtH, _fullW, _fullH);
-    var _fxInset = Math.ceil(_fullW * 0.5 * (1 - 1 / _scaleVedge));
-    var _fyInset = Math.ceil(_fullH * 0.5 * (1 - 1 / _scaleVedge));
-    var _fMinX = _fxInset, _fMaxX = _fullW - 1 - _fxInset;
-    var _fMinY = _amtV < 0 ? _fyInset : 0, _fMaxY = _amtV > 0 ? _fullH - 1 - _fyInset : _fullH - 1;
+    var _fxInsetV = Math.ceil(_fullW * 0.5 * (1 - 1 / _scaleVedge));
+    var _fxInsetH = Math.ceil(_fullW * 0.5 * (1 - 1 / _scaleHedge));
+    var _fyInsetV = Math.ceil(_fullH * 0.5 * (1 - 1 / _scaleVedge));
+    var _fyInsetH = Math.ceil(_fullH * 0.5 * (1 - 1 / _scaleHedge));
+    var _fMinX = Math.max(_fxInsetV, _amtH < 0 ? _fxInsetH : 0);
+    var _fMaxX = _fullW - 1 - Math.max(_fxInsetV, _amtH > 0 ? _fxInsetH : 0);
+    var _fMinY = Math.max(_fyInsetH, _amtV < 0 ? _fyInsetV : 0);
+    var _fMaxY = _fullH - 1 - Math.max(_fyInsetH, _amtV > 0 ? _fyInsetV : 0);
     var _fCropW = _fMaxX - _fMinX + 1, _fCropH = _fMaxY - _fMinY + 1;
     if (_fCropW < 4 || _fCropH < 4) { _fCropW = _fullW; _fCropH = _fullH; _fMinX = 0; _fMinY = 0; }
     var _fCropped = document.createElement('canvas');
@@ -13995,11 +14003,14 @@ function etPerspUpdate() {
     var _pvKV = Math.abs(_warpV) * _pvMaxK, _pvKH = Math.abs(_warpH) * _pvMaxK;
     var _pvScaleVedge = 1 / (1 - _pvKV * 0.5);
     var _pvScaleHedge = 1 / (1 - _pvKH * 0.5);
-    var _pvXInset = Math.ceil(_pvW * 0.5 * (1 - 1 / _pvScaleVedge));
-    var _pvYInset = Math.ceil(_pvH * 0.5 * (1 - 1 / _pvScaleHedge));
+    var _pvXInsetV = Math.ceil(_pvW * 0.5 * (1 - 1 / _pvScaleVedge));
+    var _pvXInsetH = Math.ceil(_pvW * 0.5 * (1 - 1 / _pvScaleHedge));
     var _pvYInsetV = Math.ceil(_pvH * 0.5 * (1 - 1 / _pvScaleVedge));
-    var _pvMinX = _pvXInset, _pvMaxX = _pvW - 1 - _pvXInset;
-    var _pvMinY = _warpV < 0 ? _pvYInsetV : 0, _pvMaxY = _warpV > 0 ? _pvH - 1 - _pvYInsetV : _pvH - 1;
+    var _pvYInsetH = Math.ceil(_pvH * 0.5 * (1 - 1 / _pvScaleHedge));
+    var _pvMinX = Math.max(_pvXInsetV, _warpH < 0 ? _pvXInsetH : 0);
+    var _pvMaxX = _pvW - 1 - Math.max(_pvXInsetV, _warpH > 0 ? _pvXInsetH : 0);
+    var _pvMinY = Math.max(_pvYInsetH, _warpV < 0 ? _pvYInsetV : 0);
+    var _pvMaxY = _pvH - 1 - Math.max(_pvYInsetH, _warpV > 0 ? _pvYInsetV : 0);
     var _pvCropW = _pvMaxX - _pvMinX + 1, _pvCropH = _pvMaxY - _pvMinY + 1;
     var _pvTmp = document.createElement('canvas');
     _pvTmp.width = _pvCropW; _pvTmp.height = _pvCropH;

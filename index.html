@@ -10528,6 +10528,8 @@ function _evRestoreSnap(snap) {
     var _phR = document.getElementById('crop-persp-h-slider'); if (_phR) _phR.value = 0;
     var _pvvR = document.getElementById('crop-persp-v-val'); if (_pvvR) _pvvR.textContent = '0';
     var _phvR = document.getElementById('crop-persp-h-val'); if (_phvR) _phvR.textContent = '0';
+    var _pvlR = document.getElementById('persp-v-lbl'); if (_pvlR) _pvlR.textContent = 'VERT';
+    var _phlR = document.getElementById('persp-h-lbl'); if (_phlR) _phlR.textContent = 'HORIZ';
   }
   const p = snap.presetId ? presets.find(x => x.id === snap.presetId) : null;
   if (p) {
@@ -10560,6 +10562,8 @@ function _evRestoreSnap(snap) {
     var _rhS = document.getElementById('crop-persp-h-slider'); if (_rhS) _rhS.value = _perspBaseH;
     var _rvV = document.getElementById('crop-persp-v-val'); if (_rvV) _rvV.textContent = Math.round(_perspBaseV);
     var _rhV = document.getElementById('crop-persp-h-val'); if (_rhV) _rhV.textContent = Math.round(_perspBaseH);
+    var _rvLbl = document.getElementById('persp-v-lbl'); if (_rvLbl) _rvLbl.textContent = _perspBaseV !== 0 ? Math.round(_perspBaseV) : 'VERT';
+    var _rhLbl = document.getElementById('persp-h-lbl'); if (_rhLbl) _rhLbl.textContent = _perspBaseH !== 0 ? Math.round(_perspBaseH) : 'HORIZ';
   }
   if (p) {
     if (typeof evRenderCanvas === 'function') evRenderCanvas();
@@ -13366,6 +13370,8 @@ function cropSelectSubTab(btn, tab) {
     if (_phs) _phs.value = _perspBaseH;
     if (_pvv) _pvv.textContent = Math.round(_perspBaseV);
     if (_phv) _phv.textContent = Math.round(_perspBaseH);
+    if (_pvl && _perspBaseV !== 0) _pvl.textContent = Math.round(_perspBaseV);
+    if (_phl && _perspBaseH !== 0) _phl.textContent = Math.round(_perspBaseH);
     _etPerspVVal = _perspBaseV; _etPerspHVal = _perspBaseH;
   }
   // cropRect intentionally kept — selection persists across sub-tab switches until ✕ or ✓

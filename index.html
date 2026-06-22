@@ -13940,8 +13940,15 @@ function etPerspUpdate() {
     sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none;';
     ac.parentElement.appendChild(sc);
   }
-  sc.width  = ac.width;
-  sc.height = ac.height;
+  // Run warp at source image resolution (capped at 1600px per side) so the
+  // non-zero slider preview matches the full-res sharpness of the amtV=0 path.
+  // The final drawImage downscale to ac gives hardware-quality supersampling.
+  var _srcNatW = _etPerspOrigImg.naturalWidth || ac.width;
+  var _srcNatH = _etPerspOrigImg.naturalHeight || ac.height;
+  var _warpSideMax = 1600;
+  var _warpScl = Math.min(_warpSideMax / _srcNatW, _warpSideMax / _srcNatH, 1);
+  sc.width  = Math.round(_srcNatW * _warpScl);
+  sc.height = Math.round(_srcNatH * _warpScl);
   var _acW = ac.clientWidth, _acH = ac.clientHeight;
   var _arW = ac.parentElement.clientWidth, _arH = ac.parentElement.clientHeight;
   sc.style.width  = _acW + 'px';

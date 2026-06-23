@@ -11130,8 +11130,21 @@ function _evRenderCanvasImmediate() {
   // Resolve the "current edit preset" — either the applied look (activePreset) or,
   // when no look is applied, the preset whose sliders are currently shown in the DOM.
   var _evCurPreset = activePreset;
+  var _evNolookMode = false;
+  if (!_evCurPreset) {
+    var _evTrack = document.querySelector(
+      '#es-details-sliders .sl-track[data-preset],' +
+      '#es-color-sliders .sl-track[data-preset],' +
+      '#es-atmosphere-sliders .sl-track[data-preset]');
+    if (_evTrack) {
+      var _evDomPreset = presets.find(function(x){ return x.id === _evTrack.dataset.preset; });
+      if (_evDomPreset) { _evCurPreset = _evDomPreset; _evNolookMode = true; }
+    }
+  }
   if (_evCurPreset && sliderState[_evCurPreset.id] && Object.keys(sliderState[_evCurPreset.id]).length > 0) {
-    var adj = buildAdjustments(_evMergeAdjState(_evCurPreset, sliderState[_evCurPreset.id]));
+    var adj = _evNolookMode
+      ? buildAdjustments(sliderState[_evCurPreset.id])
+      : buildAdjustments(_evMergeAdjState(_evCurPreset, sliderState[_evCurPreset.id]));
     if (!adj.halation && _evCurPreset.defaults && _evCurPreset.defaults.HALATION) adj.halation = _evCurPreset.defaults.HALATION;
     // Only inject preset color-science when a look is actually applied
     if (activePreset) {

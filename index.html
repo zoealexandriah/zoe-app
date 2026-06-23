@@ -12464,23 +12464,23 @@ function _bakePendingCropForSave() {
   else if (sc && sc.width > 0) {
     // Rebuild clean straighten (no grid overlay) from _cropStraightenOrig
     if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
+      var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
       var _cc = document.createElement('canvas');
-      _cc.width = sc.width; _cc.height = sc.height;
+      _cc.width = _iw; _cc.height = _ih;
       var _ctx = _cc.getContext('2d');
       var _rad = _cropStraightenVal * Math.PI / 180;
       var _absR = Math.abs(_rad), _cosR = Math.cos(_absR), _sinR = Math.sin(_absR);
       var _cos2R = Math.cos(2 * _absR);
-      var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
-      var _s1 = sc.width  * _cos2R / Math.max(0.001, _iw * _cosR - _ih * _sinR);
-      var _s2 = sc.height * _cos2R / Math.max(0.001, _ih * _cosR - _iw * _sinR);
-      var _s  = Math.max(_s1, _s2, Math.max(sc.width / _iw, sc.height / _ih));
+      var _s1 = _iw * _cos2R / Math.max(0.001, _iw * _cosR - _ih * _sinR);
+      var _s2 = _ih * _cos2R / Math.max(0.001, _ih * _cosR - _iw * _sinR);
+      var _s  = Math.max(_s1, _s2, 1);
       _ctx.save();
-      _ctx.translate(sc.width / 2, sc.height / 2);
+      _ctx.translate(_iw / 2, _ih / 2);
       _ctx.rotate(_rad);
       _ctx.drawImage(_cropStraightenOrig, -_iw * _s / 2, -_ih * _s / 2, _iw * _s, _ih * _s);
       _ctx.restore();
       src = _cc;
-    } else { src = sc; }
+    } else { src = _cropStraightenOrig || sc; }
   }
   var hasPendingCrop = typeof cropRect !== 'undefined' && cropRect && cropRect.w > 0 && cropRect.h > 0
     && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM';
@@ -13113,31 +13113,31 @@ window.toolsCropApply = function() {
   var sc = document.getElementById('crop-straighten-work');
   var src = hc;
   if (sc && sc.width > 0 && sc.height > 0) {
-    // Rebuild a clean source from _cropStraightenOrig — without the rule-of-thirds grid overlay
-    // that was drawn on the work canvas for UX purposes. Baking the grid would make it permanent.
+    // Rebuild a clean source from _cropStraightenOrig at FULL resolution — without the
+    // rule-of-thirds grid overlay that was drawn on the work canvas for UX purposes.
     if (_cropStraightenOrig && Math.abs(_cropStraightenVal) > 0.001) {
+      var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
       var _cleanC = document.createElement('canvas');
-      _cleanC.width = sc.width; _cleanC.height = sc.height;
+      _cleanC.width = _iw; _cleanC.height = _ih;
       var _cleanCtx = _cleanC.getContext('2d');
       var _rad = _cropStraightenVal * Math.PI / 180;
       var _absR = Math.abs(_rad), _cosR = Math.cos(_absR), _sinR = Math.sin(_absR);
       var _cos2R = Math.cos(2 * _absR);
-      var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
-      var _s1 = sc.width  * _cos2R / Math.max(0.001, _iw * _cosR - _ih * _sinR);
-      var _s2 = sc.height * _cos2R / Math.max(0.001, _ih * _cosR - _iw * _sinR);
-      var _s  = Math.max(_s1, _s2, Math.max(sc.width / _iw, sc.height / _ih));
+      var _s1 = _iw * _cos2R / Math.max(0.001, _iw * _cosR - _ih * _sinR);
+      var _s2 = _ih * _cos2R / Math.max(0.001, _ih * _cosR - _iw * _sinR);
+      var _s  = Math.max(_s1, _s2, 1);
       _cleanCtx.save();
-      _cleanCtx.translate(sc.width / 2, sc.height / 2);
+      _cleanCtx.translate(_iw / 2, _ih / 2);
       _cleanCtx.rotate(_rad);
       _cleanCtx.drawImage(_cropStraightenOrig, -_iw * _s / 2, -_ih * _s / 2, _iw * _s, _ih * _s);
       _cleanCtx.restore();
       src = _cleanC;
     } else {
-      src = sc;
+      src = _cropStraightenOrig || sc;
     }
   }
-  var scaleX = src.width  / hc.width;
-  var scaleY = src.height / hc.height;
+  var scaleX = (src.naturalWidth || src.width)  / hc.width;
+  var scaleY = (src.naturalHeight || src.height) / hc.height;
   function _finish(srcCanvas, toast) {
     var _silent = _cropApplySilent;
     var newImg = new Image();
@@ -13172,12 +13172,15 @@ window.toolsCropApply = function() {
     newImg.src = srcCanvas.toDataURL();
   }
   if (cropRect) {
+    var _fsSrc = (src === hc && userImage) ? userImage : src;
+    var _fsScX = (_fsSrc.naturalWidth  || _fsSrc.width)  / hc.width;
+    var _fsScY = (_fsSrc.naturalHeight || _fsSrc.height) / hc.height;
     var tmp = document.createElement('canvas');
-    tmp.width  = Math.round(cropRect.w);
-    tmp.height = Math.round(cropRect.h);
-    tmp.getContext('2d').drawImage(src,
-      cropRect.x * scaleX, cropRect.y * scaleY,
-      cropRect.w * scaleX, cropRect.h * scaleY,
+    tmp.width  = Math.round(cropRect.w * _fsScX);
+    tmp.height = Math.round(cropRect.h * _fsScY);
+    tmp.getContext('2d').drawImage(_fsSrc,
+      cropRect.x * _fsScX, cropRect.y * _fsScY,
+      cropRect.w * _fsScX, cropRect.h * _fsScY,
       0, 0, tmp.width, tmp.height);
     _finish(tmp, 'CROP APPLIED');
   } else if (src !== hc) {
@@ -13225,8 +13228,8 @@ function _cropApplyRatioInPlace(keepStraighten) {
     var _origIH = _cropStraightenOrig.naturalHeight || _cropStraightenOrig.height;
     var _ksx = _origIW / ac.width, _ksy = _origIH / ac.height;
     var _kTmp = document.createElement('canvas');
-    _kTmp.width  = Math.round(cropRect.w);
-    _kTmp.height = Math.round(cropRect.h);
+    _kTmp.width  = Math.round(cropRect.w * _ksx);
+    _kTmp.height = Math.round(cropRect.h * _ksy);
     _kTmp.getContext('2d').drawImage(_cropStraightenOrig,
       cropRect.x * _ksx, cropRect.y * _ksy,
       cropRect.w * _ksx, cropRect.h * _ksy,
@@ -13257,23 +13260,23 @@ function _cropApplyRatioInPlace(keepStraighten) {
   var src = ac;
   if (sc && sc.width > 0 && sc.height > 0) {
     if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig && Math.abs(_cropStraightenVal) > 0.001) {
+      var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
       var _cc = document.createElement('canvas');
-      _cc.width = sc.width; _cc.height = sc.height;
+      _cc.width = _iw; _cc.height = _ih;
       var _ctx = _cc.getContext('2d');
       var _rad = _cropStraightenVal * Math.PI / 180;
       var _absR = Math.abs(_rad), _cosR = Math.cos(_absR), _sinR = Math.sin(_absR);
       var _cos2R = Math.cos(2 * _absR);
-      var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
-      var _s1 = sc.width  * _cos2R / Math.max(0.001, _iw * _cosR - _ih * _sinR);
-      var _s2 = sc.height * _cos2R / Math.max(0.001, _ih * _cosR - _iw * _sinR);
-      var _s  = Math.max(_s1, _s2, Math.max(sc.width / _iw, sc.height / _ih));
+      var _s1 = _iw * _cos2R / Math.max(0.001, _iw * _cosR - _ih * _sinR);
+      var _s2 = _ih * _cos2R / Math.max(0.001, _ih * _cosR - _iw * _sinR);
+      var _s  = Math.max(_s1, _s2, 1);
       _ctx.save();
-      _ctx.translate(sc.width / 2, sc.height / 2);
+      _ctx.translate(_iw / 2, _ih / 2);
       _ctx.rotate(_rad);
       _ctx.drawImage(_cropStraightenOrig, -_iw * _s / 2, -_ih * _s / 2, _iw * _s, _ih * _s);
       _ctx.restore();
       src = _cc;
-    } else { src = sc; }
+    } else { src = _cropStraightenOrig || sc; }
   }
   // If no work canvas exists, src is still ac (hero canvas with filters applied).
   // Use userImage directly so filters are not baked permanently into the crop.
@@ -13289,8 +13292,8 @@ function _cropApplyRatioInPlace(keepStraighten) {
     scaleY = src.height / ac.height;
   }
   var tmp = document.createElement('canvas');
-  tmp.width  = Math.round(cropRect.w);
-  tmp.height = Math.round(cropRect.h);
+  tmp.width  = Math.round(cropRect.w * scaleX);
+  tmp.height = Math.round(cropRect.h * scaleY);
   tmp.getContext('2d').drawImage(src,
     cropRect.x * scaleX, cropRect.y * scaleY,
     cropRect.w * scaleX, cropRect.h * scaleY,
@@ -13545,55 +13548,57 @@ function cropRotate90(dir) {
     _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH };
   }
   evHistoryPush();
-  if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
-  var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
-  if (!hc || !userImage) return;
-  // Remove overlays immediately — before image decode, so there's no flash
+  // Remove overlays immediately — before perspective flush, so there's no flash
   var _o = document.getElementById('crop-overlay-canvas'); if (_o) _o.remove();
   var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
   var _sw2 = document.getElementById('straighten-work-canvas'); if (_sw2) _sw2.remove();
-  // Operate on userImage (clean source) — NOT hc, which has adjustments baked in.
-  // Drawing from hc would double-apply all sliders/presets on the next evRenderCanvas() call.
-  // If a crop rect is pending (drawn but not yet applied), bake it into the rotation so
-  // the user sees the cropped region rotated — not the full original image.
-  var _rSrcW = userImage.naturalWidth, _rSrcH = userImage.naturalHeight;
-  var _rDx = 0, _rDy = 0, _rDw = _rSrcW, _rDh = _rSrcH;
-  if (cropRect) {
-    var _rSx = _rSrcW / hc.width, _rSy = _rSrcH / hc.height;
-    _rDx = Math.round(cropRect.x * _rSx);
-    _rDy = Math.round(cropRect.y * _rSy);
-    _rDw = Math.max(1, Math.round(cropRect.w * _rSx));
-    _rDh = Math.max(1, Math.round(cropRect.h * _rSy));
-    cropRect = null;
+  function _execRotate() {
+    var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+    if (!hc || !userImage) return;
+    // Operate on userImage (clean source) — NOT hc, which has adjustments baked in.
+    // Drawing from hc would double-apply all sliders/presets on the next evRenderCanvas() call.
+    // If a crop rect is pending (drawn but not yet applied), bake it into the rotation so
+    // the user sees the cropped region rotated — not the full original image.
+    var _rSrcW = userImage.naturalWidth, _rSrcH = userImage.naturalHeight;
+    var _rDx = 0, _rDy = 0, _rDw = _rSrcW, _rDh = _rSrcH;
+    if (cropRect) {
+      var _rSx = _rSrcW / hc.width, _rSy = _rSrcH / hc.height;
+      _rDx = Math.round(cropRect.x * _rSx);
+      _rDy = Math.round(cropRect.y * _rSy);
+      _rDw = Math.max(1, Math.round(cropRect.w * _rSx));
+      _rDh = Math.max(1, Math.round(cropRect.h * _rSy));
+      cropRect = null;
+    }
+    var tmp = document.createElement('canvas');
+    tmp.width = _rDh; tmp.height = _rDw;
+    var ctx = tmp.getContext('2d');
+    ctx.save();
+    if (dir === 'cw')  { ctx.translate(tmp.width, 0);   ctx.rotate(Math.PI / 2); }
+    else               { ctx.translate(0, tmp.height);  ctx.rotate(-Math.PI / 2); }
+    ctx.drawImage(userImage, _rDx, _rDy, _rDw, _rDh, 0, 0, _rDw, _rDh); ctx.restore();
+    var newImg = new Image();
+    newImg.onload = function() {
+      userImage = newImg;
+      _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
+      _cropStraightenOrig = newImg;
+      cropRect = null;
+      if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
+      var ev = document.getElementById('editor-view');
+      if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') {
+        evRenderCanvas();
+        // Delay crop UI rebuild until after rAF has painted the new frame
+        setTimeout(function() {
+          if (typeof window.etSelectTool === 'function') {
+            _etCropDefaultTab = 'transform';
+            window.etSelectTool('crop');
+          }
+        }, 60);
+      } else { loadImageToCanvas(hc, newImg); }
+      showToast('ROTATED');
+    };
+    newImg.src = tmp.toDataURL();
   }
-  var tmp = document.createElement('canvas');
-  tmp.width = _rDh; tmp.height = _rDw;
-  var ctx = tmp.getContext('2d');
-  ctx.save();
-  if (dir === 'cw')  { ctx.translate(tmp.width, 0);   ctx.rotate(Math.PI / 2); }
-  else               { ctx.translate(0, tmp.height);  ctx.rotate(-Math.PI / 2); }
-  ctx.drawImage(userImage, _rDx, _rDy, _rDw, _rDh, 0, 0, _rDw, _rDh); ctx.restore();
-  var newImg = new Image();
-  newImg.onload = function() {
-    userImage = newImg;
-    _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
-    _cropStraightenOrig = newImg;
-    cropRect = null;
-    if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
-    var ev = document.getElementById('editor-view');
-    if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') {
-      evRenderCanvas();
-      // Delay crop UI rebuild until after rAF has painted the new frame
-      setTimeout(function() {
-        if (typeof window.etSelectTool === 'function') {
-          _etCropDefaultTab = 'transform';
-          window.etSelectTool('crop');
-        }
-      }, 60);
-    } else { loadImageToCanvas(hc, newImg); }
-    showToast('ROTATED');
-  };
-  newImg.src = tmp.toDataURL();
+  if (typeof _cropPerspFlush === 'function') { _cropPerspFlush(_execRotate); } else { _execRotate(); }
 }
 
 // ── Perspective Warp ────────────────────────────────────────────────────────
@@ -13602,9 +13607,9 @@ var _cropPerspOrig = null;
 
 // Auto-applies any in-progress perspective preview before switching tools.
 // Called by flip, rotate, and perspective activate so transforms stack cleanly.
-function _cropPerspFlush() {
+function _cropPerspFlush(onFlush) {
   var sc = document.getElementById('crop-perspective-work');
-  if (!sc || !sc.width) return;
+  if (!sc || !sc.width) { if (onFlush) onFlush(); return; }
   var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
   if (!ac) { sc.remove(); return; }
   ac.style.opacity = '1';
@@ -13691,8 +13696,10 @@ function _cropPerspFlush() {
     var _flushImg = new Image();
     _flushImg.onload = function() {
       userImage = _flushImg;
-      if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
-      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+      if (onFlush) { onFlush(); } else {
+        if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
+        if (typeof evRenderCanvas === 'function') evRenderCanvas();
+      }
       // If user navigated to gallery before bake finished, save full-res result directly
       if ((typeof editingIdx === 'undefined' || editingIdx === -1) && _flushIdx >= 0 &&
           typeof library !== 'undefined' && library[_flushIdx] && library[_flushIdx].editState) {

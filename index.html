@@ -13643,7 +13643,7 @@ function cropRotate90(dir) {
       } else { loadImageToCanvas(hc, newImg); }
       showToast('ROTATED');
     };
-    newImg.src = tmp.toDataURL();
+    newImg.src = tmp.toDataURL('image/jpeg', 0.95);
   }
   if (typeof _cropPerspFlush === 'function') { _cropPerspFlush(_execRotate); } else { _execRotate(); }
 }

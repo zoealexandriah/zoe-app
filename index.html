@@ -10642,6 +10642,10 @@ function globalReset() {
   var _evViewR = document.getElementById('editor-view');
   var _evOpenR = _evViewR && _evViewR.classList.contains('active');
   if (!userImage) { showToast('NOTHING TO RESET'); return; }
+  // Cancel any pending auto-save and capture the current editing context
+  // so async restore callbacks can detect if the user has navigated away
+  clearTimeout(_autoSaveTimer);
+  var _resetEditingIdx = editingIdx;
   var _hasAnyEdits = activePreset ||
     Object.keys(sliderState).some(function(k){ return Object.keys(sliderState[k]).length > 0; }) ||
     !!_preCropState || Math.abs(toolsStraightenVal) > 0.01 || Math.abs(_etPerspVVal) > 0.01 || Math.abs(_etPerspHVal) > 0.01 ||
@@ -10716,7 +10720,7 @@ function globalReset() {
 
   // Post-reset render — called only AFTER userImage is confirmed loaded
   function _finishReset() {
-    if (!_evOpenR) return;
+    if (!_evOpenR || editingIdx !== _resetEditingIdx) return;
     evRenderCanvas();
     // Rebuild sliders to show 0.00
     evBuildSliders();
@@ -10741,6 +10745,7 @@ function globalReset() {
     if (_origUrl && hc) {
       const _restoreImg = new Image();
       _restoreImg.onload = function() {
+        if (editingIdx !== _resetEditingIdx) return;
         userImage = _restoreImg;
         _resetEntry.img = _restoreImg;
         loadImageToCanvas(hc, _restoreImg);
@@ -10751,6 +10756,7 @@ function globalReset() {
     } else if (_savedPerspBaseURL && hc) {
       const _pbRestoreImg = new Image();
       _pbRestoreImg.onload = function() {
+        if (editingIdx !== _resetEditingIdx) return;
         userImage = _pbRestoreImg;
         if (_resetEntry) _resetEntry.img = _pbRestoreImg;
         loadImageToCanvas(hc, _pbRestoreImg);

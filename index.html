@@ -10403,11 +10403,11 @@ function etCropHTML() {
         </div>
         <div class="crop-transform-icon-btn" id="persp-v-btn" onclick="cropPerspSelectAxis('v')">
           <div class="crop-transform-icon-box" id="persp-v-box">${perspVSvg}</div>
-          <span class="crop-transform-icon-label" id="persp-v-lbl">VERT</span>
+          <span class="crop-transform-icon-label" id="persp-v-lbl">${(typeof _perspBaseV !== 'undefined' && _perspBaseV !== 0) ? Math.round(_perspBaseV) : 'VERT'}</span>
         </div>
         <div class="crop-transform-icon-btn" id="persp-h-btn" onclick="cropPerspSelectAxis('h')">
           <div class="crop-transform-icon-box" id="persp-h-box">${perspHSvg}</div>
-          <span class="crop-transform-icon-label" id="persp-h-lbl">HORIZ</span>
+          <span class="crop-transform-icon-label" id="persp-h-lbl">${(typeof _perspBaseH !== 'undefined' && _perspBaseH !== 0) ? Math.round(_perspBaseH) : 'HORIZ'}</span>
         </div>
       </div>
       <div id="crop-transform-undo-row" style="display:none;padding:6px 0 2px;text-align:center;">
@@ -10417,17 +10417,17 @@ function etCropHTML() {
         <div id="crop-persp-v-section" style="display:none;">
           <div class="crop-sub-row" style="margin-bottom:4px;">
             <span class="crop-sub-label">VERTICAL</span>
-            <span class="crop-sub-val" id="crop-persp-v-val">0</span>
+            <span class="crop-sub-val" id="crop-persp-v-val">${(typeof _perspBaseV !== 'undefined' && _perspBaseV !== 0) ? Math.round(_perspBaseV) : 0}</span>
           </div>
-          <input type="range" class="tc-range" id="crop-persp-v-slider" min="-100" max="100" step="1" value="0"
+          <input type="range" class="tc-range" id="crop-persp-v-slider" min="-100" max="100" step="1" value="${(typeof _perspBaseV !== 'undefined') ? _perspBaseV : 0}"
                  oninput="etPerspUpdate()">
         </div>
         <div id="crop-persp-h-section" style="display:none;">
           <div class="crop-sub-row" style="margin-bottom:4px;">
             <span class="crop-sub-label">HORIZONTAL</span>
-            <span class="crop-sub-val" id="crop-persp-h-val">0</span>
+            <span class="crop-sub-val" id="crop-persp-h-val">${(typeof _perspBaseH !== 'undefined' && _perspBaseH !== 0) ? Math.round(_perspBaseH) : 0}</span>
           </div>
-          <input type="range" class="tc-range" id="crop-persp-h-slider" min="-100" max="100" step="1" value="0"
+          <input type="range" class="tc-range" id="crop-persp-h-slider" min="-100" max="100" step="1" value="${(typeof _perspBaseH !== 'undefined') ? _perspBaseH : 0}"
                  oninput="etPerspUpdate()">
         </div>
       </div>
@@ -12863,6 +12863,7 @@ window.toolsFlipApply = function(dir) {
     const newImg = new Image();
     newImg.onload = function() {
       userImage = newImg; _origPixels = null;
+      if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
       if (_rPrevURL) {
         var _pbFlip = new Image();
         _pbFlip.onload = function() {
@@ -13576,6 +13577,10 @@ function cropRotate90(dir) {
   function _execRotate() {
     var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
     if (!hc || !userImage) return;
+    // Ignore auto-generated cropRect (set by toolsCropDraw on crop panel open) — only apply
+    // cropRect when the overlay was actively visible, meaning the user positioned it intentionally
+    var _ovChk = document.getElementById('crop-overlay-canvas');
+    if (cropRect && (!_ovChk || _ovChk.style.display === 'none')) { cropRect = null; }
     // Capture perspective state before the rotation so we can restore slider values after
     var _rPrevURL = _perspBaseURL, _rPrevV = _perspBaseV, _rPrevH = _perspBaseH;
     // Operate on userImage (clean source) — NOT hc, which has adjustments baked in.
@@ -13604,6 +13609,7 @@ function cropRotate90(dir) {
     newImg.onload = function() {
       userImage = newImg;
       _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
+      if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
       _cropStraightenOrig = newImg;
       cropRect = null;
       // Rotate the pre-warp original so the perspective slider shows the saved value on re-entry

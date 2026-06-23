@@ -12846,29 +12846,50 @@ window.etSelectTool = function(name) {
 window.toolsFlipApply = function(dir) {
   if (!userImage) return;
   evHistoryPush();
-  _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
   _flipPreState = { userImage };
   const undoBtn = document.getElementById('et-flip-undo') || document.getElementById('flip-undo-btn');
   if (undoBtn) undoBtn.style.display = 'block';
-  const tmp = document.createElement('canvas');
-  tmp.width  = userImage.naturalWidth;
-  tmp.height = userImage.naturalHeight;
-  const ctx = tmp.getContext('2d');
-  ctx.save();
-  if (dir === 'h') { ctx.scale(-1, 1); ctx.drawImage(userImage, -tmp.width,  0); }
-  else             { ctx.scale(1, -1); ctx.drawImage(userImage, 0, -tmp.height); }
-  ctx.restore();
-  const newImg = new Image();
-  newImg.onload = function() {
-    userImage = newImg; _origPixels = null;
-    if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
-    showToast('FLIPPED');
-    if (typeof evRenderCanvas === 'function') {
-      const ev = document.getElementById('editor-view');
-      if (ev && ev.classList.contains('active')) evRenderCanvas();
-    }
-  };
-  newImg.src = tmp.toDataURL();
+  function _execFlip() {
+    var _rPrevURL = _perspBaseURL, _rPrevV = _perspBaseV, _rPrevH = _perspBaseH;
+    _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
+    const tmp = document.createElement('canvas');
+    tmp.width  = userImage.naturalWidth;
+    tmp.height = userImage.naturalHeight;
+    const ctx = tmp.getContext('2d');
+    ctx.save();
+    if (dir === 'h') { ctx.scale(-1, 1); ctx.drawImage(userImage, -tmp.width,  0); }
+    else             { ctx.scale(1, -1); ctx.drawImage(userImage, 0, -tmp.height); }
+    ctx.restore();
+    const newImg = new Image();
+    newImg.onload = function() {
+      userImage = newImg; _origPixels = null;
+      if (_rPrevURL) {
+        var _pbFlip = new Image();
+        _pbFlip.onload = function() {
+          var _pbC = document.createElement('canvas');
+          _pbC.width = _pbFlip.naturalWidth; _pbC.height = _pbFlip.naturalHeight;
+          var _pbCtx = _pbC.getContext('2d');
+          _pbCtx.save();
+          if (dir === 'h') { _pbCtx.scale(-1, 1); _pbCtx.drawImage(_pbFlip, -_pbC.width, 0); }
+          else { _pbCtx.scale(1, -1); _pbCtx.drawImage(_pbFlip, 0, -_pbC.height); }
+          _pbCtx.restore();
+          _perspBaseURL = _pbC.toDataURL('image/jpeg', 0.95);
+          _perspBaseV = _rPrevV; _perspBaseH = _rPrevH;
+          if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
+        };
+        _pbFlip.src = _rPrevURL;
+      } else {
+        if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
+      }
+      showToast('FLIPPED');
+      if (typeof evRenderCanvas === 'function') {
+        const ev = document.getElementById('editor-view');
+        if (ev && ev.classList.contains('active')) evRenderCanvas();
+      }
+    };
+    newImg.src = tmp.toDataURL();
+  }
+  if (typeof _cropPerspFlush === 'function') { _cropPerspFlush(_execFlip); } else { _execFlip(); }
 };
 
 // (second window.exportDownload removed — first full-pipeline version at line 9118 is authoritative)

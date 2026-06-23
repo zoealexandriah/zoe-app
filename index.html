@@ -13555,12 +13555,15 @@ function cropRotate90(dir) {
   function _execRotate() {
     var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
     if (!hc || !userImage) return;
+    // Capture perspective state before the rotation so we can restore slider values after
+    var _rPrevURL = _perspBaseURL, _rPrevV = _perspBaseV, _rPrevH = _perspBaseH;
     // Operate on userImage (clean source) — NOT hc, which has adjustments baked in.
     // Drawing from hc would double-apply all sliders/presets on the next evRenderCanvas() call.
     // If a crop rect is pending (drawn but not yet applied), bake it into the rotation so
     // the user sees the cropped region rotated — not the full original image.
     var _rSrcW = userImage.naturalWidth, _rSrcH = userImage.naturalHeight;
     var _rDx = 0, _rDy = 0, _rDw = _rSrcW, _rDh = _rSrcH;
+    var _hadCropRect = !!cropRect;
     if (cropRect) {
       var _rSx = _rSrcW / hc.width, _rSy = _rSrcH / hc.height;
       _rDx = Math.round(cropRect.x * _rSx);
@@ -13582,6 +13585,23 @@ function cropRotate90(dir) {
       _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
       _cropStraightenOrig = newImg;
       cropRect = null;
+      // Rotate the pre-warp original so the perspective slider shows the saved value on re-entry
+      if (_rPrevURL && !_hadCropRect) {
+        var _pbRot = new Image();
+        _pbRot.onload = function() {
+          var _pbC = document.createElement('canvas');
+          _pbC.width = _pbRot.naturalHeight; _pbC.height = _pbRot.naturalWidth;
+          var _pbCtx = _pbC.getContext('2d');
+          _pbCtx.save();
+          if (dir === 'cw') { _pbCtx.translate(_pbC.width, 0); _pbCtx.rotate(Math.PI / 2); }
+          else { _pbCtx.translate(0, _pbC.height); _pbCtx.rotate(-Math.PI / 2); }
+          _pbCtx.drawImage(_pbRot, 0, 0, _pbRot.naturalWidth, _pbRot.naturalHeight, 0, 0, _pbRot.naturalWidth, _pbRot.naturalHeight);
+          _pbCtx.restore();
+          _perspBaseURL = _pbC.toDataURL('image/jpeg', 0.95);
+          _perspBaseV = _rPrevV; _perspBaseH = _rPrevH;
+        };
+        _pbRot.src = _rPrevURL;
+      }
       if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
       var ev = document.getElementById('editor-view');
       if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') {

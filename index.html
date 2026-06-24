@@ -5474,8 +5474,9 @@ const presets = [
       g:      [[0,8],[128,120],[220,207],[255,240]],
       b:      [[0,4],[128,106],[220,197],[255,222]]
     },
+    halationBloom: { threshold: 0.72, radius: 16, hue: 310, intensity: 0.07 },
     shadowTint:    { r: 0.10, g: 0.08, b: 0.04, strength: 0.03 },
-    highlightTint: { r: 0.18, g: 0.11, b: 0.02, strength: 0.10 },
+    highlightTint: { r: 0.18, g: 0.11, b: 0.02, strength: 0.07 },
     defaults:{
       EXPOSURE:0.500, CONTRAST:0.500, HIGHLIGHTS:0.500, SHADOWS:0.500,
       WHITES:0.500, BLACKS:0.500, TEMPERATURE:0.500, TINT:0.500,
@@ -8419,56 +8420,107 @@ function applyHalationBloom(canvas, params, offX, offY, imgW, imgH) {
   const threshold = (params.threshold || 0.75) * 255;
   const radius = Math.round((params.radius || 12) * (imgW / 400));
   const intensity = params.intensity || 0.4;
-  const hue = params.hue || 28; // degrees
-  // Convert hue to RGB tint for the bloom color
+  const hue = params.hue || 28;
   const hueR = Math.cos((hue - 30) * Math.PI / 180) * 0.5 + 0.5;
   const hueG = Math.cos((hue - 120) * Math.PI / 180) * 0.3 + 0.3;
   const hueB = Math.cos((hue - 240) * Math.PI / 180) * 0.2 + 0.1;
-  // Create bloom mask: bright pixels only
-  const bloom = new Float32Array(imgW * imgH);
+  const n = imgW * imgH;
+  const bloom = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const px = i * 4;
+    const lum = 0.299*src[px] + 0.587*src[px+1] + 0.114*src[px+2];
+    bloom[i] = lum > threshold ? (lum - threshold) / (255 - threshold) : 0;
+  }
+  const tmp = new Float32Array(n);
+  const blurred = new Float32Array(n);
   for (let y = 0; y < imgH; y++) {
+    const row = y * imgW;
+    let sum = 0, cnt = 0;
+    for (let x = 0; x <= radius && x < imgW; x++) { sum += bloom[row+x]; cnt++; }
     for (let x = 0; x < imgW; x++) {
-      const i = (y * imgW + x) * 4;
-      const lum = 0.299*src[i] + 0.587*src[i+1] + 0.114*src[i+2];
-      bloom[y * imgW + x] = lum > threshold ? (lum - threshold) / (255 - threshold) : 0;
+      tmp[row+x] = cnt > 0 ? sum/cnt : 0;
+      if (x+radius+1 < imgW) { sum += bloom[row+x+radius+1]; cnt++; }
+      if (x-radius >= 0)     { sum -= bloom[row+x-radius];   cnt--; }
     }
   }
-  // Box blur the bloom mask
-  const blurred = new Float32Array(imgW * imgH);
-  const tmp = new Float32Array(imgW * imgH);
-  for (let y = 0; y < imgH; y++) {
-    for (let x = 0; x < imgW; x++) {
-      let sum = 0, n = 0;
-      for (let kx = Math.max(0, x-radius); kx <= Math.min(imgW-1, x+radius); kx++) {
-        sum += bloom[y*imgW+kx]; n++;
-      }
-      tmp[y*imgW+x] = sum/n;
+  for (let x = 0; x < imgW; x++) {
+    let sum = 0, cnt = 0;
+    for (let y = 0; y <= radius && y < imgH; y++) { sum += tmp[y*imgW+x]; cnt++; }
+    for (let y = 0; y < imgH; y++) {
+      blurred[y*imgW+x] = cnt > 0 ? sum/cnt : 0;
+      if (y+radius+1 < imgH) { sum += tmp[(y+radius+1)*imgW+x]; cnt++; }
+      if (y-radius >= 0)     { sum -= tmp[(y-radius)*imgW+x];   cnt--; }
     }
   }
-  for (let y = 0; y < imgH; y++) {
-    for (let x = 0; x < imgW; x++) {
-      let sum = 0, n = 0;
-      for (let ky = Math.max(0, y-radius); ky <= Math.min(imgH-1, y+radius); ky++) {
-        sum += tmp[ky*imgW+x]; n++;
-      }
-      blurred[y*imgW+x] = sum/n;
-    }
-  }
-  // Composite bloom onto canvas
   const out = ctx.getImageData(offX, offY, imgW, imgH);
   const od = out.data;
-  for (let y = 0; y < imgH; y++) {
-    for (let x = 0; x < imgW; x++) {
-      const i = (y * imgW + x) * 4;
-      const b = blurred[y*imgW+x] * intensity;
-      if (b > 0.001) {
-        od[i]   = Math.min(255, od[i]   + b * hueR * 255);
-        od[i+1] = Math.min(255, od[i+1] + b * hueG * 255);
-        od[i+2] = Math.min(255, od[i+2] + b * hueB * 255);
-      }
+  for (let i = 0; i < n; i++) {
+    const b = blurred[i] * intensity;
+    if (b > 0.001) {
+      const px = i * 4;
+      od[px]   = Math.min(255, od[px]   + b * hueR * 255);
+      od[px+1] = Math.min(255, od[px+1] + b * hueG * 255);
+      od[px+2] = Math.min(255, od[px+2] + b * hueB * 255);
     }
   }
   ctx.putImageData(out, offX, offY);
+}
+
+function _evBloomLayer(srcCanvas, params, imgW, imgH) {
+  const ctx = srcCanvas.getContext('2d');
+  const src = ctx.getImageData(0, 0, imgW, imgH).data;
+  const threshold = (params.threshold || 0.75) * 255;
+  const radius = Math.round((params.radius || 12) * (imgW / 400));
+  const intensity = params.intensity || 0.4;
+  const hue = params.hue || 28;
+  const hueR = Math.cos((hue - 30) * Math.PI / 180) * 0.5 + 0.5;
+  const hueG = Math.cos((hue - 120) * Math.PI / 180) * 0.3 + 0.3;
+  const hueB = Math.cos((hue - 240) * Math.PI / 180) * 0.2 + 0.1;
+  const n = imgW * imgH;
+  const bloom = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const px = i * 4;
+    const lum = 0.299*src[px] + 0.587*src[px+1] + 0.114*src[px+2];
+    bloom[i] = lum > threshold ? (lum - threshold) / (255 - threshold) : 0;
+  }
+  const tmp = new Float32Array(n);
+  const blurred = new Float32Array(n);
+  for (let y = 0; y < imgH; y++) {
+    const row = y * imgW;
+    let sum = 0, cnt = 0;
+    for (let x = 0; x <= radius && x < imgW; x++) { sum += bloom[row+x]; cnt++; }
+    for (let x = 0; x < imgW; x++) {
+      tmp[row+x] = cnt > 0 ? sum/cnt : 0;
+      if (x+radius+1 < imgW) { sum += bloom[row+x+radius+1]; cnt++; }
+      if (x-radius >= 0)     { sum -= bloom[row+x-radius];   cnt--; }
+    }
+  }
+  for (let x = 0; x < imgW; x++) {
+    let sum = 0, cnt = 0;
+    for (let y = 0; y <= radius && y < imgH; y++) { sum += tmp[y*imgW+x]; cnt++; }
+    for (let y = 0; y < imgH; y++) {
+      blurred[y*imgW+x] = cnt > 0 ? sum/cnt : 0;
+      if (y+radius+1 < imgH) { sum += tmp[(y+radius+1)*imgW+x]; cnt++; }
+      if (y-radius >= 0)     { sum -= tmp[(y-radius)*imgW+x];   cnt--; }
+    }
+  }
+  const layer = document.createElement('canvas');
+  layer.width = imgW; layer.height = imgH;
+  const lCtx = layer.getContext('2d');
+  const ld = lCtx.createImageData(imgW, imgH);
+  const od = ld.data;
+  for (let i = 0; i < n; i++) {
+    const b = blurred[i] * intensity;
+    if (b > 0.001) {
+      const px = i * 4;
+      od[px]   = Math.min(255, b * hueR * 255);
+      od[px+1] = Math.min(255, b * hueG * 255);
+      od[px+2] = Math.min(255, b * hueB * 255);
+      od[px+3] = 255;
+    }
+  }
+  lCtx.putImageData(ld, 0, 0);
+  return layer;
 }
 
 // ── SCAN LINES: horizontal banding overlay ────────────────────────────────
@@ -11588,7 +11640,21 @@ function _evRenderCanvasImmediate() {
     if (activePreset && activePreset.duotone) { adj.duotone_a = activePreset.duotone.a; adj.duotone_b = activePreset.duotone.b; adj.duotone_strength = activePreset.duotone.strength || 0.7; }
     if (!_dragging) {
       if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
-      if (activePreset && activePreset.halationBloom) applyHalationBloom(canvas, activePreset.halationBloom, 0, 0, canvas.width, canvas.height);
+      if (activePreset && activePreset.halationBloom && userImage) {
+        var _hbNw = userImage.naturalWidth, _hbNh = userImage.naturalHeight;
+        var _hbS = Math.min(1, 1200 / _hbNw);
+        var _hbW = Math.round(_hbNw * _hbS), _hbH = Math.round(_hbNh * _hbS);
+        var _hbSrc = document.createElement('canvas');
+        _hbSrc.width = _hbW; _hbSrc.height = _hbH;
+        _hbSrc.getContext('2d').drawImage(userImage, 0, 0, _hbW, _hbH);
+        if (activePreset.curve) applyCurveLUTs(_hbSrc, activePreset.curve, 0, 0, _hbW, _hbH);
+        var _hbLayer = _evBloomLayer(_hbSrc, activePreset.halationBloom, _hbW, _hbH);
+        var _hbCtx = canvas.getContext('2d');
+        _hbCtx.save();
+        _hbCtx.globalCompositeOperation = 'lighter';
+        _hbCtx.drawImage(_hbLayer, 0, 0, canvas.width, canvas.height);
+        _hbCtx.restore();
+      }
       if ((adj.diffusion || 0) > 0.01) applyDiffusion(canvas, adj.diffusion, 0, 0, canvas.width, canvas.height);
       if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, canvas.width, canvas.height);
     }

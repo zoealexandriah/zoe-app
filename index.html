@@ -11672,7 +11672,7 @@ function renderPresetThumb(canvas, p) {
   ctx.drawImage(userImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
   if (p.defaults) {
     var _tState = (sliderState[p.id] && Object.keys(sliderState[p.id]).length) ? sliderState[p.id] : {};
-    var adj = buildAdjustments(_tState);
+    var adj = buildAdjustments(_evMergeAdjState(p, _tState));
     if (p.splitTone) adj.split_tone = p.splitTone;
     if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
     if (p.shadowTint) adj.shadow_tint = p.shadowTint;

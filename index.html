@@ -3115,7 +3115,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #es-color-sliders,
   #es-hsl-sliders,
   #es-details-sliders,
-  #es-atmosphere-sliders {
+  #es-detail-sliders,
+  #es-blur-sliders {
     display: flex !important;
     flex-direction: column !important;
     overflow-x: hidden !important;
@@ -6279,6 +6280,8 @@ function evAdjustSubTab(name) {
   if (name === 'crop' || name === 'flip') {
     setTimeout(function(){ if (typeof etSelectTool === 'function') etSelectTool(name); }, 60);
   }
+  // Resize canvas CSS to match new canvas-area dimensions after layout reflows
+  requestAnimationFrame(_evResizeCanvas);
 }
 
 function evAdjustSubnavBack() {
@@ -11515,7 +11518,19 @@ function evInit() {
     evRenderPresets();
     evBuildSliders();
     evAdjustSubTab('light');
+    _evResizeCanvas();
   });
+}
+
+function _evResizeCanvas() {
+  var canvas = document.getElementById('ev-canvas');
+  var area   = document.getElementById('ev-canvas-area');
+  if (!canvas || !area || !userImage || canvas.width === 0) return;
+  var aw = area.clientWidth || 500, ah = area.clientHeight || 400;
+  var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
+  var baseScale = Math.min(aw / iw, ah / ih, 1);
+  canvas.style.width  = Math.round(iw * baseScale) + 'px';
+  canvas.style.height = Math.round(ih * baseScale) + 'px';
 }
 
 var _evRenderScheduled = false;

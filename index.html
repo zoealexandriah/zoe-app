@@ -2950,8 +2950,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-mobile-nav { display: none !important; }
   /* Subnav always visible when image is loaded (JS sets inline flex; CSS mirrors it) */
   #editor-view:not(.no-image) #ev-adjust-subnav { display: flex !important; }
-  /* No-image state: hide subnav so user can only import or go back */
+  /* No-image state: hide subnav and slider suite so user can only import or go back */
   #editor-view.no-image #ev-adjust-subnav { display: none !important; }
+  #editor-view.no-image #ev-editor-suite { display: none !important; }
   /* Show save FAB only when a photo is loaded */
   #editor-view:not(.no-image) #ev-save-fab { display: flex !important; }
   /* Always hide TOOLS header + CROP/FLIP tool rows in ev-tools on mobile */

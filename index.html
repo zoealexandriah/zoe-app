@@ -5694,6 +5694,11 @@ const sliderConfig = {
   LUM_GREENS:  [-1.00, 1.00, '', true],
   LUM_BLUES:   [-1.00, 1.00, '', true],
   LUM_PURPLES: [-1.00, 1.00, '', true],
+  DEHAZE:      [-1.00, 1.00, '', true],
+  TEXTURE:     [ 0.00, 1.00, '', false],
+  MATTE_LIFT:  [ 0.00, 1.00, '', false],
+  DIFFUSION:   [ 0.00, 1.00, '', false],
+  CHROMA_SHIFT:[ 0.00, 1.00, '', false],
 };
 
 function initSliderState(p) {
@@ -5775,8 +5780,8 @@ function buildEditorSliders(p) {
   const hslContainer  = document.getElementById('es-hsl-sliders');
   const det2Container = document.getElementById('es-detail-sliders');
   const blurContainer = document.getElementById('es-blur-sliders');
-  const DETAIL_KEYS = ['SHARPEN', 'CLARITY', 'GRAIN', 'FADE'];
-  const BLUR_KEYS   = ['BLUR', 'GLOW'];
+  const DETAIL_KEYS = ['SHARPEN', 'CLARITY', 'GRAIN', 'FADE', 'TEXTURE', 'MATTE_LIFT'];
+  const BLUR_KEYS   = ['BLUR', 'GLOW', 'DIFFUSION', 'CHROMA_SHIFT'];
 
   Object.entries(p.sliders||{}).forEach(([section, rows]) => {
     if (section === 'EFFECTS') {
@@ -5868,7 +5873,12 @@ function _sliderIcon(name) {
     'SHARPEN':     '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7,1.5 12.5,12.5 1.5,12.5"/></svg>',
     'CLARITY':     '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><line x1="1" y1="7" x2="4" y2="7"/><line x1="10" y1="7" x2="13" y2="7"/><line x1="7" y1="1" x2="7" y2="4"/><line x1="7" y1="10" x2="7" y2="13"/></svg>',
     'BLUR':        '<svg viewBox="0 0 14 14" fill="currentColor" stroke="none"><rect x="0.5" y="0.5" width="13" height="13" rx="5" opacity="0.07"/><rect x="1.5" y="1.5" width="11" height="11" rx="4.5" opacity="0.13"/><rect x="2.5" y="2.5" width="9" height="9" rx="4" opacity="0.22"/><rect x="3.5" y="3.5" width="7" height="7" rx="3.2"/></svg>',
-    'HUE_SHIFT':   '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><line x1="7" y1="1.5" x2="7" y2="12.5"/><line x1="1.5" y1="7" x2="12.5" y2="7"/><line x1="3.11" y1="3.11" x2="10.89" y2="10.89"/><line x1="10.89" y1="3.11" x2="3.11" y2="10.89"/></svg>',
+    'HUE_SHIFT':    '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><line x1="7" y1="1.5" x2="7" y2="12.5"/><line x1="1.5" y1="7" x2="12.5" y2="7"/><line x1="3.11" y1="3.11" x2="10.89" y2="10.89"/><line x1="10.89" y1="3.11" x2="3.11" y2="10.89"/></svg>',
+    'DEHAZE':       '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><line x1="2" y1="4" x2="12" y2="4"/><line x1="2.5" y1="7" x2="11.5" y2="7"/><line x1="3.5" y1="10" x2="10.5" y2="10"/><circle cx="7" cy="7" r="2" stroke-dasharray="1.5 1.2"/></svg>',
+    'TEXTURE':      '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"><circle cx="3.5" cy="3.5" r="1"/><circle cx="7" cy="2.5" r="0.8"/><circle cx="10.5" cy="3.5" r="1"/><circle cx="2.5" cy="7" r="0.8"/><circle cx="7" cy="7" r="1.2"/><circle cx="11.5" cy="7" r="0.8"/><circle cx="3.5" cy="10.5" r="1"/><circle cx="7" cy="11.5" r="0.8"/><circle cx="10.5" cy="10.5" r="1"/></svg>',
+    'MATTE_LIFT':   '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><rect x="2" y="2" width="10" height="10" rx="1.5"/><line x1="2" y1="10" x2="12" y2="10"/><line x1="2" y1="8" x2="12" y2="8" opacity="0.5"/></svg>',
+    'DIFFUSION':    '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"><circle cx="7" cy="7" r="2.2"/><circle cx="7" cy="7" r="4" opacity="0.4"/><circle cx="7" cy="7" r="5.8" opacity="0.18"/></svg>',
+    'CHROMA_SHIFT': '<svg viewBox="0 0 14 14" fill="none" stroke-width="1.2" stroke-linecap="round"><circle cx="5.5" cy="7" r="3.5" stroke="rgba(255,80,80,0.8)"/><circle cx="8.5" cy="7" r="3.5" stroke="rgba(80,80,255,0.8)"/></svg>',
   };
   return '<span class="sl-icon-wrap">' + (icons[n] || '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="4.5"/></svg>') + '</span>';
 }
@@ -6228,6 +6238,9 @@ function doRender(presetId) {
   if (!adj.halation && p.defaults && p.defaults.HALATION) adj.halation = p.defaults.HALATION;
   if (p.splitTone) adj.split_tone = p.splitTone;
   if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
+  if (p.shadowTint) adj.shadow_tint = p.shadowTint;
+  if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+  if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
   if (p.curve) adj.curve = p.curve;
   if (p.halationBloom) adj.halationBloom = p.halationBloom;
   if (p.matteFade) adj.matteFade = p.matteFade;
@@ -6315,6 +6328,16 @@ function buildAdjustments(state) {
     hueTempZones: null,
     colorGlow:   0,
     skinLift:    0,
+    dehaze:      val('DEHAZE'),
+    texture:     val('TEXTURE', false) * 0.5,
+    matte_lift:  val('MATTE_LIFT', false),
+    diffusion:   val('DIFFUSION', false),
+    chroma_shift: val('CHROMA_SHIFT', false) * 6,
+    shadow_tint:     { r:0, g:0, b:0, strength:0 },
+    highlight_tint:  { r:0, g:0, b:0, strength:0 },
+    duotone_a:   null,
+    duotone_b:   null,
+    duotone_strength: 0,
       };
 }
 
@@ -6919,6 +6942,9 @@ function applyLookToUserImage(presetId) {
   if (!_applyAdj.halation && p.defaults && p.defaults.HALATION) _applyAdj.halation = p.defaults.HALATION;
   if (p.splitTone) _applyAdj.split_tone = p.splitTone;
   if (p.halationHue !== undefined) _applyAdj.halation_hue = p.halationHue;
+  if (p.shadowTint) _applyAdj.shadow_tint = p.shadowTint;
+  if (p.highlightTint) _applyAdj.highlight_tint = p.highlightTint;
+  if (p.duotone) { _applyAdj.duotone_a = p.duotone.a; _applyAdj.duotone_b = p.duotone.b; _applyAdj.duotone_strength = p.duotone.strength || 0.7; }
   if (p.curve) _applyAdj.curve = p.curve;
   if (p.hueTempZones) _applyAdj.hueTempZones = p.hueTempZones;
   if (p.colorGlow !== undefined) _applyAdj.colorGlow = p.colorGlow;
@@ -7165,7 +7191,11 @@ function applyPixelAdjustments(srcData, adj) {
     !adj.hue_reds && !adj.hue_oranges && !adj.hue_yellows &&
     !adj.hue_greens && !adj.hue_blues && !adj.hue_purples &&
     !adj.lum_reds && !adj.lum_oranges && !adj.lum_yellows &&
-    !adj.lum_greens && !adj.lum_blues && !adj.lum_purples;
+    !adj.lum_greens && !adj.lum_blues && !adj.lum_purples &&
+    !(Math.abs(adj.dehaze || 0) > 0.005) &&
+    !(adj.texture > 0.005) &&
+    !(adj.matte_lift > 0.005) &&
+    !(adj.chroma_shift > 0.1);
   if (_noEffect) return new Uint8ClampedArray(src);
 
   const out = new Uint8ClampedArray(src.length);
@@ -7182,6 +7212,9 @@ function applyPixelAdjustments(srcData, adj) {
   const whites  = adj.whites      || 0;   // -1..+1
   const blacks  = adj.blacks      || 0;   // -1..+1
   const sharpen = adj.sharpen     || 0;   // 0..1
+  const dehaze     = adj.dehaze     || 0;
+  const texture    = adj.texture    || 0;
+  const matteLift  = adj.matte_lift || 0;
   const blur    = adj.blur        || 0;   // 0..1
 
   // Positive exposure is gentler (×1.2 EV max) to avoid blowing out too fast;
@@ -7406,6 +7439,67 @@ function applyPixelAdjustments(srcData, adj) {
     }
 
     
+
+    // ── DEHAZE ────────────────────────────────────────────────────────────
+    if (dehaze !== 0) {
+      const lum_dh = 0.299*r + 0.587*g + 0.114*b;
+      const midW_dh = Math.max(0, 1 - Math.abs(lum_dh - 140) / 115);
+      if (dehaze > 0) {
+        const boost = dehaze * midW_dh * 0.6;
+        r = Math.min(255, Math.max(0, (r - 128) * (1 + boost) + 128));
+        g = Math.min(255, Math.max(0, (g - 128) * (1 + boost) + 128));
+        b = Math.min(255, Math.max(0, (b - 128) * (1 + boost) + 128));
+        const [hd, sd, ld] = rgbToHsl(r, g, b);
+        const newSd = Math.min(1, sd + dehaze * midW_dh * 0.25);
+        if (newSd !== sd) { const [ndr, ndg, ndb] = hslToRgb(hd, newSd, ld); r=ndr; g=ndg; b=ndb; }
+      } else {
+        const hazeStr = Math.abs(dehaze);
+        const floor_dh = hazeStr * midW_dh * 22;
+        r = Math.min(255, r + floor_dh + hazeStr * midW_dh * 8);
+        g = Math.min(255, g + floor_dh + hazeStr * midW_dh * 5);
+        b = Math.min(255, b + floor_dh);
+      }
+    }
+
+    // ── TEXTURE ───────────────────────────────────────────────────────────
+    if (texture > 0.005) {
+      const lum_tx = 0.299*r + 0.587*g + 0.114*b;
+      const txW = Math.pow(Math.max(0, 1 - Math.abs(lum_tx - 128) / 128), 0.7);
+      const txBoost = texture * txW;
+      r = Math.min(255, Math.max(0, lum_tx + (r - lum_tx) * (1 + txBoost * 0.8)));
+      g = Math.min(255, Math.max(0, lum_tx + (g - lum_tx) * (1 + txBoost * 0.8)));
+      b = Math.min(255, Math.max(0, lum_tx + (b - lum_tx) * (1 + txBoost * 0.8)));
+    }
+
+    // ── MATTE LIFT ────────────────────────────────────────────────────────
+    if (matteLift > 0.005) {
+      const lum_ml = 0.299*r + 0.587*g + 0.114*b;
+      const mlW = Math.max(0, 1 - lum_ml / 90);
+      const lift_ml = matteLift * mlW * 48;
+      r = Math.min(255, r + lift_ml);
+      g = Math.min(255, g + lift_ml);
+      b = Math.min(255, b + lift_ml);
+    }
+
+    // ── SHADOW TINT ───────────────────────────────────────────────────────
+    if (adj.shadow_tint && adj.shadow_tint.strength > 0.005) {
+      const lum_st = 0.299*r + 0.587*g + 0.114*b;
+      const stW = Math.max(0, 1 - lum_st / 100);
+      const stStr = adj.shadow_tint.strength * stW;
+      r = Math.min(255, Math.max(0, r + adj.shadow_tint.r * stStr * 40));
+      g = Math.min(255, Math.max(0, g + adj.shadow_tint.g * stStr * 40));
+      b = Math.min(255, Math.max(0, b + adj.shadow_tint.b * stStr * 40));
+    }
+
+    // ── HIGHLIGHT TINT ────────────────────────────────────────────────────
+    if (adj.highlight_tint && adj.highlight_tint.strength > 0.005) {
+      const lum_ht2 = 0.299*r + 0.587*g + 0.114*b;
+      const htW = Math.max(0, (lum_ht2 - 155) / 100);
+      const htStr = adj.highlight_tint.strength * htW;
+      r = Math.min(255, Math.max(0, r + adj.highlight_tint.r * htStr * 40));
+      g = Math.min(255, Math.max(0, g + adj.highlight_tint.g * htStr * 40));
+      b = Math.min(255, Math.max(0, b + adj.highlight_tint.b * htStr * 40));
+    }
 
     // ── GRAIN — organic film grain with size variation ────────────────────
     if (grain > 0.01) {
@@ -8139,7 +8233,10 @@ function renderWithAdjustments(canvas, adj) {
   if (adj.halationBloom) applyHalationBloom(canvas, adj.halationBloom, _origOffX, _origOffY, _origW, _origH);
   if (adj.matteFade) applyMatteFade(canvas, adj.matteFade, _origOffX, _origOffY, _origW, _origH);
   if (adj.scanLines) applyScanLines(canvas, adj.scanLines, _origOffX, _origOffY, _origW, _origH);
-  if (adj.chromaticAberration) applyChromaticAberration(canvas, adj.chromaticAberration.intensity || 3, _origOffX, _origOffY, _origW, _origH);
+  const _chromaIntensity = (adj.chroma_shift > 0.1) ? adj.chroma_shift : (adj.chromaticAberration ? (adj.chromaticAberration.intensity || 3) : 0);
+  if (_chromaIntensity > 0.1) applyChromaticAberration(canvas, _chromaIntensity, _origOffX, _origOffY, _origW, _origH);
+  if ((adj.diffusion || 0) > 0.01) applyDiffusion(canvas, adj.diffusion, _origOffX, _origOffY, _origW, _origH);
+  if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, _origOffX, _origOffY, _origW, _origH);
   // Vignette
   if ((adj.vignette || 0) > 0.01) {
     applyVignette(canvas, adj.vignette, _origOffX, _origOffY, _origW, _origH);
@@ -8264,6 +8361,40 @@ function applyMatteFade(canvas, params, offX, offY, imgW, imgH) {
     od[i]   = blackFloor + (od[i]   / 255) * range;
     od[i+1] = blackFloor + (od[i+1] / 255) * range;
     od[i+2] = blackFloor + (od[i+2] / 255) * range;
+  }
+  ctx.putImageData(orig, offX, offY);
+}
+
+function applyDiffusion(canvas, amount, offX, offY, imgW, imgH) {
+  if (!amount || amount < 0.01) return;
+  const ctx = canvas.getContext('2d');
+  const blurPx = Math.round(amount * 18 + 3);
+  const tmp = document.createElement('canvas');
+  tmp.width = imgW; tmp.height = imgH;
+  const tmpCtx = tmp.getContext('2d');
+  tmpCtx.filter = `blur(${blurPx}px)`;
+  tmpCtx.drawImage(canvas, offX, offY, imgW, imgH, 0, 0, imgW, imgH);
+  ctx.save();
+  ctx.globalAlpha = amount * 0.55;
+  ctx.globalCompositeOperation = 'screen';
+  ctx.drawImage(tmp, 0, 0, imgW, imgH, offX, offY, imgW, imgH);
+  ctx.restore();
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function applyDuotone(canvas, colorA, colorB, strength, offX, offY, imgW, imgH) {
+  if (!colorA || !colorB || !strength) return;
+  const ctx = canvas.getContext('2d');
+  const orig = ctx.getImageData(offX, offY, imgW, imgH);
+  const d = orig.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = (0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2]) / 255;
+    const tr = colorA.r + (colorB.r - colorA.r) * lum;
+    const tg = colorA.g + (colorB.g - colorA.g) * lum;
+    const tb = colorA.b + (colorB.b - colorA.b) * lum;
+    d[i]   = Math.round(d[i]   * (1 - strength) + tr * strength);
+    d[i+1] = Math.round(d[i+1] * (1 - strength) + tg * strength);
+    d[i+2] = Math.round(d[i+2] * (1 - strength) + tb * strength);
   }
   ctx.putImageData(orig, offX, offY);
 }
@@ -11376,6 +11507,9 @@ function renderPresetThumb(canvas, p) {
     var adj = buildAdjustments(p.defaults);
     if (p.splitTone) adj.split_tone = p.splitTone;
     if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
+    if (p.shadowTint) adj.shadow_tint = p.shadowTint;
+    if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+    if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
     if (p.hueTempZones) adj.hueTempZones = p.hueTempZones;
     if (p.colorGlow !== undefined) adj.colorGlow = p.colorGlow;
     if (p.skinLift !== undefined) adj.skinLift = p.skinLift;
@@ -12287,6 +12421,9 @@ function evSaveAndReturn() {
       if (p.skinLift  !== undefined) adj.skinLift  = p.skinLift;
       if (p.splitTone) adj.split_tone = p.splitTone;
       if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
+      if (p.shadowTint) adj.shadow_tint = p.shadowTint;
+      if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+      if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       var origData  = ctx.getImageData(0, 0, iw, ih);
       var processed = applyPixelAdjustments(origData, adj);
       var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
@@ -12362,6 +12499,9 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (p.skinLift   !== undefined)  adj.skinLift      = p.skinLift;
       if (p.splitTone)                 adj.split_tone    = p.splitTone;
       if (p.halationHue !== undefined) adj.halation_hue  = p.halationHue;
+      if (p.shadowTint) adj.shadow_tint = p.shadowTint;
+      if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+      if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       const origData = ctx.getImageData(0, 0, w, h);
       let processed  = applyPixelAdjustments(origData, adj);
       if (intensity < 0.999) {
@@ -12452,6 +12592,9 @@ function _exportEntry(entry, onDone) {
       if (p.skinLift   !== undefined)  adj.skinLift      = p.skinLift;
       if (p.splitTone)                 adj.split_tone    = p.splitTone;
       if (p.halationHue !== undefined) adj.halation_hue  = p.halationHue;
+      if (p.shadowTint) adj.shadow_tint = p.shadowTint;
+      if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+      if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       const origData = ctx.getImageData(0, 0, iw, ih);
       let processed  = applyPixelAdjustments(origData, adj);
       if (intensity < 0.999) {
@@ -12803,6 +12946,9 @@ window.exportDownload = function() {
       if (p.skinLift   !== undefined)  adj.skinLift     = p.skinLift;
       if (p.splitTone)                 adj.split_tone   = p.splitTone;
       if (p.halationHue !== undefined)  adj.halation_hue = p.halationHue;
+      if (p.shadowTint) adj.shadow_tint = p.shadowTint;
+      if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+      if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
 
       // Pixel adjustments at full resolution
       const origData = ctx.getImageData(0, 0, iw, ih);

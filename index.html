@@ -13979,6 +13979,52 @@ function cropPerspSelectAxis(axis) {
   if (hs) hs.style.display = axis === 'h' ? '' : 'none';
 }
 
+function _evBuildCurAdj() {
+  var _c = (typeof activePreset !== 'undefined') ? activePreset : null;
+  var _nolook = false;
+  if (!_c) {
+    var _t = document.querySelector('#es-details-sliders .sl-track[data-preset],#es-color-sliders .sl-track[data-preset],#es-atmosphere-sliders .sl-track[data-preset]');
+    if (_t && typeof presets !== 'undefined') {
+      var _dp = presets.find(function(x){ return x.id === _t.dataset.preset; });
+      if (_dp) { _c = _dp; _nolook = true; }
+    }
+  }
+  if (!_c) return null;
+  var _st = (typeof sliderState !== 'undefined') ? sliderState[_c.id] : null;
+  if (!_st || !Object.keys(_st).length) return null;
+  var adj = _nolook ? buildAdjustments(_st) : buildAdjustments(_evMergeAdjState(_c, _st));
+  if (!adj.halation && _c.defaults && _c.defaults.HALATION) adj.halation = _c.defaults.HALATION;
+  if (activePreset) {
+    if (activePreset.hueTempZones) adj.hueTempZones = activePreset.hueTempZones;
+    if (activePreset.colorGlow !== undefined) adj.colorGlow = activePreset.colorGlow;
+    if (activePreset.skinLift !== undefined) adj.skinLift = activePreset.skinLift;
+    if (activePreset.splitTone) adj.split_tone = activePreset.splitTone;
+    if (activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
+  }
+  return adj;
+}
+
+function _etApplyAdjCanvas(c) {
+  var adj = _evBuildCurAdj();
+  if (!adj) return;
+  var ctx = c.getContext('2d');
+  var origData = ctx.getImageData(0, 0, c.width, c.height);
+  var processed = applyPixelAdjustments(origData, adj);
+  var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
+  if (intensity < 0.999) {
+    var od = origData.data;
+    for (var i = 0; i < processed.length; i += 4) {
+      processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
+      processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
+      processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
+    }
+  }
+  ctx.putImageData(new ImageData(processed, c.width, c.height), 0, 0);
+  if (typeof activePreset !== 'undefined' && activePreset && activePreset.curve) applyCurveLUTs(c, activePreset.curve, 0, 0, c.width, c.height);
+  if ((adj.glow || 0) > 0.01) applyGlow(c, adj.glow, 0, 0, c.width, c.height);
+  if ((adj.vignette || 0) > 0.01) applyVignette(c, adj.vignette, 0, 0, c.width, c.height);
+}
+
 function etPerspUpdate() {
   var slV = document.getElementById('crop-persp-v-slider');
   var slH = document.getElementById('crop-persp-h-slider');
@@ -14061,6 +14107,7 @@ function etPerspUpdate() {
     sc.width = _origNW; sc.height = _origNH;
     sc.getContext('2d').clearRect(0, 0, _origNW, _origNH);
     sc.getContext('2d').drawImage(_etPerspOrigImg, 0, 0, _origNW, _origNH);
+    _etApplyAdjCanvas(sc);
     sc.style.width  = _zDispW + 'px';
     sc.style.height = _zDispH + 'px';
     sc.style.left   = Math.round((_arW - _zDispW) / 2) + 'px';
@@ -14095,6 +14142,7 @@ function etPerspUpdate() {
     // Leave sc untouched so _cropPerspFlush can read the clean trapezoid from it.
     ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
     ac.getContext('2d').drawImage(_pvTmp, 0, 0, ac.width, ac.height);
+    _etApplyAdjCanvas(ac);
     ac.style.opacity = '1';
     sc.style.opacity = '0';
   }

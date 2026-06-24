@@ -3065,7 +3065,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   /* All panels hidden; only the active one shows when suite is open */
   .es-tab-panel { display: none !important; }
-  #ev-editor-suite.open .es-tab-panel.active { display: flex !important; flex: none !important; overflow: visible !important; }
+  #ev-editor-suite.open .es-tab-panel.active { display: flex !important; flex-direction: column !important; flex: none !important; max-height: 230px !important; overflow-y: auto !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; }
 
   /* Hide text tabs — mobile nav replaces them */
   .es-tabs { display: none !important; }

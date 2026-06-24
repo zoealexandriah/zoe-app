@@ -6072,6 +6072,8 @@ function _slApplyDrag(e) {
   if (cfg && cfg[3] !== false && Math.abs(t - 0.5) < 0.04) t = 0.5;
   var pid   = _slDragTrack.dataset.preset;
   if (!sliderState[pid]) sliderState[pid] = {};
+  var _dpObj = (activePreset && activePreset.id === pid) ? activePreset : presets.find(function(x){ return x.id === pid; });
+  if (_dpObj) initSliderState(_dpObj);
   sliderState[pid][param] = t;
   var pct   = Math.round(t * 100);
   var fill  = _slDragTrack.querySelector('.sl-fill');
@@ -11614,7 +11616,8 @@ function _evRenderCanvasImmediate() {
       if (_evDomPreset) { _evCurPreset = _evDomPreset; _evNolookMode = true; }
     }
   }
-  if (_evCurPreset && sliderState[_evCurPreset.id] && Object.keys(sliderState[_evCurPreset.id]).length > 0) {
+  if (_evCurPreset) {
+    if (!sliderState[_evCurPreset.id]) { initSliderState(_evCurPreset); }
     var adj = _evNolookMode
       ? buildAdjustments(sliderState[_evCurPreset.id])
       : buildAdjustments(_evMergeAdjState(_evCurPreset, sliderState[_evCurPreset.id]));

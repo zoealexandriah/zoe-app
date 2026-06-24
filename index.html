@@ -11563,12 +11563,7 @@ function _evRenderCanvasImmediate() {
     if (activePreset && activePreset.duotone) { adj.duotone_a = activePreset.duotone.a; adj.duotone_b = activePreset.duotone.b; adj.duotone_strength = activePreset.duotone.strength || 0.7; }
     if (!_dragging) {
       if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
-      if (activePreset && activePreset.halationBloom) {
-        var _hb = activePreset.halationBloom;
-        var _nativeW = userImage ? userImage.naturalWidth : canvas.width;
-        var _scaledHB = { threshold: _hb.threshold, hue: _hb.hue, intensity: _hb.intensity, radius: Math.max(1, Math.round(_hb.radius * canvas.width / _nativeW)) };
-        applyHalationBloom(canvas, _scaledHB, 0, 0, canvas.width, canvas.height);
-      }
+      if (activePreset && activePreset.halationBloom) applyHalationBloom(canvas, activePreset.halationBloom, 0, 0, canvas.width, canvas.height);
       if ((adj.diffusion || 0) > 0.01) applyDiffusion(canvas, adj.diffusion, 0, 0, canvas.width, canvas.height);
       if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, canvas.width, canvas.height);
     }

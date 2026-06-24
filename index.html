@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZOË — Digital Alchemy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@200;300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@200;300;400;500&family=DM+Mono:wght@300;400&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════
    RESET & ROOT
@@ -3684,9 +3684,33 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .sl-val  { width: auto !important; min-width: 22px !important; flex-shrink: 0 !important; font-size: 9px !important; }
 .sl-track { flex: none !important; width: 100% !important; }
 
+/* ── LOADING SCREEN ── */
+#zoe-loading {
+  position: fixed; inset: 0; z-index: 99999;
+  background: radial-gradient(ellipse at 50% 40%, #1a1310 0%, #0a0706 70%, #040202 100%);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.8s ease;
+}
+#zoe-loading.fade-out { opacity: 0; pointer-events: none; }
+
 </style>
 </head>
 <body>
+
+<div id="zoe-loading">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;max-width:100vw;max-height:100vh;position:absolute;inset:0;">
+    <defs>
+      <linearGradient id="zoe-wm" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#ece0d2"></stop>
+        <stop offset="42%"  stop-color="#ffd7b2"></stop>
+        <stop offset="50%"  stop-color="#ff9ec9"></stop>
+        <stop offset="58%"  stop-color="#c9a3ff"></stop>
+        <stop offset="100%" stop-color="#ece0d2"></stop>
+      </linearGradient>
+    </defs>
+    <text x="600" y="460" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="220" letter-spacing="24" fill="url(#zoe-wm)">ZOË</text>
+  </svg>
+</div>
 
 <canvas id="bg-canvas"></canvas>
 <canvas id="particle-canvas"></canvas>
@@ -14591,6 +14615,22 @@ function importSheetChoice(type) {
     if (!ov || ov.style.display === 'none') return;
     if (!ov.contains(e.target)) { window._slValEditorApply(); }
   }, {passive: true});
+})();
+</script>
+
+<script>
+(function() {
+  var el = document.getElementById('zoe-loading');
+  if (!el) return;
+  function dismiss() {
+    el.classList.add('fade-out');
+    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+  }
+  if (document.readyState === 'complete') {
+    setTimeout(dismiss, 600);
+  } else {
+    window.addEventListener('load', function() { setTimeout(dismiss, 600); });
+  }
 })();
 </script>
 

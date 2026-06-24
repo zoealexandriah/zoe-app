@@ -11334,10 +11334,18 @@ function _evDoSave() {
   var hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
   if (hasPreset) {
     var adj = buildAdjustments(sliderState[p.id]);
-    if (p.hueTempZones)             adj.hueTempZones  = p.hueTempZones;
-    if (p.colorGlow  !== undefined)  adj.colorGlow    = p.colorGlow;
-    if (p.skinLift   !== undefined)  adj.skinLift     = p.skinLift;
-    if (p.splitTone)                 adj.split_tone   = p.splitTone;
+    if (p.hueTempZones)              adj.hueTempZones        = p.hueTempZones;
+    if (p.colorGlow  !== undefined)  adj.colorGlow           = p.colorGlow;
+    if (p.skinLift   !== undefined)  adj.skinLift            = p.skinLift;
+    if (p.splitTone)                 adj.split_tone          = p.splitTone;
+    if (p.shadowTint)                adj.shadow_tint         = p.shadowTint;
+    if (p.highlightTint)             adj.highlight_tint      = p.highlightTint;
+    if (p.halationBloom)             adj.halationBloom       = p.halationBloom;
+    if (p.matteFade)                 adj.matteFade           = p.matteFade;
+    if (p.scanLines)                 adj.scanLines           = p.scanLines;
+    if (p.chromaticAberration)       adj.chromaticAberration = p.chromaticAberration;
+    if (p.halationHue !== undefined) adj.halation_hue        = p.halationHue;
+    if (p.duotone)                   { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
     var origData  = ctx.getImageData(0, 0, iw, ih);
     var processed = applyPixelAdjustments(origData, adj);
     var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
@@ -11350,16 +11358,18 @@ function _evDoSave() {
       }
     }
     ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
-    if (p.curve)                            applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
-    if ((adj.sharpen  || 0) > 0.01)         applySharpness(off, adj.sharpen,  0, 0, iw, ih);
-    if ((adj.blur     || 0) > 0.01)         applyBlur(off,     adj.blur,      0, 0, iw, ih);
-    if ((adj.glow     || 0) > 0.01)         applyGlow(off,     adj.glow,      0, 0, iw, ih);
-    if ((adj.halation || 0) > 0.01)         applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
-    if (adj.halationBloom)                  applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
-    if (adj.matteFade)                      applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
-    if (adj.scanLines)                      applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
-    if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
-    if ((adj.vignette || 0) > 0.01)         applyVignette(off, adj.vignette, 0, 0, iw, ih);
+    if (p.curve)                                                          applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
+    if ((adj.sharpen  || 0) > 0.01)                                       applySharpness(off, adj.sharpen, 0, 0, iw, ih);
+    if ((adj.blur     || 0) > 0.01)                                       applyBlur(off, adj.blur, 0, 0, iw, ih);
+    if ((adj.glow     || 0) > 0.01)                                       applyGlow(off, adj.glow, 0, 0, iw, ih);
+    if ((adj.halation || 0) > 0.01)                                       applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
+    if (adj.halationBloom)                                                applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
+    if (adj.matteFade)                                                    applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
+    if (adj.scanLines)                                                    applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
+    if (adj.chromaticAberration)                                          applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
+    if ((adj.diffusion || 0) > 0.01)                                      applyDiffusion(off, adj.diffusion, 0, 0, iw, ih);
+    if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01) applyDuotone(off, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, iw, ih);
+    if ((adj.vignette || 0) > 0.01)                                       applyVignette(off, adj.vignette, 0, 0, iw, ih);
   }
   var d  = new Date();
   var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');

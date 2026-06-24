@@ -14622,6 +14622,11 @@ function importSheetChoice(type) {
 (function() {
   var el = document.getElementById('zoe-loading');
   if (!el) return;
+  if (localStorage.getItem('zoe-launched')) {
+    el.parentNode.removeChild(el);
+    return;
+  }
+  localStorage.setItem('zoe-launched', '1');
   function dismiss() {
     el.classList.add('fade-out');
     setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 900);

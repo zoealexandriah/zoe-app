@@ -3243,26 +3243,25 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     height: 58px !important;
     overflow: hidden !important;
   }
-  .ev-subnav-back {
+  /* Left pinned section (ATMOSPHERE + FX) */
+  .ev-subnav-left {
     display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    flex-direction: row !important;
     flex-shrink: 0 !important;
-    width: 46px !important;
-    height: 100% !important;
-    background: transparent !important;
-    border: none !important;
-    border-right: 0.5px solid rgba(201,184,212,0.08) !important;
-    border-radius: 0 !important;
-    color: rgba(201,184,212,0.50) !important;
-    cursor: pointer !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-    transition: background 0.15s !important;
+    align-items: stretch !important;
   }
-  .ev-subnav-back:active { background: rgba(201,184,212,0.08) !important; }
+  /* Vertical separator between left and right sections */
+  .ev-subnav-divider {
+    width: 0.5px !important;
+    background: rgba(201,184,212,0.13) !important;
+    flex-shrink: 0 !important;
+    margin: 12px 0 !important;
+  }
+  /* FX button — no label, just enlarged italic text */
+  .ev-subnav-fx-btn {
+    min-width: 52px !important;
+    padding: 0 8px !important;
+  }
   .ev-subnav-scroll {
     display: flex !important;
     flex-direction: row !important;
@@ -4399,13 +4398,22 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div id="ev-sliders" style="display:none"></div>
           <div id="editor-sliders" style="display:none"></div>
           <div id="editor-tools-section" style="display:none"></div>
-          <!-- Unified editor nav (mobile only) — single scrollable tab bar, no back button -->
+          <!-- Unified editor nav (mobile only) — pinned left + divider + scrollable right -->
           <div id="ev-adjust-subnav" style="display:none">
-            <div class="ev-subnav-scroll">
+            <!-- Left pinned: ATMOSPHERE looks + FX effects (no scroll) -->
+            <div class="ev-subnav-left">
               <button class="ev-subnav-btn" data-tab="atmosphere" onclick="evAdjustSubTab('atmosphere')">
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5.5" height="5.5" rx="0.5"/><rect x="11.5" y="3" width="5.5" height="5.5" rx="0.5"/><rect x="3" y="11.5" width="5.5" height="5.5" rx="0.5"/><rect x="11.5" y="11.5" width="5.5" height="5.5" rx="0.5"/></svg>
                 <span>ATMOSPHERE</span>
               </button>
+              <button class="ev-subnav-btn ev-subnav-fx-btn" data-tab="fx" onclick="evAdjustSubTab('fx')">
+                <svg viewBox="0 0 32 22" width="32" height="22" fill="none"><text x="16" y="17" text-anchor="middle" fill="currentColor" font-size="20" font-style="italic" font-family="Georgia,'Times New Roman',serif">fx</text></svg>
+              </button>
+            </div>
+            <!-- Vertical separator -->
+            <div class="ev-subnav-divider"></div>
+            <!-- Right scrollable: LIGHT COLOR HSL CROP -->
+            <div class="ev-subnav-scroll">
               <button class="ev-subnav-btn active" data-tab="light" onclick="evAdjustSubTab('light')">
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="3"/><line x1="10" y1="2.5" x2="10" y2="4.5"/><line x1="10" y1="15.5" x2="10" y2="17.5"/><line x1="2.5" y1="10" x2="4.5" y2="10"/><line x1="15.5" y1="10" x2="17.5" y2="10"/><line x1="4.4" y1="4.4" x2="5.8" y2="5.8"/><line x1="14.2" y1="14.2" x2="15.6" y2="15.6"/><line x1="15.6" y1="4.4" x2="14.2" y2="5.8"/><line x1="5.8" y1="14.2" x2="4.4" y2="15.6"/></svg>
                 <span>LIGHT</span>
@@ -4421,10 +4429,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <button class="ev-subnav-btn" data-tab="hsl" onclick="evAdjustSubTab('hsl')">
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><path d="M10 3.5 A6.5 6.5 0 0 1 16.5 10" stroke-dasharray="2.5 1.8"/><path d="M10 16.5 A6.5 6.5 0 0 1 3.5 10" stroke-dasharray="2.5 1.8"/></svg>
                 <span>HSL</span>
-              </button>
-              <button class="ev-subnav-btn" data-tab="fx" onclick="evAdjustSubTab('fx')">
-                <svg viewBox="0 0 20 20" width="18" height="18" fill="none"><text x="10" y="14.5" text-anchor="middle" fill="currentColor" font-size="13" font-style="italic" font-family="Georgia,'Times New Roman',serif">fx</text></svg>
-                <span>FX</span>
               </button>
               <button class="ev-subnav-btn" data-tab="crop" onclick="evAdjustSubTab('crop')">
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 2.5 L5 15 L17.5 15"/><path d="M2.5 5 L15 5 L15 17.5"/></svg>

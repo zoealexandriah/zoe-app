@@ -4361,6 +4361,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <div class="es-tab active" data-tab="atmosphere" onclick="esTab(this)">ATMOSPHERE</div>
             <div class="es-tab" data-tab="color" onclick="esTab(this)">COLOR</div>
             <div class="es-tab" data-tab="details" onclick="esTab(this)">DETAILS</div>
+            <div class="es-tab" data-tab="detail" onclick="esTab(this)">DETAIL</div>
+            <div class="es-tab" data-tab="blur" onclick="esTab(this)">BLUR</div>
+            <div class="es-tab" data-tab="optical" onclick="esTab(this)">OPTICAL</div>
             <div class="es-tab" data-tab="tools" onclick="esTab(this)">TOOLS</div>
           </div>
           <!-- ATMOSPHERE panel: active preset display + GLOW GRAIN FADE HAZE -->
@@ -4394,6 +4397,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div class="es-tab-panel" id="es-panel-tools">
             <div id="ev-tools"></div>
           </div>
+          <!-- DETAIL panel: SHARPEN CLARITY GRAIN FADE -->
+          <div class="es-tab-panel" id="es-panel-detail">
+            <div id="es-detail-sliders"></div>
+          </div>
+          <!-- BLUR panel: BLUR GLOW -->
+          <div class="es-tab-panel" id="es-panel-blur">
+            <div id="es-blur-sliders"></div>
+          </div>
+          <!-- OPTICAL panel: VERTICAL + HORIZONTAL perspective -->
+          <div class="es-tab-panel" id="es-panel-optical">
+            <div id="es-optical-content"></div>
+          </div>
           <!-- Keep these hidden for legacy compat -->
           <div id="ev-sliders" style="display:none"></div>
           <div id="editor-sliders" style="display:none"></div>
@@ -4407,7 +4422,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 <span>ATMOSPHERE</span>
               </button>
               <button class="ev-subnav-btn ev-subnav-fx-btn" data-tab="fx" onclick="evAdjustSubTab('fx')">
-                <svg viewBox="0 0 32 22" width="32" height="22" fill="none"><text x="16" y="17" text-anchor="middle" fill="currentColor" font-size="20" font-style="italic" font-family="Georgia,'Times New Roman',serif">fx</text></svg>
+                <svg viewBox="0 0 36 25" width="36" height="25" fill="none"><text x="18" y="19" text-anchor="middle" fill="currentColor" font-size="22" font-style="italic" font-family="Georgia,'Times New Roman',serif">fx</text></svg>
               </button>
             </div>
             <!-- Vertical separator -->
@@ -4429,6 +4444,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <button class="ev-subnav-btn" data-tab="hsl" onclick="evAdjustSubTab('hsl')">
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><path d="M10 3.5 A6.5 6.5 0 0 1 16.5 10" stroke-dasharray="2.5 1.8"/><path d="M10 16.5 A6.5 6.5 0 0 1 3.5 10" stroke-dasharray="2.5 1.8"/></svg>
                 <span>HSL</span>
+              </button>
+              <button class="ev-subnav-btn" data-tab="detail" onclick="evAdjustSubTab('detail')">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="6"/><line x1="3" y1="10" x2="5.5" y2="10"/><line x1="14.5" y1="10" x2="17" y2="10"/><line x1="10" y1="3" x2="10" y2="5.5"/><line x1="10" y1="14.5" x2="10" y2="17"/></svg>
+                <span>DETAILS</span>
+              </button>
+              <button class="ev-subnav-btn" data-tab="blur" onclick="evAdjustSubTab('blur')">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" stroke="none"><rect x="1.5" y="1.5" width="17" height="17" rx="6.5" opacity="0.07"/><rect x="3.5" y="3.5" width="13" height="13" rx="5.5" opacity="0.14"/><rect x="6" y="6" width="8" height="8" rx="4" opacity="0.25"/><rect x="8.5" y="8.5" width="3" height="3" rx="1.5"/></svg>
+                <span>BLUR</span>
+              </button>
+              <button class="ev-subnav-btn" data-tab="optical" onclick="evAdjustSubTab('optical')">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3,5 L17,5 L14.5,16 L5.5,16 Z"/><line x1="10" y1="5" x2="10" y2="16" stroke-width="1"/></svg>
+                <span>OPTICAL</span>
               </button>
               <button class="ev-subnav-btn" data-tab="crop" onclick="evAdjustSubTab('crop')">
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 2.5 L5 15 L17.5 15"/><path d="M2.5 5 L15 5 L15 17.5"/></svg>
@@ -5720,27 +5747,79 @@ function buildEditorSliders(p) {
     return;
   }
 
-  let atmHtml = '', colHtml = '', hslHtml = '', detHtml = '';
-  const hslContainer = document.getElementById('es-hsl-sliders');
+  let atmHtml = '', colHtml = '', hslHtml = '', detHtml = '', det2Html = '', blurHtml = '';
+  const hslContainer  = document.getElementById('es-hsl-sliders');
+  const det2Container = document.getElementById('es-detail-sliders');
+  const blurContainer = document.getElementById('es-blur-sliders');
+  const DETAIL_KEYS = ['SHARPEN', 'CLARITY', 'GRAIN', 'FADE'];
+  const BLUR_KEYS   = ['BLUR', 'GLOW'];
 
   Object.entries(p.sliders||{}).forEach(([section, rows]) => {
-    const sectionHtml = buildSectionHTML(p, section, rows, state);
     if (section === 'EFFECTS') {
-      atmHtml += sectionHtml;
-    } else if (section === 'COLOR') {
-      colHtml += sectionHtml;
-    } else if (section === 'HSL') {
-      hslHtml += sectionHtml;
-    } else if (section === 'LIGHT') {
-      detHtml += sectionHtml;
+      const detailRows = {}, blurRows = {}, atmRows = {};
+      Object.entries(rows).forEach(([k, v]) => {
+        if (DETAIL_KEYS.includes(k)) detailRows[k] = v;
+        else if (BLUR_KEYS.includes(k)) blurRows[k] = v;
+        else atmRows[k] = v;
+      });
+      if (Object.keys(detailRows).length) det2Html += buildSectionHTML(p, 'DETAIL', detailRows, state);
+      if (Object.keys(blurRows).length)   blurHtml  += buildSectionHTML(p, 'BLUR',   blurRows,   state);
+      if (Object.keys(atmRows).length)    atmHtml   += buildSectionHTML(p, 'EFFECTS', atmRows,   state);
+    } else {
+      const sectionHtml = buildSectionHTML(p, section, rows, state);
+      if (section === 'COLOR') {
+        colHtml += sectionHtml;
+      } else if (section === 'HSL') {
+        hslHtml += sectionHtml;
+      } else if (section === 'LIGHT') {
+        detHtml += sectionHtml;
+      }
     }
   });
 
   atmContainer.innerHTML = atmHtml;
   colContainer.innerHTML = colHtml;
-  if (hslContainer) hslContainer.innerHTML = hslHtml;
+  if (hslContainer)  hslContainer.innerHTML  = hslHtml;
   detContainer.innerHTML = detHtml;
+  if (det2Container) det2Container.innerHTML = det2Html;
+  if (blurContainer) blurContainer.innerHTML = blurHtml;
   attachSliderListeners(p);
+}
+
+function buildOpticalPanel() {
+  var container = document.getElementById('es-optical-content');
+  if (!container) return;
+  var vVal = (typeof _perspBaseV !== 'undefined') ? _perspBaseV : 0;
+  var hVal = (typeof _perspBaseH !== 'undefined') ? _perspBaseH : 0;
+  var perspVSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><polygon points="3,5 21,5 17.5,19 6.5,19"/><rect x="11.25" y="5" width="1.5" height="14" fill="rgba(5,3,14,0.85)"/></svg>';
+  var perspHSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><polygon points="5,3 19,6.5 19,17.5 5,21"/><rect x="5" y="11.25" width="14" height="1.5" fill="rgba(5,3,14,0.85)"/></svg>';
+  container.innerHTML =
+    '<div class="crop-transform-icons" style="padding:12px 8px 8px;">' +
+      '<div class="crop-transform-icon-btn" id="persp-v-btn" onclick="cropPerspSelectAxis(\'v\')">' +
+        '<div class="crop-transform-icon-box" id="persp-v-box">' + perspVSvg + '</div>' +
+        '<span class="crop-transform-icon-label" id="persp-v-lbl">' + (vVal !== 0 ? Math.round(vVal) : 'VERT') + '</span>' +
+      '</div>' +
+      '<div class="crop-transform-icon-btn" id="persp-h-btn" onclick="cropPerspSelectAxis(\'h\')">' +
+        '<div class="crop-transform-icon-box" id="persp-h-box">' + perspHSvg + '</div>' +
+        '<span class="crop-transform-icon-label" id="persp-h-lbl">' + (hVal !== 0 ? Math.round(hVal) : 'HORIZ') + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<div id="crop-persp-slider-row" style="display:none;padding:6px 8px 2px;">' +
+      '<div id="crop-persp-v-section" style="display:none;">' +
+        '<div class="crop-sub-row" style="margin-bottom:4px;">' +
+          '<span class="crop-sub-label">VERTICAL</span>' +
+          '<span class="crop-sub-val" id="crop-persp-v-val">' + (vVal !== 0 ? Math.round(vVal) : 0) + '</span>' +
+        '</div>' +
+        '<input type="range" class="tc-range" id="crop-persp-v-slider" min="-100" max="100" step="1" value="' + vVal + '" oninput="etPerspUpdate()">' +
+      '</div>' +
+      '<div id="crop-persp-h-section" style="display:none;">' +
+        '<div class="crop-sub-row" style="margin-bottom:4px;">' +
+          '<span class="crop-sub-label">HORIZONTAL</span>' +
+          '<span class="crop-sub-val" id="crop-persp-h-val">' + (hVal !== 0 ? Math.round(hVal) : 0) + '</span>' +
+        '</div>' +
+        '<input type="range" class="tc-range" id="crop-persp-h-slider" min="-100" max="100" step="1" value="' + hVal + '" oninput="etPerspUpdate()">' +
+      '</div>' +
+    '</div>';
 }
 
 function _sliderIcon(name) {
@@ -5998,13 +6077,16 @@ function evMobileNavToggle(name) {
 }
 
 function evAdjustSubTab(name) {
+  if (name !== 'optical' && typeof _cropPerspFlush === 'function') _cropPerspFlush();
   var panelMap = {
     'light':   'details',
     'color':   'color',
     'hsl':     'color',
-    'fx':      'atmosphere',
     'crop':    'tools',
-    'flip':    'tools'
+    'flip':    'tools',
+    'detail':  'detail',
+    'blur':    'blur',
+    'optical': 'optical'
   };
   document.querySelectorAll('.ev-subnav-btn').forEach(function(b){ b.classList.remove('active'); });
   var btn = document.querySelector('.ev-subnav-btn[data-tab="'+name+'"]');
@@ -6024,11 +6106,17 @@ function evAdjustSubTab(name) {
   }
   // All other tabs: hide preset strip
   if (strip) strip.classList.remove('visible');
+  // FX tab: blank — close suite, nothing to show
+  if (name === 'fx') {
+    if (suite) suite.classList.remove('open');
+    return;
+  }
   var panelTab = panelMap[name];
   if (panelTab) {
     var tabEl = document.querySelector('.es-tab[data-tab="'+panelTab+'"]');
     if (tabEl) esTab(tabEl);
   }
+  if (name === 'optical') buildOpticalPanel();
   // Exit crop mode whenever we switch away from crop, and ensure the suite panel
   // is open so sliders are visible. evMobileNavToggle adds suite.open; tapping
   // sub-nav tabs directly bypasses that, so we add it here.
@@ -8353,6 +8441,8 @@ function openEditor(idx) {
     var _t = document.querySelector(
       '#es-details-sliders .sl-track[data-preset],' +
       '#es-color-sliders .sl-track[data-preset],' +
+      '#es-detail-sliders .sl-track[data-preset],' +
+      '#es-blur-sliders .sl-track[data-preset],' +
       '#es-atmosphere-sliders .sl-track[data-preset]'
     );
     var _rp = (_t && presets.find(function(x){ return x.id === _t.dataset.preset; }))
@@ -10389,7 +10479,7 @@ function etCropHTML() {
     <div class="crop-subtabs">
       <button class="crop-subtab${_st==='straighten'?' active':''}" onclick="cropSelectSubTab(this,'straighten')">STRAIGHTEN</button>
       <button class="crop-subtab${_st==='ratio'?' active':''}" onclick="cropSelectSubTab(this,'ratio')">RATIO</button>
-      <button class="crop-subtab${_st==='transform'?' active':''}" onclick="cropSelectSubTab(this,'transform')">TRANSFORM</button>
+      <button class="crop-subtab${_st==='transform'?' active':''}" onclick="cropSelectSubTab(this,'transform')">ROTATE</button>
     </div>
     <div class="crop-sub-content" id="crop-sub-straighten"${_st!=='straighten'?' style="display:none"':''}>
       <div class="crop-sub-row" style="margin-top:10px">
@@ -10417,35 +10507,9 @@ function etCropHTML() {
           <div class="crop-transform-icon-box">${rotateSvg}</div>
           <span class="crop-transform-icon-label">ROTATE</span>
         </div>
-        <div class="crop-transform-icon-btn" id="persp-v-btn" onclick="cropPerspSelectAxis('v')">
-          <div class="crop-transform-icon-box" id="persp-v-box">${perspVSvg}</div>
-          <span class="crop-transform-icon-label" id="persp-v-lbl">${(typeof _perspBaseV !== 'undefined' && _perspBaseV !== 0) ? Math.round(_perspBaseV) : 'VERT'}</span>
-        </div>
-        <div class="crop-transform-icon-btn" id="persp-h-btn" onclick="cropPerspSelectAxis('h')">
-          <div class="crop-transform-icon-box" id="persp-h-box">${perspHSvg}</div>
-          <span class="crop-transform-icon-label" id="persp-h-lbl">${(typeof _perspBaseH !== 'undefined' && _perspBaseH !== 0) ? Math.round(_perspBaseH) : 'HORIZ'}</span>
-        </div>
       </div>
       <div id="crop-transform-undo-row" style="display:none;padding:6px 0 2px;text-align:center;">
         <div class="tc-btn tc-btn-ghost" onclick="toolsFlipUndo()" style="display:inline-flex;">UNDO</div>
-      </div>
-      <div id="crop-persp-slider-row" style="display:none;padding:6px 0 2px;">
-        <div id="crop-persp-v-section" style="display:none;">
-          <div class="crop-sub-row" style="margin-bottom:4px;">
-            <span class="crop-sub-label">VERTICAL</span>
-            <span class="crop-sub-val" id="crop-persp-v-val">${(typeof _perspBaseV !== 'undefined' && _perspBaseV !== 0) ? Math.round(_perspBaseV) : 0}</span>
-          </div>
-          <input type="range" class="tc-range" id="crop-persp-v-slider" min="-100" max="100" step="1" value="${(typeof _perspBaseV !== 'undefined') ? _perspBaseV : 0}"
-                 oninput="etPerspUpdate()">
-        </div>
-        <div id="crop-persp-h-section" style="display:none;">
-          <div class="crop-sub-row" style="margin-bottom:4px;">
-            <span class="crop-sub-label">HORIZONTAL</span>
-            <span class="crop-sub-val" id="crop-persp-h-val">${(typeof _perspBaseH !== 'undefined' && _perspBaseH !== 0) ? Math.round(_perspBaseH) : 0}</span>
-          </div>
-          <input type="range" class="tc-range" id="crop-persp-h-slider" min="-100" max="100" step="1" value="${(typeof _perspBaseH !== 'undefined') ? _perspBaseH : 0}"
-                 oninput="etPerspUpdate()">
-        </div>
       </div>
     </div>
   </div>`;
@@ -11154,6 +11218,8 @@ function _evRenderCanvasImmediate() {
     var _evTrack = document.querySelector(
       '#es-details-sliders .sl-track[data-preset],' +
       '#es-color-sliders .sl-track[data-preset],' +
+      '#es-detail-sliders .sl-track[data-preset],' +
+      '#es-blur-sliders .sl-track[data-preset],' +
       '#es-atmosphere-sliders .sl-track[data-preset]');
     if (_evTrack) {
       var _evDomPreset = presets.find(function(x){ return x.id === _evTrack.dataset.preset; });
@@ -14002,7 +14068,7 @@ function _evBuildCurAdj() {
   var _c = (typeof activePreset !== 'undefined') ? activePreset : null;
   var _nolook = false;
   if (!_c) {
-    var _t = document.querySelector('#es-details-sliders .sl-track[data-preset],#es-color-sliders .sl-track[data-preset],#es-atmosphere-sliders .sl-track[data-preset]');
+    var _t = document.querySelector('#es-details-sliders .sl-track[data-preset],#es-color-sliders .sl-track[data-preset],#es-detail-sliders .sl-track[data-preset],#es-blur-sliders .sl-track[data-preset],#es-atmosphere-sliders .sl-track[data-preset]');
     if (_t && typeof presets !== 'undefined') {
       var _dp = presets.find(function(x){ return x.id === _t.dataset.preset; });
       if (_dp) { _c = _dp; _nolook = true; }

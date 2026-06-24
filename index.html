@@ -11719,10 +11719,13 @@ document.addEventListener('mouseup', function(){
     else if(e.touches.length===1&&_pan0&&evZoomLevel>1){ evPanX=e.touches[0].clientX-_pan0.x; evPanY=e.touches[0].clientY-_pan0.y; evApplyZoom(); }
   },{passive:true});
   document.addEventListener('touchend', function(){
+    // Only re-render if a canvas gesture (pinch or pan) was active — not for slider touches
+    var _wasGesture = _p0 > 0 || !!_pan0;
     _p0=0; _pan0=null;
-    // Re-render at higher res after pinch ends
     clearTimeout(_reRenderTimer);
-    _reRenderTimer=setTimeout(function(){ if(typeof evRenderCanvas==='function') evRenderCanvas(); },150);
+    if (_wasGesture) {
+      _reRenderTimer=setTimeout(function(){ if(typeof evRenderCanvas==='function') evRenderCanvas(); },150);
+    }
   },{passive:true});
 })();
 

@@ -5455,39 +5455,41 @@ const presets = [
     }
   },
   {
-    id:'miami', num:'22', name:'MIAMI', series:'FILM',
+    id:'miami', num:'25', name:'MIAMI', series:'FILM',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#f0d0c8', warm:true,
-    skinLift: 0.16,
-    colorGlow: 0.04,
+    skinLift: 0.12,
+    colorGlow: 0.03,
     hueTempZones: [
-      { center: 22, halfWidth: 24, warm: 0.10 }
+      { center: 22, halfWidth: 28, warm: 0.08 },
+      { center: 42, halfWidth: 18, warm: 0.06 }
     ],
+    halationBloom: { threshold: 0.70, radius: 18, hue: 30, intensity: 0.08 },
     splitTone:{
-      shadows:    {r:215, g:182, b:155, a:0.10},
-      midtones:   {r:248, g:222, b:205, a:0.05},
-      highlights: {r:255, g:245, b:234, a:0.09}
+      shadows:    {r:210, g:195, b:175, a:0.07},
+      midtones:   {r:252, g:228, b:210, a:0.06},
+      highlights: {r:255, g:248, b:238, a:0.10}
     },
     curve:{
-      master: [[0,20],[64,78],[128,136],[192,196],[220,215],[255,251]],
-      r:      [[0,22],[128,136],[220,218],[255,253]],
-      g:      [[0,12],[128,122],[220,209],[255,241]],
-      b:      [[0,8],[128,112],[220,200],[255,228]]
+      master: [[0,18],[64,76],[128,132],[192,192],[220,212],[255,248]],
+      r:      [[0,16],[128,132],[220,216],[255,250]],
+      g:      [[0,12],[128,124],[220,210],[255,242]],
+      b:      [[0,14],[128,118],[220,206],[255,232]]
     },
-    shadowTint:    { r: 0.9, g: 0.52, b: 0.24, strength: 0.08 },
-    highlightTint: { r: 0.82, g: 0.78, b: 0.62, strength: 0.07 },
+    shadowTint:    { r: 0.82, g: 0.68, b: 0.52, strength: 0.04 },
+    highlightTint: { r: 1.0, g: 0.82, b: 0.65, strength: 0.06 },
     defaults:{
-      EXPOSURE:0.500, CONTRAST:0.545, HIGHLIGHTS:0.435, SHADOWS:0.540,
-      WHITES:0.500, BLACKS:0.518, TEMPERATURE:0.625, TINT:0.500,
-      VIBRANCE:0.472, SATURATION:0.462,
-      GLOW:0.03, GRAIN:0.14, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.07,
-      MATTE_LIFT:0.535, DIFFUSION:0.02, DEHAZE:0.0, TEXTURE:0.0,
-      SAT_REDS:0.530, SAT_ORANGES:0.536, SAT_YELLOWS:0.510,
-      SAT_GREENS:0.445, SAT_BLUES:0.455, SAT_PURPLES:0.482, HUE_SHIFT:0.500,
+      EXPOSURE:0.560, CONTRAST:0.420, HIGHLIGHTS:0.420, SHADOWS:0.580,
+      WHITES:0.640, BLACKS:0.560, TEMPERATURE:0.590, TINT:0.508,
+      VIBRANCE:0.458, SATURATION:0.440,
+      GLOW:0.03, GRAIN:0.12, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.10,
+      MATTE_LIFT:0.540, DIFFUSION:0.02, DEHAZE:0.0, TEXTURE:0.0,
+      SAT_REDS:0.520, SAT_ORANGES:0.524, SAT_YELLOWS:0.506,
+      SAT_GREENS:0.440, SAT_BLUES:0.490, SAT_PURPLES:0.478, HUE_SHIFT:0.500,
       HUE_REDS:0.502, HUE_ORANGES:0.504, HUE_YELLOWS:0.500,
-      HUE_GREENS:0.496, HUE_BLUES:0.498, HUE_PURPLES:0.500,
+      HUE_GREENS:0.496, HUE_BLUES:0.500, HUE_PURPLES:0.500,
       LUM_REDS:0.514, LUM_ORANGES:0.516, LUM_YELLOWS:0.506,
-      LUM_GREENS:0.482, LUM_BLUES:0.488, LUM_PURPLES:0.492,
+      LUM_GREENS:0.480, LUM_BLUES:0.490, LUM_PURPLES:0.490,
       VIGNETTE:0.03, HALATION:0.0
     },
     sliders:{

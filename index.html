@@ -11333,7 +11333,7 @@ function _evDoSave() {
   var p = activePreset || evActivePreset;
   var hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
   if (hasPreset) {
-    var adj = buildAdjustments(_evMergeAdjState(p, sliderState[p.id]));
+    var adj = buildAdjustments(sliderState[p.id]);
     if (p.hueTempZones)              adj.hueTempZones        = p.hueTempZones;
     if (p.colorGlow  !== undefined)  adj.colorGlow           = p.colorGlow;
     if (p.skinLift   !== undefined)  adj.skinLift            = p.skinLift;
@@ -11522,9 +11522,7 @@ function _evRenderCanvasImmediate() {
     }
   }
   if (_evCurPreset && sliderState[_evCurPreset.id] && Object.keys(sliderState[_evCurPreset.id]).length > 0) {
-    var adj = _evNolookMode
-      ? buildAdjustments(sliderState[_evCurPreset.id])
-      : buildAdjustments(_evMergeAdjState(_evCurPreset, sliderState[_evCurPreset.id]));
+    var adj = buildAdjustments(sliderState[_evCurPreset.id]);
     if (!adj.halation && _evCurPreset.defaults && _evCurPreset.defaults.HALATION) adj.halation = _evCurPreset.defaults.HALATION;
     // Only inject preset color-science when a look is actually applied
     if (activePreset) {

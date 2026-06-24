@@ -6362,11 +6362,21 @@ function doRender(presetId) {
 
   // Update hero canvas if user has image loaded
   if (userImage && activePreset && activePreset.id === presetId) {
-    const hc = document.getElementById('hero-canvas');
-    if (hc) {
+    const evView = document.getElementById('editor-view');
+    const isEditorActive = evView && evView.style.display === 'flex';
+    if (isEditorActive) {
+      // Editor view is active — _evRenderCanvasImmediate handles ev-canvas rendering
+      // Do NOT call renderWithAdjustments here or effects will double-apply
       fix2HistoryPush(presetId);
-      renderWithAdjustments(hc, adj);
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
       globalUndoRedoUpdate();
+    } else {
+      const hc = document.getElementById('hero-canvas');
+      if (hc) {
+        fix2HistoryPush(presetId);
+        renderWithAdjustments(hc, adj);
+        globalUndoRedoUpdate();
+      }
     }
   }
   // Fix 6: also update presets-view canvas if it's active

@@ -5474,6 +5474,7 @@ const presets = [
       g:      [[0,8],[128,120],[220,207],[255,240]],
       b:      [[0,4],[128,106],[220,197],[255,222]]
     },
+    halationBloom: { threshold: 0.88, radius: 8, hue: 310, intensity: 0.04 },
     shadowTint:    { r: 0.10, g: 0.08, b: 0.04, strength: 0.03 },
     highlightTint: { r: 0.18, g: 0.11, b: 0.02, strength: 0.07 },
     defaults:{
@@ -11588,6 +11589,7 @@ function _evRenderCanvasImmediate() {
     if (activePreset && activePreset.duotone) { adj.duotone_a = activePreset.duotone.a; adj.duotone_b = activePreset.duotone.b; adj.duotone_strength = activePreset.duotone.strength || 0.7; }
     if (!_dragging) {
       if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
+      if (activePreset && activePreset.halationBloom) applyHalationBloom(canvas, activePreset.halationBloom, 0, 0, canvas.width, canvas.height);
       if ((adj.diffusion || 0) > 0.01) applyDiffusion(canvas, adj.diffusion, 0, 0, canvas.width, canvas.height);
       if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, canvas.width, canvas.height);
     }

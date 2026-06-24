@@ -11652,7 +11652,8 @@ function renderPresetThumb(canvas, p) {
   var sw = iw * scale, sh = ih * scale;
   ctx.drawImage(userImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
   if (p.defaults) {
-    var adj = buildAdjustments(p.defaults);
+    var _tState = (sliderState[p.id] && Object.keys(sliderState[p.id]).length) ? sliderState[p.id] : {};
+    var adj = buildAdjustments(_tState);
     if (p.splitTone) adj.split_tone = p.splitTone;
     if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
     if (p.shadowTint) adj.shadow_tint = p.shadowTint;
@@ -14395,7 +14396,7 @@ function _evBuildCurAdj() {
   if (!_c) return null;
   var _st = (typeof sliderState !== 'undefined') ? sliderState[_c.id] : null;
   if (!_st || !Object.keys(_st).length) return null;
-  var adj = _nolook ? buildAdjustments(_st) : buildAdjustments(_evMergeAdjState(_c, _st));
+  var adj = buildAdjustments(_st);
   if (!adj.halation && _c.defaults && _c.defaults.HALATION) adj.halation = _c.defaults.HALATION;
   if (activePreset) {
     if (activePreset.hueTempZones) adj.hueTempZones = activePreset.hueTempZones;

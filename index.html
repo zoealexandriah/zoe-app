@@ -3687,39 +3687,93 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 /* ── LOADING SCREEN ── */
 #zoe-loading {
   position: fixed; inset: 0; z-index: 99999;
-  background: radial-gradient(ellipse at 50% 40%, #1a1310 0%, #0a0706 70%, #040202 100%);
   display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.8s ease;
+  background: #050303; transition: opacity 0.8s ease;
 }
 #zoe-loading.fade-out { opacity: 0; pointer-events: none; }
-#zoe-bar { animation: zoe-bar-anim 2.2s ease-out forwards; }
-@keyframes zoe-bar-anim {
-  0%   { width: 0; }
-  65%  { width: 78px; }
-  88%  { width: 104px; }
-  100% { width: 104px; }
+#zl-inner {
+  position: relative;
+  width: min(100vw, 50.625vh); height: min(177.78vw, 100vh);
+  overflow: hidden;
+  background: radial-gradient(125% 85% at 50% 36%, #1a1310 0%, #0c0908 46%, #060403 78%, #040202 100%);
 }
+#zl-stars { position: absolute; inset: 0; width: 100%; height: 100%; }
+#zl-glows {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(150% 42% at 50% -10%, rgba(255,176,120,.22), transparent 62%),
+    radial-gradient(150% 44% at 50% 110%, rgba(255,150,110,.20), transparent 62%),
+    radial-gradient(60% 100% at -8% 50%, rgba(255,168,120,.10), transparent 60%),
+    radial-gradient(60% 100% at 108% 50%, rgba(255,168,120,.10), transparent 60%);
+}
+#zl-leak {
+  position: absolute; top: -30%; left: 0; width: 62%; height: 160%;
+  mix-blend-mode: screen; filter: blur(38px); opacity: .6;
+  animation: zoe-streak 15s ease-in-out infinite alternate;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,196,150,.35) 24%, rgba(255,140,196,.42) 44%, rgba(176,150,255,.40) 60%, rgba(150,212,255,.34) 76%, transparent 100%);
+}
+#zl-wm { position: absolute; left: 0; right: 0; top: 43%; transform: translateY(-50%); display: flex; justify-content: center; }
+#zl-wm-inner { position: relative; }
+#zl-glow {
+  position: absolute; inset: 0; display: flex; justify-content: center;
+  color: #ffb27e; filter: blur(22px); opacity: .55;
+  font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400;
+  font-size: min(21vw, 12vh); letter-spacing: .16em; padding-left: .16em; line-height: 1;
+  animation: zoe-breathe 6.5s ease-in-out infinite;
+}
+#zl-title {
+  position: relative;
+  font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400;
+  font-size: min(21vw, 12vh); letter-spacing: .16em; padding-left: .16em; line-height: 1;
+  color: transparent; -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text; background-clip: text;
+  background-size: 235% 100%;
+  background-image: linear-gradient(101deg, #ece0d2 0%, #ece0d2 30%, #ffd7b2 40%, #ff9ec9 47%, #c9a3ff 53%, #9fd8ff 59%, #ece0d2 70%, #ece0d2 100%);
+  animation: zoe-drift 9s ease-in-out infinite alternate;
+}
+#zl-footer { position: absolute; left: 0; right: 0; bottom: 13%; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+#zl-hs {
+  font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500;
+  font-size: min(3.6vw, 2vh); letter-spacing: .52em; padding-left: .52em;
+  color: rgba(255,205,176,.82); text-transform: uppercase;
+  animation: zoe-pulse 3.4s ease-in-out infinite;
+}
+#zl-track { position: relative; width: 36%; height: 1px; background: rgba(255,205,176,.16); overflow: hidden; }
+#zl-shimmer {
+  position: absolute; top: 0; left: -34%; height: 100%; width: 30%; border-radius: 1px;
+  background: linear-gradient(90deg, transparent, #ffd7b2, #ff9ec9, #b6a0ff, transparent);
+  box-shadow: 0 0 8px rgba(255,170,150,.5);
+  animation: zoe-shimmer 2.6s ease-in-out infinite;
+}
+#zl-grain { position: absolute; inset: -25%; width: 150%; height: 150%; pointer-events: none; opacity: .05; mix-blend-mode: overlay; background-repeat: repeat; animation: zoe-grain .5s steps(1) infinite; }
+#zl-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 120% at 50% 50%, transparent 58%, rgba(4,2,2,.55) 100%); }
+@keyframes zoe-drift { 0%{background-position:118% 50%} 100%{background-position:-18% 50%} }
+@keyframes zoe-breathe { 0%,100%{opacity:.40} 50%{opacity:.72} }
+@keyframes zoe-streak { 0%{transform:translateX(-75%) rotate(-17deg)} 100%{transform:translateX(172%) rotate(-17deg)} }
+@keyframes zoe-shimmer { 0%{left:-34%} 100%{left:104%} }
+@keyframes zoe-pulse { 0%,100%{opacity:.38} 50%{opacity:.78} }
+@keyframes zoe-grain { 0%{transform:translate(0,0)}10%{transform:translate(-4%,-7%)}20%{transform:translate(-9%,3%)}30%{transform:translate(5%,-9%)}40%{transform:translate(-3%,8%)}50%{transform:translate(7%,4%)}60%{transform:translate(-8%,-3%)}70%{transform:translate(3%,9%)}80%{transform:translate(8%,-5%)}90%{transform:translate(-5%,6%)}100%{transform:translate(0,0)} }
 
 </style>
 </head>
 <body>
 
 <div id="zoe-loading">
-  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;max-width:100vw;max-height:100vh;position:absolute;inset:0;">
-    <defs>
-      <linearGradient id="zoe-wm" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%"   stop-color="#ece0d2"></stop>
-        <stop offset="42%"  stop-color="#ffd7b2"></stop>
-        <stop offset="50%"  stop-color="#ff9ec9"></stop>
-        <stop offset="58%"  stop-color="#c9a3ff"></stop>
-        <stop offset="100%" stop-color="#ece0d2"></stop>
-      </linearGradient>
-    </defs>
-    <text x="600" y="460" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="220" letter-spacing="24" fill="url(#zoe-wm)">ZOË</text>
-    <text x="600" y="544" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="20" letter-spacing="10" fill="rgba(236,224,210,0.42)">hold still</text>
-    <rect x="540" y="572" width="120" height="1.5" fill="rgba(236,224,210,0.14)" rx="1"/>
-    <rect id="zoe-bar" x="540" y="572" width="0" height="1.5" fill="url(#zoe-wm)" rx="1"/>
-  </svg>
+  <div id="zl-inner">
+    <canvas id="zl-stars"></canvas>
+    <div id="zl-glows"></div>
+    <div id="zl-leak"></div>
+    <div id="zl-wm"><div id="zl-wm-inner">
+      <div id="zl-glow" aria-hidden="true">ZOË</div>
+      <div id="zl-title">ZOË</div>
+    </div></div>
+    <div id="zl-footer">
+      <div id="zl-hs">HOLD STILL</div>
+      <div id="zl-track"><div id="zl-shimmer"></div></div>
+    </div>
+    <div id="zl-grain"></div>
+    <div id="zl-vignette"></div>
+  </div>
 </div>
 
 <canvas id="bg-canvas"></canvas>
@@ -14844,13 +14898,60 @@ function importSheetChoice(type) {
 (function() {
   var el = document.getElementById('zoe-loading');
   if (!el) return;
+  var _zlRaf = null;
+
+  // Starfield
+  var cv = document.getElementById('zl-stars');
+  if (cv) {
+    var ctx = cv.getContext('2d');
+    var tints = ['#fff4ea','#fff4ea','#ffe6cf','#ffd9c4','#f1e9ff','#ffeede'];
+    var w = 1, h = 1, dpr = 1, stars = [];
+    function zlResize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = cv.clientWidth; h = cv.clientHeight;
+      cv.width = Math.max(1, w * dpr); cv.height = Math.max(1, h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    for (var i = 0; i < 150; i++) {
+      stars.push({ x: Math.random(), y: Math.random(), r: Math.random() * Math.random() * 1.3 + 0.25, base: Math.random() * 0.5 + 0.18, sp: Math.random() * 0.9 + 0.25, ph: Math.random() * 6.283, tint: tints[(Math.random() * tints.length) | 0] });
+    }
+    zlResize();
+    var t0 = performance.now();
+    function zlTick(t) {
+      var time = (t - t0) / 1000;
+      ctx.clearRect(0, 0, w, h);
+      for (var si = 0; si < stars.length; si++) {
+        var s = stars[si];
+        var a = s.base * (0.5 + 0.5 * Math.sin(time * s.sp + s.ph));
+        if (a <= 0) continue;
+        ctx.globalAlpha = a; ctx.fillStyle = s.tint;
+        ctx.beginPath(); ctx.arc(s.x * w, s.y * h, s.r, 0, 6.283); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      _zlRaf = requestAnimationFrame(zlTick);
+    }
+    _zlRaf = requestAnimationFrame(zlTick);
+  }
+
+  // Film grain
+  var g = document.getElementById('zl-grain');
+  if (g) {
+    var nc = document.createElement('canvas'); nc.width = nc.height = 110;
+    var nx = nc.getContext('2d');
+    var gid = nx.createImageData(110, 110);
+    for (var j = 0; j < gid.data.length; j += 4) {
+      var v = (Math.random() * 255) | 0;
+      gid.data[j] = gid.data[j+1] = gid.data[j+2] = v;
+      gid.data[j+3] = (Math.random() * 255) | 0;
+    }
+    nx.putImageData(gid, 0, 0);
+    g.style.backgroundImage = 'url(' + nc.toDataURL() + ')';
+  }
+
   function dismiss() {
-    var bar = document.getElementById('zoe-bar');
-    if (bar) { bar.style.animation = 'none'; bar.setAttribute('width', '120'); }
-    setTimeout(function() {
-      el.classList.add('fade-out');
-      setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
-    }, 200);
+    if (_zlRaf) cancelAnimationFrame(_zlRaf);
+    el.classList.add('fade-out');
+    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
   }
   if (document.readyState === 'complete') {
     setTimeout(dismiss, 600);

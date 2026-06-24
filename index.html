@@ -11397,6 +11397,12 @@ function _evDoSave() {
   if (!userImage) return;
   var iw = userImage.naturalWidth;
   var ih = userImage.naturalHeight;
+  var _maxExport = 3000;
+  if (Math.max(iw, ih) > _maxExport) {
+    var _es = _maxExport / Math.max(iw, ih);
+    iw = Math.round(iw * _es);
+    ih = Math.round(ih * _es);
+  }
   var off = document.createElement('canvas');
   off.width  = iw;
   off.height = ih;

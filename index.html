@@ -3692,6 +3692,13 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   transition: opacity 0.8s ease;
 }
 #zoe-loading.fade-out { opacity: 0; pointer-events: none; }
+#zoe-bar { animation: zoe-bar-anim 2.2s ease-out forwards; }
+@keyframes zoe-bar-anim {
+  0%   { width: 0; }
+  65%  { width: 78px; }
+  88%  { width: 104px; }
+  100% { width: 104px; }
+}
 
 </style>
 </head>
@@ -3709,6 +3716,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
       </linearGradient>
     </defs>
     <text x="600" y="460" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="220" letter-spacing="24" fill="url(#zoe-wm)">ZOË</text>
+    <text x="600" y="544" text-anchor="middle" font-family="'Cormorant Garamond',Georgia,serif" font-size="20" letter-spacing="10" fill="rgba(236,224,210,0.42)">hold still</text>
+    <rect x="540" y="572" width="120" height="1.5" fill="rgba(236,224,210,0.14)" rx="1"/>
+    <rect id="zoe-bar" x="540" y="572" width="0" height="1.5" fill="url(#zoe-wm)" rx="1"/>
   </svg>
 </div>
 
@@ -14836,8 +14846,12 @@ function importSheetChoice(type) {
   var el = document.getElementById('zoe-loading');
   if (!el) return;
   function dismiss() {
-    el.classList.add('fade-out');
-    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+    var bar = document.getElementById('zoe-bar');
+    if (bar) { bar.style.animation = 'none'; bar.setAttribute('width', '120'); }
+    setTimeout(function() {
+      el.classList.add('fade-out');
+      setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+    }, 200);
   }
   if (document.readyState === 'complete') {
     setTimeout(dismiss, 600);

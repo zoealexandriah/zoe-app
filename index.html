@@ -7293,15 +7293,15 @@ function applyPixelAdjustments(srcData, adj) {
     // ── PUSH/PULL ─────────────────────────────────────────────────────────
     // Film push/pull: exposure gain + contrast character + subtle color shift
     if (pushPull !== 0) {
-      const ppEV = pushPull * 2;
+      const ppEV = pushPull * 0.8;
       const ppGain = Math.pow(2, ppEV);
       r *= ppGain; g *= ppGain; b *= ppGain;
-      const ppCont = 1 + ppEV * 0.10;
+      const ppCont = 1 + ppEV * 0.20;
       r = (r/255 - 0.5) * ppCont * 255 + 128;
       g = (g/255 - 0.5) * ppCont * 255 + 128;
       b = (b/255 - 0.5) * ppCont * 255 + 128;
-      if (ppEV > 0) { r += ppEV * 3; b -= ppEV * 2; }
-      else          { b -= ppEV * 3; r += ppEV * 2; }
+      if (ppEV > 0) { r += ppEV * 4; b -= ppEV * 3; }
+      else          { r -= ppEV * 5; b += ppEV * 7; }
       r = Math.min(255, Math.max(0, r));
       g = Math.min(255, Math.max(0, g));
       b = Math.min(255, Math.max(0, b));

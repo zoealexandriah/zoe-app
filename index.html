@@ -14948,15 +14948,20 @@ function importSheetChoice(type) {
     g.style.backgroundImage = 'url(' + nc.toDataURL() + ')';
   }
 
+  var _zlStart = Date.now();
   function dismiss() {
     if (_zlRaf) cancelAnimationFrame(_zlRaf);
     el.classList.add('fade-out');
     setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
   }
+  function dismissAfterMin() {
+    var wait = Math.max(0, 1000 - (Date.now() - _zlStart));
+    setTimeout(dismiss, wait);
+  }
   if (document.readyState === 'complete') {
-    setTimeout(dismiss, 600);
+    dismissAfterMin();
   } else {
-    window.addEventListener('load', function() { setTimeout(dismiss, 600); });
+    window.addEventListener('load', dismissAfterMin);
   }
 })();
 </script>

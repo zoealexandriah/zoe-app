@@ -8452,21 +8452,39 @@ function applyChromaticAberration(canvas, intensity, offX, offY, imgW, imgH) {
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
   const out = new Uint8ClampedArray(src.length);
-  const shift = Math.round(intensity); // px shift per channel
+  const cx = imgW * 0.5;
+  const cy = imgH * 0.5;
+  const maxDist = Math.sqrt(cx * cx + cy * cy);
+  const scale = intensity * 0.012; // radial scale factor
   for (let y = 0; y < imgH; y++) {
     for (let x = 0; x < imgW; x++) {
       const i = (y * imgW + x) * 4;
-      // Red channel: shift right
-      const rx = Math.min(imgW - 1, x + shift);
-      const ri = (y * imgW + rx) * 4;
-      // Green channel: centered
-      // Blue channel: shift left
-      const bx = Math.max(0, x - shift);
-      const bi = (y * imgW + bx) * 4;
-      out[i]   = src[ri];     // R from shifted-right
-      out[i+1] = src[i+1];   // G centered
-      out[i+2] = src[bi+2];  // B from shifted-left
-      out[i+3] = src[i+3];
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const falloff = (dist / maxDist); // 0 at center, 1 at corner
+      const mag = falloff * scale * imgW;
+      const nx = dx / (dist || 1);
+      const ny = dy / (dist || 1);
+      // R: pushed outward
+      const rxf = x + nx * mag;
+      const ryf = y + ny * mag;
+      const rx = Math.max(0, Math.min(imgW - 1, Math.round(rxf)));
+      const ry = Math.max(0, Math.min(imgH - 1, Math.round(ryf)));
+      // G: pushed outward at half magnitude, slight perpendicular offset
+      const gxf = x + nx * mag * 0.4;
+      const gyf = y + ny * mag * 0.4;
+      const gx = Math.max(0, Math.min(imgW - 1, Math.round(gxf)));
+      const gy = Math.max(0, Math.min(imgH - 1, Math.round(gyf)));
+      // B: pulled inward
+      const bxf = x - nx * mag * 0.7;
+      const byf = y - ny * mag * 0.7;
+      const bx = Math.max(0, Math.min(imgW - 1, Math.round(bxf)));
+      const by = Math.max(0, Math.min(imgH - 1, Math.round(byf)));
+      out[i]   = src[(ry * imgW + rx) * 4];
+      out[i+1] = src[(gy * imgW + gx) * 4 + 1];
+      out[i+2] = src[(by * imgW + bx) * 4 + 2];
+      out[i+3] = src[i + 3];
     }
   }
   ctx.putImageData(new ImageData(out, imgW, imgH), offX, offY);

@@ -11553,7 +11553,7 @@ function evInit() {
   var _subnav = document.getElementById('ev-adjust-subnav');
   var _mnav   = document.getElementById('ev-mobile-nav');
   var _suite  = document.getElementById('ev-editor-suite');
-  if (_subnav) _subnav.style.display = 'flex';
+  if (_subnav) { _subnav.style.display = 'flex'; _subnav.scrollLeft = 0; }
   if (_mnav)   _mnav.classList.add('ev-mnav-hidden');
   if (_suite)  { _suite.classList.add('open'); _suite.classList.remove('hsl-active'); }
   var _strip = document.getElementById('ev-preset-strip');
@@ -11874,6 +11874,7 @@ function evRenderPresets() {
   if (!list) return;
   list.innerHTML = '';
   list.scrollLeft = 0;
+  var _catsEl = document.getElementById('ev-cats'); if (_catsEl) _catsEl.scrollLeft = 0;
   _evActiveCardEl = null; // reset on full re-render; will be set below as cards are built
 
   // ── SAVED FORMULAS tab — render formula cards then return ──
@@ -12412,6 +12413,7 @@ function galleryOpenInEditor(idx) {
         // Defer preset strip rendering — lets the editor appear instantly
         setTimeout(function() { evRenderPresets(); }, 60);
       };
+      userImage = null; // prevent rAF from evInit applying preset onto effects-baked thumbnail
       origImg.src = _origSrc;
     } else {
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
@@ -13049,7 +13051,7 @@ function galleryCopyEditFromSelection() {
 // ── Helper: get the active working canvas ────────────────────────────────
 function getActiveCanvas() {
   const evView = document.getElementById('editor-view');
-  if (evView && evView.style.display === 'flex') {
+  if (evView && evView.classList.contains('active')) {
     return document.getElementById('ev-canvas');
   }
   return document.getElementById('hero-canvas');

@@ -5439,7 +5439,7 @@ const presets = [
     colorGlow: 0.0,
     hueTempZones: [],
     halationBloom: { threshold: 0.80, radius: 10, hue: 200, intensity: 0.04 },
-    chromaticAberration: { intensity: 14 },
+    vhsBleed: { intensity: 10 },
     scanLines: { opacity: 0.10, spacing: 2 },
     splitTone:{
       shadows:    {r:68,  g:32,  b:16,  a:0.14},
@@ -6421,6 +6421,7 @@ function doRender(presetId) {
   if (p.matteFade) adj.matteFade = p.matteFade;
   if (p.scanLines) adj.scanLines = p.scanLines;
   if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
+  if (p.vhsBleed) adj.vhsBleed = p.vhsBleed;
 
   // Update hero canvas if user has image loaded
   if (userImage && activePreset && activePreset.id === presetId) {
@@ -8437,6 +8438,7 @@ function renderWithAdjustments(canvas, adj) {
   if (adj.matteFade) applyMatteFade(canvas, adj.matteFade, _origOffX, _origOffY, _origW, _origH);
   if (adj.scanLines) applyScanLines(canvas, adj.scanLines, _origOffX, _origOffY, _origW, _origH);
   if (adj.chromaticAberration) applyChromaticAberration(canvas, adj.chromaticAberration.intensity || 3, _origOffX, _origOffY, _origW, _origH);
+  if (adj.vhsBleed) applyVHSBleed(canvas, adj.vhsBleed.intensity || 8, _origOffX, _origOffY, _origW, _origH);
   if ((adj.diffusion || 0) > 0.01) applyDiffusion(canvas, adj.diffusion, _origOffX, _origOffY, _origW, _origH);
   if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, _origOffX, _origOffY, _origW, _origH);
   // Vignette
@@ -8485,6 +8487,42 @@ function applyChromaticAberration(canvas, intensity, offX, offY, imgW, imgH) {
       out[i+1] = src[(gy * imgW + gx) * 4 + 1];
       out[i+2] = src[(by * imgW + bx) * 4 + 2];
       out[i+3] = src[i + 3];
+    }
+  }
+  ctx.putImageData(new ImageData(out, imgW, imgH), offX, offY);
+}
+
+// ── VHS COLOR BLEED: horizontal edge-detected color smear (VHS signal artifact) ────
+function applyVHSBleed(canvas, intensity, offX, offY, imgW, imgH) {
+  if (!intensity || intensity < 0.1) return;
+  const ctx = canvas.getContext('2d');
+  const orig = ctx.getImageData(offX, offY, imgW, imgH);
+  const src = orig.data;
+  const out = new Uint8ClampedArray(src.length);
+  const bleedR = Math.round(intensity * 1.2);
+  const bleedG = Math.round(intensity * 0.6);
+  const bleedB = Math.round(intensity * 0.9);
+  for (let y = 0; y < imgH; y++) {
+    for (let x = 0; x < imgW; x++) {
+      const i = (y * imgW + x) * 4;
+      // Detect horizontal luma edge — difference from pixel to the left
+      const left = x > 0 ? (y * imgW + (x - 1)) * 4 : i;
+      const lumaHere = 0.299 * src[i] + 0.587 * src[i+1] + 0.114 * src[i+2];
+      const lumaLeft = 0.299 * src[left] + 0.587 * src[left+1] + 0.114 * src[left+2];
+      const edge = Math.abs(lumaHere - lumaLeft) / 255;
+      const strength = Math.min(1, edge * 6); // sharpens to edge
+      // Sample shifted positions for color bleed
+      const rSrc = Math.min(imgW - 1, x + bleedR);
+      const gSrc = Math.min(imgW - 1, x + bleedG);
+      const bSrc = Math.max(0, x - bleedB);
+      const ri = (y * imgW + rSrc) * 4;
+      const gi = (y * imgW + gSrc) * 4;
+      const bi = (y * imgW + bSrc) * 4;
+      // Blend: bleed color only at edges, leave flat areas alone
+      out[i]   = Math.round(src[i]   * (1 - strength) + src[ri]   * strength);
+      out[i+1] = Math.round(src[i+1] * (1 - strength * 0.7) + src[gi+1] * strength * 0.7);
+      out[i+2] = Math.round(src[i+2] * (1 - strength) + src[bi+2] * strength);
+      out[i+3] = src[i+3];
     }
   }
   ctx.putImageData(new ImageData(out, imgW, imgH), offX, offY);
@@ -11544,6 +11582,7 @@ function _evDoSave() {
     if (adj.matteFade)                                                    applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
     if (adj.scanLines)                                                    applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
     if (adj.chromaticAberration)                                          applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
+    if (adj.vhsBleed)                                                     applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
     if ((adj.diffusion || 0) > 0.01)                                      applyDiffusion(off, adj.diffusion, 0, 0, iw, ih);
     if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01) applyDuotone(off, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, iw, ih);
     if ((adj.vignette || 0) > 0.01)                                       applyVignette(off, adj.vignette, 0, 0, iw, ih);
@@ -12838,6 +12877,7 @@ function evSaveAndReturn() {
       if (adj.matteFade)               applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
       if (adj.scanLines)               applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
       if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
+      if (adj.vhsBleed)                applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
     }
     var dataURL = off.toDataURL('image/jpeg', 0.93);
@@ -12915,6 +12955,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (adj.matteFade)                 applyMatteFade(off, adj.matteFade, 0, 0, w, h);
       if (adj.scanLines)                 applyScanLines(off, adj.scanLines, 0, 0, w, h);
       if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, w, h);
+      if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
     }
     // No preset: srcURL already has crop/straighten baked in — draw as-is
@@ -13009,6 +13050,7 @@ function _exportEntry(entry, onDone) {
       if (adj.matteFade)                      applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
       if (adj.scanLines)                      applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
       if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
+      if (adj.vhsBleed)                       applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01)         applyVignette(off, adj.vignette, 0, 0, iw, ih);
     }
     const a = document.createElement('a');

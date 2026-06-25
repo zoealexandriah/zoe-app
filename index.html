@@ -11018,6 +11018,7 @@ function _evRestoreSnap(snap) {
     if (typeof evRenderCanvas === 'function') evRenderCanvas();
   }
   // Swap active card highlight in place — no full preset list rebuild needed
+  document.querySelectorAll('.ev-int-hint').forEach(function(el){ el.remove(); });
   if (_evActiveCardEl) _evActiveCardEl.style.boxShadow = '';
   var _rcCanvas = snap.presetId ? document.getElementById('evt-' + snap.presetId) : document.getElementById('evt-none');
   var _rcCard   = _rcCanvas ? _rcCanvas.parentElement : null;
@@ -11907,10 +11908,9 @@ function evRenderPresets() {
       // Push history before changing preset
       evHistoryPush();
       // Swap active highlight without rebuilding the whole list
+      document.querySelectorAll('.ev-int-hint').forEach(function(el){ el.remove(); });
       if (_evActiveCardEl) {
         _evActiveCardEl.style.boxShadow = '';
-        var _oldHint = _evActiveCardEl.querySelector('.ev-int-hint');
-        if (_oldHint) _oldHint.remove();
       }
       _evActiveCardEl = card;
       card.style.boxShadow = '0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)';

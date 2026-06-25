@@ -2272,6 +2272,38 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .ev-formula-del:hover { background:rgba(192,64,90,0.35);color:#fff; }
 #ev-cats::-webkit-scrollbar { display: none; }
+/* SERIES sub-category row */
+.series-sub-row {
+  display: none; flex-direction: row; align-items: center; gap: 4px;
+  padding: 0 10px; height: 28px; flex-shrink: 0;
+  border-bottom: 0.5px solid rgba(200,168,232,0.07);
+  overflow-x: auto; overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  background: rgba(192,64,90,0.04);
+}
+.series-sub-row.visible { display: flex; }
+.series-sub-row::-webkit-scrollbar { display: none; }
+.series-sub-btn {
+  padding: 2px 10px; border-radius: 100px; flex-shrink: 0;
+  border: 0.5px solid rgba(192,64,90,0.28); background: transparent;
+  font-size: 7px; letter-spacing: 0.18em; color: rgba(218,140,168,0.65);
+  font-family: var(--mono); cursor: pointer; transition: all 0.15s;
+  white-space: nowrap; -webkit-tap-highlight-color: transparent;
+}
+.series-sub-btn:hover { color: rgba(240,180,210,0.90); border-color: rgba(192,64,90,0.55); }
+.series-sub-btn.active {
+  background: rgba(192,64,90,0.18); border-color: rgba(218,90,125,0.65);
+  color: rgba(245,190,215,0.95);
+}
+.pv-series-sub-row {
+  display: none; flex-direction: row; align-items: center; gap: 4px;
+  padding: 6px 14px; flex-shrink: 0;
+  border-bottom: 0.5px solid #2a2030;
+  overflow-x: auto; scrollbar-width: none;
+  background: rgba(192,64,90,0.04);
+}
+.pv-series-sub-row.visible { display: flex; }
+.pv-series-sub-row::-webkit-scrollbar { display: none; }
 #ev-preset-strip ::-webkit-scrollbar { display: none; }
 .ev-suite-tab {
   flex: 1; text-align: center; padding: 7px 0 6px;
@@ -4188,6 +4220,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div class="pv-cat-btn" onclick="pvFilterCat(this,'ROMANTIC')">ROMANTIC</div>
           <div class="pv-cat-btn" onclick="pvFilterCat(this,'EDITORIAL')">EDITORIAL</div>
           <div class="pv-cat-btn" onclick="pvFilterCat(this,'OTHERWORLD')">OTHERWORLD</div>
+          <div class="pv-cat-btn" onclick="pvShowSeriesTab(this,'browse')">SERIES ↓</div>
+        </div>
+        <!-- SERIES sub-row (browse) -->
+        <div class="pv-series-sub-row" id="pv-series-sub-browse">
+          <div class="pv-cat-btn series-sub-btn active" onclick="pvFilterSeries(this,'LIMINAL','browse')">LIMINAL</div>
         </div>
 
         <!-- MODE 1: Browse grid -->
@@ -4228,6 +4265,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 <div class="pv-cat-btn" onclick="pvSplitFilter(this,'ROMANTIC')">ROMANTIC</div>
                 <div class="pv-cat-btn" onclick="pvSplitFilter(this,'EDITORIAL')">EDITORIAL</div>
                 <div class="pv-cat-btn" onclick="pvSplitFilter(this,'OTHERWORLD')">OTHERWORLD</div>
+                <div class="pv-cat-btn" onclick="pvShowSeriesTab(this,'split')">SERIES ↓</div>
+              </div>
+              <!-- SERIES sub-row (split) -->
+              <div class="pv-series-sub-row" id="pv-series-sub-split">
+                <div class="pv-cat-btn series-sub-btn active" onclick="pvFilterSeries(this,'LIMINAL','split')">LIMINAL</div>
               </div>
               <div class="pv-right-list" id="pv-right-list"></div>
             </div>
@@ -4443,6 +4485,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <div class="ev-cat-btn" onclick="evFilterCat(this,'ROMANTIC')">ROMANTIC</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'EDITORIAL')">EDITORIAL</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'OTHERWORLD')">OTHERWORLD</div>
+              <div class="ev-cat-btn" onclick="evShowSeriesTab(this)">SERIES ↓</div>
+            </div>
+            <!-- SERIES sub-row (editor strip) -->
+            <div class="series-sub-row" id="ev-series-sub-row">
+              <div class="series-sub-btn active" onclick="evFilterSeries(this,'LIMINAL')">LIMINAL</div>
             </div>
             <!-- Thumbnail scroll row -->
             <div style="flex:1;display:flex;align-items:center;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
@@ -5429,7 +5476,7 @@ const presets = [
     }
   },
   {
-    id:'limbo', num:'24', name:'Vacancy', series:'DARK',
+    id:'limbo', num:'24', name:'Vacancy', series:'DARK', seriesGroup:'LIMINAL',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#7a6a8a', warm:false,
     skinLift: 0.0,
@@ -10563,6 +10610,8 @@ function pvFilterCat(btn, cat) {
   pvCatFilter = cat;
   document.querySelectorAll('#pv-cats-browse .pv-cat-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  var sub = document.getElementById('pv-series-sub-browse');
+  if (sub) sub.classList.remove('visible');
   pvRenderBrowse();
 }
 
@@ -10570,11 +10619,17 @@ function pvSplitFilter(btn, cat) {
   pvSplitCatFilter = cat;
   document.querySelectorAll('#pv-right-cats .pv-cat-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  var sub = document.getElementById('pv-series-sub-split');
+  if (sub) sub.classList.remove('visible');
   pvRenderSplitList();
 }
 
 function pvMatchesCat(preset, cat) {
   if (cat === 'ALL') return true;
+  if (cat.startsWith('SERIES:')) {
+    var seriesName = cat.slice(7);
+    return (preset.seriesGroup || '').toUpperCase() === seriesName.toUpperCase();
+  }
   return (preset.series || '').toUpperCase().includes(cat);
 }
 
@@ -12027,7 +12082,12 @@ function evRenderPresets() {
   });
   _presetsToRender.forEach(function(p){
     if (evCatFilter && evCatFilter !== 'ALL') {
-      if ((p.series||'').toUpperCase() !== evCatFilter) return;
+      if (evCatFilter.startsWith('SERIES:')) {
+        var _sn = evCatFilter.slice(7);
+        if ((p.seriesGroup||'').toUpperCase() !== _sn.toUpperCase()) return;
+      } else {
+        if ((p.series||'').toUpperCase() !== evCatFilter) return;
+      }
     }
     var card = document.createElement('div');
     var isActive = evActivePreset && evActivePreset.id===p.id;
@@ -12239,7 +12299,62 @@ function evFilterCat(btn, cat) {
   evCatFilter = cat;
   document.querySelectorAll('#ev-cats .ev-cat-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
+  var sub = document.getElementById('ev-series-sub-row');
+  if (sub) sub.classList.remove('visible');
   evRenderPresets();
+}
+
+// ── SERIES nested filter ─────────────────────────────────────────────────
+var _evSeriesFilter = 'LIMINAL';
+var _pvSeriesFilter = 'LIMINAL';
+
+function evShowSeriesTab(btn) {
+  document.querySelectorAll('#ev-cats .ev-cat-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  var sub = document.getElementById('ev-series-sub-row');
+  if (sub) sub.classList.add('visible');
+  evCatFilter = 'SERIES:' + _evSeriesFilter;
+  evRenderPresets();
+}
+
+function evFilterSeries(btn, seriesName) {
+  _evSeriesFilter = seriesName;
+  document.querySelectorAll('#ev-series-sub-row .series-sub-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  evCatFilter = 'SERIES:' + seriesName;
+  evRenderPresets();
+}
+
+function pvShowSeriesTab(btn, mode) {
+  if (mode === 'browse') {
+    document.querySelectorAll('#pv-cats-browse .pv-cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    var sub = document.getElementById('pv-series-sub-browse');
+    if (sub) sub.classList.add('visible');
+    pvCatFilter = 'SERIES:' + _pvSeriesFilter;
+    pvRenderBrowse();
+  } else {
+    document.querySelectorAll('#pv-right-cats .pv-cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    var sub = document.getElementById('pv-series-sub-split');
+    if (sub) sub.classList.add('visible');
+    pvSplitCatFilter = 'SERIES:' + _pvSeriesFilter;
+    pvRenderSplitList();
+  }
+}
+
+function pvFilterSeries(btn, seriesName, mode) {
+  _pvSeriesFilter = seriesName;
+  var subId = mode === 'browse' ? 'pv-series-sub-browse' : 'pv-series-sub-split';
+  document.querySelectorAll('#' + subId + ' .series-sub-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (mode === 'browse') {
+    pvCatFilter = 'SERIES:' + seriesName;
+    pvRenderBrowse();
+  } else {
+    pvSplitCatFilter = 'SERIES:' + seriesName;
+    pvRenderSplitList();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

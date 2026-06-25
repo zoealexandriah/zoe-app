@@ -12106,13 +12106,12 @@ function evShowIntensityOverlay(p) {
   _evIntPrevIntensity = presetIntensity;
   _evIntPrevSliders = (sliderState[p.id]) ? JSON.parse(JSON.stringify(sliderState[p.id])) : {};
   _evIntActivePreset = p;
-  _evIntActiveTool = 'filter';
   var existing = document.getElementById('ev-intensity-overlay');
   if (existing) existing.remove();
   var overlay = document.createElement('div');
   overlay.id = 'ev-intensity-overlay';
   overlay.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:500;padding:22px 24px calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,#0f0e0d 0%,rgba(15,14,13,0.97) 60%,transparent 100%);display:none;';
-  var _defs = [
+  var _allDefs = [
     {id:'filter',  label:'FILTER',  key:null,        svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="17" x2="15" y2="17"/></svg>'},
     {id:'texture', label:'TEXTURE', key:'TEXTURE',   svg:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="19" cy="5" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/><circle cx="5" cy="19" r="1.5"/><circle cx="12" cy="19" r="1.5"/><circle cx="19" cy="19" r="1.5"/></svg>'},
     {id:'blur',    label:'BLUR',    key:'BLUR',      svg:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L5.5 12.5a7.5 7.5 0 1013 0L12 2z"/></svg>'},
@@ -12120,6 +12119,12 @@ function evShowIntensityOverlay(p) {
     {id:'mist',    label:'MIST',    key:'DIFFUSION', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="8" y1="17" x2="16" y2="17"/></svg>'},
     {id:'glow',    label:'GLOW',    key:'GLOW',      svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="currentColor"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>'}
   ];
+  var _defs = _allDefs.filter(function(d) {
+    if (d.key === null) return true;
+    return p.defaults && p.defaults[d.key] !== undefined && p.defaults[d.key] > 0;
+  });
+  if (_defs.length === 0) _defs = [_allDefs[0]];
+  _evIntActiveTool = _defs[0].id;
   function _getVal(def) {
     if (def.key === null) return Math.round(presetIntensity * 100);
     var sv = (sliderState[p.id] && sliderState[p.id][def.key] !== undefined) ? sliderState[p.id][def.key] : ((p.defaults && p.defaults[def.key] !== undefined) ? p.defaults[def.key] : 0);
@@ -12134,7 +12139,7 @@ function evShowIntensityOverlay(p) {
   }).join('');
   overlay.innerHTML =
     '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">'
-      +'<span id="ev-int-tool-label" style="font-size:13px;font-weight:500;color:rgba(228,217,211,0.90);letter-spacing:0.06em;font-family:var(--mono);">FILTER</span>'
+      +'<span id="ev-int-tool-label" style="font-size:13px;font-weight:500;color:rgba(228,217,211,0.90);letter-spacing:0.06em;font-family:var(--mono);">'+_defs[0].label+'</span>'
       +'<span id="ev-int-val" style="font-size:13px;font-weight:600;color:rgba(228,217,211,0.90);font-family:var(--mono);">'+initVal+'</span>'
     +'</div>'
     +'<input id="ev-int-slider" type="range" min="0" max="100" value="'+initVal+'" oninput="evIntUpdate(this.value)" style="display:block;width:100%;margin-bottom:18px;">'
@@ -12149,7 +12154,7 @@ function evShowIntensityOverlay(p) {
   if (strip) strip.style.display = 'none';
   if (mnav) mnav.style.display = 'none';
   overlay.style.display = 'block';
-  var initTab = document.getElementById('ev-int-tab-filter');
+  var initTab = document.getElementById('ev-int-tab-'+_defs[0].id);
   if (initTab) initTab.style.color = 'rgba(228,217,211,0.90)';
 }
 function evIntSelectTool(toolId) {

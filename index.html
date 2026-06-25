@@ -5475,11 +5475,11 @@ const presets = [
       g:      [[0,8],[128,120],[220,207],[255,240]],
       b:      [[0,4],[128,106],[220,197],[255,222]]
     },
-    halationBloom: { threshold: 0.72, radius: 16, hue: 310, intensity: 0.07 },
+    halationBloom: { threshold: 0.72, radius: 16, hue: 310, intensity: 0.056 },
     shadowTint:    { r: 0.10, g: 0.08, b: 0.04, strength: 0.03 },
     highlightTint: { r: 0.18, g: 0.11, b: 0.02, strength: 0.07 },
     defaults:{
-      EXPOSURE:0.500, CONTRAST:0.500, HIGHLIGHTS:0.500, SHADOWS:0.500,
+      EXPOSURE:0.500, CONTRAST:0.550, HIGHLIGHTS:0.500, SHADOWS:0.500,
       WHITES:0.500, BLACKS:0.500, TEMPERATURE:0.500, TINT:0.500,
       VIBRANCE:0.500, SATURATION:0.500,
       GLOW:0.00, GRAIN:0.00, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.00,
@@ -5810,6 +5810,17 @@ const sliderConfig = {
   DIFFUSION:   [-1.00, 1.00, '', true],
 };
 
+// No-look preset: allows sliders to work when no preset is selected
+var _evNoLookPreset = {
+  id: '__nolook__', name: 'NONE', tint: 'none', orbs: [], defaults: {},
+  sliders: {
+    LIGHT:   {EXPOSURE:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.00',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.00',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
+    COLOR:   {TEMPERATURE:'+0.00',TINT:'+0.00',VIBRANCE:'+0.00',SATURATION:'+0.00'},
+    EFFECTS: {GLOW:'+0.00',GRAIN:'+0.00',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.00',DIFFUSION:'+0.00'},
+    HSL:     {HUE_SHIFT:'+0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
+  }
+};
+
 function initSliderState(p) {
   if (!sliderState[p.id]) sliderState[p.id] = {};
   const state = sliderState[p.id];
@@ -6072,7 +6083,9 @@ function _slApplyDrag(e) {
   if (cfg && cfg[3] !== false && Math.abs(t - 0.5) < 0.04) t = 0.5;
   var pid   = _slDragTrack.dataset.preset;
   if (!sliderState[pid]) sliderState[pid] = {};
-  var _dpObj = (activePreset && activePreset.id === pid) ? activePreset : presets.find(function(x){ return x.id === pid; });
+  var _dpObj = (activePreset && activePreset.id === pid) ? activePreset
+    : (_evNoLookPreset && _evNoLookPreset.id === pid) ? _evNoLookPreset
+    : presets.find(function(x){ return x.id === pid; });
   if (_dpObj) initSliderState(_dpObj);
   sliderState[pid][param] = t;
   var pct   = Math.round(t * 100);
@@ -6280,7 +6293,13 @@ function evAdjustSubTab(name) {
   }
   // Auto-select the specific tool so only crop OR flip controls show
   if (name === 'crop' || name === 'flip') {
-    setTimeout(function(){ if (typeof etSelectTool === 'function') etSelectTool(name); }, 60);
+    if (typeof etSelectTool === 'function') etSelectTool(name);
+    if (name === 'crop') {
+      setTimeout(function() {
+        var _rb = document.querySelector('.crop-subtab[onclick*="ratio"]');
+        if (_rb && !_rb.classList.contains('active')) _rb.click();
+      }, 80);
+    }
   }
   // Resize canvas CSS to match new canvas-area dimensions after layout reflows
   requestAnimationFrame(_evResizeCanvas);
@@ -6351,7 +6370,11 @@ function scheduleRender(presetId) {
 
 function doRender(presetId) {
   const p = presets.find(x => x.id === presetId);
-  if (!p) return;
+  if (!p) {
+    var _edVD = document.getElementById('editor-view');
+    if (_edVD && _edVD.style.display === 'flex' && typeof evRenderCanvas === 'function') evRenderCanvas();
+    return;
+  }
   const state = sliderState[presetId] || {};
   const adj   = buildAdjustments(state);
   if (!adj.halation && p.defaults && p.defaults.HALATION) adj.halation = p.defaults.HALATION;
@@ -11309,7 +11332,12 @@ function exportModalOpen() {
     String(d.getMonth()+1).padStart(2,'0') +
     String(d.getDate()).padStart(2,'0');
   const fn = document.getElementById('exp-filename');
-  if (fn) fn.value = 'ZOE_EDIT_' + ds;
+  if (fn) {
+    var _pn = (typeof library !== 'undefined' && typeof editingIdx !== 'undefined' && editingIdx >= 0 && library[editingIdx] && library[editingIdx].name)
+      ? library[editingIdx].name.replace(/\.[^.]+$/, '')
+      : 'ZOE_EDIT_' + ds;
+    fn.value = _pn;
+  }
   expFmt = 'png';
   document.getElementById('exp-fmt-jpg').classList.remove('active');
   document.getElementById('exp-fmt-png').classList.add('active');
@@ -11560,7 +11588,7 @@ function _evRenderCanvasImmediate() {
   // pixel size (cssW/H × dpr) so the canvas is never upscaled by the browser —
   // upscaling is what causes the blurry look mid-drag. A full 1200px quality
   // re-render still fires automatically on drag release.
-  var MAX_SIDE = window._slDragging ? Math.min(Math.max(cssW, cssH), 600) : 1200;
+  var MAX_SIDE = window._slDragging ? Math.min(Math.max(cssW, cssH), 800) : 1200;
   var zoomFactor = Math.max(evZoomLevel || 1, 1);
   // No "1" cap here: capping at 1 means a small source (e.g. a previously-exported
   // 780px canvas) can't render at 2× DPR, so CSS has to stretch it → blurry.
@@ -11615,6 +11643,9 @@ function _evRenderCanvasImmediate() {
     if (_evTrack) {
       var _evDomPreset = presets.find(function(x){ return x.id === _evTrack.dataset.preset; });
       if (_evDomPreset) { _evCurPreset = _evDomPreset; _evNolookMode = true; }
+      else if (_evNoLookPreset && _evTrack.dataset.preset === _evNoLookPreset.id) {
+        _evCurPreset = _evNoLookPreset; _evNolookMode = true;
+      }
     }
   }
   if (_evCurPreset) {
@@ -11792,6 +11823,7 @@ function evRenderPresets() {
   var list = document.getElementById('ev-preset-list');
   if (!list) return;
   list.innerHTML = '';
+  list.scrollLeft = 0;
   _evActiveCardEl = null; // reset on full re-render; will be set below as cards are built
 
   // ── SAVED FORMULAS tab — render formula cards then return ──
@@ -11799,7 +11831,7 @@ function evRenderPresets() {
     if (!_evFormulas.length) {
       list.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;width:100vw;padding:0 20px;text-align:center;">'
         +'<div style="font-size:9px;letter-spacing:0.22em;color:rgba(185,155,210,0.35);font-family:var(--mono);">NO SAVED FORMULAS YET</div>'
-        +'<div style="font-size:8px;letter-spacing:0.14em;color:rgba(165,135,190,0.22);font-family:var(--mono);">TAP ✦ SAVE TO CREATE ONE</div>'
+        +'<div style="font-size:8px;letter-spacing:0.14em;color:rgba(165,135,190,0.22);font-family:var(--mono);">USE THE SAVE BUTTON TO CREATE ONE</div>'
         +'</div>';
       return;
     }
@@ -12145,9 +12177,11 @@ function evBuildSliders() {
       if (src2) { sc.innerHTML = src2.innerHTML; attachSliderListeners(activePreset); }
     }
   } else {
-    ['es-atmosphere-sliders','es-color-sliders','es-details-sliders','es-hsl-sliders','es-detail-sliders','es-blur-sliders','ev-sliders'].forEach(function(id){
-      var el = document.getElementById(id); if (el) el.innerHTML = '';
-    });
+    buildEditorSliders(_evNoLookPreset);
+    if (sc) {
+      var src2nl = document.getElementById('editor-sliders');
+      if (src2nl) { sc.innerHTML = src2nl.innerHTML; attachSliderListeners(_evNoLookPreset); }
+    }
   }
   if (tc) {
     buildEditorToolsSection();

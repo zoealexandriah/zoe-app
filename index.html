@@ -12119,11 +12119,6 @@ function evShowIntensityOverlay(p) {
   ];
   var _defs = _allDefs.filter(function(d) {
     if (d.key === null) return true;
-    if (d.id === 'glow') {
-      var glowBase = (p.defaults && p.defaults['GLOW'] !== undefined) ? p.defaults['GLOW'] : 0;
-      var hasBakedGlow = p.halationBloom && (p.halationBloom.intensity || 0) > 0.01;
-      return glowBase > 0 || hasBakedGlow;
-    }
     var dv = (p.defaults && p.defaults[d.key] !== undefined) ? p.defaults[d.key] : (d.bipolar ? 0.5 : 0);
     return d.bipolar ? dv > 0.5 : dv > 0;
   });

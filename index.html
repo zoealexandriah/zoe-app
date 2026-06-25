@@ -9928,6 +9928,10 @@ function toolsCropBindDrag(ov, hc) {
 }
 
 let _preCropState = null; // saved before crop apply so reset can restore it
+var _savedCropRect = null;   // last applied crop rect for re-entry
+var _cropReAdjSaved = null;  // cropped userImage preserved during re-adjust session
+var _cropReAdjRect  = null;  // rect to pre-populate when RATIO tab opens in re-adjust mode
+
 function toolsCropApply() {
   const hc = document.getElementById('hero-canvas');
   if (!hc || !cropRect) return;
@@ -9939,6 +9943,7 @@ function toolsCropApply() {
     origW:       _origW,    origH:    _origH
   };
   const { x, y, w, h } = cropRect;
+  _savedCropRect = { x: x, y: y, w: w, h: h }; // remember for re-adjust
   const tmp = document.createElement('canvas');
   tmp.width = Math.round(w); tmp.height = Math.round(h);
   tmp.getContext('2d').drawImage(hc, x, y, w, h, 0, 0, w, h);
@@ -9948,10 +9953,18 @@ function toolsCropApply() {
     showToast('CROP APPLIED');
   };
   newImg.src = tmp.toDataURL();
+  _cropReAdjSaved = null; // clear so cancel won't restore after a confirmed apply
   toolsCropCancel();
 }
 
 function toolsCropCancel() {
+  // Re-adjust mode: restore the previously-cropped image when user cancels
+  if (_cropReAdjSaved) {
+    userImage = _cropReAdjSaved;
+    _cropReAdjSaved = null;
+    _cropReAdjRect = null;
+    requestAnimationFrame(function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); });
+  }
   cropRect = null; cropDragging = null;
   _etPerspOrig = null;
   _etPerspOrigDataURL = null;
@@ -11169,6 +11182,7 @@ function globalReset() {
     _origW      = _preCropState.origW;    _origH    = _preCropState.origH;
     _preCropState = null;
   }
+  _savedCropRect = null; _cropReAdjSaved = null; _cropReAdjRect = null;
 
   // Clear preset so evRenderCanvas draws a clean image
   activePreset   = null;
@@ -13547,6 +13561,13 @@ window.galleryCopyEdits = function(imageId) {
     // Clear any stale cropRect before running the chain — prevents old rect from
     // flashing briefly on screen before the setTimeout below resets it
     cropRect = null; cropDragging = null;
+    // Re-adjust mode: if a crop was previously applied, temporarily show the pre-crop original
+    // so the user can reposition the crop on the full image
+    if (!_cropReAdjSaved && _preCropState && _preCropState.userImage && _savedCropRect) {
+      _cropReAdjSaved = userImage;
+      userImage = _preCropState.userImage;
+      _cropReAdjRect = { x: _savedCropRect.x, y: _savedCropRect.y, w: _savedCropRect.w, h: _savedCropRect.h };
+    }
     var _oldFlash = document.getElementById('crop-overlay-canvas');
     if (_oldFlash) _oldFlash.remove();
     _prevEtSelectToolFinal(name); // run chain for UI setup
@@ -14024,7 +14045,13 @@ function cropSelectSubTab(btn, tab) {
       _ov2.style.top    = (_acRect.top  - _parRect.top)  + 'px';
       if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
           || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
-        cropRect = { x: 0, y: 0, w: ac.width, h: ac.height };
+        var _rar = _cropReAdjRect; _cropReAdjRect = null;
+        if (_rar && _rar.x >= 0 && _rar.y >= 0 && _rar.w > 0 && _rar.h > 0
+            && _rar.x + _rar.w <= ac.width && _rar.y + _rar.h <= ac.height) {
+          cropRect = _rar;
+        } else {
+          cropRect = { x: 0, y: 0, w: ac.width, h: ac.height };
+        }
       }
       if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(_ov2);
       _ov2.style.display = 'block';

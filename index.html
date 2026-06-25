@@ -4182,8 +4182,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
         <div class="pv-cats" id="pv-cats-browse">
           <div class="pv-cat-btn active" onclick="pvFilterCat(this,'ALL')">ALL</div>
           <div class="pv-cat-btn" onclick="pvFilterCat(this,'FILM')">FILM</div>
-          <div class="pv-cat-btn" onclick="pvFilterCat(this,'ETHEREAL')">ETHEREAL</div>
           <div class="pv-cat-btn" onclick="pvFilterCat(this,'CINEMATIC')">CINEMATIC</div>
+          <div class="pv-cat-btn" onclick="pvFilterCat(this,'ETHEREAL')">ETHEREAL</div>
+          <div class="pv-cat-btn" onclick="pvFilterCat(this,'DARK')">DARK</div>
+          <div class="pv-cat-btn" onclick="pvFilterCat(this,'ROMANTIC')">ROMANTIC</div>
+          <div class="pv-cat-btn" onclick="pvFilterCat(this,'DIGITAL')">DIGITAL</div>
+          <div class="pv-cat-btn" onclick="pvFilterCat(this,'OTHERWORLD')">OTHERWORLD</div>
         </div>
 
         <!-- MODE 1: Browse grid -->
@@ -4218,8 +4222,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <div class="pv-right-cats" id="pv-right-cats">
                 <div class="pv-cat-btn active" onclick="pvSplitFilter(this,'ALL')">ALL</div>
                 <div class="pv-cat-btn" onclick="pvSplitFilter(this,'FILM')">FILM</div>
-                <div class="pv-cat-btn" onclick="pvSplitFilter(this,'ETHEREAL')">ETHEREAL</div>
                 <div class="pv-cat-btn" onclick="pvSplitFilter(this,'CINEMATIC')">CINEMATIC</div>
+                <div class="pv-cat-btn" onclick="pvSplitFilter(this,'ETHEREAL')">ETHEREAL</div>
+                <div class="pv-cat-btn" onclick="pvSplitFilter(this,'DARK')">DARK</div>
+                <div class="pv-cat-btn" onclick="pvSplitFilter(this,'ROMANTIC')">ROMANTIC</div>
+                <div class="pv-cat-btn" onclick="pvSplitFilter(this,'DIGITAL')">DIGITAL</div>
+                <div class="pv-cat-btn" onclick="pvSplitFilter(this,'OTHERWORLD')">OTHERWORLD</div>
               </div>
               <div class="pv-right-list" id="pv-right-list"></div>
             </div>
@@ -4431,6 +4439,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <div class="ev-cat-btn" onclick="evFilterCat(this,'FILM')">FILM</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'CINEMATIC')">CINEMATIC</div>
               <div class="ev-cat-btn" onclick="evFilterCat(this,'ETHEREAL')">ETHEREAL</div>
+              <div class="ev-cat-btn" onclick="evFilterCat(this,'DARK')">DARK</div>
+              <div class="ev-cat-btn" onclick="evFilterCat(this,'ROMANTIC')">ROMANTIC</div>
+              <div class="ev-cat-btn" onclick="evFilterCat(this,'DIGITAL')">DIGITAL</div>
+              <div class="ev-cat-btn" onclick="evFilterCat(this,'OTHERWORLD')">OTHERWORLD</div>
             </div>
             <!-- Thumbnail scroll row -->
             <div style="flex:1;display:flex;align-items:center;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
@@ -5456,7 +5468,7 @@ const presets = [
     }
   },
   {
-    id:'miami', num:'25', name:'MIAMI', series:'FILM',
+    id:'lemonblush', num:'25', name:'LEMONBLUSH', series:'FILM',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#f0d0c8', warm:true,
     skinLift: 0.10,
@@ -5483,7 +5495,7 @@ const presets = [
       WHITES:0.500, BLACKS:0.500, TEMPERATURE:0.500, TINT:0.500,
       VIBRANCE:0.500, SATURATION:0.500,
       GLOW:0.00, GRAIN:0.00, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.00,
-      MATTE_LIFT:0.500, DIFFUSION:0.500, DEHAZE:0.500, TEXTURE:0.500,
+      MATTE_LIFT:0.500, DIFFUSION:0.500, DEHAZE:0.500, TEXTURE:0.000,
       SAT_REDS:0.500, SAT_ORANGES:0.500, SAT_YELLOWS:0.500,
       SAT_GREENS:0.500, SAT_BLUES:0.500, SAT_PURPLES:0.500, HUE_SHIFT:0.500,
       HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
@@ -5805,7 +5817,7 @@ const sliderConfig = {
   LUM_BLUES:   [-1.00, 1.00, '', true],
   LUM_PURPLES: [-1.00, 1.00, '', true],
   DEHAZE:      [-1.00, 1.00, '', true],
-  TEXTURE:     [-1.00, 1.00, '', true],
+  TEXTURE:     [ 0.00, 1.00, '', false],
   MATTE_LIFT:  [-1.00, 1.00, '', true],
   DIFFUSION:   [-1.00, 1.00, '', true],
 };
@@ -6297,7 +6309,20 @@ function evAdjustSubTab(name) {
     if (name === 'crop') {
       setTimeout(function() {
         var _rb = document.querySelector('.crop-subtab[onclick*="ratio"]');
-        if (_rb && !_rb.classList.contains('active')) _rb.click();
+        if (!_rb) return;
+        // In re-adjust mode, pre-load the saved crop rect so cropSelectSubTab shows it
+        if (_cropReAdjSaved && _savedCropRect) {
+          var _racAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+          if (_racAc && _racAc.width > 0) {
+            var _racR = _savedCropRect;
+            if (_racR.w > 0 && _racR.h > 0
+                && _racR.x + _racR.w <= _racAc.width
+                && _racR.y + _racR.h <= _racAc.height) {
+              cropRect = { x: _racR.x, y: _racR.y, w: _racR.w, h: _racR.h };
+            }
+          }
+        }
+        _rb.click(); // always click — handles active-but-hidden case after undo
       }, 80);
     }
   }
@@ -11708,9 +11733,12 @@ function _evRenderCanvasImmediate() {
     if (activePreset && activePreset.shadowTint) adj.shadow_tint = activePreset.shadowTint;
     if (activePreset && activePreset.highlightTint) adj.highlight_tint = activePreset.highlightTint;
     if (activePreset && activePreset.duotone) { adj.duotone_a = activePreset.duotone.a; adj.duotone_b = activePreset.duotone.b; adj.duotone_strength = activePreset.duotone.strength || 0.7; }
-    if (!_dragging) {
-      if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
-      if (activePreset && activePreset.halationBloom && userImage) {
+    // Halation, bloom, diffusion always apply (visible look — skipping them causes the
+    // whole aesthetic to lift/disappear during drag). Bloom uses a lighter canvas-source
+    // path during drag to keep it fast.
+    if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
+    if (activePreset && activePreset.halationBloom) {
+      if (!_dragging && userImage) {
         var _hbNw = userImage.naturalWidth, _hbNh = userImage.naturalHeight;
         var _hbS = Math.min(1, 1200 / _hbNw);
         var _hbW = Math.round(_hbNw * _hbS), _hbH = Math.round(_hbNh * _hbS);
@@ -11720,12 +11748,20 @@ function _evRenderCanvasImmediate() {
         if (activePreset.curve) applyCurveLUTs(_hbSrc, activePreset.curve, 0, 0, _hbW, _hbH);
         var _hbLayer = _evBloomLayer(_hbSrc, activePreset.halationBloom, _hbW, _hbH);
         var _hbCtx = canvas.getContext('2d');
-        _hbCtx.save();
-        _hbCtx.globalCompositeOperation = 'lighter';
+        _hbCtx.save(); _hbCtx.globalCompositeOperation = 'lighter';
         _hbCtx.drawImage(_hbLayer, 0, 0, canvas.width, canvas.height);
         _hbCtx.restore();
+      } else if (_dragging) {
+        // Drag: bloom from already-rendered canvas (same size, fast)
+        var _hbLayer2 = _evBloomLayer(canvas, activePreset.halationBloom, canvas.width, canvas.height);
+        var _hbCtx2 = canvas.getContext('2d');
+        _hbCtx2.save(); _hbCtx2.globalCompositeOperation = 'lighter';
+        _hbCtx2.drawImage(_hbLayer2, 0, 0);
+        _hbCtx2.restore();
       }
-      if ((adj.diffusion || 0) > 0.01) applyDiffusion(canvas, adj.diffusion, 0, 0, canvas.width, canvas.height);
+    }
+    if ((adj.diffusion || 0) > 0.01) applyDiffusion(canvas, adj.diffusion, 0, 0, canvas.width, canvas.height);
+    if (!_dragging) {
       if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, canvas.width, canvas.height);
     }
     if ((adj.vignette || 0) > 0.01) applyVignette(canvas, adj.vignette, 0, 0, canvas.width, canvas.height);
@@ -12343,9 +12379,9 @@ function galleryOpenInEditor(idx) {
     // For perspective edits, only use editedDataURL if it was saved by v2+ code (full-res bake).
     // Older saves may have a low-res editedDataURL (bug in f273bce) — fall back to the
     // pre-warp original so the editor shows a sharp image and the bake can re-run correctly.
-    var _perspOk = !es.perspState || !es.perspState.baseURL || es.perspState.version === 2;
-    var _origSrc = (_perspOk ? es.editedDataURL : null)
-      || (es.perspState && es.perspState.baseURL ? es.perspState.baseURL : null)
+    // Use originalDataURL (post-crop base, pre-color-effects) so re-opening applies
+    // color grading fresh rather than stacking on the already-rendered editedDataURL.
+    var _origSrc = (es.perspState && es.perspState.baseURL ? es.perspState.baseURL : null)
       || es.originalDataURL
       || (entry.id ? (localStorage.getItem('zoe_edit_' + entry.id + '_original') || null) : null)
       || entry.dataURL
@@ -13566,7 +13602,6 @@ window.galleryCopyEdits = function(imageId) {
     if (!_cropReAdjSaved && _preCropState && _preCropState.userImage && _savedCropRect) {
       _cropReAdjSaved = userImage;
       userImage = _preCropState.userImage;
-      _cropReAdjRect = { x: _savedCropRect.x, y: _savedCropRect.y, w: _savedCropRect.w, h: _savedCropRect.h };
     }
     var _oldFlash = document.getElementById('crop-overlay-canvas');
     if (_oldFlash) _oldFlash.remove();
@@ -14045,13 +14080,7 @@ function cropSelectSubTab(btn, tab) {
       _ov2.style.top    = (_acRect.top  - _parRect.top)  + 'px';
       if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
           || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
-        var _rar = _cropReAdjRect; _cropReAdjRect = null;
-        if (_rar && _rar.x >= 0 && _rar.y >= 0 && _rar.w > 0 && _rar.h > 0
-            && _rar.x + _rar.w <= ac.width && _rar.y + _rar.h <= ac.height) {
-          cropRect = _rar;
-        } else {
-          cropRect = { x: 0, y: 0, w: ac.width, h: ac.height };
-        }
+        cropRect = { x: 0, y: 0, w: ac.width, h: ac.height };
       }
       if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(_ov2);
       _ov2.style.display = 'block';

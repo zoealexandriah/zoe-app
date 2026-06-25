@@ -12144,6 +12144,10 @@ function evBuildSliders() {
       var src2 = document.getElementById('editor-sliders');
       if (src2) { sc.innerHTML = src2.innerHTML; attachSliderListeners(activePreset); }
     }
+  } else {
+    ['es-atmosphere-sliders','es-color-sliders','es-details-sliders','es-hsl-sliders','es-detail-sliders','es-blur-sliders','ev-sliders'].forEach(function(id){
+      var el = document.getElementById(id); if (el) el.innerHTML = '';
+    });
   }
   if (tc) {
     buildEditorToolsSection();

@@ -14153,7 +14153,7 @@ function cropStraightenPreview(val) {
     var absR = Math.abs(rad);
     var cosR = Math.cos(absR), sinR = Math.sin(absR);
     var cw = sc.width, ch = sc.height;
-    var iw = _cropStraightenOrig.naturalWidth, ih = _cropStraightenOrig.naturalHeight;
+    var iw = ac.width, ih = ac.height;
     // Scale so the inscribed rectangle of the rotated image exactly fills the canvas.
     // inscribed_w = s*(iw*cosR - ih*sinR)/cos2R => s = cw*cos2R/(iw*cosR-ih*sinR)
     // inscribed_h = s*(ih*cosR - iw*sinR)/cos2R => s = ch*cos2R/(ih*cosR-iw*sinR)
@@ -14167,7 +14167,7 @@ function cropStraightenPreview(val) {
     ctx.save();
     ctx.translate(cw / 2, ch / 2);
     ctx.rotate(rad);
-    ctx.drawImage(_cropStraightenOrig, -dw/2, -dh/2, dw, dh);
+    ctx.drawImage(ac, -dw/2, -dh/2, dw, dh);
     // Rule-of-thirds overlay
     ctx.strokeStyle = 'rgba(201,184,212,0.35)'; ctx.lineWidth = 0.8;
     for (var i = 1; i < 3; i++) {

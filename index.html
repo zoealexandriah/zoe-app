@@ -12119,6 +12119,11 @@ function evShowIntensityOverlay(p) {
   ];
   var _defs = _allDefs.filter(function(d) {
     if (d.key === null) return true;
+    if (d.id === 'glow') {
+      var glowBase = (p.defaults && p.defaults['GLOW'] !== undefined) ? p.defaults['GLOW'] : 0;
+      var hasBakedGlow = p.halationBloom && (p.halationBloom.intensity || 0) > 0.01;
+      return glowBase > 0 || hasBakedGlow;
+    }
     var dv = (p.defaults && p.defaults[d.key] !== undefined) ? p.defaults[d.key] : (d.bipolar ? 0.5 : 0);
     return d.bipolar ? dv > 0.5 : dv > 0;
   });
@@ -12127,8 +12132,10 @@ function evShowIntensityOverlay(p) {
   function _getVal(def) {
     if (def.key === null) return Math.round(presetIntensity * 100);
     var neutral = def.bipolar ? 0.5 : 0;
-    var sv = (sliderState[p.id] && sliderState[p.id][def.key] !== undefined) ? sliderState[p.id][def.key] : ((p.defaults && p.defaults[def.key] !== undefined) ? p.defaults[def.key] : neutral);
-    return def.bipolar ? Math.round(Math.max(0, sv - 0.5) * 200) : Math.round(sv * 100);
+    var base = (p.defaults && p.defaults[def.key] !== undefined) ? p.defaults[def.key] : neutral;
+    var uVal = (sliderState[p.id] && sliderState[p.id][def.key] !== undefined) ? sliderState[p.id][def.key] : neutral;
+    var total = Math.max(0, Math.min(1, base + (uVal - neutral)));
+    return def.bipolar ? Math.round(Math.max(0, total - 0.5) * 200) : Math.round(total * 100);
   }
   var initVal = _getVal(_defs[0]);
   var tabsHtml = _defs.map(function(d) {
@@ -12168,8 +12175,10 @@ function evIntSelectTool(toolId) {
     val = Math.round(presetIntensity * 100);
   } else {
     var neutral = def.bipolar ? 0.5 : 0;
-    var sv = (p && sliderState[p.id] && sliderState[p.id][key] !== undefined) ? sliderState[p.id][key] : ((p && p.defaults && p.defaults[key] !== undefined) ? p.defaults[key] : neutral);
-    val = def.bipolar ? Math.round(Math.max(0, sv - 0.5) * 200) : Math.round(sv * 100);
+    var base = (p && p.defaults && p.defaults[key] !== undefined) ? p.defaults[key] : neutral;
+    var uVal = (p && sliderState[p.id] && sliderState[p.id][key] !== undefined) ? sliderState[p.id][key] : neutral;
+    var total = Math.max(0, Math.min(1, base + (uVal - neutral)));
+    val = def.bipolar ? Math.round(Math.max(0, total - 0.5) * 200) : Math.round(total * 100);
   }
   var labelEl = document.getElementById('ev-int-tool-label');
   var slider = document.getElementById('ev-int-slider');
@@ -12196,7 +12205,10 @@ function evIntUpdate(val) {
     document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = num + '%'; });
   } else if (p) {
     if (!sliderState[p.id]) sliderState[p.id] = {};
-    sliderState[p.id][key] = def.bipolar ? (0.5 + num / 200) : (num / 100);
+    var neutral = def.bipolar ? 0.5 : 0;
+    var base = (p.defaults && p.defaults[key] !== undefined) ? p.defaults[key] : neutral;
+    // Store delta so _evMergeAdjState applies: total = base + (stored - neutral)
+    sliderState[p.id][key] = def.bipolar ? (1.0 + num / 200 - base) : (num / 100 - base);
   }
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }

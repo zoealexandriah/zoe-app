@@ -13653,9 +13653,14 @@ window.galleryCopyEdits = function(imageId) {
       cropRect = { x: (cw - bw) / 2, y: (ch - bh) / 2, w: bw, h: bh };
       toolsCropDrawRect(ov);
       toolsCropBindDrag(ov, ac);
-      // Default tab is STRAIGHTEN — hide overlay and clear cropRect until RATIO is selected
-      ov.style.display = 'none';
-      cropRect = null; cropDragging = null;
+      // If RATIO tab was already activated (auto-clicked at 80ms before this 200ms fires), keep visible
+      var _ratioActive = document.querySelector('.crop-subtab.active[onclick*="ratio"]');
+      if (_ratioActive) {
+        ov.style.display = 'block';
+      } else {
+        ov.style.display = 'none';
+        cropRect = null; cropDragging = null;
+      }
       // Touch: single-finger drag + two-finger pinch
       var _cpinch0 = null;
       function _pdist(e) {

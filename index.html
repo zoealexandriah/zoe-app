@@ -11429,16 +11429,17 @@ function exportModalOpen() {
   const modal = document.getElementById('export-modal');
   if (!modal) return;
   modal.style.display = 'flex';
-  // Pre-fill filename with today's date
+  // Pre-fill filename with date + time so each export is unique
   const d = new Date();
   const ds = d.getFullYear().toString() +
     String(d.getMonth()+1).padStart(2,'0') +
     String(d.getDate()).padStart(2,'0');
+  const ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
   const fn = document.getElementById('exp-filename');
   if (fn) {
     var _pn = (typeof library !== 'undefined' && typeof editingIdx !== 'undefined' && editingIdx >= 0 && library[editingIdx] && library[editingIdx].name)
-      ? library[editingIdx].name.replace(/\.[^.]+$/, '')
-      : 'ZOE_EDIT_' + ds;
+      ? 'ZOE_' + library[editingIdx].name.replace(/\.[^.]+$/, '') + '_' + ts
+      : 'ZOE_' + ds + '_' + ts;
     fn.value = _pn;
   }
   expFmt = 'png';
@@ -11589,8 +11590,9 @@ function _evDoSave() {
   }
   var d  = new Date();
   var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+  var ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
   var a  = document.createElement('a');
-  a.download = 'ZOE_EDIT_' + ds + '.jpg';
+  a.download = 'ZOE_' + ds + '_' + ts + '.jpg';
   a.href = off.toDataURL('image/jpeg', 0.95);
   a.click();
 }

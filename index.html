@@ -2255,7 +2255,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 /* Formula save FAB */
 #ev-save-fab {
   position: absolute; bottom: 16px; right: 14px; z-index: 10;
-  width: 38px; height: 38px; border-radius: 11px;
+  width: 32px; height: 32px; border-radius: 9px;
   background: rgba(18,14,30,0.86); border: 0.5px solid rgba(201,184,212,0.18);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,0.50);
@@ -3175,7 +3175,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     padding: 5px 14px 7px !important;
     gap: 0 !important;
     border-right: none !important;
-    border-bottom: 0.5px solid rgba(201,184,212,0.07) !important;
+    border-bottom: none !important;
     width: 100% !important;
     min-width: unset !important;
     max-width: 100% !important;
@@ -3207,7 +3207,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     left: 0 !important; right: 0 !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    height: 1.5px !important;
+    height: 1.05px !important;
     background: rgba(200, 168, 232, 0.14) !important;
     border-radius: 100px !important;
     pointer-events: none !important;
@@ -3230,7 +3230,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     z-index: 1 !important;
   }
   .sl-fill {
-    height: 2px !important;
+    height: 1.4px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     z-index: 2 !important;
@@ -3846,10 +3846,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
       <!-- Nav -->
       <div class="sidebar-nav">
         <div class="nav-section-title"></div>
-        <div class="nav-item active" data-tab="HOME" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 1L6.2 3.3L8.5 4L6.2 4.7L5.5 7L4.8 4.7L2.5 4L4.8 3.3Z" stroke-linejoin="round"/><path d="M13.5 5L14.8 9.2L19 10.5L14.8 11.8L13.5 16L12.2 11.8L8 10.5L12.2 9.2Z" stroke-linejoin="round"/></svg></span></div>
-        <div class="nav-item" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="nav-label">GALLERY</span></div>
-        <div class="nav-item" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="4" y="11" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="11" width="5.5" height="5.5" rx="0.8"/></svg></span><span class="nav-label">ALBUMS</span></div>
-        <div class="nav-item" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><line x1="4" y1="7" x2="16" y2="7"/><line x1="4" y1="10" x2="12" y2="10"/><line x1="4" y1="13" x2="9" y2="13"/><circle cx="14" cy="13" r="2"/><line x1="15.5" y1="14.5" x2="17" y2="16"/></svg></span><span class="nav-label">EDITOR</span></div>
+        <div class="nav-item" data-tab="HOME" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 1L6.2 3.3L8.5 4L6.2 4.7L5.5 7L4.8 4.7L2.5 4L4.8 3.3Z" stroke-linejoin="round"/><path d="M13.5 5L14.8 9.2L19 10.5L14.8 11.8L13.5 16L12.2 11.8L8 10.5L12.2 9.2Z" stroke-linejoin="round"/></svg></span></div>
+        <div class="nav-item active" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="nav-label">GALLERY</span></div>
         
       </div>
 
@@ -3885,11 +3883,39 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
         <div class="hero-body" id="hero-body">
           <!-- ── LIBRARY VIEW ── -->
           <div class="library-view" id="library-view">
-            <div class="library-empty" id="library-empty">
-              <div class="library-empty-icon">◫</div>
-              <div class="library-empty-title">YOUR GALLERY</div>
-              <div class="library-empty-sub">Upload photos to begin editing</div>
-              <div class="library-upload-btn" onclick="triggerMultiUpload()">ADD PHOTOS</div>
+            <div class="library-empty" id="library-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:0 32px;">
+              <svg width="108" height="96" viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:18px;flex-shrink:0;overflow:visible">
+                <defs>
+                  <style>@keyframes spulse{0%,100%{opacity:1}50%{opacity:0.22}}.sp1{animation:spulse 2.9s ease-in-out infinite}.sp2{animation:spulse 2.3s ease-in-out infinite .9s}.sp3{animation:spulse 3.2s ease-in-out infinite 1.7s}.sp4{animation:spulse 2.6s ease-in-out infinite .4s}.sp5{animation:spulse 2.8s ease-in-out infinite 1.3s}.sp6{animation:spulse 3.5s ease-in-out infinite 2.1s}</style>
+                  <linearGradient id="pfg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#d4aaee"/><stop offset="40%" stop-color="#e8a8d8"/><stop offset="100%" stop-color="#f4b8d0"/></linearGradient>
+                  <radialGradient id="pgg4" cx="35%" cy="65%" r="52%"><stop offset="0%" stop-color="rgba(255,220,245,0.95)"/><stop offset="60%" stop-color="rgba(255,200,235,0.4)"/><stop offset="100%" stop-color="rgba(255,180,220,0)"/></radialGradient>
+                  <filter id="sf10" x="-150%" y="-150%" width="400%" height="400%"><feGaussianBlur stdDeviation="3.5"/></filter>
+                  <filter id="sf20" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2"/></filter>
+                  <filter id="sf30" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="1.2"/></filter>
+                </defs>
+                <ellipse cx="90" cy="148" rx="62" ry="10" fill="rgba(192,64,90,0.18)" filter="url(#sf10)"/>
+                <rect x="28" y="42" width="124" height="96" rx="8" fill="#100d1a" stroke="rgba(201,184,212,0.12)" stroke-width="1"/>
+                <rect x="28" y="42" width="124" height="20" rx="8" fill="rgba(201,184,212,0.04)" stroke="none"/>
+                <rect x="28" y="54" width="124" height="8" rx="0" fill="#100d1a" stroke="none"/>
+                <circle cx="39" cy="52" r="3.5" fill="rgba(201,184,212,0.18)" class="sp2"/>
+                <circle cx="51" cy="52" r="3.5" fill="rgba(201,184,212,0.10)" class="sp4"/>
+                <circle cx="63" cy="52" r="3.5" fill="rgba(201,184,212,0.06)" class="sp6"/>
+                <rect x="36" y="70" width="48" height="56" rx="4" fill="rgba(201,184,212,0.04)" stroke="rgba(201,184,212,0.10)" stroke-width="0.7" class="sp1"/>
+                <rect x="92" y="70" width="48" height="26" rx="4" fill="rgba(201,184,212,0.04)" stroke="rgba(201,184,212,0.10)" stroke-width="0.7" class="sp3"/>
+                <rect x="92" y="100" width="22" height="26" rx="4" fill="rgba(201,184,212,0.04)" stroke="rgba(201,184,212,0.10)" stroke-width="0.7" class="sp5"/>
+                <rect x="118" y="100" width="22" height="26" rx="4" fill="rgba(201,184,212,0.04)" stroke="rgba(201,184,212,0.10)" stroke-width="0.7" class="sp2"/>
+                <g class="sp1" filter="url(#sf10)"><polygon points="90,18 93,27 102,30 93,33 90,42 87,33 78,30 87,27" fill="url(#pfg3)" opacity="0.85"/></g>
+                <g class="sp3" filter="url(#sf20)"><polygon points="148,22 150,28 156,30 150,32 148,38 146,32 140,30 146,28" fill="white" opacity="0.70"/></g>
+                <g class="sp5" filter="url(#sf30)"><polygon points="30,24 31.5,28.5 36,30 31.5,31.5 30,36 28.5,31.5 24,30 28.5,28.5" fill="white" opacity="0.55"/></g>
+              </svg>
+              <div style="font-size:25px;font-family:Georgia,serif;font-weight:400;color:rgba(235,220,242,0.90);text-align:center;line-height:1.28;margin-bottom:9px;">Drop something good.</div>
+              <div style="font-size:8px;letter-spacing:0.22em;color:rgba(175,162,200,0.38);font-family:var(--mono);text-align:center;margin-bottom:26px;">ADD A PHOTO TO BEGIN</div>
+              <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;">
+                <div onclick="triggerMultiUpload()" style="cursor:pointer;width:100%;padding:15px 0;border-radius:100px;font-size:8.5px;letter-spacing:0.20em;font-family:var(--mono);display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(135deg,rgba(205,58,92,1),rgba(162,32,62,1));color:rgba(255,255,255,0.95);box-shadow:0 4px 20px rgba(180,48,78,0.40);box-sizing:border-box;-webkit-tap-highlight-color:transparent;">
+                  <svg width="14" height="13" viewBox="0 0 14 13" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="4" width="12" height="8.5" rx="1.5" stroke="currentColor" stroke-width="1.15"/><path d="M4.8 4V3C4.8 2.45 5.25 2 5.8 2H8.2C8.75 2 9.2 2.45 9.2 3V4" stroke="currentColor" stroke-width="1.15"/><circle cx="7" cy="8.2" r="2" stroke="currentColor" stroke-width="1.15"/></svg>
+                  ADD FROM DEVICE
+                </div>
+              </div>
             </div>
             <div class="library-toolbar hidden" id="library-toolbar">
               <div class="lib-toolbar-left">
@@ -4083,7 +4109,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
       </div>
 
       <!-- ── HOME VIEW ── -->
-      <div id="home-view" class="active">
+      <div id="home-view">
 
         <!-- Hero: featured image + featured preset -->
         <div class="hv-hero">
@@ -4222,7 +4248,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <div class="pv-cat-btn" onclick="pvFilterCat(this,'EDITORIAL')">EDITORIAL</div>
           <div class="pv-cat-btn" onclick="pvFilterCat(this,'OTHERWORLD')">OTHERWORLD</div>
           <div class="pv-cat-btn" onclick="pvFilterCat(this,'B&W')">B&W</div>
-          <div class="pv-cat-btn" onclick="pvFilterCat(this,'NATURAL')">NATURAL</div>
+          <div class="pv-cat-btn" onclick="pvFilterCat(this,'MINIMAL')">MINIMAL</div>
           <div class="pv-cat-btn" onclick="pvShowSeriesTab(this,'browse')">SERIES ↓</div>
         </div>
         <!-- SERIES sub-row (browse) -->
@@ -4269,7 +4295,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 <div class="pv-cat-btn" onclick="pvSplitFilter(this,'EDITORIAL')">EDITORIAL</div>
                 <div class="pv-cat-btn" onclick="pvSplitFilter(this,'OTHERWORLD')">OTHERWORLD</div>
                 <div class="pv-cat-btn" onclick="pvSplitFilter(this,'B&W')">B&W</div>
-                <div class="pv-cat-btn" onclick="pvSplitFilter(this,'NATURAL')">NATURAL</div>
+                <div class="pv-cat-btn" onclick="pvSplitFilter(this,'MINIMAL')">MINIMAL</div>
                 <div class="pv-cat-btn" onclick="pvShowSeriesTab(this,'split')">SERIES ↓</div>
               </div>
               <!-- SERIES sub-row (split) -->
@@ -4301,7 +4327,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
         <!-- Col 1: Canvas -->
         <div style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;overflow:hidden;">
           <!-- Toolbar -->
-          <div id="ev-toolbar" style="display:flex;align-items:center;padding:0;height:40px;min-height:40px;background:rgba(6,4,14,0.85);border-bottom:0.5px solid var(--border);flex-shrink:0;flex-wrap:nowrap;">
+          <div id="ev-toolbar" style="display:flex;align-items:center;padding:0;height:28px;min-height:28px;background:rgba(6,4,14,0.85);border-bottom:0.5px solid var(--border);flex-shrink:0;flex-wrap:nowrap;">
             <!-- X back -->
             <div class="ctb-btn" id="editor-back-btn" onclick="editorBackToGallery()" style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:100%;flex-shrink:0;padding:0;border:none;background:none;min-width:0;">
               <svg class="ev-tb-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -4352,7 +4378,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             <canvas id="ev-canvas"></canvas>
             <!-- Floating save formula button -->
             <div id="ev-save-fab" onclick="evShowSaveFormula()" title="Save Formula" style="display:none">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                 <line x1="12" y1="9" x2="12" y2="15"/>
                 <line x1="9" y1="12" x2="15" y2="12"/>
@@ -4480,19 +4506,32 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <!-- Bottom preset strip -->
           <div id="ev-preset-strip" style="height:152px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow-x:hidden;overflow-y:visible;">
             <!-- Category filter row -->
-            <div id="ev-cats" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-              <div class="ev-cat-btn" data-cat="SAVED" onclick="evFilterCat(this,'SAVED')">FORMULAS</div>
-              <div class="ev-cat-btn active" data-cat="ALL" onclick="evFilterCat(this,'ALL')">ALL</div>
-              <div class="ev-cat-btn" onclick="evFilterCat(this,'FILM')">FILM</div>
-              <div class="ev-cat-btn" onclick="evFilterCat(this,'CINEMATIC')">CINEMATIC</div>
-              <div class="ev-cat-btn" onclick="evFilterCat(this,'ETHEREAL')">ETHEREAL</div>
-              <div class="ev-cat-btn" onclick="evFilterCat(this,'DARK')">DARK</div>
-              <div class="ev-cat-btn" onclick="evFilterCat(this,'ROMANTIC')">ROMANTIC</div>
-              <div class="ev-cat-btn" onclick="evFilterCat(this,'EDITORIAL')">EDITORIAL</div>
-              <div class="ev-cat-btn" onclick="evFilterCat(this,'OTHERWORLD')">OTHERWORLD</div>
-              <div class="ev-cat-btn" onclick="evFilterCat(this,'B&W')">B&W</div>
-              <div class="ev-cat-btn" onclick="evFilterCat(this,'NATURAL')">NATURAL</div>
-              <div class="ev-cat-btn" onclick="evShowSeriesTab(this)">SERIES ↓</div>
+            <div style="position:relative;flex-shrink:0;display:flex;align-items:center;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow:hidden;">
+              <div id="ev-cats" style="flex:1;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:44px;">
+                <div class="ev-cat-btn" data-cat="SAVED" onclick="evFilterCat(this,'SAVED')">FORMULAS</div>
+                <div class="ev-cat-btn active" data-cat="ALL" onclick="evFilterCat(this,'ALL')">ALL</div>
+                <div class="ev-cat-btn" onclick="evFilterCat(this,'FILM')">FILM</div>
+                <div class="ev-cat-btn" onclick="evFilterCat(this,'CINEMATIC')">CINEMATIC</div>
+                <div class="ev-cat-btn" onclick="evFilterCat(this,'ETHEREAL')">ETHEREAL</div>
+                <div class="ev-cat-btn" onclick="evFilterCat(this,'DARK')">DARK</div>
+                <div class="ev-cat-btn" onclick="evFilterCat(this,'ROMANTIC')">ROMANTIC</div>
+                <div class="ev-cat-btn" onclick="evFilterCat(this,'EDITORIAL')">EDITORIAL</div>
+                <div class="ev-cat-btn" onclick="evFilterCat(this,'OTHERWORLD')">OTHERWORLD</div>
+                <div class="ev-cat-btn" onclick="evFilterCat(this,'B&W')">B&W</div>
+                <div class="ev-cat-btn" onclick="evFilterCat(this,'MINIMAL')">MINIMAL</div>
+                <div class="ev-cat-btn" onclick="evShowSeriesTab(this)">SERIES ↓</div>
+              </div>
+              <!-- Search fade + icon -->
+              <div style="position:absolute;right:0;top:0;bottom:0;width:52px;background:linear-gradient(to right,transparent,var(--surface,#0c0818) 52%);pointer-events:none;"></div>
+              <div id="ev-search-btn" onclick="evToggleSearch()" style="position:absolute;right:0;top:0;bottom:0;width:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+                <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="rgba(201,184,212,0.60)" stroke-width="1.6" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5"/><line x1="13" y1="13" x2="17" y2="17"/></svg>
+              </div>
+            </div>
+            <!-- Search input row -->
+            <div id="ev-search-row" style="display:none;flex-shrink:0;padding:0 10px;height:32px;align-items:center;gap:6px;border-bottom:0.5px solid rgba(200,168,232,0.07);">
+              <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="rgba(201,184,212,0.45)" stroke-width="1.6" stroke-linecap="round" style="flex-shrink:0"><circle cx="8.5" cy="8.5" r="5"/><line x1="13" y1="13" x2="17" y2="17"/></svg>
+              <input id="ev-search-input" type="text" placeholder="search presets…" oninput="evSearchPresets(this.value)" style="flex:1;background:none;border:none;outline:none;font-size:9px;letter-spacing:0.12em;color:rgba(201,184,212,0.80);font-family:var(--mono);caret-color:rgba(218,90,125,0.80);" autocomplete="off" autocorrect="off" spellcheck="false"/>
+              <div onclick="evCloseSearch()" style="font-size:9px;letter-spacing:0.10em;color:rgba(201,184,212,0.40);cursor:pointer;flex-shrink:0;padding:4px;">✕</div>
             </div>
             <!-- SERIES sub-row (editor strip) -->
             <div class="series-sub-row" id="ev-series-sub-row">
@@ -4705,10 +4744,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   <!-- BOTTOM NAV -->
   <div class="bottomnav">
-    <div class="bn-item active" data-tab="HOME" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.4 3.8 L7 5.6 L8.8 6.2 L7 6.8 L6.4 8.6 L5.8 6.8 L4 6.2 L5.8 5.6 Z" stroke-linejoin="round"/><path d="M12.8 7 L13.8 10.4 L17.2 11.4 L13.8 12.4 L12.8 15.8 L11.8 12.4 L8.4 11.4 L11.8 10.4 Z" stroke-linejoin="round"/></svg></span><span class="bn-label">HOME</span></div>
-    <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="bn-label">GALLERY</span></div>
-    <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M4 16l2-6 8-8 4 4-8 8-6 2z"/><line x1="12" y1="4" x2="16" y2="8"/></svg></span><span class="bn-label">EDITOR</span></div>
-    <div class="bn-item" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="4" y="11" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="4" width="5.5" height="5.5" rx="0.8"/><rect x="10.5" y="11" width="5.5" height="5.5" rx="0.8"/></svg></span><span class="bn-label">ALBUMS</span></div>
+    <div class="bn-item" data-tab="HOME" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.4 3.8 L7 5.6 L8.8 6.2 L7 6.8 L6.4 8.6 L5.8 6.8 L4 6.2 L5.8 5.6 Z" stroke-linejoin="round"/><path d="M12.8 7 L13.8 10.4 L17.2 11.4 L13.8 12.4 L12.8 15.8 L11.8 12.4 L8.4 11.4 L11.8 10.4 Z" stroke-linejoin="round"/></svg></span><span class="bn-label">HOME</span></div>
+    <div class="bn-item active" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="bn-label">GALLERY</span></div>
     <div class="bn-right">
       <span class="bn-wave">~⌇~</span>
       <span class="bn-status" id="bn-status">STATUS: ONLINE</span>
@@ -5597,7 +5634,7 @@ const presets = [
     defaults:{
       EXPOSURE:0.448, CONTRAST:0.680, HIGHLIGHTS:0.34, SHADOWS:0.572,
       WHITES:0.521, BLACKS:0.462, TEMPERATURE:0.622, TINT:0.510,
-      VIBRANCE:0.558, SATURATION:0.534,
+      VIBRANCE:0.558, SATURATION:0.485,
       GLOW:0.0, GRAIN:0.24, SHARPEN:0.0, CLARITY:0.02, BLUR:0.0, FADE:0.04,
       MATTE_LIFT:0.500, DIFFUSION:0.0, DEHAZE:0.0, TEXTURE:0.0,
       SAT_REDS:0.542, SAT_ORANGES:0.524, SAT_YELLOWS:0.500,
@@ -5610,7 +5647,7 @@ const presets = [
     },
     sliders:{
       LIGHT:{EXPOSURE:'-0.16',CONTRAST:'+0.36',HIGHLIGHTS:'-0.32',SHADOWS:'+0.14',WHITES:'+0.042',BLACKS:'-0.08',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
-      COLOR:{TEMPERATURE:'+0.24',TINT:'+0.02',VIBRANCE:'+0.12',SATURATION:'+0.07'},
+      COLOR:{TEMPERATURE:'+0.24',TINT:'+0.02',VIBRANCE:'+0.12',SATURATION:'-0.03'},
       EFFECTS:{GLOW:'+0.00',GRAIN:'+0.24',SHARPEN:'+0.00',CLARITY:'+0.02',BLUR:'+0.00',FADE:'+0.04',HALATION:'+0.00',TEXTURE:'+0.00',DIFFUSION:'+0.00'},
       HSL:{HUE_SHIFT:'-1°',SAT_REDS:'+0.08',SAT_ORANGES:'+0.05',SAT_YELLOWS:'+0.00',SAT_GREENS:'-0.08',SAT_BLUES:'-0.07',SAT_PURPLES:'-0.06'}
     }
@@ -6028,7 +6065,11 @@ function buildEditorSliders(p) {
         else atmRows[k] = v;
       });
       if (Object.keys(detailRows).length) det2Html += buildSectionHTML(p, 'DETAIL', detailRows, state);
-      if (Object.keys(blurRows).length)   blurHtml  += buildSectionHTML(p, 'BLUR',   blurRows,   state);
+      if (Object.keys(blurRows).length) {
+        var _sortedBlur = {};
+        BLUR_KEYS.forEach(function(k){ if (blurRows[k] !== undefined) _sortedBlur[k] = blurRows[k]; });
+        blurHtml += buildSectionHTML(p, 'BLUR', _sortedBlur, state);
+      }
       if (Object.keys(atmRows).length)    atmHtml   += buildSectionHTML(p, 'EFFECTS', atmRows,   state);
     } else {
       const sectionHtml = buildSectionHTML(p, section, rows, state);
@@ -7096,6 +7137,7 @@ function switchToTab(label) {
 // INIT
 // ══════════════════════════════════════
 window.addEventListener('load',()=>{
+  switchToTab('GALLERY');
   initParticles();
   updateClock(); setInterval(updateClock,1000);
   buildHistory();
@@ -8987,6 +9029,10 @@ function toggleSelect(idx) {
 }
 
 function deleteSelected() {
+  var n = libSelected.length;
+  if (!n) return;
+  var msg = n === 1 ? 'Remove 1 photo from your gallery?' : 'Remove ' + n + ' photos from your gallery?';
+  if (!confirm(msg)) return;
   libSelected.sort((a,b)=>b-a).forEach(i => library.splice(i,1));
   libSelected = [];
   libSaveToStorage();
@@ -11707,6 +11753,7 @@ function _evDoSave() {
 
 // ── EDITOR VIEW (ev) — inline 3-column layout ────────────────────────────
 let evCatFilter   = 'ALL';
+let evSearchTerm  = '';
 let evFavPresets  = (function(){ try{ return JSON.parse(localStorage.getItem('ev_fav_presets')||'[]'); }catch(e){ return []; } })();
 function evSaveFavs(){ try{ localStorage.setItem('ev_fav_presets', JSON.stringify(evFavPresets)); }catch(e){} }
 let evActivePreset = null;
@@ -12051,9 +12098,9 @@ function evRenderPresets() {
   // ── SAVED FORMULAS tab — render formula cards then return ──
   if (evCatFilter === 'SAVED') {
     if (!_evFormulas.length) {
-      list.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;width:100vw;padding:0 20px;text-align:center;">'
+      list.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;width:100vw;padding:0 20px;text-align:center;">'
         +'<div style="font-size:9px;letter-spacing:0.22em;color:rgba(185,155,210,0.35);font-family:var(--mono);">NO SAVED FORMULAS YET</div>'
-        +'<div style="font-size:8px;letter-spacing:0.14em;color:rgba(165,135,190,0.22);font-family:var(--mono);">USE THE SAVE BUTTON TO CREATE ONE</div>'
+        +'<div style="display:flex;align-items:center;gap:6px;font-size:8px;letter-spacing:0.14em;color:rgba(165,135,190,0.30);font-family:var(--mono);">USE <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:rgba(18,14,30,0.86);border:0.5px solid rgba(201,184,212,0.18);color:rgba(218,180,240,0.80);"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="9" y1="12" x2="15" y2="12"/></svg></span> TO SAVE ONE</div>'
         +'</div>';
       return;
     }
@@ -12133,7 +12180,9 @@ function evRenderPresets() {
     return (evFavPresets.includes(b.id) ? 1 : 0) - (evFavPresets.includes(a.id) ? 1 : 0);
   });
   _presetsToRender.forEach(function(p){
-    if (evCatFilter && evCatFilter !== 'ALL') {
+    if (evSearchTerm) {
+      if ((p.name||'').toUpperCase().indexOf(evSearchTerm.toUpperCase()) === -1) return;
+    } else if (evCatFilter && evCatFilter !== 'ALL') {
       if (evCatFilter.startsWith('SERIES:')) {
         var _sn = evCatFilter.slice(7);
         if ((p.seriesGroup||'').toUpperCase() !== _sn.toUpperCase()) return;
@@ -12360,6 +12409,28 @@ function evFilterCat(btn, cat) {
 var _evSeriesFilter = 'LIMINAL';
 var _pvSeriesFilter = 'LIMINAL';
 
+function evToggleSearch() {
+  var row = document.getElementById('ev-search-row');
+  if (!row) return;
+  var open = row.style.display === 'flex';
+  if (open) { evCloseSearch(); return; }
+  row.style.display = 'flex';
+  var inp = document.getElementById('ev-search-input');
+  if (inp) { inp.value = ''; inp.focus(); }
+  evSearchTerm = '';
+}
+function evSearchPresets(val) {
+  evSearchTerm = (val || '').trim();
+  evRenderPresets();
+}
+function evCloseSearch() {
+  var row = document.getElementById('ev-search-row');
+  if (row) row.style.display = 'none';
+  var inp = document.getElementById('ev-search-input');
+  if (inp) inp.value = '';
+  evSearchTerm = '';
+  evRenderPresets();
+}
 function evShowSeriesTab(btn) {
   document.querySelectorAll('#ev-cats .ev-cat-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
@@ -12440,7 +12511,7 @@ function evShowSaveFormula() {
     +'<div style="width:36px;height:3px;border-radius:2px;background:rgba(200,168,232,0.18);margin:0 auto 20px;"></div>'
     +'<div style="font-size:9px;letter-spacing:0.30em;color:rgba(192,72,108,0.65);margin-bottom:8px;font-family:var(--mono);">SAVE FORMULA</div>'
     +'<div style="font-size:22px;letter-spacing:0.01em;color:rgba(220,200,245,0.90);font-weight:300;margin-bottom:5px;font-family:var(--font-ui);">Name this look.</div>'
-    +'<div style="font-size:12px;color:rgba(165,140,195,0.48);margin-bottom:18px;font-family:var(--font-ui);">This will be saved to Custom.</div>'
+    +'<div style="font-size:12px;color:rgba(165,140,195,0.48);margin-bottom:18px;font-family:var(--font-ui);">This will be saved to Formulas.</div>'
     +'<div style="position:relative;">'
     +'<input id="ev-formula-name" maxlength="25" placeholder="e.g. '+PLACEHOLDER+'" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"'
     +' style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.04);border:0.5px solid rgba(192,64,90,0.30);border-radius:8px;padding:13px 14px 26px;font-size:16px;letter-spacing:0.16em;color:rgba(225,205,245,0.92);font-family:var(--font-ui);outline:none;caret-color:rgba(218,90,125,0.90);">'
@@ -12648,6 +12719,9 @@ document.addEventListener('mouseup', function(){
 function galleryOpenInEditor(idx) {
   var entry = library[idx];
   if (!entry) return;
+  // Clear canvas before making editor visible — prevents flash of previous image
+  var _evC0 = document.getElementById('ev-canvas');
+  if (_evC0) { var _evCtx0 = _evC0.getContext('2d'); _evCtx0.clearRect(0, 0, _evC0.width, _evC0.height); }
   // Set up globals
   editingIdx = idx;
   userImage  = entry.img;
@@ -12806,6 +12880,10 @@ window.toggleSelect = function(idx) {
 
 // ── Fix 5: Batch DELETE ───────────────────────────────────────────────────
 function galleryBatchDeleteConfirm() {
+  var n = libSelected.length;
+  if (!n) return;
+  var msg = n === 1 ? 'Remove 1 photo from your gallery?' : 'Remove ' + n + ' photos from your gallery?';
+  if (!confirm(msg)) return;
   galleryBatchDelete();
 }
 
@@ -15526,7 +15604,7 @@ function importSheetChoice(type) {
     setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
   }
   function dismissAfterMin() {
-    var wait = Math.max(0, 1000 - (Date.now() - _zlStart));
+    var wait = Math.max(0, 1500 - (Date.now() - _zlStart));
     setTimeout(dismiss, wait);
   }
   if (document.readyState === 'complete') {

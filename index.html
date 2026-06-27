@@ -696,6 +696,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   border-bottom:0.5px solid rgba(200,168,232,0.065);
 }
 .lib-toolbar-left,.lib-toolbar-right { display:flex; align-items:center; gap:8px }
+.lib-toolbar-left { flex-direction:column; align-items:flex-start; gap:1px }
+.lib-gallery-title { font-family:var(--font-serif); font-size:15px; font-weight:400; letter-spacing:-0.5px; line-height:1; background:linear-gradient(148deg,#f6eeff 0%,#e2caff 18%,#c8a2ee 38%,#dbbcff 56%,#f4e6ff 74%,#d0b0f0 90%,#eedaff 100%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 0 8px rgba(188,138,245,0.45)); animation:logoshine 12s ease-in-out infinite alternate }
 .lib-count { font-size:8px; letter-spacing:0.24em; color:rgba(175,150,210,0.42); font-weight:300; font-family:var(--mono) }
 .lib-btn {
   font-size:8px; letter-spacing:0.20em; color:rgba(195,168,228,0.62);
@@ -1495,7 +1497,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   font-size: 10px !important;
 }
 .lib-count {
-  font-size: 9px !important;
+  font-size: 5.5px !important;
 }
 
 /* ── EDITOR TOOLBAR TOOLS ── */
@@ -3921,6 +3923,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
             <div class="library-toolbar hidden" id="library-toolbar">
               <div class="lib-toolbar-left">
+                <span class="lib-gallery-title">ZOË</span>
                 <span class="lib-count" id="lib-count">0 PHOTOS</span>
               </div>
               <div class="lib-toolbar-right">
@@ -8957,7 +8960,7 @@ function renderLibrary() {
   count.textContent = library.length + (library.length === 1 ? ' PHOTO' : ' PHOTOS');
   if (delBtn) delBtn.style.display = libSelected.length ? 'inline-flex' : 'none';
 
-  const NUM_COLS = window.innerWidth <= 768 ? 3 : 4;
+  const NUM_COLS = 3;
   const cols = Array.from({ length: NUM_COLS }, () => {
     const col = document.createElement('div');
     col.className = 'lib-col';

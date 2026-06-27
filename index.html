@@ -3002,10 +3002,16 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     align-items: center;
     gap: 10px;
     padding: 8px 12px 10px;
-    background: var(--bg);
-    border-top: 0.5px solid var(--border);
-    flex-shrink: 0;
+    background: rgba(15,16,16,0.82);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
   }
+  .library-grid { padding-bottom: 80px !important; }
   #gallery-action-pill {
     flex: 1;
     display: flex;

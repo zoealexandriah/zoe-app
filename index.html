@@ -3044,23 +3044,33 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .gab-btn.active { color: #e4d9d3; }
   .gab-danger.active { color: rgba(210,80,100,0.88) !important; }
   #gallery-add-btn {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: #c0405a;
-    border: none;
-    color: #fff;
+    background: radial-gradient(circle at 38% 32%, #f5d4e4 0%, #edaac6 44%, #de82a8 100%);
+    border: 0.5px solid rgba(255,255,255,0.22);
+    color: rgba(108,32,58,0.80);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
-    box-shadow: 0 2px 12px rgba(192,64,90,0.50);
-    transition: transform 0.12s, box-shadow 0.12s;
+    box-shadow:
+      inset 0 1.5px 3px rgba(255,255,255,0.52),
+      inset 0 -1px 2px rgba(140,40,72,0.18),
+      0 3px 14px rgba(247,168,201,0.26),
+      0 1px 4px rgba(200,100,140,0.18);
+    transition: transform 0.14s, box-shadow 0.14s;
     touch-action: manipulation;
   }
-  #gallery-add-btn:active { transform: scale(0.91); box-shadow: 0 1px 6px rgba(192,64,90,0.32); }
+  #gallery-add-btn:active {
+    transform: scale(0.93);
+    box-shadow:
+      inset 0 1px 2px rgba(255,255,255,0.40),
+      inset 0 -1px 2px rgba(140,40,72,0.22),
+      0 1px 6px rgba(247,168,201,0.16);
+  }
   /* Hide old batch-bar on mobile — actions live in bottom bar now */
   #gallery-batch-bar { display: none !important; }
   /* In lib-toolbar-right: hide ADD MORE + REMOVE, keep SELECT */
@@ -3932,7 +3942,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               </div>
               <div class="lib-toolbar-right">
                 <button id="gallery-add-btn" onclick="triggerMultiUpload()">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
                 </button>
                 <div class="lib-btn" onclick="triggerMultiUpload()">↑ ADD MORE</div>
                 <div class="lib-btn lib-btn-danger" id="lib-delete-btn"

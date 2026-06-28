@@ -1010,18 +1010,19 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .btn-secondary:hover { border-color:rgba(192,64,90,0.68); color:rgba(218,108,132,0.95); background:rgba(192,64,90,0.06) }
 
 /* ── SLIDERS ── */
-.sl-track { flex:1; height:1px !important; background:rgba(215,187,163,0.11) !important; position:relative; border-radius:100px; cursor:ew-resize }
-.sl-fill  { position:absolute; left:0; top:-0.5px; height:2px !important; border-radius:100px; background:linear-gradient(to right, rgba(215,187,163,0.28), #d7bba3) !important; transition:filter 0.2s }
+.sl-track { flex:1; height:1px !important; background:rgba(255,255,255,0.06) !important; position:relative; border-radius:100px; cursor:ew-resize }
+.sl-fill  { position:absolute; left:0; top:0px; height:1.5px !important; border-radius:100px; background:linear-gradient(to right, rgba(210,148,135,0.30), rgba(215,155,143,0.78)) !important; transition:filter 0.2s }
 .sl-thumb {
   position:absolute; top:50%; transform:translate(-50%,-50%);
   width:9px !important; height:9px !important; border-radius:50%;
-  background: #d7bba3 !important;
-  box-shadow: 0 0 0 1.5px rgba(215,187,163,0.18), 0 0 7px rgba(215,187,163,0.32), 0 1px 3px rgba(0,0,0,0.35) !important;
+  background: transparent !important;
+  border: 1.5px solid rgba(215,158,145,0.88) !important;
+  box-shadow: 0 0 5px rgba(210,140,128,0.18) !important;
   transition:transform 0.18s, box-shadow 0.20s;
 }
-.sl-track:hover .sl-thumb { transform:translate(-50%,-50%) scale(1.28) !important; box-shadow:0 0 0 2px rgba(215,187,163,0.24), 0 0 11px rgba(215,187,163,0.42), 0 1px 4px rgba(0,0,0,0.38) !important }
+.sl-track:hover .sl-thumb { transform:translate(-50%,-50%) scale(1.25) !important; box-shadow:0 0 7px rgba(215,155,143,0.30) !important }
 .sl-track:hover .sl-fill { filter:brightness(1.12) !important }
-.sl-track.dragging .sl-thumb { transform:translate(-50%,-50%) scale(1.38) !important; box-shadow:0 0 0 2.5px rgba(215,187,163,0.28), 0 0 14px rgba(215,187,163,0.50), 0 1px 5px rgba(0,0,0,0.42) !important }
+.sl-track.dragging .sl-thumb { transform:translate(-50%,-50%) scale(1.35) !important; box-shadow:0 0 10px rgba(215,155,143,0.40) !important }
 .sl-name { font-size:7px !important; letter-spacing:0.18em !important; color:rgba(210,210,215,0.48) !important; font-weight:300 }
 .sl-row:hover .sl-name { color:rgba(235,220,205,0.90) !important }
 .sl-val  { font-size:7px !important; color:rgba(215,187,163,0.52) !important; font-family:var(--mono) }
@@ -1419,30 +1420,25 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 /* ── SLIDER TRACK ── */
 .sl-track {
   height: 1px !important;
-  background: rgba(215,187,163,0.11) !important;
+  background: rgba(255,255,255,0.06) !important;
   border-radius: 100px !important;
 }
 .sl-fill {
-  height: 2px !important;
-  top: -0.5px !important;
+  height: 1.5px !important;
+  top: 0px !important;
   border-radius: 100px !important;
-  background: linear-gradient(to right, rgba(215,187,163,0.28), #d7bba3) !important;
+  background: linear-gradient(to right, rgba(210,148,135,0.30), rgba(215,155,143,0.78)) !important;
 }
 .sl-thumb {
   width: 9px !important;
   height: 9px !important;
-  background: #d7bba3 !important;
-  box-shadow:
-    0 0 0 1.5px rgba(215,187,163,0.18),
-    0 0 7px rgba(215,187,163,0.32),
-    0 1px 3px rgba(0,0,0,0.35) !important;
+  background: transparent !important;
+  border: 1.5px solid rgba(215,158,145,0.88) !important;
+  box-shadow: 0 0 5px rgba(210,140,128,0.18) !important;
 }
 .sl-track:hover .sl-thumb {
-  transform: translate(-50%,-50%) scale(1.28) !important;
-  box-shadow:
-    0 0 0 2px rgba(215,187,163,0.24),
-    0 0 11px rgba(215,187,163,0.42),
-    0 1px 4px rgba(0,0,0,0.38) !important;
+  transform: translate(-50%,-50%) scale(1.25) !important;
+  box-shadow: 0 0 7px rgba(215,155,143,0.30) !important;
 }
 
 /* ── QUICK ACTIONS LABELS — 11px ── */
@@ -3227,7 +3223,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     top: 50% !important;
     transform: translateY(-50%) !important;
     height: 1.05px !important;
-    background: rgba(215, 187, 163, 0.13) !important;
+    background: rgba(255,255,255,0.06) !important;
     border-radius: 100px !important;
     pointer-events: none !important;
     z-index: 0 !important;
@@ -3243,7 +3239,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     transform: translate(-50%, -50%) !important;
     width: 1.5px !important;
     height: 6px !important;
-    background: rgba(215, 187, 163, 0.22) !important;
+    background: rgba(215,158,145,0.22) !important;
     border-radius: 1px !important;
     pointer-events: none !important;
     z-index: 1 !important;

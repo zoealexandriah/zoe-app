@@ -1010,25 +1010,26 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .btn-secondary:hover { border-color:rgba(192,64,90,0.68); color:rgba(218,108,132,0.95); background:rgba(192,64,90,0.06) }
 
 /* ── SLIDERS ── */
-.sl-track { flex:1; height:1px !important; background:rgba(180,60,80,0.18) !important; position:relative; border-radius:100px; cursor:ew-resize }
-.sl-fill  { position:absolute; left:0; top:-1px; height:3px !important; border-radius:100px; background:linear-gradient(to right,#c0405a,#9e2840,#8a1a2e) !important; transition:filter 0.2s }
+.sl-track { flex:1; height:1px !important; background:rgba(215,187,163,0.11) !important; position:relative; border-radius:100px; cursor:ew-resize }
+.sl-fill  { position:absolute; left:0; top:-0.5px; height:2px !important; border-radius:100px; background:linear-gradient(to right, rgba(215,187,163,0.28), #d7bba3) !important; transition:filter 0.2s }
 .sl-thumb {
   position:absolute; top:50%; transform:translate(-50%,-50%);
-  width:10px !important; height:10px !important; border-radius:50%;
-  background:linear-gradient(135deg,#d4647a,#c0405a) !important;
-  box-shadow:0 0 0 2px rgba(192,64,90,0.20), 0 0 8px rgba(192,64,90,0.62), 0 0 18px rgba(138,26,46,0.28) !important;
+  width:9px !important; height:9px !important; border-radius:50%;
+  background: #d7bba3 !important;
+  box-shadow: 0 0 0 1.5px rgba(215,187,163,0.18), 0 0 7px rgba(215,187,163,0.32), 0 1px 3px rgba(0,0,0,0.35) !important;
   transition:transform 0.18s, box-shadow 0.20s;
 }
-.sl-track:hover .sl-thumb { transform:translate(-50%,-50%) scale(1.35) !important; box-shadow:0 0 0 2.5px rgba(192,64,90,0.28), 0 0 14px rgba(192,64,90,0.82), 0 0 28px rgba(138,26,46,0.42) !important }
-.sl-track:hover .sl-fill { filter:brightness(1.18) !important }
-.sl-track.dragging .sl-thumb { transform:translate(-50%,-50%) scale(1.45) !important; box-shadow:0 0 0 3px rgba(192,64,90,0.35),0 0 18px rgba(192,64,90,0.90),0 0 36px rgba(138,26,46,0.50) !important }
-.sl-name { font-size:7px !important; letter-spacing:0.18em !important; color:rgba(210,210,215,0.50) !important; font-weight:300 }
-.sl-row:hover .sl-name { color:rgba(255,255,255,0.88) !important }
-.sl-val  { font-size:7px !important; color:rgba(200,200,205,0.42) !important; font-family:var(--mono) }
-.sl-section { font-size:6px !important; letter-spacing:0.32em !important; color:rgba(200,200,205,0.32) !important }
-.sl-row.changed .sl-name { color:rgba(255,255,255,0.88) !important }
-.sl-reset-btn { color:rgba(175,140,200,0.38) !important }
-.sl-reset-btn:hover { color:rgba(205,172,240,0.75) !important }
+.sl-track:hover .sl-thumb { transform:translate(-50%,-50%) scale(1.28) !important; box-shadow:0 0 0 2px rgba(215,187,163,0.24), 0 0 11px rgba(215,187,163,0.42), 0 1px 4px rgba(0,0,0,0.38) !important }
+.sl-track:hover .sl-fill { filter:brightness(1.12) !important }
+.sl-track.dragging .sl-thumb { transform:translate(-50%,-50%) scale(1.38) !important; box-shadow:0 0 0 2.5px rgba(215,187,163,0.28), 0 0 14px rgba(215,187,163,0.50), 0 1px 5px rgba(0,0,0,0.42) !important }
+.sl-name { font-size:7px !important; letter-spacing:0.18em !important; color:rgba(210,210,215,0.48) !important; font-weight:300 }
+.sl-row:hover .sl-name { color:rgba(235,220,205,0.90) !important }
+.sl-val  { font-size:7px !important; color:rgba(215,187,163,0.52) !important; font-family:var(--mono) }
+.sl-section { font-size:6px !important; letter-spacing:0.32em !important; color:rgba(200,200,205,0.28) !important }
+.sl-row.changed .sl-name { color:rgba(235,220,205,0.90) !important }
+.sl-row.changed .sl-val  { color:rgba(215,187,163,0.78) !important }
+.sl-reset-btn { color:rgba(215,187,163,0.28) !important }
+.sl-reset-btn:hover { color:rgba(215,187,163,0.68) !important }
 
 /* ── BOTTOM NAV ── */
 .bn-icon { color:transparent !important; font-size:0 !important; line-height:0 !important }

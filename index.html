@@ -3559,6 +3559,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     user-select: none !important;
   }
 
+  /* Pill: lift above preset strip when atmosphere active (strip is 152px above suite) */
+  #ev-editor-suite.ev-atm-active #ev-adjust-subnav {
+    top: -206px !important;
+  }
+
   /* ── Inline slider rows: single row layout (high specificity to beat global .sl-row rules) ── */
   #ev-editor-suite .sl-row {
     flex-direction: row !important;
@@ -15896,6 +15901,9 @@ function importSheetChoice(type) {
     /* Update COLOR/HSL panel header */
     var ch = document.getElementById('ev-color-hdr-title');
     if (ch) ch.textContent = name === 'hsl' ? 'H S L' : 'C O L O R';
+    /* Lift pill above preset strip when atmosphere is active */
+    var suite = document.getElementById('ev-editor-suite');
+    if (suite) suite.classList.toggle('ev-atm-active', name === 'atmosphere');
     /* Auto-open first slider after panel renders */
     setTimeout(_openFirstSlider, 90);
   };

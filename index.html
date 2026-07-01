@@ -3431,18 +3431,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex-shrink: 0 !important;
   }
 
-  /* Active: bright center dot fading to line on both sides */
+  /* Active: barely-there center dot fading to line */
   .ev-subnav-btn.active::after {
     content: '' !important;
     position: absolute !important;
     bottom: 3px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    width: 24px !important;
-    height: 1.5px !important;
+    width: 16px !important;
+    height: 1px !important;
     border-radius: 1px !important;
-    background: radial-gradient(ellipse at center, rgba(218,90,125,0.95) 0%, rgba(218,90,125,0.35) 40%, rgba(218,90,125,0) 100%) !important;
-    box-shadow: 0 0 4px 2px rgba(218,90,125,0.28), 0 0 9px 3px rgba(218,90,125,0.10) !important;
+    background: radial-gradient(ellipse at center, rgba(218,90,125,0.55) 0%, rgba(218,90,125,0.10) 55%, rgba(218,90,125,0) 100%) !important;
+    box-shadow: none !important;
   }
 
   /* Hide old mobile nav pill — tab row replaces it */

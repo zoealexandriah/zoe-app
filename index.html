@@ -3431,18 +3431,19 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex-shrink: 0 !important;
   }
 
-  /* Active dot instead of bar */
+  /* Active: glowy bar indicator */
   .ev-subnav-btn.active::after {
     content: '' !important;
-    width: 4px !important;
-    height: 4px !important;
-    border-radius: 50% !important;
-    background: rgba(218,90,125,1) !important;
     position: absolute !important;
-    bottom: 4px !important;
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%) !important;
+    bottom: 3px !important;
+    left: 18% !important;
+    right: 18% !important;
+    width: auto !important;
+    height: 2px !important;
+    border-radius: 1px !important;
+    background: rgba(218,90,125,1) !important;
+    box-shadow: 0 0 4px rgba(218,90,125,0.9), 0 0 9px rgba(218,90,125,0.6), 0 0 18px rgba(218,90,125,0.32) !important;
+    transform: none !important;
   }
 
   /* Hide old mobile nav pill — tab row replaces it */
@@ -3547,8 +3548,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     user-select: none !important;
   }
 
-  /* ── Inline slider rows: single row layout ── */
-  .sl-row {
+  /* ── Inline slider rows: single row layout (high specificity to beat global .sl-row rules) ── */
+  #ev-editor-suite .sl-row {
     flex-direction: row !important;
     align-items: center !important;
     padding: 0 16px !important;
@@ -3556,33 +3557,33 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     gap: 6px !important;
     position: relative !important;
   }
-  .sl-header {
+  #ev-editor-suite .sl-header {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     gap: 5px !important;
     flex: 0 0 88px !important;
-    overflow: hidden !important;
+    max-width: 88px !important;
     padding: 0 !important;
     cursor: default !important;
     user-select: none !important;
   }
-  .sl-row .sl-name {
+  #ev-editor-suite .sl-row .sl-name {
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
     flex: 1 !important;
     min-width: 0 !important;
   }
-  .sl-chevron { display: none !important; }
-  .sl-row:not(.sl-open) .sl-track { display: flex !important; }
-  .sl-track {
+  #ev-editor-suite .sl-chevron { display: none !important; }
+  #ev-editor-suite .sl-row:not(.sl-open) .sl-track { display: flex !important; }
+  #ev-editor-suite .sl-track {
     flex: 1 !important;
     width: auto !important;
     height: 32px !important;
     margin-right: 44px !important;
   }
-  .sl-row .sl-val {
+  #ev-editor-suite .sl-row .sl-val {
     position: absolute !important;
     right: 16px !important;
     top: 50% !important;

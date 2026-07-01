@@ -3112,8 +3112,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-int-slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;background:#fff;border-radius:3px;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
   #ev-int-slider::-moz-range-thumb{width:24px;height:24px;background:#fff;border-radius:3px;cursor:pointer;border:none;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
 
-  /* EDITOR.SUITE titlebar: hide on mobile (handle is now first child, titlebar is second) */
-  #editor-view > div:last-child > div:nth-child(2) { display: none !important; }
+  /* EDITOR.SUITE titlebar: hide on mobile */
+  #ev-editor-titlebar { display: none !important; }
 
   /* All panels hidden; only the active one shows when suite is open */
   .es-tab-panel { display: none !important; }
@@ -4775,7 +4775,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
           </div>
           <!-- Title bar -->
-          <div style="height:28px;flex-shrink:0;display:flex;align-items:center;padding:0 10px;background:linear-gradient(to bottom,#cdb0ba,#b89aa4);border-bottom:0.5px solid rgba(140,100,110,0.35);">
+          <div id="ev-editor-titlebar" style="height:28px;flex-shrink:0;display:flex;align-items:center;padding:0 10px;background:linear-gradient(to bottom,#cdb0ba,#b89aa4);border-bottom:0.5px solid rgba(140,100,110,0.35);">
             <span style="font-size:9px;letter-spacing:0.18em;color:#2a1a1e;font-family:var(--mono);font-weight:500">EDITOR.SUITE</span>
           </div>
           <!-- Tab nav -->
@@ -4808,13 +4808,13 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           </div>
           <!-- COLOR panel: TEMPERATURE TINT VIBRANCE SATURATION -->
           <div class="es-tab-panel" id="es-panel-color">
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title" id="ev-color-hdr-title">C O L O R</span><button class="ev-hdr-fav">♡</button></div>
+            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title" id="ev-color-hdr-title">C O L O R</span></div>
             <div id="es-color-sliders"></div>
             <div id="es-hsl-sliders"></div>
           </div>
           <!-- DETAILS panel: EXPOSURE CONTRAST HIGHLIGHTS SHADOWS WHITES BLACKS SHARPEN CLARITY -->
           <div class="es-tab-panel" id="es-panel-details">
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">L I G H T</span><button class="ev-hdr-fav">♡</button></div>
+            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">L I G H T</span></div>
             <div id="es-details-sliders"></div>
           </div>
           <!-- TOOLS panel -->
@@ -4823,17 +4823,17 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           </div>
           <!-- DETAIL panel: SHARPEN CLARITY GRAIN FADE -->
           <div class="es-tab-panel" id="es-panel-detail">
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">D E T A I L S</span><button class="ev-hdr-fav">♡</button></div>
+            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">D E T A I L S</span></div>
             <div id="es-detail-sliders"></div>
           </div>
           <!-- BLUR panel: BLUR GLOW -->
           <div class="es-tab-panel" id="es-panel-blur">
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">B L U R</span><button class="ev-hdr-fav">♡</button></div>
+            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">B L U R</span></div>
             <div id="es-blur-sliders"></div>
           </div>
           <!-- OPTICAL panel: VERTICAL + HORIZONTAL perspective -->
           <div class="es-tab-panel" id="es-panel-optical">
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">O P T I C A L</span><button class="ev-hdr-fav">♡</button></div>
+            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">O P T I C A L</span></div>
             <div id="es-optical-content"></div>
           </div>
           <!-- Keep these hidden for legacy compat -->

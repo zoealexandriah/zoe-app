@@ -3384,7 +3384,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     border-left: none !important;
     border-top: 0.5px solid rgba(255,255,255,0.06) !important;
     overflow: visible !important;
-    max-height: var(--sheet-max-h, 56vh) !important;
+    max-height: var(--sheet-max-h, 34vh) !important;
     position: relative !important;
   }
 
@@ -3404,7 +3404,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-adjust-subnav {
     display: flex !important;
     position: absolute !important;
-    top: -58px !important;
+    top: -52px !important;
     left: 8px !important;
     right: 8px !important;
     margin: 0 !important;
@@ -3463,7 +3463,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     height: 4px !important;
     background: rgba(255,255,255,0.12) !important;
     border-radius: 2px !important;
-    margin: 6px auto 2px !important;
+    margin: 4px auto 2px !important;
     flex-shrink: 0 !important;
   }
 
@@ -3472,7 +3472,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 10px 16px 4px !important;
+    padding: 4px 16px 2px !important;
     flex-shrink: 0 !important;
   }
   .ev-panel-hdr-title {
@@ -3545,6 +3545,51 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     font-style: italic !important;
     pointer-events: none !important;
     user-select: none !important;
+  }
+
+  /* ── Inline slider rows: single row layout ── */
+  .sl-row {
+    flex-direction: row !important;
+    align-items: center !important;
+    padding: 0 16px !important;
+    height: 32px !important;
+    gap: 6px !important;
+    position: relative !important;
+  }
+  .sl-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 5px !important;
+    flex: 0 0 88px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    cursor: default !important;
+    user-select: none !important;
+  }
+  .sl-row .sl-name {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+  .sl-chevron { display: none !important; }
+  .sl-row:not(.sl-open) .sl-track { display: flex !important; }
+  .sl-track {
+    flex: 1 !important;
+    width: auto !important;
+    height: 32px !important;
+    margin-right: 44px !important;
+  }
+  .sl-row .sl-val {
+    position: absolute !important;
+    right: 16px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: auto !important;
+    text-align: right !important;
+    min-width: 30px !important;
   }
 }
 

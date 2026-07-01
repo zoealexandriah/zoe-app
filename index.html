@@ -3431,22 +3431,23 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex-shrink: 0 !important;
   }
 
-  /* Active: glowy sparkle indicator */
+  /* Active: subtle sparkle with horizontal fade */
   .ev-subnav-btn.active::after {
     content: '' !important;
     position: absolute !important;
     bottom: 3px !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    width: 3px !important;
-    height: 3px !important;
+    width: 2px !important;
+    height: 2px !important;
     border-radius: 50% !important;
-    background: rgba(255,210,225,1) !important;
+    background: rgba(255,215,228,0.85) !important;
     box-shadow:
-      0 0 3px 1px rgba(218,90,125,1),
-      0 0 7px 3px rgba(218,90,125,0.7),
-      0 0 14px 5px rgba(218,90,125,0.4),
-      0 0 24px 7px rgba(218,90,125,0.18) !important;
+      0 0 2px 1px rgba(218,90,125,0.75),
+      -6px 0 5px 0 rgba(218,90,125,0.18),
+      6px 0 5px 0 rgba(218,90,125,0.18),
+      -12px 0 7px 0 rgba(218,90,125,0.07),
+      12px 0 7px 0 rgba(218,90,125,0.07) !important;
   }
 
   /* Hide old mobile nav pill — tab row replaces it */

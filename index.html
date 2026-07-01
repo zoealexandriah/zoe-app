@@ -2896,22 +2896,36 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   /* ── Editor toolbar — new design ── */
   #ev-toolbar {
-    height: 48px !important;
-    min-height: 48px !important;
+    height: 38px !important;
+    min-height: 38px !important;
     background: #090809 !important;
-    border-bottom: 0.5px solid rgba(255,255,255,0.07) !important;
+    border-bottom: none !important;
     padding: 0 !important;
     gap: 0 !important;
     justify-content: flex-start !important;
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 2 !important;
+  }
+  /* Fade from toolbar into image */
+  #ev-toolbar::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 22px !important;
+    background: linear-gradient(to bottom, #090809, rgba(9,8,9,0)) !important;
+    pointer-events: none !important;
   }
   /* Show SVG icons, hide desktop text */
-  #ev-toolbar .ev-tb-svg  { display: block !important; width: 20px !important; height: 20px !important; }
+  #ev-toolbar .ev-tb-svg  { display: block !important; width: 16px !important; height: 16px !important; }
   #ev-toolbar .ev-tb-text { display: none !important; }
   /* × back button */
   #editor-back-btn {
     position: static !important;
-    width: 52px !important;
-    height: 48px !important;
+    width: 42px !important;
+    height: 38px !important;
     padding: 0 !important;
     margin: 0 !important;
     display: flex !important;
@@ -2931,8 +2945,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
   /* Undo / redo / reset */
   #ev-undo, #ev-redo, #ev-reset-btn {
-    width: 44px !important;
-    height: 56px !important;
+    width: 35px !important;
+    height: 38px !important;
     padding: 0 !important;
     background: none !important;
     border: none !important;
@@ -2948,8 +2962,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-tb-desktop { display: none !important; }
   /* Save group */
   #ev-tb-save {
-    padding: 0 14px !important;
-    gap: 14px !important;
+    padding: 0 11px !important;
+    gap: 11px !important;
     flex-shrink: 0 !important;
   }
   /* Save pill */
@@ -2958,17 +2972,17 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     background: rgba(218,90,125,0.88) !important;
     border: none !important;
     border-radius: 50px !important;
-    padding: 6px 14px !important;
+    padding: 5px 11px !important;
     min-width: 0 !important;
     height: auto !important;
     color: #fff !important;
-    font-size: 13px !important;
+    font-size: 10px !important;
     font-weight: 600 !important;
     font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif !important;
     letter-spacing: 0 !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 7px !important;
+    gap: 5px !important;
     flex-shrink: 0 !important;
     cursor: pointer !important;
   }
@@ -6225,7 +6239,7 @@ const sliderConfig = {
   DEHAZE:      [-1.00, 1.00, '', true],
   TEXTURE:     [ 0.00, 1.00, '', false],
   MATTE_LIFT:  [-1.00, 1.00, '', true],
-  DIFFUSION:   [-1.00, 1.00, '', true],
+  DIFFUSION:   [ 0.00, 1.00, '', false],
 };
 
 // No-look preset: allows sliders to work when no preset is selected

@@ -4855,10 +4855,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 </svg>
                 <span>COLOR</span>
               </button>
-              <button class="ev-subnav-btn" data-tab="hsl" onclick="evAdjustSubTab('hsl')">
-                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><path d="M10 3.5 A6.5 6.5 0 0 1 16.5 10" stroke-dasharray="2.5 1.8"/><path d="M10 16.5 A6.5 6.5 0 0 1 3.5 10" stroke-dasharray="2.5 1.8"/></svg>
-                <span>HSL</span>
-              </button>
               <button class="ev-subnav-btn" data-tab="detail" onclick="evAdjustSubTab('detail')">
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="6"/><line x1="3" y1="10" x2="5.5" y2="10"/><line x1="14.5" y1="10" x2="17" y2="10"/><line x1="10" y1="3" x2="10" y2="5.5"/><line x1="10" y1="14.5" x2="10" y2="17"/></svg>
                 <span>DETAILS</span>
@@ -4905,9 +4901,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
             <div id="es-atmosphere-sliders"></div>
           </div>
-          <!-- COLOR panel: TEMPERATURE TINT VIBRANCE SATURATION -->
+          <!-- COLOR panel: TEMPERATURE TINT VIBRANCE SATURATION + HSL subtab -->
           <div class="es-tab-panel" id="es-panel-color">
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title" id="ev-color-hdr-title">C O L O R</span></div>
+            <div class="crop-subtabs" id="ev-color-subtabs">
+              <button class="crop-subtab active" data-subtab="color" onclick="evColorSubTab(this,'color')">COLOR</button>
+              <button class="crop-subtab" data-subtab="hsl" onclick="evColorSubTab(this,'hsl')">HSL</button>
+            </div>
             <div id="es-color-sliders"></div>
             <div id="es-hsl-sliders"></div>
           </div>
@@ -15946,15 +15945,26 @@ function importSheetChoice(type) {
   };
   var _curSection = 'light';
 
+  /* ── COLOR/HSL subtab switcher ── */
+  window.evColorSubTab = function(btn, tab) {
+    document.querySelectorAll('#ev-color-subtabs .crop-subtab').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    var suite = document.getElementById('ev-editor-suite');
+    if (suite) suite.classList.toggle('hsl-active', tab === 'hsl');
+  };
+
   /* ── Wrap evAdjustSubTab ── */
   var _origSub = window.evAdjustSubTab;
   window.evAdjustSubTab = function(name) {
     _curSection = name;
     _origSub && _origSub.call(this, name);
     _updateSectionNav(name);
-    /* Update COLOR/HSL panel header */
-    var ch = document.getElementById('ev-color-hdr-title');
-    if (ch) ch.textContent = name === 'hsl' ? 'H S L' : 'C O L O R';
+    /* Reset color panel subtabs when navigating to color from subnav */
+    if (name === 'color') {
+      document.querySelectorAll('#ev-color-subtabs .crop-subtab').forEach(function(b){ b.classList.remove('active'); });
+      var _cb = document.querySelector('#ev-color-subtabs .crop-subtab[data-subtab="color"]');
+      if (_cb) _cb.classList.add('active');
+    }
     /* Lift pill above preset strip when atmosphere is active */
     var suite = document.getElementById('ev-editor-suite');
     if (suite) suite.classList.toggle('ev-atm-active', name === 'atmosphere');

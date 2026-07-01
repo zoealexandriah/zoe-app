@@ -3112,8 +3112,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-int-slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;background:#fff;border-radius:3px;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
   #ev-int-slider::-moz-range-thumb{width:24px;height:24px;background:#fff;border-radius:3px;cursor:pointer;border:none;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
 
-  /* EDITOR.SUITE titlebar: hide on mobile (tabs serve as header) */
-  #editor-view > div:last-child > div:first-child { display: none !important; }
+  /* EDITOR.SUITE titlebar: hide on mobile (handle is now first child, titlebar is second) */
+  #editor-view > div:last-child > div:nth-child(2) { display: none !important; }
 
   /* All panels hidden; only the active one shows when suite is open */
   .es-tab-panel { display: none !important; }
@@ -3401,11 +3401,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     border-radius: 2px !important;
   }
 
-  /* Subnav: always visible (overrides inline display:none) */
+  /* Subnav: always visible, pill/bubble shape */
   #ev-adjust-subnav {
     display: flex !important;
-    background: transparent !important;
+    background: #1c1915 !important;
     border-top: none !important;
+    border-radius: 100px !important;
+    margin: 8px 14px 6px !important;
+    padding: 2px !important;
+    border: 0.5px solid rgba(255,255,255,0.07) !important;
+    height: auto !important;
+    overflow: hidden !important;
+    backdrop-filter: blur(10px) !important;
   }
 
   /* Flatten: hide old left-pinned section (now inside scroll row) */

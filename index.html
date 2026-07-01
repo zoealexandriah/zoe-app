@@ -3005,8 +3005,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* No-image state: hide subnav and slider suite so user can only import or go back */
   #editor-view.no-image #ev-adjust-subnav { display: none !important; }
   #editor-view.no-image #ev-editor-suite { display: none !important; }
-  /* Show save FAB only when a photo is loaded */
-  #editor-view:not(.no-image) #ev-save-fab { display: flex !important; }
+  /* Show save FAB only when a photo is loaded; z-index above pill (50) */
+  #editor-view:not(.no-image) #ev-save-fab { display: flex !important; z-index: 55 !important; }
   /* Always hide TOOLS header + CROP/FLIP tool rows in ev-tools on mobile */
   #ev-tools .et-section-header,
   #ev-tools .et-tool-row { display: none !important; }

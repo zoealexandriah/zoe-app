@@ -3005,8 +3005,19 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* No-image state: hide subnav and slider suite so user can only import or go back */
   #editor-view.no-image #ev-adjust-subnav { display: none !important; }
   #editor-view.no-image #ev-editor-suite { display: none !important; }
-  /* Show save FAB only when a photo is loaded; z-index above pill (50) */
-  #editor-view:not(.no-image) #ev-save-fab { display: flex !important; z-index: 55 !important; }
+  /* Save formula FAB: in toolbar on mobile, shown only when photo is loaded */
+  #editor-view:not(.no-image) #ev-save-fab { display: flex !important; }
+  #ev-save-fab {
+    position: static !important;
+    width: auto !important;
+    height: 100% !important;
+    border-radius: 8px !important;
+    padding: 0 8px !important;
+    z-index: auto !important;
+    background: transparent !important;
+    border: none !important;
+    flex-shrink: 0 !important;
+  }
   /* Always hide TOOLS header + CROP/FLIP tool rows in ev-tools on mobile */
   #ev-tools .et-section-header,
   #ev-tools .et-tool-row { display: none !important; }
@@ -4650,6 +4661,14 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
             <!-- Divider + Save pill -->
             <div id="ev-tb-save" style="display:flex;align-items:center;gap:14px;padding:0 14px;flex-shrink:0;">
+              <!-- Save formula button sits left of the divider -->
+              <div id="ev-save-fab" onclick="evShowSaveFormula()" title="Save Formula" style="display:none">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                  <line x1="12" y1="9" x2="12" y2="15"/>
+                  <line x1="9" y1="12" x2="15" y2="12"/>
+                </svg>
+              </div>
               <div style="width:1px;height:22px;background:rgba(255,255,255,0.14);flex-shrink:0;"></div>
               <div class="ctb-btn" id="save-to-gallery-btn" onclick="evSaveWithAnimation()" style="display:inline-flex;align-items:center;gap:7px;">
                 Save
@@ -4661,14 +4680,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <!-- Canvas area -->
           <div id="ev-canvas-area" style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#100d14;">
             <canvas id="ev-canvas"></canvas>
-            <!-- Floating save formula button -->
-            <div id="ev-save-fab" onclick="evShowSaveFormula()" title="Save Formula" style="display:none">
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                <line x1="12" y1="9" x2="12" y2="15"/>
-                <line x1="9" y1="12" x2="15" y2="12"/>
-              </svg>
-            </div>
             <div id="ev-no-photo" style="display:none;flex-direction:column;align-items:center;justify-content:center;position:absolute;inset:0;padding:0 32px;">
               <!-- Pixel folder illustration -->
               <svg width="108" height="96" viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:18px;flex-shrink:0;overflow:visible">
@@ -6500,8 +6511,9 @@ function buildSectionHTML(p, section, rows, state) {
     const pct = Math.round(t * 100);
     const disp = getSliderDisplay(name, t);
     const changed = _isUnipolar ? (t > 0.01) : (Math.abs(t - 0.5) > 0.01);
+    const _slLabel = {TEMPERATURE:'TEMP'}[name] || name;
     html += `<div class="sl-row${changed?' changed':''}">
-      <div class="sl-header">${_sliderIcon(name)}<span class="sl-name">${name}</span><span class="sl-val" id="slv-${p.id}-${name}" data-preset="${p.id}" data-param="${name}">${disp}</span></div>
+      <div class="sl-header">${_sliderIcon(name)}<span class="sl-name">${_slLabel}</span><span class="sl-val" id="slv-${p.id}-${name}" data-preset="${p.id}" data-param="${name}">${disp}</span></div>
       <div class="sl-track" data-preset="${p.id}" data-param="${name}"${_isUnipolar?' data-unipolar="true"':''}>
         <div class="sl-fill" style="width:${pct}%"></div>
         <div class="sl-thumb" style="left:${pct}%"></div>

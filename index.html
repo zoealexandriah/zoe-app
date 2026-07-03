@@ -2097,6 +2097,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .crop-subtab.active { background:rgba(255,255,255,0.13); color:rgba(255,255,255,0.92); font-weight:700; }
 /* Crop subtab expanded mode */
+#editor-view.crop-ratio-active #ev-adjust-subnav { display: none !important; }
 .crop-subtabs.crop-expanded .crop-subtab { display:none !important; }
 .crop-expanded-bar { display:none; width:100%; align-items:center; justify-content:space-between; }
 .crop-subtabs.crop-expanded .crop-expanded-bar { display:flex; }
@@ -6758,9 +6759,13 @@ function evAdjustSubTab(name) {
   }
   // Auto-select the specific tool so only crop OR flip controls show
   if (name === 'crop' || name === 'flip') {
+    // Capture default tab BEFORE etSelectTool resets _etCropDefaultTab via etCropHTML
+    var _cropInitTab = (name === 'crop' && typeof _etCropDefaultTab !== 'undefined') ? (_etCropDefaultTab || 'straighten') : 'straighten';
     if (typeof etSelectTool === 'function') etSelectTool(name);
     if (name === 'crop') {
       setTimeout(function() {
+        // Only click RATIO if re-adjusting a prior crop or if undo set ratio as default
+        if (!_cropReAdjSaved && _cropInitTab !== 'ratio') return;
         var _rb = document.querySelector('.crop-subtab[onclick*="ratio"]');
         if (!_rb) return;
         // In re-adjust mode, pre-load the saved crop rect so cropSelectSubTab shows it
@@ -6775,7 +6780,7 @@ function evAdjustSubTab(name) {
             }
           }
         }
-        _rb.click(); // always click — handles active-but-hidden case after undo
+        _rb.click();
       }, 80);
     }
   }
@@ -14769,16 +14774,40 @@ function cropSubTabExpand(label) {
   var nameEl = document.getElementById('crop-exp-name');
   if (nameEl) nameEl.textContent = label;
   bar.classList.add('crop-expanded');
+  if (label === 'RATIO') {
+    var edV = document.getElementById('editor-view');
+    if (edV) edV.classList.add('crop-ratio-active');
+  }
 }
 function cropSubTabCollapse(confirm) {
   var bar = document.getElementById('crop-subtabs-bar');
   if (!bar) return;
   bar.classList.remove('crop-expanded');
-  if (!confirm) {
-    var activeSt = bar.querySelector('.crop-subtab.active');
-    if (activeSt && activeSt.textContent.trim() === 'STRAIGHTEN') {
+  var edV = document.getElementById('editor-view');
+  if (edV) edV.classList.remove('crop-ratio-active');
+  var activeSt = bar.querySelector('.crop-subtab.active');
+  var activeTab = activeSt ? activeSt.textContent.trim() : '';
+  if (confirm) {
+    if (activeTab === 'RATIO') {
+      if (typeof cropRect !== 'undefined' && cropRect) {
+        if (typeof _savedCropRect !== 'undefined') _savedCropRect = { x: cropRect.x, y: cropRect.y, w: cropRect.w, h: cropRect.h };
+        if (typeof _cropApplyRatioInPlace === 'function') _cropApplyRatioInPlace(false);
+        cropRect = null;
+      }
+    }
+  } else {
+    if (activeTab === 'STRAIGHTEN') {
       var sl = document.getElementById('crop-straighten-slider');
       if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
+    } else if (activeTab === 'RATIO') {
+      cropRect = null;
+      var ov = document.getElementById('crop-overlay-canvas');
+      if (ov) ov.style.display = 'none';
+      if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved) {
+        userImage = _cropReAdjSaved;
+        _cropReAdjSaved = null;
+        if (typeof evRenderCanvas === 'function') requestAnimationFrame(evRenderCanvas);
+      }
     }
   }
 }

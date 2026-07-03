@@ -6773,23 +6773,10 @@ function evAdjustSubTab(name) {
     if (typeof etSelectTool === 'function') etSelectTool(name);
     if (name === 'crop') {
       setTimeout(function() {
-        // Only click RATIO if re-adjusting a prior crop or if undo set ratio as default
-        if (!_cropReAdjSaved && _cropInitTab !== 'ratio') return;
+        // Only auto-click RATIO for undo flow (not re-adjust — user taps RATIO themselves)
+        if (_cropInitTab !== 'ratio') return;
         var _rb = document.querySelector('.crop-subtab[onclick*="ratio"]');
-        if (!_rb) return;
-        // In re-adjust mode, pre-load the saved crop rect so cropSelectSubTab shows it
-        if (_cropReAdjSaved && _savedCropRect) {
-          var _racAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
-          if (_racAc && _racAc.width > 0) {
-            var _racR = _savedCropRect;
-            if (_racR.w > 0 && _racR.h > 0
-                && _racR.x + _racR.w <= _racAc.width
-                && _racR.y + _racR.h <= _racAc.height) {
-              cropRect = { x: _racR.x, y: _racR.y, w: _racR.w, h: _racR.h };
-            }
-          }
-        }
-        _rb.click();
+        if (_rb) _rb.click();
       }, 80);
     }
   }
@@ -14909,6 +14896,15 @@ function cropSelectSubTab(btn, tab) {
     if (el) el.style.display = id === tab ? '' : 'none';
   });
   if (tab === 'ratio') {
+    // Re-adjust mode: preload saved crop rect so it shows on the restored original image
+    if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved && typeof _savedCropRect !== 'undefined' && _savedCropRect) {
+      var _ra_ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+      if (_ra_ac && _ra_ac.width > 0 && _savedCropRect.w > 0
+          && _savedCropRect.x + _savedCropRect.w <= _ra_ac.width
+          && _savedCropRect.y + _savedCropRect.h <= _ra_ac.height) {
+        cropRect = { x: _savedCropRect.x, y: _savedCropRect.y, w: _savedCropRect.w, h: _savedCropRect.h };
+      }
+    }
     // Use RAF so panel reflow settles before measuring positions.
     // Always use getActiveCanvas() — never hardcode hero-canvas (wrong in editor view).
     var _needCreate = !ov;

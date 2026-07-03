@@ -2097,7 +2097,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .crop-subtab.active { background:rgba(255,255,255,0.13); color:rgba(255,255,255,0.92); font-weight:700; }
 /* Crop subtab expanded mode */
-#editor-view.crop-ratio-active #ev-adjust-subnav { display: none !important; }
 .crop-subtabs.crop-expanded .crop-subtab { display:none !important; }
 .crop-expanded-bar { display:none; width:100%; align-items:center; justify-content:space-between; }
 .crop-subtabs.crop-expanded .crop-expanded-bar { display:flex; }
@@ -3010,6 +3009,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-mobile-nav { display: none !important; }
   /* Subnav always visible when image is loaded (JS sets inline flex; CSS mirrors it) */
   #editor-view:not(.no-image) #ev-adjust-subnav { display: flex !important; }
+  /* Hide pill while ratio expanded so crop overlay has full canvas room */
+  #editor-view.crop-ratio-active #ev-adjust-subnav { display: none !important; }
   /* No-image state: hide subnav and slider suite so user can only import or go back */
   #editor-view.no-image #ev-adjust-subnav { display: none !important; }
   #editor-view.no-image #ev-editor-suite { display: none !important; }
@@ -6745,12 +6746,20 @@ function evAdjustSubTab(name) {
   // is open so sliders are visible. evMobileNavToggle adds suite.open; tapping
   // sub-nav tabs directly bypasses that, so we add it here.
   if (name !== 'crop') {
-    // Only auto-apply crop when actually leaving crop mode
+    // Exit crop mode cleanly without applying or restoring anything
     var _edV2 = document.getElementById('editor-view');
     if (_edV2 && _edV2.classList.contains('crop-mode')) {
-      _cropApplySilent = true;
-      if (typeof toolsCropApply === 'function') toolsCropApply();
-      _cropApplySilent = false;
+      cropRect = null;
+      // In re-adjust mode userImage is the restored original — put back the cropped version
+      if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved) {
+        userImage = _cropReAdjSaved;
+        _cropReAdjSaved = null;
+      }
+      if (typeof _ratioPreCropUserImage !== 'undefined') _ratioPreCropUserImage = null;
+      if (typeof _cropExitMode === 'function') _cropExitMode();
+      var _navOv = document.getElementById('crop-overlay-canvas');
+      if (_navOv) _navOv.remove();
+      cropDragging = null;
     }
     var _suite = document.getElementById('ev-editor-suite');
     if (_suite) _suite.classList.add('open');
@@ -10328,7 +10337,7 @@ function toolsCropDrawRect(ov) {
   ctx.fillRect(0, 0, ov.width, ov.height);
   ctx.clearRect(x, y, w, h);
   // Border
-  ctx.strokeStyle = '#c9b8d4'; ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#c9b8d4'; ctx.lineWidth = 2.5;
   ctx.strokeRect(x, y, w, h);
   // 8 handles — 4 corners + 4 edge midpoints
   const hs = 8;
@@ -14779,6 +14788,46 @@ function cropSubTabExpand(label) {
     if (edV) edV.classList.add('crop-ratio-active');
   }
 }
+function _cropRatioConfirm() {
+  if (!cropRect) return;
+  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+  if (!ac) return;
+  var _cSrc = userImage;
+  var _cScX = (_cSrc.naturalWidth || _cSrc.width) / ac.width;
+  var _cScY = (_cSrc.naturalHeight || _cSrc.height) / ac.height;
+  var _pendingRect = cropRect;
+  // Save for re-adjust on next crop-panel open
+  if (typeof _savedCropRect !== 'undefined') _savedCropRect = { x: _pendingRect.x, y: _pendingRect.y, w: _pendingRect.w, h: _pendingRect.h };
+  if (typeof _preCropState === 'undefined' || !_preCropState) {
+    _preCropState = { userImage: _cSrc, origPixels: (typeof _origPixels !== 'undefined') ? _origPixels : null,
+      origOffX: (typeof _origOffX !== 'undefined') ? _origOffX : 0, origOffY: (typeof _origOffY !== 'undefined') ? _origOffY : 0,
+      origW: (typeof _origW !== 'undefined') ? _origW : 0, origH: (typeof _origH !== 'undefined') ? _origH : 0 };
+  }
+  // Clear state immediately so nothing restores old image on cancel
+  cropRect = null;
+  _ratioPreCropUserImage = null;
+  _cropReAdjSaved = null;
+  var _cOv = document.getElementById('crop-overlay-canvas');
+  if (_cOv) _cOv.style.display = 'none';
+  // Bake crop
+  var tmp = document.createElement('canvas');
+  tmp.width  = Math.round(_pendingRect.w * _cScX);
+  tmp.height = Math.round(_pendingRect.h * _cScY);
+  tmp.getContext('2d').drawImage(_cSrc, _pendingRect.x * _cScX, _pendingRect.y * _cScY, _pendingRect.w * _cScX, _pendingRect.h * _cScY, 0, 0, tmp.width, tmp.height);
+  var newImg = new Image();
+  newImg.onload = function() {
+    var _p = (typeof evActivePreset !== 'undefined') ? (evActivePreset || activePreset) : null;
+    var _snap = { presetId: _p ? _p.id : null, sliders: _p ? JSON.parse(JSON.stringify((typeof sliderState !== 'undefined') ? sliderState[_p.id] || {} : {})) : {}, intensity: (typeof presetIntensity !== 'undefined') ? presetIntensity : 1, _userImage: _cSrc };
+    if (typeof evHistory !== 'undefined') { if (evHistory.length >= 30) evHistory.shift(); evHistory.push(_snap); evFuture.length = 0; }
+    if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+    userImage = newImg;
+    showToast('CROP APPLIED');
+    var _ev = document.getElementById('editor-view');
+    if (_ev && _ev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
+    else if (typeof loadImageToCanvas === 'function') loadImageToCanvas(ac, newImg);
+  };
+  newImg.src = tmp.toDataURL();
+}
 function cropSubTabCollapse(confirm) {
   var bar = document.getElementById('crop-subtabs-bar');
   if (!bar) return;
@@ -14788,25 +14837,22 @@ function cropSubTabCollapse(confirm) {
   var activeSt = bar.querySelector('.crop-subtab.active');
   var activeTab = activeSt ? activeSt.textContent.trim() : '';
   if (confirm) {
-    if (activeTab === 'RATIO') {
-      if (typeof cropRect !== 'undefined' && cropRect) {
-        if (typeof _savedCropRect !== 'undefined') _savedCropRect = { x: cropRect.x, y: cropRect.y, w: cropRect.w, h: cropRect.h };
-        if (typeof _cropApplyRatioInPlace === 'function') _cropApplyRatioInPlace(false);
-        cropRect = null;
-      }
-    }
+    if (activeTab === 'RATIO') _cropRatioConfirm();
   } else {
     if (activeTab === 'STRAIGHTEN') {
       var sl = document.getElementById('crop-straighten-slider');
       if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
     } else if (activeTab === 'RATIO') {
       cropRect = null;
+      _ratioPreCropUserImage = null;
       var ov = document.getElementById('crop-overlay-canvas');
       if (ov) ov.style.display = 'none';
       if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved) {
         userImage = _cropReAdjSaved;
         _cropReAdjSaved = null;
-        if (typeof evRenderCanvas === 'function') requestAnimationFrame(evRenderCanvas);
+        var _ev2 = document.getElementById('editor-view');
+        if (_ev2 && _ev2.classList.contains('active') && typeof evRenderCanvas === 'function') requestAnimationFrame(evRenderCanvas);
+        else { var _rac2 = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rac2 && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac2, userImage); }
       }
     }
   }

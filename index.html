@@ -14896,30 +14896,33 @@ function cropSelectSubTab(btn, tab) {
     if (el) el.style.display = id === tab ? '' : 'none';
   });
   if (tab === 'ratio') {
-    // Re-adjust mode: preload saved crop rect so it shows on the restored original image
-    if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved && typeof _savedCropRect !== 'undefined' && _savedCropRect) {
-      var _ra_ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
-      if (_ra_ac && _ra_ac.width > 0 && _savedCropRect.w > 0
-          && _savedCropRect.x + _savedCropRect.w <= _ra_ac.width
-          && _savedCropRect.y + _savedCropRect.h <= _ra_ac.height) {
-        cropRect = { x: _savedCropRect.x, y: _savedCropRect.y, w: _savedCropRect.w, h: _savedCropRect.h };
-      }
+    // Activate re-adjust if a confirmed crop exists and we're not already in re-adjust mode
+    var _ratioActivatedReAdj = false;
+    if (!_cropReAdjSaved && typeof _preCropState !== 'undefined' && _preCropState && _preCropState.userImage
+        && typeof _savedCropRect !== 'undefined' && _savedCropRect) {
+      _cropReAdjSaved = userImage;
+      userImage = _preCropState.userImage;
+      _ratioActivatedReAdj = true;
+      // Remove stale overlay — RAF will recreate it sized to the restored-original canvas
+      var _oldOvR = document.getElementById('crop-overlay-canvas');
+      if (_oldOvR) _oldOvR.remove();
+      ov = null;
+      // Re-render canvas with original image now so RAF sees correct dimensions
+      var _rAdjEv = document.getElementById('editor-view');
+      if (_rAdjEv && _rAdjEv.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
+      else { var _rAdjAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rAdjAc && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rAdjAc, userImage); }
     }
     // Use RAF so panel reflow settles before measuring positions.
-    // Always use getActiveCanvas() — never hardcode hero-canvas (wrong in editor view).
     var _needCreate = !ov;
     requestAnimationFrame(function() {
       var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
       if (!ac || !ac.width) return;
       if (_needCreate) {
-        // Recreate overlay attached to the correct canvas parent
         if (typeof toolsCropDrawOnCanvas === 'function') toolsCropDrawOnCanvas(ac);
-        // toolsCropDrawOnCanvas leaves overlay hidden; we'll show it below
       }
       var _ov2 = document.getElementById('crop-overlay-canvas');
       if (!_ov2) return;
       _ov2.style.pointerEvents = 'auto';
-      // Re-parent if it ended up under the wrong container
       if (_ov2.parentElement !== ac.parentElement) ac.parentElement.appendChild(_ov2);
       var _acRect  = ac.getBoundingClientRect();
       var _parRect = ac.parentElement.getBoundingClientRect();
@@ -14929,12 +14932,17 @@ function cropSelectSubTab(btn, tab) {
       _ov2.style.height = _acRect.height + 'px';
       _ov2.style.left   = (_acRect.left - _parRect.left) + 'px';
       _ov2.style.top    = (_acRect.top  - _parRect.top)  + 'px';
-      if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
+      // In re-adjust mode use saved rect; otherwise keep current or default to full canvas
+      var _srR = (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved && typeof _savedCropRect !== 'undefined') ? _savedCropRect : null;
+      if (_srR && _srR.w > 0) {
+        cropRect = { x: _srR.x, y: _srR.y, w: Math.min(_srR.w, ac.width), h: Math.min(_srR.h, ac.height) };
+      } else if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
           || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
         cropRect = { x: 0, y: 0, w: ac.width, h: ac.height };
       }
       if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(_ov2);
       _ov2.style.display = 'block';
+      if (_needCreate && typeof toolsCropBindDrag === 'function') toolsCropBindDrag(_ov2, ac);
     });
   }
   if (tab !== 'straighten') {

@@ -2096,6 +2096,13 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   -webkit-tap-highlight-color:transparent; outline:none;
 }
 .crop-subtab.active { background:rgba(255,255,255,0.13); color:rgba(255,255,255,0.92); font-weight:700; }
+/* Crop subtab expanded mode */
+.crop-subtabs.crop-expanded .crop-subtab { display:none !important; }
+.crop-expanded-bar { display:none; width:100%; align-items:center; justify-content:space-between; }
+.crop-subtabs.crop-expanded .crop-expanded-bar { display:flex; }
+.crop-exp-btn { background:none; border:none; color:rgba(255,255,255,0.5); font-size:14px; line-height:1; padding:4px 8px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.crop-exp-confirm { color:rgba(130,230,130,0.85); }
+.crop-exp-name { flex:1; text-align:center; font-size:9px; letter-spacing:0.09em; font-family:var(--mono); font-weight:700; color:rgba(255,255,255,0.92); }
 /* Sub-content areas */
 .crop-sub-content { padding:4px 14px 4px; }
 .crop-sub-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
@@ -11416,11 +11423,16 @@ function etCropHTML() {
   const hVal = (typeof _perspBaseH !== 'undefined') ? _perspBaseH : 0;
   const _st = _etCropDefaultTab || 'straighten'; _etCropDefaultTab = 'straighten';
   return `<div class="crop-ui">
-    <div class="crop-subtabs">
+    <div class="crop-subtabs" id="crop-subtabs-bar">
       <button class="crop-subtab${_st==='straighten'?' active':''}" onclick="cropSelectSubTab(this,'straighten')">STRAIGHTEN</button>
       <button class="crop-subtab${_st==='ratio'?' active':''}" onclick="cropSelectSubTab(this,'ratio')">RATIO</button>
       <button class="crop-subtab${_st==='transform'?' active':''}" onclick="cropSelectSubTab(this,'transform')">ROTATE</button>
       <button class="crop-subtab${_st==='optical'?' active':''}" onclick="cropSelectSubTab(this,'optical')">OPTICAL</button>
+      <div class="crop-expanded-bar" id="crop-exp-bar">
+        <button class="crop-exp-btn crop-exp-cancel" onclick="cropSubTabCollapse(false)">✕</button>
+        <span class="crop-exp-name" id="crop-exp-name"></span>
+        <button class="crop-exp-btn crop-exp-confirm" onclick="cropSubTabCollapse(true)">✓</button>
+      </div>
     </div>
     <div class="crop-sub-content" id="crop-sub-straighten"${_st!=='straighten'?' style="display:none"':''}>
       <div class="crop-sub-row" style="margin-top:10px">
@@ -11429,7 +11441,7 @@ function etCropHTML() {
       </div>
       <input type="range" class="tc-range" id="crop-straighten-slider"
              min="-45" max="45" step="0.1" value="0"
-             oninput="cropStraightenPreview(this.value)">
+             oninput="cropStraightenPreview(this.value);cropSubTabExpandStraighten()">
     </div>
     <div class="crop-sub-content" id="crop-sub-ratio" style="display:${_st==='ratio'?'block':'none'};padding-left:4px;padding-right:4px">
       <div class="crop-ratios">${ratioBtns}</div>
@@ -14751,7 +14763,36 @@ function _cropExitMode() {
 }
 
 // ── New Crop sub-tab helpers ──────────────────────────────────────────────
+function cropSubTabExpand(label) {
+  var bar = document.getElementById('crop-subtabs-bar');
+  if (!bar) return;
+  var nameEl = document.getElementById('crop-exp-name');
+  if (nameEl) nameEl.textContent = label;
+  bar.classList.add('crop-expanded');
+}
+function cropSubTabCollapse(confirm) {
+  var bar = document.getElementById('crop-subtabs-bar');
+  if (!bar) return;
+  bar.classList.remove('crop-expanded');
+  if (!confirm) {
+    var activeSt = bar.querySelector('.crop-subtab.active');
+    if (activeSt && activeSt.textContent.trim() === 'STRAIGHTEN') {
+      var sl = document.getElementById('crop-straighten-slider');
+      if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
+    }
+  }
+}
+function cropSubTabExpandStraighten() {
+  var sl = document.getElementById('crop-straighten-slider');
+  if (!sl) return;
+  if (Math.abs(parseFloat(sl.value)) > 0.001) {
+    var bar = document.getElementById('crop-subtabs-bar');
+    if (bar && !bar.classList.contains('crop-expanded')) cropSubTabExpand('STRAIGHTEN');
+  }
+}
 function cropSelectSubTab(btn, tab) {
+  var _csBar = document.getElementById('crop-subtabs-bar');
+  if (_csBar) _csBar.classList.remove('crop-expanded');
   document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
   var ov = document.getElementById('crop-overlay-canvas');
@@ -14824,6 +14865,10 @@ function cropSelectSubTab(btn, tab) {
       if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(_ov2);
       _ov2.style.display = 'block';
     });
+  }
+  if (tab !== 'straighten') {
+    var _etLabels = {ratio:'RATIO', transform:'ROTATE', optical:'OPTICAL'};
+    cropSubTabExpand(_etLabels[tab] || tab.toUpperCase());
   }
 }
 

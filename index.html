@@ -11834,13 +11834,11 @@ function globalReset() {
   }
   document.querySelectorAll('.ed3-preset-card, [data-preset-id]').forEach(c => c.classList.remove('active'));
 
-  // Fully exit crop mode on reset
+  // Fully exit crop mode on reset — navigate to light tab so sliders show instead of blank panel
   var _csw = document.getElementById('crop-straighten-work'); if (_csw) _csw.remove();
   var _edVR = document.getElementById('editor-view');
   if (_edVR && _edVR.classList.contains('crop-mode')) {
-    _edVR.classList.remove('crop-mode');
-    var _tc = document.getElementById('et-tool-controls');
-    if (_tc) { _tc.innerHTML = ''; _tc.style.display = 'none'; }
+    if (typeof evAdjustSubTab === 'function') evAdjustSubTab('light');
   }
 
   // Clear saved edit state so reopening shows zero sliders (not the pre-reset values)
@@ -14818,6 +14816,17 @@ function cropSubTabCollapse(confirm) {
     if (activeTab === 'STRAIGHTEN') {
       var sl = document.getElementById('crop-straighten-slider');
       if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
+    } else if (activeTab === 'RATIO') {
+      // Restore cropped image if re-adjust was active, then discard pending crop rect
+      // so cropSelectSubTab(straighten) does NOT trigger _cropApplyRatioInPlace
+      if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved) {
+        userImage = _cropReAdjSaved;
+        _cropReAdjSaved = null;
+        var _ev2 = document.getElementById('editor-view');
+        if (_ev2 && _ev2.classList.contains('active') && typeof evRenderCanvas === 'function') requestAnimationFrame(evRenderCanvas);
+        else { var _rac2 = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rac2 && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac2, userImage); }
+      }
+      cropRect = null;
     }
     var _stBtn = bar.querySelector('.crop-subtab[onclick*="straighten"]');
     if (_stBtn && typeof cropSelectSubTab === 'function') cropSelectSubTab(_stBtn, 'straighten');

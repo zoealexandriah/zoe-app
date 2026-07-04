@@ -14818,18 +14818,6 @@ function cropSubTabCollapse(confirm) {
     if (activeTab === 'STRAIGHTEN') {
       var sl = document.getElementById('crop-straighten-slider');
       if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
-    } else if (activeTab === 'RATIO') {
-      cropRect = null;
-      _ratioPreCropUserImage = null;
-      var ov = document.getElementById('crop-overlay-canvas');
-      if (ov) ov.style.display = 'none';
-      if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved) {
-        userImage = _cropReAdjSaved;
-        _cropReAdjSaved = null;
-        var _ev2 = document.getElementById('editor-view');
-        if (_ev2 && _ev2.classList.contains('active') && typeof evRenderCanvas === 'function') requestAnimationFrame(evRenderCanvas);
-        else { var _rac2 = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rac2 && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac2, userImage); }
-      }
     }
   }
 }

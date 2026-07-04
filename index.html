@@ -14931,6 +14931,12 @@ function cropSelectSubTab(btn, tab) {
       if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(_ov2);
       _ov2.style.display = 'block';
       if (_needCreate && typeof toolsCropBindDrag === 'function') toolsCropBindDrag(_ov2, ac);
+      // Always reset to FREE on every RATIO open
+      toolsCropRatio = 'FREEFORM';
+      document.querySelectorAll('.crop-ratio-item').forEach(function(item) {
+        var _r = (item.getAttribute('onclick') || '').replace(/.*'([^']+)'.*/, '$1');
+        item.classList.toggle('active', _r === 'FREEFORM');
+      });
     });
   }
   if (tab !== 'straighten') {

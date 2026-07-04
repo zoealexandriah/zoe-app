@@ -14819,6 +14819,8 @@ function cropSubTabCollapse(confirm) {
       var sl = document.getElementById('crop-straighten-slider');
       if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
     }
+    var _stBtn = bar.querySelector('.crop-subtab[onclick*="straighten"]');
+    if (_stBtn && typeof cropSelectSubTab === 'function') cropSelectSubTab(_stBtn, 'straighten');
   }
 }
 function cropSubTabExpandStraighten() {

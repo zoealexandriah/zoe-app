@@ -10323,20 +10323,9 @@ function toolsCropDrawRect(ov) {
   ctx.fillStyle = 'rgba(10,7,16,0.60)';
   ctx.fillRect(0, 0, ov.width, ov.height);
   ctx.clearRect(x, y, w, h);
-  // Border
+  // Border only — no handle squares
   ctx.strokeStyle = '#c9b8d4'; ctx.lineWidth = 4;
   ctx.strokeRect(x, y, w, h);
-  // 8 handles — 4 corners + 4 edge midpoints
-  const hs = 8;
-  ctx.fillStyle = '#c9b8d4';
-  // Corners
-  [[x,y],[x+w,y],[x,y+h],[x+w,y+h]].forEach(([hx,hy]) => {
-    ctx.fillRect(hx - hs/2, hy - hs/2, hs, hs);
-  });
-  // Edge midpoints
-  [[x+w/2,y],[x+w/2,y+h],[x,y+h/2],[x+w,y+h/2]].forEach(([hx,hy]) => {
-    ctx.fillRect(hx - hs/2, hy - hs/2, hs, hs);
-  });
 }
 
 function toolsCropBindDrag(ov, hc) {

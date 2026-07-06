@@ -11826,6 +11826,17 @@ function globalReset() {
     var _rstNoneCard   = _rstNoneCanvas ? _rstNoneCanvas.parentElement : null;
     if (_rstNoneCard) _rstNoneCard.style.boxShadow = '0 0 0 1.5px rgba(201,184,212,0.75),0 0 12px rgba(150,120,200,0.28)';
     _evActiveCardEl = _rstNoneCard || null;
+    // Clear preset chip so UI matches the reset canvas state
+    var _rstNameEl = document.getElementById('es-preset-name');
+    var _rstSeriesEl = document.getElementById('es-preset-series');
+    var _rstThumbEl = document.getElementById('es-preset-thumb');
+    if (_rstNameEl) _rstNameEl.textContent = '— NO PRESET —';
+    if (_rstSeriesEl) _rstSeriesEl.textContent = '';
+    if (_rstThumbEl) { var _rtCtx = _rstThumbEl.getContext('2d'); if (_rtCtx) _rtCtx.clearRect(0, 0, _rstThumbEl.width, _rstThumbEl.height); }
+    presetIntensity = 1.0;
+    document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = 100; });
+    document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = '100%'; });
+    setTimeout(function() { if (typeof evRenderPresets === 'function') evRenderPresets(); }, 0);
   }
 
   // Restore original image — async path waits for load before rendering
@@ -13141,7 +13152,8 @@ function galleryOpenInEditor(idx) {
       _perspBaseV   = es.perspState.v || 0;
       _perspBaseH   = es.perspState.h || 0;
     }
-    var _origSrc = (es.perspState && es.perspState.baseURL ? es.perspState.baseURL : null)
+    var _origSrc = es.editedDataURL
+      || (es.perspState && es.perspState.baseURL ? es.perspState.baseURL : null)
       || es.originalDataURL
       || (entry.id ? (localStorage.getItem('zoe_edit_' + entry.id + '_original') || null) : null)
       || entry.dataURL

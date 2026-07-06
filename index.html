@@ -12212,8 +12212,8 @@ function _evRenderCanvasImmediate() {
   // pixel size (cssW/H × dpr) so the canvas is never upscaled by the browser —
   // upscaling is what causes the blurry look mid-drag. A full 1200px quality
   // re-render still fires automatically on drag release.
-  var MAX_SIDE = window._slDragging ? Math.min(Math.max(cssW, cssH), 1000) : 1200;
   var zoomFactor = Math.max(evZoomLevel || 1, 1);
+  var MAX_SIDE = window._slDragging ? Math.min(Math.max(cssW, cssH), 1000) : Math.round(1200 * zoomFactor);
   // No "1" cap here: capping at 1 means a small source (e.g. a previously-exported
   // 780px canvas) can't render at 2× DPR, so CSS has to stretch it → blurry.
   // We let it render up to baseScale*dpr (matching the physical display) or MAX_SIDE.

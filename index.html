@@ -13159,6 +13159,18 @@ function galleryOpenInEditor(idx) {
       if (_seriesEl) _seriesEl.textContent = p.series;
       if (_thumbEl)  { _thumbEl.width=36; _thumbEl.height=46; renderPhoto(_thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
       buildEditorSliders(p);
+      // Doubly-deferred rebuild — fires after evInit's rAF so saved slider values
+      // are the final DOM state even if a subsequent evBuildSliders call overwrites them.
+      var _ropP = p;
+      var _ropSliders = JSON.parse(JSON.stringify(es.sliders || {}));
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          if (activePreset && activePreset.id === _ropP.id) {
+            sliderState[_ropP.id] = _ropSliders;
+            buildEditorSliders(_ropP);
+          }
+        });
+      });
     }
     // Restore perspective re-edit state so slider-to-zero returns the pre-warp original
     if (es.perspState && es.perspState.baseURL) {

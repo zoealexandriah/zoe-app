@@ -6616,13 +6616,14 @@ function attachSliderListeners(p) {
       var dx = Math.abs(e.touches[0].clientX - _slTouchStartX);
       var dy = Math.abs(e.touches[0].clientY - _slTouchStartY);
       if (_slTouchLocked === null) {
-        if (dx < 5 && dy < 5) return; // too small to decide yet
-        if (dy > dx) {
+        if (dx < 4 && dy < 4) return; // too small to decide yet
+        if (dy * 0.6 > dx) {
           // Vertical scroll — cancel drag and let the page scroll
           _slTouchLocked = 'v';
           _slDragTrack = null; window._slDragging = false;
           return;
         }
+        if (dx < 10) return; // need clear horizontal intent before locking to slider
         // Horizontal drag confirmed — lock in and start slider
         _slTouchLocked = 'h';
         evHistoryPush();

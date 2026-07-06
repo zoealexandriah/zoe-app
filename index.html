@@ -13469,10 +13469,13 @@ function editorSaveToGallery() {
 let _autoSaveTimer = null;
 
 function autoSaveEdit() {
-  if (!userImage || editingIdx === undefined || editingIdx < 0) return;
+  if (editingIdx === undefined || editingIdx < 0) return;
   const entry = library[editingIdx];
   if (!entry) return;
+  // Allow save even when userImage is null (original still loading) as long as
+  // a preset or prior editState exists — prevents losing edits during async load.
   const _asp = activePreset || evActivePreset;
+  if (!userImage && !_asp && !entry.editState) return;
   // Preserve original — first time only
   const originalDataURL = (entry.editState && entry.editState.originalDataURL)
     ? entry.editState.originalDataURL

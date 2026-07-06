@@ -11740,7 +11740,7 @@ function globalReset() {
     Math.abs(typeof _cropStraightenVal !== 'undefined' ? _cropStraightenVal : 0) > 0.01 ||
     !!document.getElementById('crop-straighten-work') || !!_perspBaseURL;
   if (!_hasAnyEdits) { showToast('NOTHING TO RESET'); return; }
-  const hc = document.getElementById('hero-canvas');
+  const hc = document.getElementById('hero-canvas') || document.getElementById('ev-canvas');
   // Push current state to history (reset is undoable)
   if (hc && activePreset) fix2HistoryPush(activePreset.id);
 

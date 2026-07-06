@@ -13458,10 +13458,13 @@ function editorSaveToGallery() {
 let _autoSaveTimer = null;
 
 function autoSaveEdit() {
-  if (!userImage || editingIdx === undefined || editingIdx < 0) return;
+  if (editingIdx === undefined || editingIdx < 0) return;
   const entry = library[editingIdx];
   if (!entry) return;
   const _asp = activePreset || evActivePreset;
+  // userImage is null while the original loads async on a reopen — don't bail out in
+  // that case, as we still have valid sliderState and editState to save.
+  if (!userImage && !_asp && !entry.editState) return;
   // Preserve original — first time only
   const originalDataURL = (entry.editState && entry.editState.originalDataURL)
     ? entry.editState.originalDataURL

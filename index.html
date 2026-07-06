@@ -13087,9 +13087,13 @@ document.addEventListener('mouseup', function(){
 function galleryOpenInEditor(idx) {
   var entry = library[idx];
   if (!entry) return;
-  // Clear canvas before making editor visible — prevents flash of previous image
+  // Draw the saved thumbnail as a visual placeholder on the canvas so the editor
+  // shows something while the full-res original loads (instead of a blank canvas
+  // or the import screen). Must happen before clearRect so we can composite it.
   var _evC0 = document.getElementById('ev-canvas');
-  if (_evC0) { var _evCtx0 = _evC0.getContext('2d'); _evCtx0.clearRect(0, 0, _evC0.width, _evC0.height); }
+  if (_evC0 && entry.img) {
+    try { _evC0.getContext('2d').drawImage(entry.img, 0, 0, _evC0.width || entry.img.width, _evC0.height || entry.img.height); } catch(e) {}
+  }
   // Set up globals
   editingIdx = idx;
   _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0; // reset perspective re-edit state
@@ -13098,67 +13102,45 @@ function galleryOpenInEditor(idx) {
   evFuture.length  = 0;
   Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
   evActivePreset = null; activePreset = null;
-
-  // Called once the source image is ready — switches tab and restores state
-  function _doOpen(img) {
-    userImage = img;
-    var lv = document.getElementById('library-view');
-    if (lv) lv.classList.add('hidden');
-    switchToTab('EDITOR');
-    document.querySelectorAll('.bn-item').forEach(function(n){ n.classList.remove('active'); });
-    var editorBnItem = Array.from(document.querySelectorAll('.bn-item'))
-      .find(function(n){ return (n.querySelector('.bn-label')||{}).textContent.trim() === 'EDITOR'; });
-    if (editorBnItem) editorBnItem.classList.add('active');
-    // Restore saved edit state AFTER evInit (switchToTab calls evInit which resets preset)
-    if (entry.editState) {
-      var es = entry.editState;
-      var p  = presets.find(function(x){ return x.id === es.presetId; });
-      if (p) {
-        evActivePreset = p; activePreset = p;
-        sliderState[p.id] = JSON.parse(JSON.stringify(es.sliders || {}));
-        presetIntensity   = typeof es.intensity === 'number' ? es.intensity : 1.0;
-        document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = Math.round(presetIntensity * 100); });
-        document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = Math.round(presetIntensity * 100) + '%'; });
-        var _nameEl   = document.getElementById('es-preset-name');
-        var _seriesEl = document.getElementById('es-preset-series');
-        var _thumbEl  = document.getElementById('es-preset-thumb');
-        if (_nameEl)   _nameEl.textContent   = p.name;
-        if (_seriesEl) _seriesEl.textContent = p.series;
-        if (_thumbEl)  { _thumbEl.width=36; _thumbEl.height=46; renderPhoto(_thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
-        buildEditorSliders(p);
-      }
-      // Restore perspective re-edit state so slider-to-zero returns the pre-warp original
-      if (es.perspState && es.perspState.baseURL) {
-        _perspBaseURL = es.perspState.baseURL;
-        _perspBaseV   = es.perspState.v || 0;
-        _perspBaseH   = es.perspState.h || 0;
-      }
-      if (typeof evRenderCanvas === 'function') evRenderCanvas();
-      if (_perspBaseURL) {
-        var _preWarpImg = new Image();
-        _preWarpImg.onload = function() {
-          evHistory.push({
-            presetId:    es.presetId || null,
-            sliders:     JSON.parse(JSON.stringify(es.sliders || {})),
-            intensity:   typeof es.intensity === 'number' ? es.intensity : 1.0,
-            _userImage:  _preWarpImg,
-            _perspState: null
-          });
-          if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
-        };
-        _preWarpImg.src = _perspBaseURL;
-      } else {
-        evHistory.push({ presetId: null, sliders: {}, intensity: 1.0, _perspState: null });
-        if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
-      }
-      setTimeout(function() { evRenderPresets(); }, 60);
-    }
-  }
-
+  // Temporarily set userImage = entry.img so evInit shows the canvas (not the import screen).
+  // It will be nulled before evInit's rAF fires to prevent stacking effects on the thumbnail.
+  userImage = entry.img;
+  // Hide gallery, show editor
+  var lv = document.getElementById('library-view');
+  if (lv) lv.classList.add('hidden');
+  switchToTab('EDITOR');
+  // Update mobile bottom nav active state
+  document.querySelectorAll('.bn-item').forEach(function(n){ n.classList.remove('active'); });
+  var editorBnItem = Array.from(document.querySelectorAll('.bn-item'))
+    .find(function(n){ return (n.querySelector('.bn-label')||{}).textContent.trim() === 'EDITOR'; });
+  if (editorBnItem) editorBnItem.classList.add('active');
+  // Restore saved edit state AFTER evInit (switchToTab calls evInit which resets preset)
   if (entry.editState) {
-    // Load the original before switching tabs so evInit sees a real image, not null.
-    // This prevents the import/"drop something good" screen from flashing on open.
+    // Null userImage so evInit's scheduled rAF skips rendering on the baked thumbnail.
+    // The correct original will be set in origImg.onload below.
+    userImage = null;
     var es = entry.editState;
+    var p  = presets.find(function(x){ return x.id === es.presetId; });
+    if (p) {
+      evActivePreset = p; activePreset = p;
+      sliderState[p.id] = JSON.parse(JSON.stringify(es.sliders || {}));
+      presetIntensity   = typeof es.intensity === 'number' ? es.intensity : 1.0;
+      document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = Math.round(presetIntensity * 100); });
+      document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = Math.round(presetIntensity * 100) + '%'; });
+      var _nameEl   = document.getElementById('es-preset-name');
+      var _seriesEl = document.getElementById('es-preset-series');
+      var _thumbEl  = document.getElementById('es-preset-thumb');
+      if (_nameEl)   _nameEl.textContent   = p.name;
+      if (_seriesEl) _seriesEl.textContent = p.series;
+      if (_thumbEl)  { _thumbEl.width=36; _thumbEl.height=46; renderPhoto(_thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
+      buildEditorSliders(p);
+    }
+    // Restore perspective re-edit state so slider-to-zero returns the pre-warp original
+    if (es.perspState && es.perspState.baseURL) {
+      _perspBaseURL = es.perspState.baseURL;
+      _perspBaseV   = es.perspState.v || 0;
+      _perspBaseH   = es.perspState.h || 0;
+    }
     var _origSrc = (es.perspState && es.perspState.baseURL ? es.perspState.baseURL : null)
       || es.originalDataURL
       || (entry.id ? (localStorage.getItem('zoe_edit_' + entry.id + '_original') || null) : null)
@@ -13166,13 +13148,35 @@ function galleryOpenInEditor(idx) {
       || null;
     if (_origSrc) {
       var origImg = new Image();
-      origImg.onload = function() { _doOpen(origImg); };
+      origImg.onload = function() {
+        userImage = origImg;
+        if (typeof evRenderCanvas === 'function') evRenderCanvas();
+        if (_perspBaseURL) {
+          var _preWarpImg = new Image();
+          _preWarpImg.onload = function() {
+            evHistory.push({
+              presetId:    es.presetId || null,
+              sliders:     JSON.parse(JSON.stringify(es.sliders || {})),
+              intensity:   typeof es.intensity === 'number' ? es.intensity : 1.0,
+              _userImage:  _preWarpImg,
+              _perspState: null
+            });
+            if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+          };
+          _preWarpImg.src = _perspBaseURL;
+        } else {
+          evHistory.push({ presetId: null, sliders: {}, intensity: 1.0, _perspState: null });
+          if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+        }
+        setTimeout(function() { evRenderPresets(); }, 60);
+      };
       origImg.src = _origSrc;
     } else {
-      _doOpen(entry.img);
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+      evHistory.push({ presetId: null, sliders: {}, intensity: 1.0, _perspState: null });
+      if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+      setTimeout(function() { evRenderPresets(); }, 60);
     }
-  } else {
-    _doOpen(entry.img);
   }
 }
 

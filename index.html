@@ -13092,7 +13092,11 @@ function galleryOpenInEditor(idx) {
   if (_evC0) { var _evCtx0 = _evC0.getContext('2d'); _evCtx0.clearRect(0, 0, _evC0.width, _evC0.height); }
   // Set up globals
   editingIdx = idx;
-  userImage  = entry.img;
+  // If the entry has saved edits, null userImage before switchToTab so evInit's
+  // evRenderCanvas fires with no source — the correct original loads async below.
+  // Using entry.img here (the baked edited thumbnail) causes effects to stack on
+  // every open because evInit renders before the async original load completes.
+  userImage  = entry.editState ? null : entry.img;
   _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0; // reset perspective re-edit state
   _clearPresetThumbCaches(); // new image — invalidate all cached thumbnails
   evHistory.length = 0;

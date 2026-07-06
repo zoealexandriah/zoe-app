@@ -2779,6 +2779,15 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   outline: 1.5px solid rgba(255,255,255,0.85);
   outline-offset: 2px;
 }
+.hsl-clear-btn {
+  background: rgba(255,255,255,0.07) !important;
+  border: 1.5px solid rgba(255,255,255,0.18) !important;
+  color: rgba(255,255,255,0.45) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.hsl-clear-btn:hover { background: rgba(255,255,255,0.13) !important; color: rgba(255,255,255,0.75) !important; }
 .hsl-channel-label {
   font-size: 7.5px;
   letter-spacing: 0.18em;
@@ -6484,6 +6493,7 @@ function buildSectionHTML(p, section, rows, state) {
       <div class="hsl-dot" data-channel="SAT_GREENS" data-preset="${p.id}" onclick="hslSelectChannel(this)" title="GREENS" style="background:#38a038"></div>
       <div class="hsl-dot" data-channel="SAT_BLUES" data-preset="${p.id}" onclick="hslSelectChannel(this)" title="BLUES" style="background:#3858c0"></div>
       <div class="hsl-dot" data-channel="SAT_PURPLES" data-preset="${p.id}" onclick="hslSelectChannel(this)" title="PURPLES" style="background:#8040b0"></div>
+      <div class="hsl-dot hsl-clear-btn" onclick="hslClearAll('${p.id}')" title="Clear all HSL"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="4" x2="16" y2="16"/><line x1="16" y1="4" x2="4" y2="16"/></svg></div>
     </div>`;
     html += `<div class="hsl-channel-label" id="hsl-chan-label-${p.id}">HLS ALL SETTINGS</div>`;
     const hueT = state['HUE_SHIFT'] ?? 0.5;
@@ -15767,6 +15777,12 @@ window.colOpenCollection = function(colId) {
   }, 50);
 };
 
+
+function hslClearAll(presetId) {
+  if (typeof evHistoryPush === 'function') evHistoryPush();
+  resetSection(presetId, 'HSL');
+  showToast('HSL CLEARED');
+}
 
 function hslSelectChannel(dot) {
   const presetId = dot.dataset.preset;

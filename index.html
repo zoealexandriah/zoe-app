@@ -11810,6 +11810,11 @@ function globalReset() {
   // Post-reset render — called only AFTER userImage is confirmed loaded
   function _finishReset() {
     if (!_evOpenR || editingIdx !== _resetEditingIdx) return;
+    // Render immediately (sync) so the preset effect clears without waiting for a rAF.
+    // Stale rAFs scheduled before reset can't fire during synchronous code, so this
+    // always runs first and shows the original photo.
+    _evRenderScheduled = false;
+    if (typeof _evRenderCanvasImmediate === 'function') _evRenderCanvasImmediate();
     evRenderCanvas();
     // Rebuild sliders to show 0.00
     evBuildSliders();

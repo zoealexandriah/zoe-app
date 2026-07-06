@@ -11459,7 +11459,7 @@ function etCropHTML() {
       </div>
     </div>
     <div class="crop-sub-content" id="crop-sub-optical" style="display:${_st==='optical'?'':'none'}">
-      <div class="crop-transform-icons">
+      <div class="crop-transform-icons" id="persp-mode-buttons">
         <div class="crop-transform-icon-btn" onclick="cropPerspSelectAxis('v')">
           <div class="crop-transform-icon-box" id="persp-v-box">${perspVSvg}</div>
           <span class="crop-transform-icon-label" id="persp-v-lbl">${vVal !== 0 ? Math.round(vVal) : 'VERT'}</span>
@@ -14914,6 +14914,7 @@ function cropSelectSubTab(btn, tab) {
   var _phs2 = document.getElementById('crop-persp-h-section'); if (_phs2) _phs2.style.display = 'none';
   var _pvb = document.getElementById('persp-v-box'); if (_pvb) _pvb.classList.remove('active');
   var _phb = document.getElementById('persp-h-box'); if (_phb) _phb.classList.remove('active');
+  var _pmb = document.getElementById('persp-mode-buttons'); if (_pmb) _pmb.style.display = '';
   var _pvl = document.getElementById('persp-v-lbl'); if (_pvl) _pvl.textContent = 'VERT';
   var _phl = document.getElementById('persp-h-lbl'); if (_phl) _phl.textContent = 'HORIZ';
   // When re-entering transform, restore slider positions to the last-applied perspective values
@@ -15498,12 +15499,9 @@ var _perspBaseH    = 0;    // raw H slider value at last flush
 
 function cropPerspSelectAxis(axis) {
   _etPerspActiveAxis = axis;
-  // Highlight the selected circle
-  var vb = document.getElementById('persp-v-box');
-  var hb = document.getElementById('persp-h-box');
-  if (vb) vb.classList.toggle('active', axis === 'v');
-  if (hb) hb.classList.toggle('active', axis === 'h');
-  // Show the slider row and the correct section
+  // Hide mode buttons, show only the selected slider
+  var mb = document.getElementById('persp-mode-buttons');
+  if (mb) mb.style.display = 'none';
   var row = document.getElementById('crop-persp-slider-row');
   if (row) row.style.display = '';
   var vs = document.getElementById('crop-persp-v-section');

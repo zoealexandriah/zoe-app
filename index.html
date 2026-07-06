@@ -13152,10 +13152,10 @@ function galleryOpenInEditor(idx) {
       _perspBaseV   = es.perspState.v || 0;
       _perspBaseH   = es.perspState.h || 0;
     }
-    var _origSrc = es.editedDataURL
-      || (es.perspState && es.perspState.baseURL ? es.perspState.baseURL : null)
+    var _origSrc = (es.perspState && es.perspState.baseURL ? es.perspState.baseURL : null)
       || es.originalDataURL
       || (entry.id ? (localStorage.getItem('zoe_edit_' + entry.id + '_original') || null) : null)
+      || es.editedDataURL
       || entry.dataURL
       || null;
     if (_origSrc) {

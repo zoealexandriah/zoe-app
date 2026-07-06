@@ -14039,9 +14039,24 @@ const _origSwitchToTab = window.switchToTab;
 window.switchToTab = function(label) {
   if (label !== 'EDITOR') {
     clearTimeout(_autoSaveTimer);
+    // Capture editing context BEFORE autoSaveEdit clears anything
+    var _stIdx = (typeof editingIdx !== 'undefined' && editingIdx >= 0) ? editingIdx : -1;
+    var _stImg = (typeof userImage !== 'undefined') ? userImage : null;
     autoSaveEdit();
+    // Re-render gallery thumbnail so the preview updates immediately on return
+    if (label === 'GALLERY' && _stIdx >= 0 && _stImg) {
+      var _stEntry = library[_stIdx];
+      if (_stEntry && _stEntry.editState && _stEntry.editState.presetId) {
+        setTimeout(function() {
+          _renderBatchThumbnail(_stEntry, _stEntry.editState.presetId, _stEntry.editState.sliders || {}, _stEntry.editState.intensity || 1.0, function() {
+            libSaveToStorage();
+            renderLibrary();
+          });
+        }, 80);
+      }
+    }
   }
-if (_origSwitchToTab) _origSwitchToTab.call(this, label);
+  if (_origSwitchToTab) _origSwitchToTab.call(this, label);
   if (label === 'GALLERY') requestAnimationFrame(function() { renderLibrary(); });
 };
 

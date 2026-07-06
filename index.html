@@ -13112,6 +13112,7 @@ document.addEventListener('mouseup', function(){
 function galleryOpenInEditor(idx) {
   var entry = library[idx];
   if (!entry) return;
+  clearTimeout(_autoSaveTimer);
   // Draw the saved thumbnail as a visual placeholder on the canvas so the editor
   // shows something while the full-res original loads (instead of a blank canvas
   // or the import screen). Must happen before clearRect so we can composite it.
@@ -13159,18 +13160,6 @@ function galleryOpenInEditor(idx) {
       if (_seriesEl) _seriesEl.textContent = p.series;
       if (_thumbEl)  { _thumbEl.width=36; _thumbEl.height=46; renderPhoto(_thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
       buildEditorSliders(p);
-      // Doubly-deferred rebuild — fires after evInit's rAF so saved slider values
-      // are the final DOM state even if a subsequent evBuildSliders call overwrites them.
-      var _ropP = p;
-      var _ropSliders = JSON.parse(JSON.stringify(es.sliders || {}));
-      requestAnimationFrame(function() {
-        requestAnimationFrame(function() {
-          if (activePreset && activePreset.id === _ropP.id) {
-            sliderState[_ropP.id] = _ropSliders;
-            buildEditorSliders(_ropP);
-          }
-        });
-      });
     }
     // Restore perspective re-edit state so slider-to-zero returns the pre-warp original
     if (es.perspState && es.perspState.baseURL) {
@@ -13469,13 +13458,10 @@ function editorSaveToGallery() {
 let _autoSaveTimer = null;
 
 function autoSaveEdit() {
-  if (editingIdx === undefined || editingIdx < 0) return;
+  if (!userImage || editingIdx === undefined || editingIdx < 0) return;
   const entry = library[editingIdx];
   if (!entry) return;
-  // Allow save even when userImage is null (original still loading) as long as
-  // a preset or prior editState exists — prevents losing edits during async load.
   const _asp = activePreset || evActivePreset;
-  if (!userImage && !_asp && !entry.editState) return;
   // Preserve original — first time only
   const originalDataURL = (entry.editState && entry.editState.originalDataURL)
     ? entry.editState.originalDataURL

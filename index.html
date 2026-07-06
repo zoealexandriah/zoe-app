@@ -11873,6 +11873,15 @@ function globalReset() {
       hc.getContext('2d').fillRect(0, 0, hc.width, hc.height);
       hc.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(_origPixels.data), _origW, _origH), _origOffX, _origOffY);
       _finishReset();
+    } else if (_rstOrigURL) {
+      var _rstReloadImg = new Image();
+      _rstReloadImg.onload = function() {
+        if (editingIdx !== _resetEditingIdx) return;
+        userImage = _rstReloadImg;
+        _finishReset();
+      };
+      _rstReloadImg.onerror = function() { _finishReset(); };
+      _rstReloadImg.src = _rstOrigURL;
     } else {
       _finishReset();
     }

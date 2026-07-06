@@ -13669,6 +13669,22 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
 
 function galleryPasteEdits() {
   if (!window.copiedEdits || !libSelected.length) return;
+  var n = libSelected.length;
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);';
+  modal.innerHTML = '<div style="width:100%;background:rgba(14,9,24,0.97);border-top:0.5px solid rgba(201,184,212,0.15);border-radius:20px 20px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));font-family:var(--mono);">'
+    + '<div style="font-size:11px;letter-spacing:0.12em;color:rgba(226,199,179,0.9);margin-bottom:6px;">PASTE EDITS</div>'
+    + '<div style="font-size:10px;letter-spacing:0.06em;color:rgba(255,255,255,0.45);margin-bottom:22px;">Apply copied edits to ' + n + ' photo' + (n===1?'':'s') + '? This will overwrite any existing edits.</div>'
+    + '<div style="display:flex;gap:10px;">'
+    + '<button onclick="this.closest(\'[data-paste-confirm]\').remove()" style="flex:1;height:44px;border-radius:12px;border:0.5px solid rgba(201,184,212,0.2);background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);font-family:var(--mono);font-size:10px;letter-spacing:0.1em;cursor:pointer;">CANCEL</button>'
+    + '<button onclick="_doGalleryPasteEdits();this.closest(\'[data-paste-confirm]\').remove()" style="flex:1;height:44px;border-radius:12px;border:none;background:rgba(218,90,125,0.85);color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;cursor:pointer;">APPLY</button>'
+    + '</div></div>';
+  modal.setAttribute('data-paste-confirm', '1');
+  modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+function _doGalleryPasteEdits() {
+  if (!window.copiedEdits || !libSelected.length) return;
   const { presetId, state } = window.copiedEdits;
   const targets = [];
   libSelected.forEach(idx => {

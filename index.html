@@ -14814,14 +14814,20 @@ function cropSubTabCollapse(confirm) {
   var activeSt = bar.querySelector('.crop-subtab.active');
   var activeTab = activeSt ? activeSt.textContent.trim() : '';
   if (confirm) {
-    if (activeTab === 'RATIO') _cropRatioConfirm();
+    if (activeTab === 'RATIO') {
+      _cropRatioConfirm();
+    } else if (activeTab === 'OPTICAL') {
+      if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
+    }
+    _cropRotateEntryImg = null;
+    _cropOpticalEntryState = null;
+    var _stBtnC = bar.querySelector('.crop-subtab[onclick*="straighten"]');
+    if (_stBtnC && typeof cropSelectSubTab === 'function') cropSelectSubTab(_stBtnC, 'straighten');
   } else {
     if (activeTab === 'STRAIGHTEN') {
       var sl = document.getElementById('crop-straighten-slider');
       if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
     } else if (activeTab === 'RATIO') {
-      // Restore cropped image if re-adjust was active, then discard pending crop rect
-      // so cropSelectSubTab(straighten) does NOT trigger _cropApplyRatioInPlace
       if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved) {
         userImage = _cropReAdjSaved;
         _cropReAdjSaved = null;
@@ -14830,11 +14836,41 @@ function cropSubTabCollapse(confirm) {
         else { var _rac2 = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rac2 && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac2, userImage); }
       }
       cropRect = null;
+    } else if (activeTab === 'ROTATE') {
+      if (typeof _cropRotateEntryImg !== 'undefined' && _cropRotateEntryImg) {
+        userImage = _cropRotateEntryImg;
+        _cropRotateEntryImg = null;
+        var _ev3 = document.getElementById('editor-view');
+        if (_ev3 && _ev3.classList.contains('active') && typeof evRenderCanvas === 'function') requestAnimationFrame(evRenderCanvas);
+        else { var _rac3 = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rac3 && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac3, userImage); }
+      }
+    } else if (activeTab === 'OPTICAL') {
+      var _pw = document.getElementById('crop-perspective-work'); if (_pw) _pw.remove();
+      var _rstAcO = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rstAcO) _rstAcO.style.opacity = '1';
+      if (typeof _cropOpticalEntryState !== 'undefined' && _cropOpticalEntryState) {
+        _perspBaseURL = _cropOpticalEntryState.url;
+        _perspBaseV   = _cropOpticalEntryState.v;
+        _perspBaseH   = _cropOpticalEntryState.h;
+        _cropOpticalEntryState = null;
+      }
+      if (typeof _etPerspVVal !== 'undefined') _etPerspVVal = _perspBaseV;
+      if (typeof _etPerspHVal !== 'undefined') _etPerspHVal = _perspBaseH;
+      var _vs = document.getElementById('crop-persp-v-slider'); if (_vs) _vs.value = _perspBaseV;
+      var _hs = document.getElementById('crop-persp-h-slider'); if (_hs) _hs.value = _perspBaseH;
+      var _vv = document.getElementById('crop-persp-v-val'); if (_vv) _vv.textContent = Math.round(_perspBaseV);
+      var _hv = document.getElementById('crop-persp-h-val'); if (_hv) _hv.textContent = Math.round(_perspBaseH);
+      var _vl = document.getElementById('persp-v-lbl'); if (_vl) _vl.textContent = _perspBaseV !== 0 ? Math.round(_perspBaseV) : 'VERT';
+      var _hl = document.getElementById('persp-h-lbl'); if (_hl) _hl.textContent = _perspBaseH !== 0 ? Math.round(_perspBaseH) : 'HORIZ';
+      var _ev4 = document.getElementById('editor-view');
+      if (_ev4 && _ev4.classList.contains('active') && typeof evRenderCanvas === 'function') requestAnimationFrame(evRenderCanvas);
+      else { var _rac4 = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rac4 && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac4, userImage); }
     }
     var _stBtn = bar.querySelector('.crop-subtab[onclick*="straighten"]');
     if (_stBtn && typeof cropSelectSubTab === 'function') cropSelectSubTab(_stBtn, 'straighten');
   }
 }
+var _cropRotateEntryImg = null;
+var _cropOpticalEntryState = null;
 function cropSubTabExpandStraighten() {
   var sl = document.getElementById('crop-straighten-slider');
   if (!sl) return;
@@ -14848,6 +14884,16 @@ function cropSelectSubTab(btn, tab) {
   if (_csBar) _csBar.classList.remove('crop-expanded');
   document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
+  // Snapshot entry state so X can fully revert this tab's session
+  if (tab === 'transform') {
+    _cropRotateEntryImg = userImage;
+  } else if (tab === 'optical') {
+    _cropOpticalEntryState = {
+      url: (typeof _perspBaseURL !== 'undefined') ? _perspBaseURL : null,
+      v:   (typeof _perspBaseV   !== 'undefined') ? _perspBaseV   : 0,
+      h:   (typeof _perspBaseH   !== 'undefined') ? _perspBaseH   : 0
+    };
+  }
   var ov = document.getElementById('crop-overlay-canvas');
   if (tab !== 'ratio' && cropRect && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM') {
     _cropApplyRatioInPlace(tab === 'straighten');

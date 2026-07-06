@@ -14808,11 +14808,28 @@ function _cropRatioConfirm() {
 function cropSubTabCollapse(confirm) {
   var bar = document.getElementById('crop-subtabs-bar');
   if (!bar) return;
+  var activeSt = bar.querySelector('.crop-subtab.active');
+  var activeTab = activeSt ? activeSt.textContent.trim() : '';
+  // Slider-level X/✓ inside OPTICAL — return to buttons view, keep bar expanded
+  if (activeTab === 'OPTICAL' && typeof _etPerspActiveAxis !== 'undefined' && _etPerspActiveAxis) {
+    if (!confirm && typeof _cropPerspAxisEntry !== 'undefined' && _cropPerspAxisEntry) {
+      _etPerspVVal = _cropPerspAxisEntry.v; _etPerspHVal = _cropPerspAxisEntry.h;
+      var _xvs = document.getElementById('crop-persp-v-slider'); if (_xvs) _xvs.value = _etPerspVVal;
+      var _xhs = document.getElementById('crop-persp-h-slider'); if (_xhs) _xhs.value = _etPerspHVal;
+      var _xvv = document.getElementById('crop-persp-v-val'); if (_xvv) _xvv.textContent = Math.round(_etPerspVVal);
+      var _xhv = document.getElementById('crop-persp-h-val'); if (_xhv) _xhv.textContent = Math.round(_etPerspHVal);
+      if (typeof etPerspUpdate === 'function') etPerspUpdate();
+    }
+    _etPerspActiveAxis = null; _cropPerspAxisEntry = null;
+    var _xrow = document.getElementById('crop-persp-slider-row'); if (_xrow) _xrow.style.display = 'none';
+    var _xvs2 = document.getElementById('crop-persp-v-section'); if (_xvs2) _xvs2.style.display = 'none';
+    var _xhs2 = document.getElementById('crop-persp-h-section'); if (_xhs2) _xhs2.style.display = 'none';
+    var _xmb = document.getElementById('persp-mode-buttons'); if (_xmb) _xmb.style.display = '';
+    return; // stay in OPTICAL expanded bar
+  }
   bar.classList.remove('crop-expanded');
   var edV = document.getElementById('editor-view');
   if (edV) edV.classList.remove('crop-ratio-active');
-  var activeSt = bar.querySelector('.crop-subtab.active');
-  var activeTab = activeSt ? activeSt.textContent.trim() : '';
   if (confirm) {
     if (activeTab === 'RATIO') {
       _cropRatioConfirm();
@@ -14871,6 +14888,7 @@ function cropSubTabCollapse(confirm) {
 }
 var _cropRotateEntryImg = null;
 var _cropOpticalEntryState = null;
+var _cropPerspAxisEntry = null;
 function cropSubTabExpandStraighten() {
   var sl = document.getElementById('crop-straighten-slider');
   if (!sl) return;
@@ -15499,6 +15517,7 @@ var _perspBaseH    = 0;    // raw H slider value at last flush
 
 function cropPerspSelectAxis(axis) {
   _etPerspActiveAxis = axis;
+  _cropPerspAxisEntry = { v: (typeof _etPerspVVal !== 'undefined') ? _etPerspVVal : 0, h: (typeof _etPerspHVal !== 'undefined') ? _etPerspHVal : 0 };
   // Hide mode buttons, show only the selected slider
   var mb = document.getElementById('persp-mode-buttons');
   if (mb) mb.style.display = 'none';

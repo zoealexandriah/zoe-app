@@ -8961,15 +8961,31 @@ function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH) {
 function applyMist(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
   const ctx = canvas.getContext('2d');
-  const imageData = ctx.getImageData(offX, offY, imgW, imgH);
-  const d = imageData.data;
-  const fog = amount * 0.55;
-  for (let i = 0; i < d.length; i += 4) {
-    d[i]   = d[i]   + (255 - d[i])   * fog;
-    d[i+1] = d[i+1] + (255 - d[i+1]) * fog;
-    d[i+2] = d[i+2] + (255 - d[i+2]) * fog;
-  }
-  ctx.putImageData(imageData, offX, offY);
+  const orig = ctx.getImageData(offX, offY, imgW, imgH);
+
+  const tmp = document.createElement('canvas');
+  tmp.width = imgW; tmp.height = imgH;
+  tmp.getContext('2d').putImageData(orig, 0, 0);
+
+  const blurPx = Math.max(1, Math.round(amount * 10));
+  const blurred = document.createElement('canvas');
+  blurred.width = imgW; blurred.height = imgH;
+  const bCtx = blurred.getContext('2d');
+  bCtx.filter = `blur(${blurPx}px)`;
+  bCtx.drawImage(tmp, 0, 0);
+  bCtx.filter = 'none';
+
+  // soft diffusion layer
+  ctx.save();
+  ctx.globalAlpha = amount * 0.50;
+  ctx.drawImage(blurred, offX, offY);
+  ctx.restore();
+
+  // white haze
+  ctx.save();
+  ctx.fillStyle = `rgba(255,255,255,${amount * 0.28})`;
+  ctx.fillRect(offX, offY, imgW, imgH);
+  ctx.restore();
 }
 
 function applyHalation(canvas, amount, hue, offX, offY, imgW, imgH) {

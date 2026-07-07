@@ -8960,6 +8960,7 @@ function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH) {
 
 function applyMist(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
+  amount = amount * 0.9;
   const ctx = canvas.getContext('2d');
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
 

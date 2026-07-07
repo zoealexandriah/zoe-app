@@ -6318,6 +6318,7 @@ const sliderConfig = {
   VIGNETTE_BLUR:  [ 0.00, 1.00, '', false],
   MOTION_BLUR:    [ 0.00, 1.00, '', false],
   RADIAL_BLUR:    [ 0.00, 1.00, '', false],
+  MIST:           [ 0.00, 1.00, '', false],
 };
 
 // No-look preset: allows sliders to work when no preset is selected
@@ -6326,7 +6327,7 @@ var _evNoLookPreset = {
   sliders: {
     LIGHT:   {BRIGHTNESS:'+0.00',EXPOSURE:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.00',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.00',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
     COLOR:   {TEMPERATURE:'+0.00',TINT:'+0.00',VIBRANCE:'+0.00',SATURATION:'+0.00'},
-    EFFECTS: {GLOW:'+0.00',GRAIN:'+0.00',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.00',DIFFUSION:'+0.00',VIGNETTE_BLUR:'+0.00',MOTION_BLUR:'+0.00',RADIAL_BLUR:'+0.00'},
+    EFFECTS: {GLOW:'+0.00',GRAIN:'+0.00',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.00',DIFFUSION:'+0.00',VIGNETTE_BLUR:'+0.00',MOTION_BLUR:'+0.00',RADIAL_BLUR:'+0.00',MIST:'+0.00'},
     HSL:     {HUE_SHIFT:'+0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
   }
 };
@@ -6411,7 +6412,7 @@ function buildEditorSliders(p) {
   const det2Container = document.getElementById('es-detail-sliders');
   const blurContainer = document.getElementById('es-blur-sliders');
   const DETAIL_KEYS = ['SHARPEN', 'CLARITY', 'GRAIN', 'FADE'];
-  const BLUR_KEYS   = ['BLUR', 'MOTION_BLUR', 'RADIAL_BLUR', 'GLOW', 'VIGNETTE_BLUR'];
+  const BLUR_KEYS   = ['BLUR', 'MOTION_BLUR', 'RADIAL_BLUR', 'GLOW', 'MIST', 'VIGNETTE_BLUR'];
   const _matteLiftVal = (p.sliders && p.sliders.LIGHT && p.sliders.LIGHT.MATTE_LIFT !== undefined)
     ? p.sliders.LIGHT.MATTE_LIFT : '+0.00';
 
@@ -7024,6 +7025,7 @@ function buildAdjustments(state) {
     vignette_blur:  val('VIGNETTE_BLUR', false),
     motion_blur:    val('MOTION_BLUR', false),
     radial_blur:    val('RADIAL_BLUR', false),
+    mist:           val('MIST', false),
     shadow_tint:     { r:0, g:0, b:0, strength:0 },
     highlight_tint:  { r:0, g:0, b:0, strength:0 },
     duotone_a:   null,
@@ -7898,7 +7900,8 @@ function applyPixelAdjustments(srcData, adj) {
     !(adj.diffusion > 0.005) &&
     !(adj.vignette_blur > 0.005) &&
     !(adj.motion_blur > 0.005) &&
-    !(adj.radial_blur > 0.005);
+    !(adj.radial_blur > 0.005) &&
+    !(adj.mist > 0.005);
   if (_noEffect) return new Uint8ClampedArray(src);
 
   const out = new Uint8ClampedArray(src.length);
@@ -8955,6 +8958,20 @@ function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH) {
   ctx.restore();
 }
 
+function applyMist(canvas, amount, offX, offY, imgW, imgH) {
+  if (amount < 0.01) return;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(offX, offY, imgW, imgH);
+  const d = imageData.data;
+  const fog = amount * 0.55;
+  for (let i = 0; i < d.length; i += 4) {
+    d[i]   = d[i]   + (255 - d[i])   * fog;
+    d[i+1] = d[i+1] + (255 - d[i+1]) * fog;
+    d[i+2] = d[i+2] + (255 - d[i+2]) * fog;
+  }
+  ctx.putImageData(imageData, offX, offY);
+}
+
 function applyHalation(canvas, amount, hue, offX, offY, imgW, imgH) {
   if (amount < 0.005) return;
   const ctx = canvas.getContext('2d');
@@ -9067,6 +9084,7 @@ function renderWithAdjustments(canvas, adj) {
   if ((adj.glow || 0) > 0.01) {
     applyGlow(canvas, adj.glow, _origOffX, _origOffY, _origW, _origH);
   }
+  if ((adj.mist || 0) > 0.01) applyMist(canvas, adj.mist, _origOffX, _origOffY, _origW, _origH);
   if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, _origOffX, _origOffY, _origW, _origH);
   if (adj.halationBloom) applyHalationBloom(canvas, adj.halationBloom, _origOffX, _origOffY, _origW, _origH);
   if (adj.matteFade) applyMatteFade(canvas, adj.matteFade, _origOffX, _origOffY, _origW, _origH);
@@ -12275,6 +12293,7 @@ function _evDoSave() {
     if ((adj.motion_blur   || 0) > 0.01)                                  applyMotionBlur(off, adj.motion_blur, 0, 0, iw, ih);
     if ((adj.radial_blur   || 0) > 0.01)                                  applyRadialBlur(off, adj.radial_blur, 0, 0, iw, ih);
     if ((adj.glow     || 0) > 0.01)                                       applyGlow(off, adj.glow, 0, 0, iw, ih);
+    if ((adj.mist     || 0) > 0.01)                                       applyMist(off, adj.mist, 0, 0, iw, ih);
     if ((adj.halation || 0) > 0.01)                                       applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
     if (adj.halationBloom)                                                applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
     if (adj.matteFade)                                                    applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
@@ -12488,6 +12507,7 @@ function _evRenderCanvasImmediate() {
     var _dragging = window._slDragging;
     // Glow is lightweight enough to show live during drag
     if ((adj.glow || 0) > 0.01) applyGlow(canvas, adj.glow, 0, 0, canvas.width, canvas.height);
+    if ((adj.mist || 0) > 0.01) applyMist(canvas, adj.mist, 0, 0, canvas.width, canvas.height);
     if (!_dragging) {
       if ((adj.sharpen || 0) > 0.01) applySharpness(canvas, adj.sharpen, 0, 0, canvas.width, canvas.height);
       if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(canvas, adj.clarity, 0, 0, canvas.width, canvas.height);
@@ -13781,6 +13801,7 @@ function evSaveAndReturn() {
       if ((adj.motion_blur   || 0) > 0.01) applyMotionBlur(off, adj.motion_blur, 0, 0, iw, ih);
       if ((adj.radial_blur   || 0) > 0.01) applyRadialBlur(off, adj.radial_blur, 0, 0, iw, ih);
       if ((adj.glow     || 0) > 0.01) applyGlow(off,  adj.glow,      0, 0, iw, ih);
+      if ((adj.mist     || 0) > 0.01) applyMist(off,  adj.mist,      0, 0, iw, ih);
       if ((adj.halation || 0) > 0.01) applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
       if (adj.halationBloom)           applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
       if (adj.matteFade)               applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
@@ -13862,6 +13883,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if ((adj.motion_blur   || 0) > 0.01) applyMotionBlur(off, adj.motion_blur, 0, 0, w, h);
       if ((adj.radial_blur   || 0) > 0.01) applyRadialBlur(off, adj.radial_blur, 0, 0, w, h);
       if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, w, h);
+      if ((adj.mist     || 0) > 0.01)   applyMist(off,     adj.mist,      0, 0, w, h);
       if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, w, h);
       if (adj.halationBloom)             applyHalationBloom(off, adj.halationBloom, 0, 0, w, h);
       if (adj.matteFade)                 applyMatteFade(off, adj.matteFade, 0, 0, w, h);
@@ -13976,6 +13998,7 @@ function _exportEntry(entry, onDone) {
       if ((adj.motion_blur   || 0) > 0.01)    applyMotionBlur(off, adj.motion_blur, 0, 0, iw, ih);
       if ((adj.radial_blur   || 0) > 0.01)    applyRadialBlur(off, adj.radial_blur, 0, 0, iw, ih);
       if ((adj.glow     || 0) > 0.01)         applyGlow(off,     adj.glow,      0, 0, iw, ih);
+      if ((adj.mist     || 0) > 0.01)         applyMist(off,     adj.mist,      0, 0, iw, ih);
       if ((adj.halation || 0) > 0.01)         applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
       if (adj.halationBloom)                  applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
       if (adj.matteFade)                      applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
@@ -14357,6 +14380,7 @@ window.exportDownload = function() {
       if ((adj.motion_blur   || 0) > 0.01) applyMotionBlur(off, adj.motion_blur, 0, 0, iw, ih);
       if ((adj.radial_blur   || 0) > 0.01) applyRadialBlur(off, adj.radial_blur, 0, 0, iw, ih);
       if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, iw, ih);
+      if ((adj.mist     || 0) > 0.01)   applyMist(off,     adj.mist,      0, 0, iw, ih);
       if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, iw, ih);
     }
@@ -15855,6 +15879,7 @@ function _etApplyAdjCanvas(c) {
   ctx.putImageData(new ImageData(processed, c.width, c.height), 0, 0);
   if (typeof activePreset !== 'undefined' && activePreset && activePreset.curve) applyCurveLUTs(c, activePreset.curve, 0, 0, c.width, c.height);
   if ((adj.glow || 0) > 0.01) applyGlow(c, adj.glow, 0, 0, c.width, c.height);
+  if ((adj.mist || 0) > 0.01) applyMist(c, adj.mist, 0, 0, c.width, c.height);
   if ((adj.vignette || 0) > 0.01) applyVignette(c, adj.vignette, 0, 0, c.width, c.height);
 }
 

@@ -8116,8 +8116,8 @@ function applyPixelAdjustments(srcData, adj) {
         newS = Math.min(1, s3 + vib * satWeight * skinProtect * 0.38);
       } else {
         // Negative: desaturate more-saturated pixels first (inverse of above)
-        const satWeight = Math.pow(s3, 1.5);
-        newS = Math.max(0, s3 + vib * satWeight * 0.65);
+        const satWeight = Math.pow(s3, 0.8);
+        newS = Math.max(0, s3 + vib * satWeight * 0.55);
       }
       if (Math.abs(newS - s3) > 0.001) {
         const [nr, ng, nb] = hslToRgb(h3, newS, l3);

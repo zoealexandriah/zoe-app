@@ -7629,7 +7629,10 @@ function resetEdits() {
   if (activePreset) {
     sliderState[activePreset.id] = {};
     refreshEditor(activePreset);
+    activePreset = null;
   }
+  evActivePreset = null;
+  if (_evNoLookPreset) sliderState[_evNoLookPreset.id] = {};
   if (typeof editingIdx !== 'undefined' && editingIdx >= 0 && library[editingIdx]) {
     var _es = library[editingIdx].editState;
     if (_es) { _es.presetId = null; _es.sliders = {}; }

@@ -7630,6 +7630,11 @@ function resetEdits() {
     sliderState[activePreset.id] = {};
     refreshEditor(activePreset);
   }
+  if (typeof editingIdx !== 'undefined' && editingIdx >= 0 && library[editingIdx]) {
+    var _es = library[editingIdx].editState;
+    if (_es) { _es.presetId = null; _es.sliders = {}; }
+    libSaveToStorage();
+  }
   renderHeroUser();
   showToast('EDITS RESET');
 }

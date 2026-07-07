@@ -6264,7 +6264,7 @@ const sliderState = {};
 // Default neutral ranges per parameter
 const sliderConfig = {
   // [min, max, display_unit, neutral_at_0.5]
-  EXPOSURE:    [-1.00, 0.80, '', true],
+  EXPOSURE:    [-1.00, 1.00, '', true],
   PUSH_PULL:   [-1.00, 1.00, '', true],
   CONTRAST:    [-1.00, 1.00, '', true],
   HIGHLIGHTS:  [-1.00, 1.00, '', true],
@@ -6954,7 +6954,7 @@ function buildAdjustments(state) {
     return neutral ? (t - 0.5) * 2 : t; // -1..+1 or 0..1
   }
   return {
-    exposure:    val('EXPOSURE'),
+    exposure:    val('EXPOSURE') * 0.80,
     push_pull:   val('PUSH_PULL'),
     contrast:    val('CONTRAST'),
     highlights:  val('HIGHLIGHTS'),

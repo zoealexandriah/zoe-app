@@ -6371,6 +6371,7 @@ function getSliderDisplay(name, t) {
 
 function buildEditorSliders(p) {
   const state = initSliderState(p);
+  console.log('[ZOE_DBG] buildEditorSliders p.id='+p.id+' EXPOSURE='+state['EXPOSURE']+' CONTRAST='+state['CONTRAST']+' HIGHLIGHTS='+state['HIGHLIGHTS']);
 
   // Atmosphere sliders: EFFECTS section (GLOW GRAIN FADE HAZE)
   const atmContainer = document.getElementById('es-atmosphere-sliders');
@@ -13487,6 +13488,7 @@ function autoSaveEdit() {
     editedDataURL = entry.editState.editedDataURL;
   }
   // Write directly to library entry so galleryOpenInEditor can restore it
+  console.log('[ZOE_DBG] autoSaveEdit presetId='+(_effPreset&&_effPreset.id)+' EXPOSURE='+(_effPreset&&sliderState[_effPreset.id]&&sliderState[_effPreset.id]['EXPOSURE'])+' CONTRAST='+(_effPreset&&sliderState[_effPreset.id]&&sliderState[_effPreset.id]['CONTRAST']));
   entry.editState = {
     presetId:        _effPreset ? _effPreset.id : (entry.editState && entry.editState.presetId) || null,
     sliders:         _effPreset ? JSON.parse(JSON.stringify(sliderState[_effPreset.id] || {})) : (entry.editState && entry.editState.sliders) || {},

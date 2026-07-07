@@ -8796,7 +8796,7 @@ function applyMotionBlur(canvas, amount, offX, offY, imgW, imgH) {
   const src = orig.data;
   const out = new Uint8ClampedArray(src.length);
   // Horizontal directional blur — radius scales aggressively for strong smear at max
-  const radius = Math.max(1, Math.round(Math.pow(amount, 0.55) * 120));
+  const radius = Math.max(1, Math.round(Math.pow(amount, 1.8) * 90));
   for (let y = 0; y < imgH; y++) {
     for (let x = 0; x < imgW; x++) {
       let rr=0, gg=0, bb=0, n=0;

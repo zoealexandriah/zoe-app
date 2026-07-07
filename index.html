@@ -13481,7 +13481,11 @@ function autoSaveEdit() {
   const _asp = activePreset || evActivePreset;
   // When no preset is active, check if the no-look preset has slider values
   const _nolookSt = !_asp ? sliderState[_evNoLookPreset.id] : null;
-  const _effPreset = _asp || (_nolookSt && Object.keys(_nolookSt).length ? _evNoLookPreset : null);
+  const _nolookHasEdits = _nolookSt && Object.keys(_nolookSt).some(function(k) {
+    var cfg = sliderConfig[k]; var neutral = (cfg && cfg[3] === false) ? 0.0 : 0.5;
+    return Math.abs((_nolookSt[k] || 0) - neutral) > 0.01;
+  });
+  const _effPreset = _asp || (_nolookHasEdits ? _evNoLookPreset : null);
   if (!userImage && !_effPreset && !entry.editState) return;
   // Preserve original — first time only
   const originalDataURL = (entry.editState && entry.editState.originalDataURL)

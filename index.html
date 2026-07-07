@@ -7662,6 +7662,7 @@ function applyLookToUserImage(presetId) {
   const card = document.getElementById('lc-' + presetId);
   if (card) card.classList.add('selected');
 
+  var _prevPresetForDeltas = activePreset;
   activePreset = p;
   activePresetForEdit = p;
   const nameEl2 = document.getElementById('es-preset-name');
@@ -7671,9 +7672,25 @@ function applyLookToUserImage(presetId) {
   if (seriesEl2) seriesEl2.textContent = p.series;
   if (thumbCanvas2) { thumbCanvas2.width=36; thumbCanvas2.height=46; renderPhoto(thumbCanvas2, p.imgKey, p.tint, p.orbs, p.acc, p.warm, 'thumb'); }
 
+  // Capture manual adjustment deltas from previous preset before resetting
+  var _prevDeltas = {};
+  if (_prevPresetForDeltas && sliderState[_prevPresetForDeltas.id]) {
+    Object.keys(sliderState[_prevPresetForDeltas.id]).forEach(function(k) {
+      var cfg = sliderConfig[k];
+      var neutral = (cfg && cfg[3] !== false) ? 0.5 : 0.0;
+      var d = sliderState[_prevPresetForDeltas.id][k] - neutral;
+      if (d !== 0) _prevDeltas[k] = d;
+    });
+  }
   // Reset edit adjustments when changing look, then load preset defaults
   editAdj = {};
   applyPresetDefaults(p);
+  // Re-apply user's manual deltas onto new preset's slider state
+  Object.keys(_prevDeltas).forEach(function(k) {
+    if (sliderState[p.id][k] !== undefined) {
+      sliderState[p.id][k] = Math.max(0, Math.min(1, sliderState[p.id][k] + _prevDeltas[k]));
+    }
+  });
   presetIntensity = (p.defaultIntensity !== undefined) ? p.defaultIntensity : 1.0;
   document.querySelectorAll('.intensity-slider').forEach(el => { el.value = Math.round(presetIntensity * 100); });
   document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = Math.round(presetIntensity * 100) + '%'; });

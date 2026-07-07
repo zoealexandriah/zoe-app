@@ -10581,10 +10581,16 @@ function _blemishUpdateUD() {
 }
 
 function blemishSizeInput(val) {
-  _blemishRadius = val * 0.006;
-  var sz = Math.round(20 + (val - 1) * 1.33) + 'px';
+  var thumbPx = Math.round(20 + (val - 1) * 1.33);
   var input = document.getElementById('blemish-size-input');
-  if (input) input.style.setProperty('--bt', sz);
+  if (input) input.style.setProperty('--bt', thumbPx + 'px');
+  // Radius = thumb radius in CSS display px, normalized to canvas CSS dimensions
+  var canvas = document.getElementById('ev-canvas');
+  var cssMin = canvas ? Math.min(
+    parseFloat(canvas.style.width)  || canvas.getBoundingClientRect().width  || 300,
+    parseFloat(canvas.style.height) || canvas.getBoundingClientRect().height || 400
+  ) : 300;
+  _blemishRadius = (thumbPx / 2) / cssMin;
 }
 
 function blemishUndo() {

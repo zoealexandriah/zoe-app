@@ -6320,7 +6320,7 @@ const sliderConfig = {
   LUM_PURPLES: [-1.00, 1.00, '', true],
   DEHAZE:      [-1.00, 1.00, '', true],
   TEXTURE:     [ 0.00, 1.00, '', false],
-  MATTE_LIFT:  [-1.00, 1.00, '', true],
+  MATTE_LIFT:  [ 0.00, 1.00, '', false],
   DIFFUSION:   [ 0.00, 1.00, '', false],
 };
 
@@ -7023,7 +7023,7 @@ function buildAdjustments(state) {
     skinLift:    0,
     dehaze:      val('DEHAZE'),
     texture:     val('TEXTURE') * 0.5,
-    matte_lift:  val('MATTE_LIFT'),
+    matte_lift:  val('MATTE_LIFT', false),
     diffusion:   val('DIFFUSION'),
     shadow_tint:     { r:0, g:0, b:0, strength:0 },
     highlight_tint:  { r:0, g:0, b:0, strength:0 },

@@ -7922,7 +7922,7 @@ function applyPixelAdjustments(srcData, adj) {
 
   // Positive exposure is gentler (×1.2 EV max) to avoid blowing out too fast;
   // negative stays at full range (×2 EV) since it feels fine.
-  const exposureEV = exp > 0 ? exp * 1.2 : exp * 2;
+  const exposureEV = exp > 0 ? exp * 1.2 : exp * 0.9;
 
   // Pre-generate grain noise array (same per-call, varied per-pixel position)
   // Using pseudo-random seeded by pixel index for organic feel

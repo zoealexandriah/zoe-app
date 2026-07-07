@@ -3175,9 +3175,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .blemish-size-slider::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; background:#fff; border-radius:3px; cursor:pointer; box-shadow:0 1px 5px rgba(0,0,0,0.4); }
   .blemish-size-slider::-moz-range-thumb { width:22px; height:22px; background:#fff; border-radius:3px; cursor:pointer; border:none; }
   .blemish-ud-pill { display:flex; background:rgba(255,255,255,0.06); border-radius:10px; padding:2px; gap:1px; }
-  .blemish-ud-item { flex:1; background:transparent; border:none; border-radius:8px; color:rgba(255,255,255,0.85); font-family:var(--mono); font-size:9px; letter-spacing:0.09em; font-weight:500; padding:6px 2px; cursor:pointer; transition:background 0.18s,color 0.18s; -webkit-tap-highlight-color:transparent; outline:none; }
-  .blemish-ud-item:disabled { color:rgba(255,255,255,0.22); cursor:default; }
-  .blemish-ud-item:not(:disabled):active { background:rgba(255,255,255,0.13); }
+  .blemish-ud-item { flex:1; background:transparent; border:none; border-radius:8px; color:rgba(201,184,212,0.40); font-family:var(--mono); font-size:8px; letter-spacing:0.09em; font-weight:500; padding:5px 2px; cursor:pointer; transition:background 0.18s,color 0.18s; touch-action:manipulation; -webkit-tap-highlight-color:transparent; outline:none; }
+  .blemish-ud-item:not(:disabled) { background:rgba(255,255,255,0.13); color:rgba(255,255,255,0.92); font-weight:700; }
+  .blemish-ud-item:disabled { cursor:default; }
   .blemish-clear-btn { background:none; border:1px solid rgba(255,255,255,0.18); color:rgba(255,255,255,0.5); font-family:var(--mono); font-size:9px; letter-spacing:0.14em; padding:6px 14px; border-radius:4px; cursor:pointer; align-self:flex-start; }
   .blemish-clear-btn:active { background:rgba(255,255,255,0.08); }
   /* EDITOR.SUITE titlebar: hide on mobile */
@@ -5015,8 +5015,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <button class="blemish-act-btn blemish-act-confirm" onclick="blemishConfirm()">✓</button>
             </div>
             <div id="ev-blemish-ui">
-              <p class="blemish-hint">Tap a spot on the photo to heal it.</p>
-              <div class="blemish-size-row">
+<div class="blemish-size-row">
                 <span class="blemish-size-label">SIZE</span>
                 <input type="range" class="blemish-size-slider" id="blemish-size-input" min="1" max="10" value="3" oninput="blemishSizeInput(this.value)">
               </div>

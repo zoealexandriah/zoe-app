@@ -2944,8 +2944,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     top: 100% !important;
     left: 0 !important;
     right: 0 !important;
-    height: 40px !important;
-    background: linear-gradient(to bottom, rgba(9,8,9,0.9) 0%, rgba(9,8,9,0.45) 45%, rgba(9,8,9,0) 100%) !important;
+    height: 18px !important;
+    background: linear-gradient(to bottom, rgba(9,8,9,0.88) 0%, rgba(9,8,9,0.20) 70%, rgba(9,8,9,0) 100%) !important;
     pointer-events: none !important;
   }
   /* Show SVG icons, hide desktop text */
@@ -8748,7 +8748,7 @@ function applyVignetteBlur(canvas, amount, offX, offY, imgW, imgH) {
   const ctx = canvas.getContext('2d');
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
-  const radius = Math.max(1, Math.round(Math.pow(amount, 0.6) * 14));
+  const radius = Math.max(1, Math.round(Math.pow(amount, 0.55) * 20));
   const tmp = new Uint8ClampedArray(src.length);
   const blurred = new Uint8ClampedArray(src.length);
   for (let y = 0; y < imgH; y++) {
@@ -8769,7 +8769,7 @@ function applyVignetteBlur(canvas, amount, offX, offY, imgW, imgH) {
   }
   const cx = imgW * 0.5, cy = imgH * 0.5;
   const maxDist = Math.sqrt(cx*cx + cy*cy);
-  const falloff = 0.45 + amount * 0.35;
+  const falloff = 0.18 + amount * 0.22;
   const out = new Uint8ClampedArray(src.length);
   for (let y = 0; y < imgH; y++) {
     for (let x = 0; x < imgW; x++) {

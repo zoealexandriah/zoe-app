@@ -6983,7 +6983,7 @@ function buildAdjustments(state) {
     contrast:    (function(){ var _c = val('CONTRAST'); return _c < 0 ? _c * 0.35 : _c; })(),
     highlights:  val('HIGHLIGHTS'),
     shadows:     val('SHADOWS'),
-    whites:      val('WHITES'),
+    whites:      (function(){ var _w = val('WHITES'); return _w < 0 ? _w * 0.80 : _w; })(),
     blacks:      val('BLACKS'),
     saturation:  val('SATURATION') * 1.265,
     vibrance:    val('VIBRANCE') * 0.70,
@@ -8030,8 +8030,9 @@ function applyPixelAdjustments(srcData, adj) {
           g = Math.min(255, g + lift);
           b = Math.min(255, b + lift);
         } else {
-          // Crush: multiplicative works fine for darkening
-          const bkf = 1 + blacks * bkWeight;
+          // Crush: wider threshold + harder factor for more dramatic negative
+          const bkWeight2 = lumBk < 75 ? (75 - lumBk) / 75 : 0;
+          const bkf = 1 + blacks * bkWeight2 * 1.5;
           r = Math.max(0, r * bkf);
           g = Math.max(0, g * bkf);
           b = Math.max(0, b * bkf);

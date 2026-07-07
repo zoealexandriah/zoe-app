@@ -6416,6 +6416,8 @@ function buildEditorSliders(p) {
   const blurContainer = document.getElementById('es-blur-sliders');
   const DETAIL_KEYS = ['SHARPEN', 'CLARITY', 'GRAIN', 'FADE'];
   const BLUR_KEYS   = ['BLUR', 'GLOW'];
+  const _matteLiftVal = (p.sliders && p.sliders.LIGHT && p.sliders.LIGHT.MATTE_LIFT !== undefined)
+    ? p.sliders.LIGHT.MATTE_LIFT : '+0.00';
 
   Object.entries(p.sliders||{}).forEach(([section, rows]) => {
     if (section === 'EFFECTS') {
@@ -6425,6 +6427,7 @@ function buildEditorSliders(p) {
         else if (BLUR_KEYS.includes(k)) blurRows[k] = v;
         else atmRows[k] = v;
       });
+      detailRows['MATTE_LIFT'] = _matteLiftVal;
       if (Object.keys(detailRows).length) det2Html += buildSectionHTML(p, 'DETAIL', detailRows, state);
       if (Object.keys(blurRows).length) {
         var _sortedBlur = {};
@@ -6440,6 +6443,7 @@ function buildEditorSliders(p) {
         hslHtml += sectionHtml;
       } else if (section === 'LIGHT') {
         var _lightRows = Object.assign({'BRIGHTNESS': '+0.00'}, rows);
+        delete _lightRows.MATTE_LIFT;
         detHtml += buildSectionHTML(p, section, _lightRows, state);
       }
     }

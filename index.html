@@ -6593,8 +6593,8 @@ function _slApplyDrag(e) {
   var pct   = Math.round(t * 100);
   var fill  = _slDragTrack.querySelector('.sl-fill');
   var thumb = _slDragTrack.querySelector('.sl-thumb');
-  var valEl = document.getElementById('slv-'+pid+'-'+param);
   var row   = _slDragTrack.closest('.sl-row');
+  var valEl = row ? row.querySelector('.sl-val') : null;
   if (fill)  fill.style.width  = pct + '%';
   if (thumb) thumb.style.left  = pct + '%';
   if (valEl) valEl.textContent = getSliderDisplay(param, t);
@@ -6962,7 +6962,7 @@ function buildAdjustments(state) {
     whites:      val('WHITES'),
     blacks:      val('BLACKS'),
     saturation:  val('SATURATION'),
-    vibrance:    val('VIBRANCE'),
+    vibrance:    val('VIBRANCE') * 0.70,
     temperature: val('TEMPERATURE'),
     tint:        val('TINT'),
     glow:        val('GLOW',   false),

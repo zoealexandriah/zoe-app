@@ -3174,9 +3174,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .blemish-size-slider { flex:1; -webkit-appearance:none; appearance:none; height:2px; background:rgba(255,255,255,0.22); border-radius:1px; outline:none; cursor:pointer; }
   .blemish-size-slider::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; background:#fff; border-radius:3px; cursor:pointer; box-shadow:0 1px 5px rgba(0,0,0,0.4); }
   .blemish-size-slider::-moz-range-thumb { width:22px; height:22px; background:#fff; border-radius:3px; cursor:pointer; border:none; }
-  .blemish-ud-row { display:flex; gap:8px; }
-  .blemish-ud-btn { flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.14); color:rgba(255,255,255,0.6); font-family:var(--mono); font-size:9px; letter-spacing:0.1em; padding:6px 8px; border-radius:4px; cursor:pointer; }
-  .blemish-ud-btn:disabled { opacity:0.3; cursor:default; }
+  .blemish-ud-pill { display:flex; background:rgba(255,255,255,0.06); border-radius:10px; padding:2px; gap:1px; }
+  .blemish-ud-item { flex:1; background:transparent; border:none; border-radius:8px; color:rgba(255,255,255,0.85); font-family:var(--mono); font-size:9px; letter-spacing:0.09em; font-weight:500; padding:6px 2px; cursor:pointer; transition:background 0.18s,color 0.18s; -webkit-tap-highlight-color:transparent; outline:none; }
+  .blemish-ud-item:disabled { color:rgba(255,255,255,0.22); cursor:default; }
+  .blemish-ud-item:not(:disabled):active { background:rgba(255,255,255,0.13); }
   .blemish-clear-btn { background:none; border:1px solid rgba(255,255,255,0.18); color:rgba(255,255,255,0.5); font-family:var(--mono); font-size:9px; letter-spacing:0.14em; padding:6px 14px; border-radius:4px; cursor:pointer; align-self:flex-start; }
   .blemish-clear-btn:active { background:rgba(255,255,255,0.08); }
   /* EDITOR.SUITE titlebar: hide on mobile */
@@ -5019,9 +5020,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 <span class="blemish-size-label">SIZE</span>
                 <input type="range" class="blemish-size-slider" id="blemish-size-input" min="1" max="10" value="3" oninput="blemishSizeInput(this.value)">
               </div>
-              <div class="blemish-ud-row">
-                <button class="blemish-ud-btn" id="blemish-undo-btn" onclick="blemishUndo()">↩ UNDO</button>
-                <button class="blemish-ud-btn" id="blemish-redo-btn" onclick="blemishRedo()">REDO ↪</button>
+              <div class="blemish-ud-pill">
+                <button class="blemish-ud-item" id="blemish-undo-btn" onclick="blemishUndo()" disabled>↩ UNDO</button>
+                <button class="blemish-ud-item" id="blemish-redo-btn" onclick="blemishRedo()" disabled>REDO ↪</button>
               </div>
               <button class="blemish-clear-btn" onclick="blemishClearAll()">CLEAR ALL</button>
             </div>
@@ -10642,8 +10643,10 @@ function blemishEnter() {
     ov.id = 'blemish-overlay-canvas';
     ov.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:crosshair;z-index:6;touch-action:none';
     canvas.parentElement.appendChild(ov);
-    ov.addEventListener('click',    _blemishHandleTap);
-    ov.addEventListener('touchend', _blemishHandleTap);
+    ov.addEventListener('mousedown',  _blemishHandlePress);
+    ov.addEventListener('touchstart', _blemishHandlePress, { passive: false });
+    ov.addEventListener('click',      _blemishHandleTap);
+    ov.addEventListener('touchend',   _blemishHandleTap);
   }
   _blemishSyncOverlay();
 }
@@ -10651,10 +10654,43 @@ function blemishEnter() {
 function blemishExit() {
   var ov = document.getElementById('blemish-overlay-canvas');
   if (ov) {
-    ov.removeEventListener('click',    _blemishHandleTap);
-    ov.removeEventListener('touchend', _blemishHandleTap);
+    ov.removeEventListener('mousedown',  _blemishHandlePress);
+    ov.removeEventListener('touchstart', _blemishHandlePress);
+    ov.removeEventListener('click',      _blemishHandleTap);
+    ov.removeEventListener('touchend',   _blemishHandleTap);
     ov.remove();
   }
+}
+
+function _blemishShowPreview(clientX, clientY) {
+  var ov     = document.getElementById('blemish-overlay-canvas');
+  var canvas = document.getElementById('ev-canvas');
+  if (!ov || !canvas) return;
+  var rect   = ov.getBoundingClientRect();
+  var scaleX = ov.width  / rect.width;
+  var scaleY = ov.height / rect.height;
+  var px = (clientX - rect.left) * scaleX;
+  var py = (clientY - rect.top)  * scaleY;
+  var r  = _blemishRadius * Math.min(canvas.width, canvas.height);
+  var ctx = ov.getContext('2d');
+  ctx.clearRect(0, 0, ov.width, ov.height);
+  ctx.beginPath();
+  ctx.arc(px, py, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth   = Math.max(1.5, canvas.width / 500);
+  ctx.stroke();
+}
+
+function _blemishHandlePress(e) {
+  var clientX, clientY;
+  if (e.touches && e.touches.length > 0) {
+    e.preventDefault();
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX; clientY = e.clientY;
+  }
+  _blemishShowPreview(clientX, clientY);
 }
 
 function _blemishSyncOverlay() {
@@ -10669,7 +10705,6 @@ function _blemishSyncOverlay() {
   ov.style.height = rect.height + 'px';
   ov.style.left   = (rect.left - pRect.left) + 'px';
   ov.style.top    = (rect.top  - pRect.top)  + 'px';
-  // No markers — healed effect is visible directly on the canvas
   ov.getContext('2d').clearRect(0, 0, ov.width, ov.height);
 }
 

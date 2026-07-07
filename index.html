@@ -8775,7 +8775,7 @@ function applyVignetteBlur(canvas, amount, offX, offY, imgW, imgH) {
   // Radial mask: falloff shrinks with amount so blur wraps tighter around center
   const cx = imgW * 0.5, cy = imgH * 0.5;
   const maxDist = Math.sqrt(cx*cx + cy*cy);
-  const falloff = 0.40 - amount * 0.30; // 0.40 at min → 0.10 at max
+  const falloff = 0.40 - amount * 0.36; // 0.40 at min → 0.04 at max
   const out = new Uint8ClampedArray(src.length);
   for (let y = 0; y < imgH; y++) {
     for (let x = 0; x < imgW; x++) {

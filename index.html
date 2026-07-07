@@ -6371,7 +6371,6 @@ function getSliderDisplay(name, t) {
 
 function buildEditorSliders(p) {
   const state = initSliderState(p);
-  console.log('[ZOE_DBG] buildEditorSliders p.id='+p.id+' EXPOSURE='+state['EXPOSURE']+' CONTRAST='+state['CONTRAST']+' HIGHLIGHTS='+state['HIGHLIGHTS']);
 
   // Atmosphere sliders: EFFECTS section (GLOW GRAIN FADE HAZE)
   const atmContainer = document.getElementById('es-atmosphere-sliders');
@@ -13139,7 +13138,7 @@ function galleryOpenInEditor(idx) {
   // Update mobile bottom nav active state
   document.querySelectorAll('.bn-item').forEach(function(n){ n.classList.remove('active'); });
   var editorBnItem = Array.from(document.querySelectorAll('.bn-item'))
-    .find(function(n){ return (n.querySelector('.bn-label')||{}).textContent.trim() === 'EDITOR'; });
+    .find(function(n){ return ((n.querySelector('.bn-label')||{}).textContent||'').trim() === 'EDITOR'; });
   if (editorBnItem) editorBnItem.classList.add('active');
   // Restore saved edit state AFTER evInit (switchToTab calls evInit which resets preset)
   if (entry.editState) {
@@ -13488,7 +13487,6 @@ function autoSaveEdit() {
     editedDataURL = entry.editState.editedDataURL;
   }
   // Write directly to library entry so galleryOpenInEditor can restore it
-  console.log('[ZOE_DBG] autoSaveEdit presetId='+(_effPreset&&_effPreset.id)+' EXPOSURE='+(_effPreset&&sliderState[_effPreset.id]&&sliderState[_effPreset.id]['EXPOSURE'])+' CONTRAST='+(_effPreset&&sliderState[_effPreset.id]&&sliderState[_effPreset.id]['CONTRAST']));
   entry.editState = {
     presetId:        _effPreset ? _effPreset.id : (entry.editState && entry.editState.presetId) || null,
     sliders:         _effPreset ? JSON.parse(JSON.stringify(sliderState[_effPreset.id] || {})) : (entry.editState && entry.editState.sliders) || {},

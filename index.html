@@ -8822,7 +8822,8 @@ function applyRadialBlur(canvas, amount, offX, offY, imgW, imgH) {
   const src = orig.data;
   const out = new Uint8ClampedArray(src.length);
   const cx = imgW * 0.5, cy = imgH * 0.5;
-  const maxAngle = Math.pow(amount, 1.5) * 0.45;
+  const maxDist = Math.sqrt(cx*cx + cy*cy);
+  const maxAngle = Math.pow(amount, 1.5) * 0.28;
   const numSamples = 10;
   for (let y = 0; y < imgH; y++) {
     for (let x = 0; x < imgW; x++) {
@@ -8833,10 +8834,12 @@ function applyRadialBlur(canvas, amount, offX, offY, imgW, imgH) {
         out[ii]=src[ii]; out[ii+1]=src[ii+1]; out[ii+2]=src[ii+2]; out[ii+3]=src[ii+3];
         continue;
       }
+      // Angle spread scales with distance — center stays naturally sharp
+      const angleSpread = maxAngle * Math.pow(dist / maxDist, 1.2);
       const angle = Math.atan2(dy, dx);
       let rr=0, gg=0, bb=0;
       for (let s = 0; s < numSamples; s++) {
-        const a = angle + (s/(numSamples-1) - 0.5) * maxAngle;
+        const a = angle + (s/(numSamples-1) - 0.5) * angleSpread;
         const sx = Math.max(0, Math.min(imgW-1, Math.round(cx + dist * Math.cos(a))));
         const sy = Math.max(0, Math.min(imgH-1, Math.round(cy + dist * Math.sin(a))));
         const si = (sy * imgW + sx) * 4;

@@ -6411,7 +6411,7 @@ function buildEditorSliders(p) {
   const det2Container = document.getElementById('es-detail-sliders');
   const blurContainer = document.getElementById('es-blur-sliders');
   const DETAIL_KEYS = ['SHARPEN', 'CLARITY', 'GRAIN', 'FADE'];
-  const BLUR_KEYS   = ['BLUR', 'VIGNETTE_BLUR', 'GLOW', 'MOTION_BLUR', 'RADIAL_BLUR'];
+  const BLUR_KEYS   = ['BLUR', 'MOTION_BLUR', 'RADIAL_BLUR', 'GLOW', 'VIGNETTE_BLUR'];
   const _matteLiftVal = (p.sliders && p.sliders.LIGHT && p.sliders.LIGHT.MATTE_LIFT !== undefined)
     ? p.sliders.LIGHT.MATTE_LIFT : '+0.00';
 
@@ -6575,7 +6575,7 @@ function buildSectionHTML(p, section, rows, state) {
     const pct = Math.round(t * 100);
     const disp = getSliderDisplay(name, t);
     const changed = _isUnipolar ? (t > 0.01) : (Math.abs(t - 0.5) > 0.01);
-    const _slLabel = {TEMPERATURE:'TEMP', VIGNETTE_BLUR:'VIGNETTE_B', MOTION_BLUR:'MOTION', RADIAL_BLUR:'RADIAL'}[name] || name;
+    const _slLabel = {TEMPERATURE:'TEMP', VIGNETTE_BLUR:'VIGNETTE', MOTION_BLUR:'MOTION', RADIAL_BLUR:'RADIAL'}[name] || name;
     html += `<div class="sl-row${changed?' changed':''}">
       <div class="sl-header">${_sliderIcon(name)}<span class="sl-name">${_slLabel}</span><span class="sl-val" id="slv-${p.id}-${name}" data-preset="${p.id}" data-param="${name}">${disp}</span></div>
       <div class="sl-track" data-preset="${p.id}" data-param="${name}"${_isUnipolar?' data-unipolar="true"':''}>

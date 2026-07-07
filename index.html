@@ -6972,7 +6972,7 @@ function buildAdjustments(state) {
     grain:       val('GRAIN',   false) * 0.50,
     sharpen:     val('SHARPEN', false) * 0.60,
     clarity:     val('CLARITY', false) * 0.50,
-    blur:        val('BLUR',    false) * 0.25,
+    blur:        val('BLUR',    false) * 0.50,
     fade:        val('FADE',   false) * 0.80,
     hue_shift: (() => { const t = state['HUE_SHIFT'] ?? 0.5; return (t - 0.5) * 360; })(),
     sat_reds:    val('SAT_REDS'),

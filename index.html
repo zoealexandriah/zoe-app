@@ -2314,6 +2314,13 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   background: rgba(192,64,90,0.18); border-color: rgba(218,90,125,0.65);
   color: rgba(245,190,215,0.95);
 }
+.series-back-btn {
+  font-size: 7px; letter-spacing: 0.14em; color: rgba(201,184,212,0.50);
+  font-family: var(--mono); cursor: pointer; flex-shrink: 0;
+  padding: 2px 8px 2px 2px; -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.series-back-btn:hover { color: rgba(201,184,212,0.90); }
 .pv-series-sub-row {
   display: none; flex-direction: row; align-items: center; gap: 4px;
   padding: 6px 14px; flex-shrink: 0;
@@ -4883,6 +4890,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
             <!-- SERIES sub-row (editor strip) -->
             <div class="series-sub-row" id="ev-series-sub-row">
+              <div class="series-back-btn" onclick="evSeriesBack()">← BACK</div>
               <div class="series-sub-btn active" onclick="evFilterSeries(this,'LIMINAL')">LIMINAL</div>
             </div>
             <!-- Thumbnail scroll row -->
@@ -12853,6 +12861,16 @@ function evShowSeriesTab(btn) {
   var sub = document.getElementById('ev-series-sub-row');
   if (sub) sub.classList.add('visible');
   evCatFilter = 'SERIES:' + _evSeriesFilter;
+  evRenderPresets();
+}
+
+function evSeriesBack() {
+  var sub = document.getElementById('ev-series-sub-row');
+  if (sub) sub.classList.remove('visible');
+  evCatFilter = 'ALL';
+  document.querySelectorAll('#ev-cats .ev-cat-btn').forEach(function(b){ b.classList.remove('active'); });
+  var allBtn = document.querySelector('#ev-cats [data-cat="ALL"]');
+  if (allBtn) allBtn.classList.add('active');
   evRenderPresets();
 }
 

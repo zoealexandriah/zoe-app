@@ -3172,8 +3172,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .blemish-size-row { display:flex; align-items:center; gap:10px; }
   .blemish-size-label { font-size:9px; font-family:var(--mono); letter-spacing:0.14em; color:rgba(255,255,255,0.5); flex-shrink:0; }
   .blemish-size-slider { flex:1; -webkit-appearance:none; appearance:none; height:2px; background:rgba(255,255,255,0.22); border-radius:1px; outline:none; cursor:pointer; }
-  .blemish-size-slider::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; background:#fff; border-radius:3px; cursor:pointer; box-shadow:0 1px 5px rgba(0,0,0,0.4); }
-  .blemish-size-slider::-moz-range-thumb { width:22px; height:22px; background:#fff; border-radius:3px; cursor:pointer; border:none; }
+  .blemish-size-slider::-webkit-slider-thumb { -webkit-appearance:none; width:var(--bt,16px); height:var(--bt,16px); background:#fff; border-radius:50%; cursor:pointer; box-shadow:0 1px 6px rgba(0,0,0,0.5); transition:width 0.08s,height 0.08s; }
+  .blemish-size-slider::-moz-range-thumb { width:var(--bt,16px); height:var(--bt,16px); background:#fff; border-radius:50%; cursor:pointer; border:none; transition:width 0.08s,height 0.08s; }
   .blemish-ud-pill { display:flex; background:rgba(255,255,255,0.06); border-radius:10px; padding:2px; gap:1px; }
   .blemish-ud-item { flex:1; background:transparent; border:none; border-radius:8px; color:rgba(201,184,212,0.40); font-family:var(--mono); font-size:8px; letter-spacing:0.09em; font-weight:500; padding:5px 2px; cursor:pointer; transition:background 0.18s,color 0.18s; touch-action:manipulation; -webkit-tap-highlight-color:transparent; outline:none; }
   .blemish-ud-item:not(:disabled) { background:rgba(255,255,255,0.13); color:rgba(255,255,255,0.92); font-weight:700; }
@@ -10582,6 +10582,9 @@ function _blemishUpdateUD() {
 
 function blemishSizeInput(val) {
   _blemishRadius = val * 0.006;
+  var sz = Math.round(10 + (val - 1) * 2.4) + 'px';
+  var input = document.getElementById('blemish-size-input');
+  if (input) input.style.setProperty('--bt', sz);
 }
 
 function blemishUndo() {

@@ -13180,6 +13180,12 @@ function galleryOpenInEditor(idx) {
       var origImg = new Image();
       origImg.onload = function() {
         userImage = origImg;
+        // Sync slider UI with restored state — fires after evInit's rAF
+        if (activePreset) {
+          buildEditorSliders(activePreset);
+        } else if (sliderState[_evNoLookPreset.id] && Object.keys(sliderState[_evNoLookPreset.id]).length > 0) {
+          buildEditorSliders(_evNoLookPreset);
+        }
         if (typeof evRenderCanvas === 'function') evRenderCanvas();
         if (_perspBaseURL) {
           var _preWarpImg = new Image();
@@ -13195,7 +13201,7 @@ function galleryOpenInEditor(idx) {
           };
           _preWarpImg.src = _perspBaseURL;
         } else {
-          evHistory.push({ presetId: null, sliders: {}, intensity: 1.0, _perspState: null });
+          evHistory.push({ presetId: es.presetId || null, sliders: JSON.parse(JSON.stringify(es.sliders || {})), intensity: typeof es.intensity === 'number' ? es.intensity : 1.0, _perspState: null });
           if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
         }
         setTimeout(function() { evRenderPresets(); }, 60);

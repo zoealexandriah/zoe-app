@@ -8748,36 +8748,41 @@ function applyVignetteBlur(canvas, amount, offX, offY, imgW, imgH) {
   const ctx = canvas.getContext('2d');
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
-  const radius = Math.max(1, Math.round(Math.pow(amount, 0.5) * 28));
-  const tmp = new Uint8ClampedArray(src.length);
-  const blurred = new Uint8ClampedArray(src.length);
-  for (let y = 0; y < imgH; y++) {
-    for (let x = 0; x < imgW; x++) {
-      let rr=0,gg=0,bb=0,n=0;
-      const x0=Math.max(0,x-radius), x1=Math.min(imgW-1,x+radius);
-      for (let kx=x0;kx<=x1;kx++){const ii=(y*imgW+kx)*4;rr+=src[ii];gg+=src[ii+1];bb+=src[ii+2];n++;}
-      const ii=(y*imgW+x)*4; tmp[ii]=rr/n; tmp[ii+1]=gg/n; tmp[ii+2]=bb/n; tmp[ii+3]=src[ii+3];
+  // Two box-blur passes approximate Gaussian — smooth, optical, no color smear
+  const radius = Math.max(1, Math.round(Math.pow(amount, 0.5) * 16));
+  function boxPass(input, r) {
+    const tmp = new Uint8ClampedArray(input.length);
+    const out2 = new Uint8ClampedArray(input.length);
+    for (let y = 0; y < imgH; y++) {
+      for (let x = 0; x < imgW; x++) {
+        let rr=0,gg=0,bb=0,n=0;
+        const x0=Math.max(0,x-r), x1=Math.min(imgW-1,x+r);
+        for (let kx=x0;kx<=x1;kx++){const ii=(y*imgW+kx)*4;rr+=input[ii];gg+=input[ii+1];bb+=input[ii+2];n++;}
+        const ii=(y*imgW+x)*4; tmp[ii]=rr/n; tmp[ii+1]=gg/n; tmp[ii+2]=bb/n; tmp[ii+3]=input[ii+3];
+      }
     }
-  }
-  for (let y = 0; y < imgH; y++) {
-    for (let x = 0; x < imgW; x++) {
-      let rr=0,gg=0,bb=0,n=0;
-      const y0=Math.max(0,y-radius), y1=Math.min(imgH-1,y+radius);
-      for (let ky=y0;ky<=y1;ky++){const ii=(ky*imgW+x)*4;rr+=tmp[ii];gg+=tmp[ii+1];bb+=tmp[ii+2];n++;}
-      const ii=(y*imgW+x)*4; blurred[ii]=rr/n; blurred[ii+1]=gg/n; blurred[ii+2]=bb/n; blurred[ii+3]=src[ii+3];
+    for (let y = 0; y < imgH; y++) {
+      for (let x = 0; x < imgW; x++) {
+        let rr=0,gg=0,bb=0,n=0;
+        const y0=Math.max(0,y-r), y1=Math.min(imgH-1,y+r);
+        for (let ky=y0;ky<=y1;ky++){const ii=(ky*imgW+x)*4;rr+=tmp[ii];gg+=tmp[ii+1];bb+=tmp[ii+2];n++;}
+        const ii=(y*imgW+x)*4; out2[ii]=rr/n; out2[ii+1]=gg/n; out2[ii+2]=bb/n; out2[ii+3]=tmp[ii+3];
+      }
     }
+    return out2;
   }
+  const blurred = boxPass(boxPass(src, radius), radius);
+  // Radial mask: falloff shrinks with amount so blur wraps tighter around center
   const cx = imgW * 0.5, cy = imgH * 0.5;
   const maxDist = Math.sqrt(cx*cx + cy*cy);
-  const falloff = 0.08 + amount * 0.14;
+  const falloff = 0.42 - amount * 0.28; // 0.42 at min → 0.14 at max
   const out = new Uint8ClampedArray(src.length);
   for (let y = 0; y < imgH; y++) {
     for (let x = 0; x < imgW; x++) {
       const dx = (x - cx) / maxDist, dy = (y - cy) / maxDist;
       const dist = Math.sqrt(dx*dx + dy*dy);
       const t = Math.min(1, Math.max(0, (dist - falloff) / (1.0 - falloff)));
-      const blend = t * t * (3 - 2*t);
-      const w = blend * amount;
+      const w = t * t * (3 - 2*t);
       const ii = (y*imgW+x)*4;
       out[ii]   = src[ii]   * (1-w) + blurred[ii]   * w;
       out[ii+1] = src[ii+1] * (1-w) + blurred[ii+1] * w;

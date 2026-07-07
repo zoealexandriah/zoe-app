@@ -6264,6 +6264,7 @@ const sliderState = {};
 // Default neutral ranges per parameter
 const sliderConfig = {
   // [min, max, display_unit, neutral_at_0.5]
+  BRIGHTNESS:  [-1.00, 1.00, '', true],
   EXPOSURE:    [-1.00, 1.00, '', true],
   PUSH_PULL:   [-1.00, 1.00, '', true],
   CONTRAST:    [-1.00, 1.00, '', true],
@@ -6310,7 +6311,7 @@ const sliderConfig = {
 var _evNoLookPreset = {
   id: '__nolook__', name: 'NONE', tint: 'none', orbs: [], defaults: {},
   sliders: {
-    LIGHT:   {EXPOSURE:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.00',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.00',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
+    LIGHT:   {BRIGHTNESS:'+0.00',EXPOSURE:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.00',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.00',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
     COLOR:   {TEMPERATURE:'+0.00',TINT:'+0.00',VIBRANCE:'+0.00',SATURATION:'+0.00'},
     EFFECTS: {GLOW:'+0.00',GRAIN:'+0.00',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.00',DIFFUSION:'+0.00'},
     HSL:     {HUE_SHIFT:'+0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
@@ -6421,7 +6422,8 @@ function buildEditorSliders(p) {
       } else if (section === 'HSL') {
         hslHtml += sectionHtml;
       } else if (section === 'LIGHT') {
-        detHtml += sectionHtml;
+        var _lightRows = Object.assign({'BRIGHTNESS': '+0.00'}, rows);
+        detHtml += buildSectionHTML(p, section, _lightRows, state);
       }
     }
   });
@@ -6954,6 +6956,7 @@ function buildAdjustments(state) {
     return neutral ? (t - 0.5) * 2 : t; // -1..+1 or 0..1
   }
   return {
+    brightness:  val('BRIGHTNESS'),
     exposure:    val('EXPOSURE') * 0.80,
     push_pull:   val('PUSH_PULL'),
     contrast:    val('CONTRAST'),
@@ -7856,7 +7859,7 @@ function applyPixelAdjustments(srcData, adj) {
 
   // Fast-path: guarantee sliders at +0.00 never alter the image.
   const _noEffect =
-    !adj.exposure && !(Math.abs(adj.push_pull || 0) > 0.005) && !adj.contrast && !adj.highlights && !adj.shadows &&
+    !adj.brightness && !adj.exposure && !(Math.abs(adj.push_pull || 0) > 0.005) && !adj.contrast && !adj.highlights && !adj.shadows &&
     !adj.whites && !adj.blacks && !adj.temperature && !adj.tint &&
     !adj.saturation && !adj.vibrance && !(adj.grain > 0.01) && !adj.fade &&
     !(Math.abs(adj.hue_shift || 0) > 0.5) && !(adj.glow > 0.01) &&
@@ -7877,6 +7880,7 @@ function applyPixelAdjustments(srcData, adj) {
 
   const out = new Uint8ClampedArray(src.length);
 
+  const bri      = adj.brightness  || 0;   // -1..+1 → flat ±100 RGB lift
   const exp      = adj.exposure    || 0;   // -1..+1 → maps to -2..+2 EV
   const pushPull = adj.push_pull   || 0;   // -1..+1 → -2..+2 EV, with contrast+color character
   const cont  = adj.contrast    || 0;   // -1..+1
@@ -7929,6 +7933,9 @@ function applyPixelAdjustments(srcData, adj) {
       const ev = Math.pow(2, exposureEV);
       r *= ev; g *= ev; b *= ev;
     }
+
+    // ── BRIGHTNESS ───────────────────────────────────────────────────────
+    if (bri !== 0) { const lift = bri * 100; r += lift; g += lift; b += lift; }
 
     // ── CONTRAST ─────────────────────────────────────────────────────────
     // pivot at 128: stretch or compress around midpoint.

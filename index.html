@@ -6980,7 +6980,7 @@ function buildAdjustments(state) {
     brightness:  val('BRIGHTNESS') * 0.60,
     exposure:    val('EXPOSURE') * 0.80,
     push_pull:   val('PUSH_PULL'),
-    contrast:    val('CONTRAST'),
+    contrast:    (function(){ var _c = val('CONTRAST'); return _c < 0 ? _c * 0.35 : _c; })(),
     highlights:  val('HIGHLIGHTS'),
     shadows:     val('SHADOWS'),
     whites:      val('WHITES'),

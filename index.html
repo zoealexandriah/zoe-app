@@ -3163,14 +3163,22 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-int-slider::-moz-range-thumb{width:24px;height:24px;background:#fff;border-radius:3px;cursor:pointer;border:none;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
 
   /* Blemish panel */
-  #ev-blemish-ui { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
-  .blemish-hint { font-size: 10px; color: rgba(255,255,255,0.45); font-family: var(--mono); letter-spacing: 0.08em; line-height: 1.5; margin: 0; }
-  .blemish-size-row { display: flex; align-items: center; gap: 10px; }
-  .blemish-size-label { font-size: 9px; font-family: var(--mono); letter-spacing: 0.14em; color: rgba(255,255,255,0.5); }
-  .blemish-sz { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; border-radius: 4px; padding: 5px 11px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
-  .blemish-sz.active { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.45); color: #fff; }
-  .blemish-clear-btn { background: none; border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.55); font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; padding: 6px 14px; border-radius: 4px; cursor: pointer; align-self: flex-start; }
-  .blemish-clear-btn:active { background: rgba(255,255,255,0.1); }
+  .blemish-action-bar { display:flex; align-items:center; justify-content:space-between; padding:8px 4px; border-bottom:0.5px solid rgba(255,255,255,0.1); flex-shrink:0; }
+  .blemish-act-btn { background:none; border:none; color:rgba(255,255,255,0.5); font-size:14px; line-height:1; padding:4px 10px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .blemish-act-confirm { color:rgba(130,230,130,0.85); }
+  .blemish-act-label { flex:1; text-align:center; font-size:9px; letter-spacing:0.09em; font-family:var(--mono); font-weight:700; color:rgba(255,255,255,0.92); }
+  #ev-blemish-ui { padding:10px 16px 14px; display:flex; flex-direction:column; gap:12px; }
+  .blemish-hint { font-size:10px; color:rgba(255,255,255,0.4); font-family:var(--mono); letter-spacing:0.06em; line-height:1.5; margin:0; }
+  .blemish-size-row { display:flex; align-items:center; gap:10px; }
+  .blemish-size-label { font-size:9px; font-family:var(--mono); letter-spacing:0.14em; color:rgba(255,255,255,0.5); flex-shrink:0; }
+  .blemish-size-slider { flex:1; -webkit-appearance:none; appearance:none; height:2px; background:rgba(255,255,255,0.22); border-radius:1px; outline:none; cursor:pointer; }
+  .blemish-size-slider::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; background:#fff; border-radius:3px; cursor:pointer; box-shadow:0 1px 5px rgba(0,0,0,0.4); }
+  .blemish-size-slider::-moz-range-thumb { width:22px; height:22px; background:#fff; border-radius:3px; cursor:pointer; border:none; }
+  .blemish-ud-row { display:flex; gap:8px; }
+  .blemish-ud-btn { flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.14); color:rgba(255,255,255,0.6); font-family:var(--mono); font-size:9px; letter-spacing:0.1em; padding:6px 8px; border-radius:4px; cursor:pointer; }
+  .blemish-ud-btn:disabled { opacity:0.3; cursor:default; }
+  .blemish-clear-btn { background:none; border:1px solid rgba(255,255,255,0.18); color:rgba(255,255,255,0.5); font-family:var(--mono); font-size:9px; letter-spacing:0.14em; padding:6px 14px; border-radius:4px; cursor:pointer; align-self:flex-start; }
+  .blemish-clear-btn:active { background:rgba(255,255,255,0.08); }
   /* EDITOR.SUITE titlebar: hide on mobile */
   #ev-editor-titlebar { display: none !important; }
 
@@ -5000,14 +5008,20 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           </div>
           <!-- BLEMISH panel -->
           <div class="es-tab-panel" id="es-panel-blemish">
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">B L E M I S H</span></div>
+            <div class="blemish-action-bar">
+              <button class="blemish-act-btn" onclick="blemishDiscard()">✕</button>
+              <span class="blemish-act-label">BLEMISH</span>
+              <button class="blemish-act-btn blemish-act-confirm" onclick="blemishConfirm()">✓</button>
+            </div>
             <div id="ev-blemish-ui">
-              <p class="blemish-hint">Tap a spot on the photo to heal it. Tap again to remove.</p>
+              <p class="blemish-hint">Tap a spot on the photo to heal it.</p>
               <div class="blemish-size-row">
                 <span class="blemish-size-label">SIZE</span>
-                <button class="blemish-sz active" data-sz="0.025" onclick="blemishSetSize(this)">S</button>
-                <button class="blemish-sz" data-sz="0.04" onclick="blemishSetSize(this)">M</button>
-                <button class="blemish-sz" data-sz="0.065" onclick="blemishSetSize(this)">L</button>
+                <input type="range" class="blemish-size-slider" id="blemish-size-input" min="1" max="10" value="3" oninput="blemishSizeInput(this.value)">
+              </div>
+              <div class="blemish-ud-row">
+                <button class="blemish-ud-btn" id="blemish-undo-btn" onclick="blemishUndo()">↩ UNDO</button>
+                <button class="blemish-ud-btn" id="blemish-redo-btn" onclick="blemishRedo()">REDO ↪</button>
               </div>
               <button class="blemish-clear-btn" onclick="blemishClearAll()">CLEAR ALL</button>
             </div>
@@ -7607,6 +7621,8 @@ function loadUserImage(file) {
       userImage = img;
       if (typeof _clearPresetThumbCaches === 'function') _clearPresetThumbCaches();
       // Clear any previous edit state
+      blemishSpots = []; _blemishHistory = []; _blemishFuture = []; _blemishPreEdit = null;
+      try { localStorage.removeItem('zoe_blemish'); } catch(e){}
       editAdj = {};
       activePresetForEdit = null;
       activePreset = null;
@@ -10540,21 +10556,84 @@ function toolsCropHTML() {
 let cropOverlay = null, cropDragging = null, cropRect = null;
 
 // ── Blemish tool ────────────────────────────────────────────────────────────
-var blemishSpots   = [];
-var _blemishRadius = 0.025;
+var blemishSpots    = [];
+var _blemishRadius  = 0.025;
+var _blemishHistory = [];
+var _blemishFuture  = [];
+var _blemishPreEdit = null; // snapshot on enter, restored on discard
 
-function blemishSetSize(btn) {
-  _blemishRadius = parseFloat(btn.dataset.sz);
-  document.querySelectorAll('.blemish-sz').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
+function _blemishSave() {
+  try { localStorage.setItem('zoe_blemish', JSON.stringify(blemishSpots)); } catch(e){}
+}
+function _blemishLoad() {
+  try { var s = localStorage.getItem('zoe_blemish'); if (s) blemishSpots = JSON.parse(s); } catch(e){}
+}
+function _blemishPush() {
+  _blemishHistory.push(JSON.parse(JSON.stringify(blemishSpots)));
+  _blemishFuture = [];
+  _blemishUpdateUD();
+}
+function _blemishUpdateUD() {
+  var u = document.getElementById('blemish-undo-btn');
+  var r = document.getElementById('blemish-redo-btn');
+  if (u) u.disabled = _blemishHistory.length === 0;
+  if (r) r.disabled = _blemishFuture.length  === 0;
 }
 
-function blemishClearAll() {
-  blemishSpots = [];
+function blemishSizeInput(val) {
+  _blemishRadius = val * 0.006;
+}
+
+function blemishUndo() {
+  if (_blemishHistory.length === 0) return;
+  _blemishFuture.push(JSON.parse(JSON.stringify(blemishSpots)));
+  blemishSpots = _blemishHistory.pop();
+  _blemishUpdateUD();
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
+function blemishRedo() {
+  if (_blemishFuture.length === 0) return;
+  _blemishHistory.push(JSON.parse(JSON.stringify(blemishSpots)));
+  blemishSpots = _blemishFuture.pop();
+  _blemishUpdateUD();
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+}
+
+function blemishClearAll() {
+  if (blemishSpots.length === 0) return;
+  _blemishPush();
+  blemishSpots = [];
+  _blemishSave();
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+}
+
+function blemishConfirm() {
+  _blemishSave();
+  _blemishHistory = []; _blemishFuture = [];
+  _blemishPreEdit = null;
+  _blemishUpdateUD();
+  blemishExit();
+  if (typeof evAdjustSubTab === 'function') evAdjustSubTab('atmosphere');
+}
+
+function blemishDiscard() {
+  if (_blemishPreEdit !== null) {
+    blemishSpots = _blemishPreEdit;
+    _blemishPreEdit = null;
+  }
+  _blemishHistory = []; _blemishFuture = [];
+  _blemishUpdateUD();
+  _blemishSave();
+  blemishExit();
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+  if (typeof evAdjustSubTab === 'function') evAdjustSubTab('atmosphere');
+}
+
 function blemishEnter() {
+  _blemishPreEdit = JSON.parse(JSON.stringify(blemishSpots));
+  _blemishHistory = []; _blemishFuture = [];
+  _blemishUpdateUD();
   var canvas = document.getElementById('ev-canvas');
   if (!canvas) return;
   var ov = document.getElementById('blemish-overlay-canvas');
@@ -10590,19 +10669,8 @@ function _blemishSyncOverlay() {
   ov.style.height = rect.height + 'px';
   ov.style.left   = (rect.left - pRect.left) + 'px';
   ov.style.top    = (rect.top  - pRect.top)  + 'px';
-  var ctx = ov.getContext('2d');
-  ctx.clearRect(0, 0, ov.width, ov.height);
-  var lw = Math.max(1, Math.round(canvas.width / 600));
-  for (var i = 0; i < blemishSpots.length; i++) {
-    var s  = blemishSpots[i];
-    var cx = s.cx * ov.width;
-    var cy = s.cy * ov.height;
-    var r  = s.r  * Math.min(ov.width, ov.height);
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = lw; ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx, cy, Math.max(2, r * 0.1), 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.fill();
-  }
+  // No markers — healed effect is visible directly on the canvas
+  ov.getContext('2d').clearRect(0, 0, ov.width, ov.height);
 }
 
 function _blemishHandleTap(e) {
@@ -10624,19 +10692,13 @@ function _blemishHandleTap(e) {
   var py = (clientY - rect.top)  * scaleY;
   var cx = px / canvas.width;
   var cy = py / canvas.height;
-  var minDim = Math.min(canvas.width, canvas.height);
-  // Tap existing spot → remove it
-  var hitIdx = -1;
-  for (var i = 0; i < blemishSpots.length; i++) {
-    var s  = blemishSpots[i];
-    var ddx = (s.cx - cx) * canvas.width;
-    var ddy = (s.cy - cy) * canvas.height;
-    if (Math.sqrt(ddx*ddx + ddy*ddy) < s.r * minDim * 1.3) { hitIdx = i; break; }
-  }
-  if (hitIdx >= 0) { blemishSpots.splice(hitIdx, 1); }
-  else             { blemishSpots.push({ cx: cx, cy: cy, r: _blemishRadius }); }
+  _blemishPush();
+  blemishSpots.push({ cx: cx, cy: cy, r: _blemishRadius });
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
+
+// Load persisted spots on init
+_blemishLoad();
 
 function toolsCropSetRatio(r) {
   toolsCropRatio = r;
@@ -12102,8 +12164,13 @@ function globalReset() {
     Object.keys(sliderState).some(function(k){ return Object.keys(sliderState[k]).length > 0; }) ||
     !!_preCropState || Math.abs(toolsStraightenVal) > 0.01 || Math.abs(_etPerspVVal) > 0.01 || Math.abs(_etPerspHVal) > 0.01 ||
     Math.abs(typeof _cropStraightenVal !== 'undefined' ? _cropStraightenVal : 0) > 0.01 ||
-    !!document.getElementById('crop-straighten-work') || !!_perspBaseURL;
+    !!document.getElementById('crop-straighten-work') || !!_perspBaseURL ||
+    blemishSpots.length > 0;
   if (!_hasAnyEdits) { showToast('NOTHING TO RESET'); return; }
+  // Clear blemish spots
+  blemishSpots = []; _blemishHistory = []; _blemishFuture = []; _blemishPreEdit = null;
+  try { localStorage.removeItem('zoe_blemish'); } catch(e){}
+  _blemishUpdateUD();
   const hc = document.getElementById('hero-canvas') || document.getElementById('ev-canvas');
   // Push current state to history (reset is undoable)
   if (hc && activePreset) fix2HistoryPush(activePreset.id);

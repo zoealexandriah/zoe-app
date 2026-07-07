@@ -7956,7 +7956,7 @@ function applyPixelAdjustments(srcData, adj) {
     }
 
     // ── BRIGHTNESS ───────────────────────────────────────────────────────
-    if (bri !== 0) { const lift = bri * 100; r += lift; g += lift; b += lift; }
+    if (bri !== 0) { const scale = 1 + bri * 0.6; r *= scale; g *= scale; b *= scale; }
 
     // ── CONTRAST ─────────────────────────────────────────────────────────
     // pivot at 128: stretch or compress around midpoint.

@@ -8030,9 +8030,9 @@ function applyPixelAdjustments(srcData, adj) {
           g = Math.min(255, g + lift);
           b = Math.min(255, b + lift);
         } else {
-          // Crush: wider threshold + harder factor for more dramatic negative
-          const bkWeight2 = lumBk < 75 ? (75 - lumBk) / 75 : 0;
-          const bkf = 1 + blacks * bkWeight2 * 1.5;
+          // Crush: wide range with smooth power-curve falloff to avoid hard edges
+          const bkWeight2 = lumBk < 90 ? Math.pow((90 - lumBk) / 90, 1.5) : 0;
+          const bkf = 1 + blacks * bkWeight2 * 1.1;
           r = Math.max(0, r * bkf);
           g = Math.max(0, g * bkf);
           b = Math.max(0, b * bkf);

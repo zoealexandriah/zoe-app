@@ -6398,7 +6398,7 @@ function buildEditorSliders(p) {
   const det2Container = document.getElementById('es-detail-sliders');
   const blurContainer = document.getElementById('es-blur-sliders');
   const DETAIL_KEYS = ['SHARPEN', 'CLARITY', 'GRAIN', 'FADE'];
-  const BLUR_KEYS   = ['BLUR', 'GLOW', 'DIFFUSION'];
+  const BLUR_KEYS   = ['BLUR', 'GLOW'];
 
   Object.entries(p.sliders||{}).forEach(([section, rows]) => {
     if (section === 'EFFECTS') {

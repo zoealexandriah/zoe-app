@@ -8835,7 +8835,7 @@ function applyRadialBlur(canvas, amount, offX, offY, imgW, imgH) {
         continue;
       }
       // Angle spread scales with distance — center stays naturally sharp
-      const angleSpread = maxAngle * Math.pow(dist / maxDist, 2.0);
+      const angleSpread = maxAngle * Math.pow(dist / maxDist, 0.9);
       const angle = Math.atan2(dy, dx);
       let rr=0, gg=0, bb=0;
       for (let s = 0; s < numSamples; s++) {

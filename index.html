@@ -6985,7 +6985,7 @@ function buildAdjustments(state) {
     shadows:     val('SHADOWS'),
     whites:      (function(){ var _w = val('WHITES'); return _w < 0 ? _w * 0.80 : _w; })(),
     blacks:      val('BLACKS'),
-    saturation:  val('SATURATION') * 1.265,
+    saturation:  val('SATURATION') * 0.75,
     vibrance:    val('VIBRANCE') * 0.70,
     temperature: val('TEMPERATURE'),
     tint:        val('TINT'),

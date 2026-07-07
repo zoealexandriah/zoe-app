@@ -13846,6 +13846,7 @@ window.renderLibrary = function() {
   const grid = document.getElementById('library-grid');
   if (!grid) return;
   grid.querySelectorAll('.lib-photo').forEach((cell) => {
+    cell.querySelectorAll('.lib-photo-edited-dot').forEach(function(d){ d.remove(); });
     const idx = parseInt(cell.dataset.idx, 10);
     const entry = (!isNaN(idx) && idx >= 0) ? library[idx] : null;
     if (!entry) return;

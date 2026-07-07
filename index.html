@@ -10581,7 +10581,7 @@ function _blemishUpdateUD() {
 }
 
 function blemishSizeInput(val) {
-  var thumbPx = Math.round(20 + (val - 1) * 1.33);
+  var thumbPx = Math.round(20 + (val - 1) * 0.89);
   var input = document.getElementById('blemish-size-input');
   if (input) input.style.setProperty('--bt', thumbPx + 'px');
   // Radius = thumb radius in CSS display px, normalized to canvas CSS dimensions

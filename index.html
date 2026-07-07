@@ -10582,7 +10582,7 @@ function _blemishUpdateUD() {
 
 function blemishSizeInput(val) {
   _blemishRadius = val * 0.006;
-  var sz = Math.round(10 + (val - 1) * 2.4) + 'px';
+  var sz = Math.round(16 + (val - 1) * 1.78) + 'px';
   var input = document.getElementById('blemish-size-input');
   if (input) input.style.setProperty('--bt', sz);
 }

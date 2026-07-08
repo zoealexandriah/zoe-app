@@ -7064,9 +7064,9 @@ function buildAdjustments(state) {
     colorGlow:   0,
     skinLift:    0,
     dehaze:      val('DEHAZE'),
-    texture:     val('TEXTURE') * 0.5,
+    texture:     val('TEXTURE', false) * 0.5,
     matte_lift:  val('MATTE_LIFT', false),
-    diffusion:      val('DIFFUSION'),
+    diffusion:      val('DIFFUSION', false),
     vignette_blur:  val('VIGNETTE_BLUR', false),
     motion_blur:    val('MOTION_BLUR', false),
     radial_blur:    val('RADIAL_BLUR', false),
@@ -13227,7 +13227,7 @@ function evShowIntensityOverlay(p) {
 function evIntSelectTool(toolId) {
   _evIntActiveTool = toolId;
   var p = _evIntActivePreset;
-  var _map = {filter:{key:null,bipolar:false}, texture:{key:'TEXTURE',bipolar:true}, blur:{key:'BLUR',bipolar:false}, grain:{key:'GRAIN',bipolar:false}, mist:{key:'DIFFUSION',bipolar:true}, glow:{key:'GLOW',bipolar:false}};
+  var _map = {filter:{key:null,bipolar:false}, texture:{key:'TEXTURE',bipolar:false}, blur:{key:'BLUR',bipolar:false}, grain:{key:'GRAIN',bipolar:false}, mist:{key:'DIFFUSION',bipolar:false}, glow:{key:'GLOW',bipolar:false}};
   var def = _map[toolId] || {key:null,bipolar:false};
   var key = def.key;
   var val;
@@ -13253,7 +13253,7 @@ function evIntSelectTool(toolId) {
 }
 function evIntUpdate(val) {
   var p = _evIntActivePreset;
-  var _map = {filter:{key:null,bipolar:false}, texture:{key:'TEXTURE',bipolar:true}, blur:{key:'BLUR',bipolar:false}, grain:{key:'GRAIN',bipolar:false}, mist:{key:'DIFFUSION',bipolar:true}, glow:{key:'GLOW',bipolar:false}};
+  var _map = {filter:{key:null,bipolar:false}, texture:{key:'TEXTURE',bipolar:false}, blur:{key:'BLUR',bipolar:false}, grain:{key:'GRAIN',bipolar:false}, mist:{key:'DIFFUSION',bipolar:false}, glow:{key:'GLOW',bipolar:false}};
   var def = _map[_evIntActiveTool] || {key:null,bipolar:false};
   var key = def.key;
   var num = parseInt(val, 10);

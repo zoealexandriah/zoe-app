@@ -6893,13 +6893,25 @@ function evAdjustSubTab(name) {
   if (name === 'crop' || name === 'flip') {
     // Capture default tab BEFORE etSelectTool resets _etCropDefaultTab via etCropHTML
     var _cropInitTab = (name === 'crop' && typeof _etCropDefaultTab !== 'undefined') ? (_etCropDefaultTab || 'straighten') : 'straighten';
+    // Open the suite so the tools panel is visible on mobile
+    var _cs = document.getElementById('ev-editor-suite');
+    if (_cs) _cs.classList.add('open');
     if (typeof etSelectTool === 'function') etSelectTool(name);
     if (name === 'crop') {
       setTimeout(function() {
-        // Only auto-click RATIO for undo flow (not re-adjust — user taps RATIO themselves)
-        if (_cropInitTab !== 'ratio') return;
-        var _rb = document.querySelector('.crop-subtab[onclick*="ratio"]');
-        if (_rb) _rb.click();
+        if (_cropInitTab === 'ratio') {
+          var _rb = document.querySelector('.crop-subtab[onclick*="ratio"]');
+          if (_rb) _rb.click();
+        } else {
+          // Explicitly enforce the correct sub-tab visibility after render
+          ['straighten','ratio','transform','optical'].forEach(function(id) {
+            var el = document.getElementById('crop-sub-' + id);
+            if (el) el.style.display = id === _cropInitTab ? '' : 'none';
+          });
+          document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
+          var _ab = document.querySelector('.crop-subtab[onclick*="' + _cropInitTab + '"]');
+          if (_ab) _ab.classList.add('active');
+        }
       }, 80);
     }
   }

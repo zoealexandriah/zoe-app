@@ -3233,6 +3233,20 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* Slider containers: compact vertical scroll */
   #es-atmosphere-sliders,
   #es-color-sliders,
+  .blur-scroll-wrap {
+    position: relative;
+  }
+  .blur-scroll-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to bottom, transparent, #0f0d16);
+    pointer-events: none;
+    z-index: 1;
+  }
   #es-details-sliders,
   #es-detail-sliders,
   #es-blur-sliders {
@@ -5030,7 +5044,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <!-- BLUR panel: BLUR GLOW -->
           <div class="es-tab-panel" id="es-panel-blur">
             <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">B L U R</span></div>
-            <div id="es-blur-sliders"></div>
+            <div class="blur-scroll-wrap">
+              <div id="es-blur-sliders"></div>
+            </div>
           </div>
           <!-- OPTICAL panel: VERTICAL + HORIZONTAL perspective -->
           <div class="es-tab-panel" id="es-panel-optical">
@@ -12828,21 +12844,15 @@ function _evRenderCanvasImmediate() {
     }
     ctx.putImageData(new ImageData(processed, canvas.width, canvas.height), 0, 0);
     if (activePreset && activePreset.curve) applyCurveLUTs(canvas, activePreset.curve, 0, 0, canvas.width, canvas.height);
-    // Skip heavy offscreen-canvas effects while slider is being dragged — they each allocate a
-    // new canvas + getImageData/putImageData and are the main source of mid-drag lag.
-    // A full-quality re-render fires automatically on drag release.
     var _dragging = window._slDragging;
-    // Glow is lightweight enough to show live during drag
     if ((adj.glow || 0) > 0.01) applyGlow(canvas, adj.glow, 0, 0, canvas.width, canvas.height);
     if ((adj.mist || 0) > 0.01) applyMist(canvas, adj.mist, 0, 0, canvas.width, canvas.height);
-    if (!_dragging) {
-      if ((adj.sharpen || 0) > 0.01) applySharpness(canvas, adj.sharpen, 0, 0, canvas.width, canvas.height);
-      if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(canvas, adj.clarity, 0, 0, canvas.width, canvas.height);
-      if ((adj.blur   || 0) > 0.01) applyBlur(canvas, adj.blur, 0, 0, canvas.width, canvas.height);
-      if ((adj.vignette_blur || 0) > 0.01) applyVignetteBlur(canvas, adj.vignette_blur, 0, 0, canvas.width, canvas.height);
-      if ((adj.motion_blur   || 0) > 0.01) applyMotionBlur(canvas, adj.motion_blur, 0, 0, canvas.width, canvas.height);
-      if ((adj.radial_blur   || 0) > 0.01) applyRadialBlur(canvas, adj.radial_blur, 0, 0, canvas.width, canvas.height);
-    }
+    if ((adj.sharpen || 0) > 0.01) applySharpness(canvas, adj.sharpen, 0, 0, canvas.width, canvas.height);
+    if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(canvas, adj.clarity, 0, 0, canvas.width, canvas.height);
+    if ((adj.blur   || 0) > 0.01) applyBlur(canvas, adj.blur, 0, 0, canvas.width, canvas.height);
+    if ((adj.vignette_blur || 0) > 0.01) applyVignetteBlur(canvas, adj.vignette_blur, 0, 0, canvas.width, canvas.height);
+    if ((adj.motion_blur   || 0) > 0.01) applyMotionBlur(canvas, adj.motion_blur, 0, 0, canvas.width, canvas.height);
+    if ((adj.radial_blur   || 0) > 0.01) applyRadialBlur(canvas, adj.radial_blur, 0, 0, canvas.width, canvas.height);
     if (activePreset && activePreset.splitTone) adj.split_tone = activePreset.splitTone;
     if (activePreset && activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
     if (activePreset && activePreset.shadowTint) adj.shadow_tint = activePreset.shadowTint;

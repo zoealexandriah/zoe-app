@@ -7991,13 +7991,14 @@ function applyPixelAdjustments(srcData, adj) {
     // Gamma-curve tonal shift: push lifts shadows+midtones (highlights roll off),
     // pull crushes shadows while preserving highlights.
     if (pushPull !== 0) {
-      const gamma = pushPull > 0
-        ? 1 / (1 + pushPull * 1.6)
-        : 1 + Math.abs(pushPull) * 1.6;
+      const pp = Math.max(-0.35, Math.min(0.23, pushPull));
+      const gamma = pp > 0
+        ? 1 / (1 + pp * 1.6)
+        : 1 + Math.abs(pp) * 1.6;
       r = Math.pow(Math.max(0, r) / 255, gamma) * 255;
       g = Math.pow(Math.max(0, g) / 255, gamma) * 255;
       b = Math.pow(Math.max(0, b) / 255, gamma) * 255;
-      const ppCont = 1 + Math.abs(pushPull) * 0.12;
+      const ppCont = 1 + Math.abs(pp) * 0.12;
       r = (r / 255 - 0.5) * ppCont * 255 + 128;
       g = (g / 255 - 0.5) * ppCont * 255 + 128;
       b = (b / 255 - 0.5) * ppCont * 255 + 128;

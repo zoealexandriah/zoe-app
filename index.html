@@ -3567,9 +3567,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-mobile-nav { display: none !important; }
 
   #ev-editor-suite.open .es-tab-panel.active {
-    height: auto !important;
+    height: 170px !important;
     max-height: 170px !important;
-    min-height: unset !important;
+    min-height: 170px !important;
     flex: none !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
@@ -3577,6 +3577,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-editor-suite.open .es-tab-panel.active::before {
     display: none !important;
   }
+
+  /* Color/HSL sub-tabs inside panel — hidden on mobile (HSL is in subnav) */
+  #ev-color-subtabs { display: none !important; }
 
   /* Panel header (L I G H T, C O L O R, etc.) — hidden on mobile */
   .ev-panel-hdr {

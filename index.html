@@ -13611,7 +13611,7 @@ document.addEventListener('mouseup', function(){
   document.addEventListener('touchmove', function(e){
     var c=document.getElementById('ev-canvas'); var bov=document.getElementById('blemish-overlay-canvas'); if(!c||(e.target!==c&&e.target!==bov)) return;
     if(e.touches.length===2&&_p0>0){ evZoomLevel=Math.max(0.5,Math.min(4,_z0*dist(e)/_p0)); evApplyZoom(); if(typeof _blemishSyncOverlay==='function') _blemishSyncOverlay(); }
-    else if(e.touches.length===1&&_pan0&&evZoomLevel>1){ evPanX=e.touches[0].clientX-_pan0.x; evPanY=e.touches[0].clientY-_pan0.y; evApplyZoom(); }
+    else if(e.touches.length===1&&_pan0&&evZoomLevel>1){ evPanX=e.touches[0].clientX-_pan0.x; evPanY=e.touches[0].clientY-_pan0.y; evApplyZoom(); _evPinchActive=true; }
   },{passive:true});
   document.addEventListener('touchend', function(){
     // Only re-render if a canvas gesture (pinch or pan) was active — not for slider touches

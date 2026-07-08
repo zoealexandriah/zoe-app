@@ -6830,12 +6830,9 @@ function evAdjustSubTab(name) {
       if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved) {
         userImage = _cropReAdjSaved;
         _cropReAdjSaved = null;
-        if (typeof _cropReAdjOrigState !== 'undefined' && _cropReAdjOrigState) {
-          _origPixels = _cropReAdjOrigState.pixels;
-          _origW = _cropReAdjOrigState.w; _origH = _cropReAdjOrigState.h;
-          _origOffX = _cropReAdjOrigState.offX; _origOffY = _cropReAdjOrigState.offY;
-          _cropReAdjOrigState = null;
-        }
+        _cropReAdjOrigState = null;
+        // Re-render so the canvas resizes to the cropped image dimensions
+        requestAnimationFrame(function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); });
       }
       if (typeof _ratioPreCropUserImage !== 'undefined') _ratioPreCropUserImage = null;
       if (typeof _cropExitMode === 'function') _cropExitMode();

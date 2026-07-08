@@ -6388,12 +6388,11 @@ function _evMergeAdjState(p, userState) {
 
 function getSliderDisplay(name, t) {
   const cfg = sliderConfig[name];
-  if (!cfg) return t.toFixed(2);
+  if (!cfg) return String(Math.round(t * 100));
   const [mn, mx, unit, neutral] = cfg;
   const val = mn + t * (mx - mn);
-  if (unit === '°') { const sign = val >= 0 ? '+' : ''; return sign + Math.round(val) + '°'; }
-  const sign = val >= 0 ? '+' : '';
-  return sign + val.toFixed(2);
+  if (unit === '°') return Math.round(val) + '°';
+  return String(Math.round(val * 100));
 }
 
 function buildEditorSliders(p) {

@@ -14979,12 +14979,7 @@ window.galleryCopyEdits = function(imageId) {
     // Clear any stale cropRect before running the chain — prevents old rect from
     // flashing briefly on screen before the setTimeout below resets it
     cropRect = null; cropDragging = null;
-    // Re-adjust mode: if a crop was previously applied, temporarily show the pre-crop original
-    // so the user can reposition the crop on the full image
-    if (!_cropReAdjSaved && _preCropState && _preCropState.userImage && _savedCropRect) {
-      _cropReAdjSaved = userImage;
-      userImage = _preCropState.userImage;
-    }
+    // Re-adjust mode activates only when the RATIO sub-tab is opened (see cropSelectSubTab)
     var _oldFlash = document.getElementById('crop-overlay-canvas');
     if (_oldFlash) _oldFlash.remove();
     _prevEtSelectToolFinal(name); // run chain for UI setup

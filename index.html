@@ -3243,19 +3243,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     -webkit-overflow-scrolling: touch;
   }
   .blur-scroll-wrap {
-    position: relative;
+    display: contents !important;
   }
-  .blur-scroll-wrap::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 20px;
-    background: linear-gradient(to bottom, transparent, #0f0d16);
-    pointer-events: none;
-    z-index: 1;
-  }
+  .blur-scroll-wrap::after { display: none !important; }
   #es-details-sliders,
   #es-detail-sliders,
   #es-blur-sliders {

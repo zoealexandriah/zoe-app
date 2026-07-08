@@ -12673,6 +12673,7 @@ function evInit() {
   var canvas  = document.getElementById('ev-canvas');
   if (noPhoto) noPhoto.style.display = userImage ? 'none' : 'flex';
   if (canvas)  canvas.style.display  = userImage ? 'block' : 'none';
+  if (canvas && userImage) canvas.style.opacity = '0';
   // Hide nav pills when no image is loaded so user can't tap into broken editor state
   var edView = document.getElementById('editor-view');
   if (edView) {
@@ -12882,6 +12883,7 @@ function _evRenderCanvasImmediate() {
   }
   if (blemishSpots && blemishSpots.length > 0) applyBlemishHeal(canvas, blemishSpots, 0, 0, canvas.width, canvas.height);
   if (typeof _blemishSyncOverlay === 'function') _blemishSyncOverlay();
+  if (canvas.style.opacity === '0') canvas.style.opacity = '';
 }
 
 // ── Hold-to-compare: press and hold ev-canvas to preview original ────────────

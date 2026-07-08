@@ -13641,6 +13641,7 @@ function galleryOpenInEditor(idx) {
   // Set up globals
   editingIdx = idx;
   _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0; // reset perspective re-edit state
+  _preCropState = null; _savedCropRect = null; _cropReAdjSaved = null; // clear crop state from previous photo
   _clearPresetThumbCaches(); // new image — invalidate all cached thumbnails
   evHistory.length = 0;
   evFuture.length  = 0;

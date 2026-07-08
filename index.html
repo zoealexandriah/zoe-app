@@ -12690,14 +12690,15 @@ function evInit() {
   // Any slider interaction then triggers a re-render that now finds the keys
   // and applies the effects, making them appear as a "new" fade/lift.
   if (activePreset) initSliderState(activePreset);
-  // Render canvas (already rAF-deferred internally)
-  evRenderCanvas();
-  // Defer preset list + sliders so the browser paints the tab transition first
+  // Defer preset list + sliders, then render canvas — this ensures the preset
+  // strip is visible (takes its 152px) before _evResizeCanvas measures the
+  // canvas area, so the very first draw uses the correct dimensions.
   requestAnimationFrame(function() {
     evRenderPresets();
     evBuildSliders();
     evAdjustSubTab('atmosphere');
     _evResizeCanvas();
+    evRenderCanvas();
   });
 }
 

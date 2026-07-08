@@ -3492,27 +3492,35 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     background: rgba(13,13,14,0.85) !important;
   }
 
-  /* Drag handle */
-  #ev-sheet-handle {
-    height: 26px !important;
-    display: flex !important;
+  #ev-sheet-handle { height: 0 !important; overflow: hidden !important; padding: 0 !important; }
+  #ev-sheet-handle::after { display: none !important; }
+  #ev-editor-suite.sheet-collapsed { max-height: 0 !important; overflow: hidden !important; border-top: none !important; }
+  #ev-editor-suite.sheet-collapsed #ev-adjust-subnav { display: none !important; }
+
+  /* Full-preview toggle button — bottom-right of canvas */
+  #ev-sheet-toggle {
+    display: none;
+    position: absolute !important;
+    bottom: 12px !important;
+    right: 12px !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+    border: 0.5px solid rgba(255,255,255,0.10) !important;
+    background: rgba(10,8,18,0.60) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    color: rgba(201,184,212,0.72) !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    padding: 0 !important;
     align-items: center !important;
     justify-content: center !important;
+    -webkit-tap-highlight-color: transparent !important;
     flex-shrink: 0 !important;
-    touch-action: none !important;
-    cursor: grab !important;
-    padding: 0 !important;
-    overflow: visible !important;
+    transition: opacity 0.2s !important;
   }
-  #ev-sheet-handle::after {
-    content: '' !important;
-    display: block !important;
-    width: 36px !important;
-    height: 4px !important;
-    border-radius: 2px !important;
-    background: rgba(255,255,255,0.18) !important;
-  }
-  #ev-editor-suite.sheet-collapsed #ev-adjust-subnav { display: none !important; }
+  #editor-view:not(.no-image) #ev-sheet-toggle { display: flex !important; }
 
   /* Subnav: floats above sheet over image */
   #ev-adjust-subnav {
@@ -4764,6 +4772,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <!-- Canvas area -->
           <div id="ev-canvas-area" style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#100d14;">
             <canvas id="ev-canvas"></canvas>
+            <button id="ev-sheet-toggle" onclick="evToggleSheet()">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+            </button>
             <div id="ev-no-photo" style="display:none;flex-direction:column;align-items:center;justify-content:center;position:absolute;inset:0;padding:0 32px;">
               <!-- Pixel folder illustration -->
               <svg width="108" height="96" viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:18px;flex-shrink:0;overflow:visible">
@@ -16889,49 +16900,20 @@ function importSheetChoice(type) {
     });
   });
 
-  /* ── Drag handle: snap collapse / expand ── */
-  function _initDrag() {
-    var handle = document.getElementById('ev-sheet-handle');
-    var suite  = document.getElementById('ev-editor-suite');
-    if (!handle || !suite) return;
-    var HANDLE_H   = 26;
-    var EXPANDED_H = Math.round(window.innerHeight * 0.27);
-    var SNAP_DIST  = 36;
-    var _collapsed = false;
-    var _sy = 0;
-
-    function _setH(h, animate) {
-      suite.style.transition = animate ? 'max-height 0.3s cubic-bezier(0.4,0,0.2,1)' : 'none';
-      suite.style.setProperty('--sheet-max-h', h + 'px');
-      _collapsed = h <= HANDLE_H + 2;
-      suite.classList.toggle('sheet-collapsed', _collapsed);
+  window.evToggleSheet = function() {
+    var suite = document.getElementById('ev-editor-suite');
+    if (!suite) return;
+    var collapsed = suite.classList.contains('sheet-collapsed');
+    suite.style.transition = 'max-height 0.28s cubic-bezier(0.4,0,0.2,1)';
+    if (collapsed) {
+      suite.classList.remove('sheet-collapsed');
+      suite.style.setProperty('--sheet-max-h', Math.round(window.innerHeight * 0.27) + 'px');
+    } else {
+      suite.classList.add('sheet-collapsed');
     }
+  };
 
-    handle.addEventListener('touchstart', function(e) {
-      _sy = e.touches[0].clientY;
-      suite.style.transition = 'none';
-      e.preventDefault();
-    }, { passive: false });
-
-    handle.addEventListener('touchmove', function(e) {
-      var dy = e.touches[0].clientY - _sy;
-      var newH = _collapsed
-        ? Math.min(EXPANDED_H, Math.max(HANDLE_H, HANDLE_H - dy))
-        : Math.min(EXPANDED_H, Math.max(HANDLE_H, EXPANDED_H - dy));
-      suite.style.setProperty('--sheet-max-h', newH + 'px');
-      suite.classList.toggle('sheet-collapsed', newH <= HANDLE_H + 20);
-      e.preventDefault();
-    }, { passive: false });
-
-    handle.addEventListener('touchend', function(e) {
-      var dy = e.changedTouches[0].clientY - _sy;
-      if (!_collapsed) {
-        _setH(dy > SNAP_DIST ? HANDLE_H : EXPANDED_H, true);
-      } else {
-        _setH(dy < -SNAP_DIST ? EXPANDED_H : HANDLE_H, true);
-      }
-    });
-  }
+  function _initDrag() { /* replaced by evToggleSheet */ }
 
   /* ── Wrap switchToTab: auto-open LIGHT when entering editor ── */
   var _origSwitch = window.switchToTab;

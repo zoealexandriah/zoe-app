@@ -13604,25 +13604,31 @@ document.addEventListener('mouseup', function(){
 
 // Pinch-to-zoom + one-finger pan for ev-canvas (mobile)
 (function(){
-  var _p0 = 0, _z0 = 1, _pan0 = null, _reRenderTimer = null;
+  var _p0 = 0, _z0 = 1, _pan0 = null, _reRenderTimer = null, _hadGesture = false;
   function dist(e){ var dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY; return Math.sqrt(dx*dx+dy*dy); }
   document.addEventListener('touchstart', function(e){
     var c=document.getElementById('ev-canvas'); var bov=document.getElementById('blemish-overlay-canvas'); if(!c||(e.target!==c&&e.target!==bov)) return;
-    if(e.touches.length===2){ _p0=dist(e); _z0=evZoomLevel; _evPinchActive=true; }
+    if(e.touches.length===2){ _p0=dist(e); _z0=evZoomLevel; _evPinchActive=true; _hadGesture=true; }
     else if(e.touches.length===1&&evZoomLevel>1){ _pan0={x:e.touches[0].clientX-evPanX,y:e.touches[0].clientY-evPanY}; }
   },{passive:true});
   document.addEventListener('touchmove', function(e){
     var c=document.getElementById('ev-canvas'); var bov=document.getElementById('blemish-overlay-canvas'); if(!c||(e.target!==c&&e.target!==bov)) return;
     if(e.touches.length===2&&_p0>0){ evZoomLevel=Math.max(0.5,Math.min(4,_z0*dist(e)/_p0)); evApplyZoom(); if(typeof _blemishSyncOverlay==='function') _blemishSyncOverlay(); }
-    else if(e.touches.length===1&&_pan0&&evZoomLevel>1){ evPanX=e.touches[0].clientX-_pan0.x; evPanY=e.touches[0].clientY-_pan0.y; evApplyZoom(); _evPinchActive=true; }
+    else if(e.touches.length===1&&_pan0&&evZoomLevel>1){ evPanX=e.touches[0].clientX-_pan0.x; evPanY=e.touches[0].clientY-_pan0.y; evApplyZoom(); _evPinchActive=true; _hadGesture=true; }
   },{passive:true});
-  document.addEventListener('touchend', function(){
-    // Only re-render if a canvas gesture (pinch or pan) was active — not for slider touches
-    var _wasGesture = _p0 > 0 || !!_pan0;
-    _p0=0; _pan0=null; _evPinchActive=false;
-    clearTimeout(_reRenderTimer);
-    if (_wasGesture) {
-      _reRenderTimer=setTimeout(function(){ if(typeof evRenderCanvas==='function') evRenderCanvas(); if(typeof _blemishSyncOverlay==='function') _blemishSyncOverlay(); },150);
+  document.addEventListener('touchend', function(e){
+    // Clear pinch/pan tracking on every finger-up, but only reset _evPinchActive once
+    // ALL fingers are gone — the blemish overlay's touchend fires before this document
+    // handler (bubble order), so keeping _evPinchActive=true through each intermediate
+    // touchend ensures _blemishHandleTap rejects the second-finger lift as well.
+    _p0=0; _pan0=null;
+    if (e.touches.length === 0) {
+      _evPinchActive = false;
+      clearTimeout(_reRenderTimer);
+      if (_hadGesture) {
+        _hadGesture = false;
+        _reRenderTimer=setTimeout(function(){ if(typeof evRenderCanvas==='function') evRenderCanvas(); if(typeof _blemishSyncOverlay==='function') _blemishSyncOverlay(); },150);
+      }
     }
   },{passive:true});
 })();

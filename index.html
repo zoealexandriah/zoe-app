@@ -5019,10 +5019,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 <span class="blemish-size-label">SIZE</span>
                 <input type="range" class="blemish-size-slider" id="blemish-size-input" min="1" max="10" value="3" oninput="blemishSizeInput(this.value)">
               </div>
-              <div class="blemish-ud-pill">
-                <button class="blemish-ud-item" id="blemish-undo-btn" onclick="blemishUndo()" disabled>↩ UNDO</button>
-                <button class="blemish-ud-item" id="blemish-redo-btn" onclick="blemishRedo()" disabled>REDO ↪</button>
-              </div>
               <button class="blemish-clear-btn" onclick="blemishClearAll()">CLEAR ALL</button>
             </div>
           </div>
@@ -5904,7 +5900,7 @@ const presets = [
       WHITES:0.475, BLACKS:0.472, TEMPERATURE:0.430, TINT:0.490,
       VIBRANCE:0.448, SATURATION:0.428,
       GLOW:0.0, GRAIN:0.42, SHARPEN:0.0, CLARITY:0.0, BLUR:0.0, FADE:0.05,
-      MATTE_LIFT:0.500, DIFFUSION:0.0, DEHAZE:0.0, TEXTURE:0.0,
+      MATTE_LIFT:0.500, DIFFUSION:0.0, DEHAZE:0.500, TEXTURE:0.0,
       SAT_REDS:0.438, SAT_ORANGES:0.440, SAT_YELLOWS:0.458,
       SAT_GREENS:0.452, SAT_BLUES:0.460, SAT_PURPLES:0.462, HUE_SHIFT:0.500,
       HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
@@ -6031,7 +6027,7 @@ const presets = [
       WHITES:0.521, BLACKS:0.462, TEMPERATURE:0.622, TINT:0.510,
       VIBRANCE:0.558, SATURATION:0.485,
       GLOW:0.0, GRAIN:0.24, SHARPEN:0.0, CLARITY:0.02, BLUR:0.0, FADE:0.04,
-      MATTE_LIFT:0.500, DIFFUSION:0.0, DEHAZE:0.0, TEXTURE:0.0,
+      MATTE_LIFT:0.500, DIFFUSION:0.0, DEHAZE:0.500, TEXTURE:0.0,
       SAT_REDS:0.542, SAT_ORANGES:0.524, SAT_YELLOWS:0.500,
       SAT_GREENS:0.458, SAT_BLUES:0.462, SAT_PURPLES:0.472, HUE_SHIFT:0.499,
       HUE_REDS:0.500, HUE_ORANGES:0.496, HUE_YELLOWS:0.500,
@@ -10591,10 +10587,10 @@ function _blemishPush() {
   _blemishUpdateUD();
 }
 function _blemishUpdateUD() {
-  var u = document.getElementById('blemish-undo-btn');
-  var r = document.getElementById('blemish-redo-btn');
-  if (u) u.disabled = _blemishHistory.length === 0;
-  if (r) r.disabled = _blemishFuture.length  === 0;
+  var u = document.getElementById('ev-undo');
+  var r = document.getElementById('ev-redo');
+  if (u) u.classList.toggle('disabled', _blemishHistory.length === 0);
+  if (r) r.classList.toggle('disabled', _blemishFuture.length  === 0);
 }
 
 function blemishSizeInput(val) {
@@ -10638,8 +10634,8 @@ function blemishConfirm() {
   _blemishSave();
   _blemishHistory = []; _blemishFuture = [];
   _blemishPreEdit = null;
-  _blemishUpdateUD();
   blemishExit();
+  if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
   if (typeof evAdjustSubTab === 'function') evAdjustSubTab('atmosphere');
 }
 
@@ -10649,9 +10645,9 @@ function blemishDiscard() {
     _blemishPreEdit = null;
   }
   _blemishHistory = []; _blemishFuture = [];
-  _blemishUpdateUD();
   _blemishSave();
   blemishExit();
+  if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
   if (typeof evAdjustSubTab === 'function') evAdjustSubTab('atmosphere');
 }
@@ -10696,7 +10692,8 @@ function _blemishShowPreview(clientX, clientY) {
   var scaleY = ov.height / rect.height;
   var px = (clientX - rect.left) * scaleX;
   var py = (clientY - rect.top)  * scaleY;
-  var r  = _blemishRadius * Math.min(canvas.width, canvas.height);
+  var zoom = (typeof evZoomLevel !== 'undefined' ? evZoomLevel : 1) || 1;
+  var r  = (_blemishRadius * Math.min(canvas.width, canvas.height)) / zoom;
   var ctx = ov.getContext('2d');
   ctx.clearRect(0, 0, ov.width, ov.height);
   ctx.beginPath();
@@ -12165,18 +12162,20 @@ function _evRestoreSnap(snap) {
 }
 
 function _evUpdateUndoRedoBtns() {
+  var _inBlemish = !!document.getElementById('blemish-overlay-canvas');
   ['ctb-undo','ev-undo'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.classList.toggle('disabled', evHistory.length === 0);
+    if (el) el.classList.toggle('disabled', _inBlemish ? _blemishHistory.length === 0 : evHistory.length === 0);
   });
   ['ctb-redo','ev-redo'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.classList.toggle('disabled', evFuture.length === 0);
+    if (el) el.classList.toggle('disabled', _inBlemish ? _blemishFuture.length === 0 : evFuture.length === 0);
   });
   fix2UpdateButtons();
 }
 
 window.globalUndo = function() {
+  if (document.getElementById('blemish-overlay-canvas')) { blemishUndo(); return; }
   if (evHistory.length === 0) return;
   const p = evActivePreset || activePreset;
   var _fuSnap = {
@@ -12198,6 +12197,7 @@ window.globalUndo = function() {
 };
 
 window.globalRedo = function() {
+  if (document.getElementById('blemish-overlay-canvas')) { blemishRedo(); return; }
   if (evFuture.length === 0) return;
   const p = evActivePreset || activePreset;
   var _hiSnap = {

@@ -3487,7 +3487,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     border-left: none !important;
     border-top: 0.5px solid rgba(255,255,255,0.06) !important;
     overflow: visible !important;
-    max-height: var(--sheet-max-h, 27vh) !important;
+    max-height: var(--sheet-max-h, 230px) !important;
     position: relative !important;
     background: rgba(13,13,14,0.85) !important;
   }
@@ -3518,11 +3518,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
   #editor-view:not(.no-image) #ev-sheet-toggle { display: flex !important; }
 
-  /* Subnav: normal bar at bottom of screen */
+  /* Subnav: normal bar at bottom of suite */
   #ev-adjust-subnav {
     display: flex !important;
     position: static !important;
     z-index: 50 !important;
+    order: 10 !important;
   }
 
   /* Flatten: hide old left-pinned section (now inside scroll row) */
@@ -16866,7 +16867,7 @@ function importSheetChoice(type) {
     suite.style.transition = 'max-height 0.28s cubic-bezier(0.4,0,0.2,1)';
     if (collapsed) {
       suite.classList.remove('sheet-collapsed');
-      suite.style.setProperty('--sheet-max-h', Math.round(window.innerHeight * 0.27) + 'px');
+      suite.style.setProperty('--sheet-max-h', '230px');
     } else {
       suite.classList.add('sheet-collapsed');
     }

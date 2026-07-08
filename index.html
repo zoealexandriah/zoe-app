@@ -3230,9 +3230,18 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
   .ev-mnav-btn svg { width: 26px !important; height: 26px !important; flex-shrink: 0 !important; }
 
-  /* Slider containers: compact vertical scroll */
+  /* Slider containers: consistent flex column layout */
   #es-atmosphere-sliders,
   #es-color-sliders,
+  #es-details-sliders,
+  #es-detail-sliders,
+  #es-blur-sliders {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
   .blur-scroll-wrap {
     position: relative;
   }
@@ -3571,7 +3580,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex: none !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    padding-top: 8px !important;
+    padding-top: 16px !important;
     padding-bottom: 14px !important;
   }
   #ev-editor-suite.open .es-tab-panel.active::before {

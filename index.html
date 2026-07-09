@@ -14888,6 +14888,10 @@ window.toolsFlipApply = function(dir) {
   if (!userImage) return;
   evHistoryPush();
   _flipPreState = { userImage };
+  // Save pre-flip _preCropState.userImage so undo can restore it
+  if (typeof _preCropState !== 'undefined' && _preCropState && _preCropState.userImage) {
+    _flipPreState.preCropUserImage = _preCropState.userImage;
+  }
   const undoBtn = document.getElementById('et-flip-undo') || document.getElementById('flip-undo-btn');
   if (undoBtn) undoBtn.style.display = 'block';
   function _execFlip() {
@@ -14904,6 +14908,21 @@ window.toolsFlipApply = function(dir) {
     const newImg = new Image();
     newImg.onload = function() {
       userImage = newImg; _origPixels = null;
+      // Keep _preCropState.userImage in sync with flip so RATIO re-adjust shows the
+      // flipped original instead of the pre-flip original
+      if (typeof _preCropState !== 'undefined' && _preCropState && _preCropState.userImage) {
+        var _pcTmp = document.createElement('canvas');
+        _pcTmp.width = _preCropState.userImage.naturalWidth;
+        _pcTmp.height = _preCropState.userImage.naturalHeight;
+        var _pcCtx = _pcTmp.getContext('2d');
+        _pcCtx.save();
+        if (dir === 'h') { _pcCtx.scale(-1, 1); _pcCtx.drawImage(_preCropState.userImage, -_pcTmp.width, 0); }
+        else             { _pcCtx.scale(1, -1); _pcCtx.drawImage(_preCropState.userImage, 0, -_pcTmp.height); }
+        _pcCtx.restore();
+        var _pcImg = new Image();
+        _pcImg.onload = function() { if (_preCropState) _preCropState.userImage = _pcImg; };
+        _pcImg.src = _pcTmp.toDataURL();
+      }
       if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
       if (_rPrevURL) {
         var _pbFlip = new Image();
@@ -14933,6 +14952,18 @@ window.toolsFlipApply = function(dir) {
   }
   if (typeof _cropPerspFlush === 'function') { _cropPerspFlush(_execFlip); } else { _execFlip(); }
 };
+
+// Restore _preCropState.userImage on flip undo so RATIO re-adjust stays in sync
+(function() {
+  var _origFlipUndo = window.toolsFlipUndo;
+  window.toolsFlipUndo = function() {
+    if (typeof _flipPreState !== 'undefined' && _flipPreState && _flipPreState.preCropUserImage
+        && typeof _preCropState !== 'undefined' && _preCropState) {
+      _preCropState.userImage = _flipPreState.preCropUserImage;
+    }
+    if (_origFlipUndo) _origFlipUndo();
+  };
+})();
 
 // (second window.exportDownload removed — first full-pipeline version at line 9118 is authoritative)
 

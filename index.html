@@ -3563,7 +3563,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* Hide old mobile nav pill — tab row replaces it */
   #ev-mobile-nav { display: none !important; }
 
-  #ev-editor-suite.open .es-tab-panel.active:not(#es-panel-blemish) {
+  #ev-editor-suite.open .es-tab-panel.active:not(#es-panel-blemish):not(#es-panel-tools) {
     height: 170px !important;
     max-height: 170px !important;
     min-height: 170px !important;
@@ -3573,14 +3573,15 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     padding-top: 16px !important;
     padding-bottom: 14px !important;
   }
-  #ev-editor-suite.open #es-panel-blemish.active {
+  #ev-editor-suite.open #es-panel-blemish.active,
+  #ev-editor-suite.open #es-panel-tools.active {
     height: auto !important;
     max-height: none !important;
     min-height: unset !important;
     flex: none !important;
     overflow-y: visible !important;
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
   #ev-editor-suite.open .es-tab-panel.active::before {
     display: none !important;

@@ -7525,7 +7525,7 @@ function switchToTab(label) {
 // ══════════════════════════════════════
 window.addEventListener('load',()=>{
   var _hvImg = document.getElementById('hv-featured-img');
-  if (_hvImg && IMG['carmine_hero']) _hvImg.src = IMG['carmine_hero'];
+  if (_hvImg && IMG['carmine_hero']) { _hvImg.style.display = ''; _hvImg.src = IMG['carmine_hero']; }
   switchToTab('GALLERY');
   initParticles();
   updateClock(); setInterval(updateClock,1000);

@@ -5169,7 +5169,7 @@ function getImg(k){
   const i=new Image(); i.src=IMG[k]; _ic[k]=i; return i;
 }
 Object.keys(IMG).forEach(getImg);
-(function(){ var el=document.getElementById('hv-featured-img'); if(el && IMG['carmine_hero']) el.src=IMG['carmine_hero']; })();
+(function(){ var hero=document.querySelector('.hv-hero'); if(hero && IMG['carmine_hero']){ hero.style.backgroundImage='url('+IMG['carmine_hero']+')'; hero.style.backgroundSize='cover'; hero.style.backgroundPosition='center 40%'; } })();
 
 // ══════════════════════════════════════
 // PRESETS

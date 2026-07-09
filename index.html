@@ -13694,7 +13694,14 @@ function galleryOpenInEditor(idx) {
       _perspBaseV   = es.perspState.v || 0;
       _perspBaseH   = es.perspState.h || 0;
     }
+    // If a crop/straighten was applied, editedDataURL is the post-crop image and
+    // originalDataURL is the full pre-crop original. Load the post-crop image as
+    // userImage so the editor opens at the cropped state, then asynchronously
+    // restore _preCropState so the RATIO tab can still offer re-adjustment.
+    var _hasCrop = !es.perspState && es.editedDataURL && es.originalDataURL
+      && es.editedDataURL !== es.originalDataURL;
     var _origSrc = (es.perspState && es.perspState.baseURL ? es.perspState.baseURL : null)
+      || (_hasCrop ? es.editedDataURL : null)
       || es.originalDataURL
       || (entry.id ? (localStorage.getItem('zoe_edit_' + entry.id + '_original') || null) : null)
       || es.editedDataURL
@@ -13704,6 +13711,15 @@ function galleryOpenInEditor(idx) {
       var origImg = new Image();
       origImg.onload = function() {
         userImage = origImg;
+        // Restore _preCropState so RATIO tab re-adjust mode works on reopen
+        if (_hasCrop && es.originalDataURL) {
+          var _preOrigImg = new Image();
+          _preOrigImg.onload = function() {
+            _preCropState = { userImage: _preOrigImg, origPixels: null, origOffX: 0, origOffY: 0, origW: 0, origH: 0 };
+            _savedCropRect = { x: 0, y: 0, w: 99999, h: 99999 };
+          };
+          _preOrigImg.src = es.originalDataURL;
+        }
         // Sync slider UI with restored state — fires after evInit's rAF
         if (activePreset) {
           buildEditorSliders(activePreset);

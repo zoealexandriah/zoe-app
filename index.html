@@ -5169,6 +5169,7 @@ function getImg(k){
   const i=new Image(); i.src=IMG[k]; _ic[k]=i; return i;
 }
 Object.keys(IMG).forEach(getImg);
+(function(){ var el=document.getElementById('hv-featured-img'); if(el && IMG['carmine_hero']) el.src=IMG['carmine_hero']; })();
 
 // ══════════════════════════════════════
 // PRESETS

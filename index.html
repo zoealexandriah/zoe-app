@@ -14320,41 +14320,30 @@ function galleryExportSelected() {
     ov.classList.remove('saf-active');
     ov.style.opacity = '';
     ov.style.transition = '';
-    ov.style.background = 'rgba(0,0,0,0)';
-    ov.style.backdropFilter = 'blur(0px)';
-    ov.style.webkitBackdropFilter = 'blur(0px)';
     ov.style.display = 'flex';
     requestAnimationFrame(function() { requestAnimationFrame(function() {
-      ov.style.transition = 'background 0.35s ease-in-out, backdrop-filter 0.35s ease-in-out, -webkit-backdrop-filter 0.35s ease-in-out';
-      ov.style.background = 'rgba(5,6,9,0.72)';
-      ov.style.backdropFilter = 'blur(3px)';
-      ov.style.webkitBackdropFilter = 'blur(3px)';
       ov.classList.add('saf-active');
     }); });
+    setTimeout(function() {
+      ov.style.transition = 'opacity 0.45s ease-in-out';
+      ov.style.opacity = '0';
+      setTimeout(function() {
+        ov.style.display = 'none';
+        ov.style.opacity = '';
+        ov.style.transition = '';
+        ov.classList.remove('saf-active');
+      }, 460);
+    }, 2200);
   }
 
   let i = 0;
   function next() {
-    if (i >= selected.length) {
-      if (ov) {
-        setTimeout(function() {
-          ov.style.transition = 'opacity 0.45s ease-in-out';
-          ov.style.opacity = '0';
-          setTimeout(function() {
-            ov.style.display = 'none';
-            ov.style.opacity = '';
-            ov.style.transition = '';
-            ov.classList.remove('saf-active');
-          }, 460);
-        }, 800);
-      }
-      return;
-    }
+    if (i >= selected.length) return;
     const entry = library[selected[i++]];
     if (!entry) { next(); return; }
     _exportEntry(entry, next);
   }
-  next();
+  setTimeout(next, 150);
 }
 
 // ── Fix 5: Add COPY EDIT button + edited dot to gallery cells that have edits ──

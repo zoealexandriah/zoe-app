@@ -14314,11 +14314,35 @@ function _exportEntry(entry, onDone) {
 function galleryExportSelected() {
   const selected = libSelected.slice();
   if (!selected.length) return;
+
+  var ov = document.getElementById('save-anim-overlay');
+  if (ov) {
+    ov.classList.remove('saf-active');
+    ov.style.opacity = '';
+    ov.style.transition = '';
+    ov.style.display = 'flex';
+    requestAnimationFrame(function() { requestAnimationFrame(function() {
+      ov.classList.add('saf-active');
+    }); });
+  }
+
   showToast('EXPORTING ' + selected.length + ' PHOTO' + (selected.length === 1 ? '' : 'S') + '…');
   let i = 0;
   function next() {
     if (i >= selected.length) {
       showToast('EXPORTED ' + selected.length + ' PHOTO' + (selected.length === 1 ? '' : 'S'));
+      if (ov) {
+        setTimeout(function() {
+          ov.style.transition = 'opacity 0.45s ease-in-out';
+          ov.style.opacity = '0';
+          setTimeout(function() {
+            ov.style.display = 'none';
+            ov.style.opacity = '';
+            ov.style.transition = '';
+            ov.classList.remove('saf-active');
+          }, 460);
+        }, 800);
+      }
       return;
     }
     const entry = library[selected[i++]];

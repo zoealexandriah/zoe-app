@@ -16538,9 +16538,9 @@ function hslSelectChannel(dot) {
     }
     @keyframes zoeStarSpin { 0%{transform:perspective(340px) rotateY(0deg)} 100%{transform:perspective(340px) rotateY(360deg)} }
     @keyframes zoeStarPulse {
-      0%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(218,90,125,.28))}
-      50%{transform:scale(1.08);filter:drop-shadow(0 0 11px rgba(218,90,125,.6))}
-      100%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(218,90,125,.28))}
+      0%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(222,130,168,.28))}
+      50%{transform:scale(1.08);filter:drop-shadow(0 0 11px rgba(222,130,168,.6))}
+      100%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(222,130,168,.28))}
     }
     @keyframes zoeSpin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
     @keyframes zoeGlow { 0%{opacity:.4;transform:scale(.98)} 50%{opacity:.7;transform:scale(1.06)} 100%{opacity:.4;transform:scale(.98)} }
@@ -16555,7 +16555,7 @@ function hslSelectChannel(dot) {
     <div id="save-anim-content">
       <!-- glow -->
       <div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:22%;opacity:var(--glow,.85);pointer-events:none">
-        <div style="width:52%;height:30%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(218,90,125,.5),rgba(155,107,199,.18) 48%,transparent 72%);filter:blur(10px);animation:zoeGlow var(--cyc,6s) ease-in-out infinite"></div>
+        <div style="width:52%;height:30%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(222,130,168,.5),rgba(155,107,199,.18) 48%,transparent 72%);filter:blur(10px);animation:zoeGlow var(--cyc,6s) ease-in-out infinite"></div>
       </div>
       <!-- ZoeMark SVG: eye + camera-shutter iris + sparkle + status text -->
       <svg viewBox="0 -52 400 544" style="position:relative;width:100%;height:100%;overflow:visible;display:block">
@@ -16598,8 +16598,8 @@ function hslSelectChannel(dot) {
           </g>
         </g>
         <!-- status text -->
-        <text x="200" y="488" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-weight="500" font-size="60" fill="#DA5A7D" style="animation:zoeAll 6s ease-in-out infinite">all yours.</text>
-        <text x="200" y="470" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-weight="500" font-size="60" fill="#DA5A7D" style="animation:zoeSave 6s ease-in-out infinite">saving<tspan style="animation:zoeDot1 6s ease-in-out infinite">.</tspan><tspan style="animation:zoeDot2 6s ease-in-out infinite">.</tspan><tspan style="animation:zoeDot3 6s ease-in-out infinite">.</tspan></text>
+        <text x="200" y="488" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-weight="500" font-size="60" fill="#de82a8" style="animation:zoeAll 6s ease-in-out infinite">all yours.</text>
+        <text x="200" y="470" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-weight="500" font-size="60" fill="#de82a8" style="animation:zoeSave 6s ease-in-out infinite">saving<tspan style="animation:zoeDot1 6s ease-in-out infinite">.</tspan><tspan style="animation:zoeDot2 6s ease-in-out infinite">.</tspan><tspan style="animation:zoeDot3 6s ease-in-out infinite">.</tspan></text>
       </svg>
     </div>
   </div>

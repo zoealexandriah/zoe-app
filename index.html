@@ -12477,52 +12477,20 @@ function exportDownload() {
 // ── Save Animation ──────────────────────────────────────────────────────────
 function evSaveWithAnimation() {
   if (!userImage) { showToast('OPEN A PHOTO FIRST'); return; }
-  var ov    = document.getElementById('save-anim-overlay');
-  var ring  = document.getElementById('saf-ring');
-  var star  = document.getElementById('saf-star');
-  var check = document.getElementById('saf-check');
+  var ov = document.getElementById('save-anim-overlay');
   if (!ov) { _evDoSave(); return; }
 
-  // Reset to clean state
-  ov.classList.remove('saf-active','saf-content','saf-text');
-  ring.classList.remove('saf-drawing');
-  star.style.opacity  = '0';
-  check.style.opacity = '0';
-  check.style.strokeDashoffset = '47';
+  ov.classList.remove('saf-active');
   ov.style.opacity = '';
   ov.style.transition = '';
   ov.style.display = 'flex';
-  ov.style.backdropFilter = 'blur(0px)';
-  ov.style.webkitBackdropFilter = 'blur(0px)';
 
-  // Phase 1 (0ms): overlay + star fade in
   requestAnimationFrame(function() { requestAnimationFrame(function() {
-    ov.classList.add('saf-active', 'saf-content');
-    ov.style.backdropFilter = 'blur(10px)';
-    ov.style.webkitBackdropFilter = 'blur(10px)';
-    ov.style.transition = 'background 0.35s ease-in-out, backdrop-filter 0.35s ease-in-out';
-    star.style.opacity = '1';
+    ov.classList.add('saf-active');
   }); });
 
-  // Phase 2 (200ms): draw circle ring
-  setTimeout(function() { ring.classList.add('saf-drawing'); }, 200);
-
-  // Do actual save work in background
   setTimeout(_evDoSave, 150);
 
-  // Phase 3 (1020ms): star → checkmark
-  setTimeout(function() {
-    star.style.opacity = '0';
-    setTimeout(function() {
-      check.style.opacity = '1';
-      check.style.strokeDashoffset = '0';
-    }, 130);
-  }, 1020);
-
-  // Phase 4 (1160ms): text fades in
-  setTimeout(function() { ov.classList.add('saf-text'); }, 1160);
-
-  // Phase 5 (1950ms): auto-dismiss
   setTimeout(function() {
     ov.style.transition = 'opacity 0.45s ease-in-out';
     ov.style.opacity = '0';
@@ -12530,12 +12498,9 @@ function evSaveWithAnimation() {
       ov.style.display = 'none';
       ov.style.opacity = '';
       ov.style.transition = '';
-      ov.style.backdropFilter = '';
-      ov.style.webkitBackdropFilter = '';
-      ov.classList.remove('saf-active','saf-content','saf-text');
-      ring.classList.remove('saf-drawing');
+      ov.classList.remove('saf-active');
     }, 460);
-  }, 1950);
+  }, 2200);
 }
 
 function _evDoSave() {
@@ -16501,84 +16466,87 @@ function hslSelectChannel(dot) {
       z-index: 9800;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
       background: rgba(0,0,0,0);
-      transition: background 0.35s ease-in-out;
+      transition: background 0.35s ease-in-out, backdrop-filter 0.35s ease-in-out, -webkit-backdrop-filter 0.35s ease-in-out;
       pointer-events: all;
     }
+    #save-anim-overlay.saf-active {
+      background: rgba(5,6,9,0.66);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
     #save-anim-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 26px;
-      opacity: 0;
-      transform: scale(0.86) translateY(8px);
-      transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+      width: 140px;
+      height: 140px;
+      position: relative;
+      --cyc: 3.4s;
+      --glow: 0.4;
     }
-    #save-anim-overlay.saf-active { background: rgba(0,0,0,0.68); }
-    #save-anim-overlay.saf-content #save-anim-content { opacity: 1; transform: scale(1) translateY(0); }
-    @keyframes saf-ring-draw {
-      from { stroke-dashoffset: 201.06; }
-      to   { stroke-dashoffset: 0; }
+    @keyframes zoeStarSpin { 0%{transform:perspective(340px) rotateY(0deg)} 100%{transform:perspective(340px) rotateY(360deg)} }
+    @keyframes zoeStarPulse {
+      0%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(236,90,142,.28))}
+      50%{transform:scale(1.08);filter:drop-shadow(0 0 11px rgba(236,90,142,.6))}
+      100%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(236,90,142,.28))}
     }
-    #saf-ring.saf-drawing {
-      animation: saf-ring-draw 0.85s cubic-bezier(0.42, 0, 0.28, 1) forwards;
-    }
-    #saf-star  { transition: opacity 0.22s ease-in-out; }
-    #saf-check { transition: opacity 0.2s ease-in-out, stroke-dashoffset 0.34s cubic-bezier(0.4,0,0.2,1); }
-    #save-anim-text {
-      text-align: center;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.28s ease-in-out, transform 0.28s ease-in-out;
-    }
-    #save-anim-overlay.saf-text #save-anim-text { opacity: 1; transform: translateY(0); }
-    #saf-line1 {
-      font-size: 10px;
-      letter-spacing: 0.26em;
-      color: rgba(210, 140, 155, 0.90);
-      font-family: var(--mono);
-      font-weight: 500;
-      margin-bottom: 5px;
-    }
-    #saf-line2 {
-      font-size: 8px;
-      letter-spacing: 0.16em;
-      color: rgba(210, 140, 155, 0.50);
-      font-family: var(--mono);
-    }
+    @keyframes zoeSpinAnim { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+    @keyframes zoeGlowAnim { 0%{opacity:.4;transform:scale(.98)} 50%{opacity:.7;transform:scale(1.06)} 100%{opacity:.4;transform:scale(.98)} }
+    @keyframes zoeAll  { 0%{opacity:0}3%{opacity:.9}42%{opacity:.9}48%{opacity:0}100%{opacity:0} }
+    @keyframes zoeSave { 0%{opacity:0}50%{opacity:0}56%{opacity:.85}96%{opacity:.85}99%{opacity:0}100%{opacity:0} }
+    @keyframes zoeDot1 { 0%{fill-opacity:0}6%{fill-opacity:1}88%{fill-opacity:1}89%{fill-opacity:0}100%{fill-opacity:0} }
+    @keyframes zoeDot2 { 0%{fill-opacity:0}34%{fill-opacity:0}40%{fill-opacity:1}88%{fill-opacity:1}89%{fill-opacity:0}100%{fill-opacity:0} }
+    @keyframes zoeDot3 { 0%{fill-opacity:0}62%{fill-opacity:0}68%{fill-opacity:1}88%{fill-opacity:1}89%{fill-opacity:0}100%{fill-opacity:0} }
   </style>
 
   <div id="save-anim-overlay">
     <div id="save-anim-content">
-      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <filter id="saf-glow" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="g"/>
-            <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <!-- Dim guide ring always present -->
-        <circle cx="40" cy="40" r="32" stroke="rgba(192,64,90,0.10)" stroke-width="1.5"/>
-        <!-- Animated ring draws clockwise from 12 o'clock -->
-        <circle id="saf-ring" cx="40" cy="40" r="32"
-          stroke="rgba(192,90,112,0.80)" stroke-width="2" stroke-linecap="round"
-          stroke-dasharray="201.06" stroke-dashoffset="201.06"
-          transform="rotate(-90 40 40)" filter="url(#saf-glow)"/>
-        <!-- 4-pointed celestial star -->
-        <path id="saf-star"
-          d="M40 13 Q47 33 63 40 Q47 47 40 67 Q33 47 17 40 Q33 33 40 13 Z"
-          fill="rgba(204,95,115,0.88)" opacity="0" filter="url(#saf-glow)"/>
-        <!-- Checkmark (draws in after star fades) -->
-        <path id="saf-check"
-          d="M24 40 L35 52 L57 27"
-          stroke="rgba(204,95,115,0.90)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"
-          stroke-dasharray="47" stroke-dashoffset="47" opacity="0" filter="url(#saf-glow)"/>
-      </svg>
-      <div id="save-anim-text">
-        <div id="saf-line1">IMAGE SAVED</div>
-        <div id="saf-line2">Saved to Photos</div>
+      <!-- glow -->
+      <div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:22%;opacity:var(--glow,.85);pointer-events:none">
+        <div style="width:52%;height:30%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(236,90,142,.5),rgba(155,107,199,.18) 48%,transparent 72%);filter:blur(10px);animation:zoeGlowAnim var(--cyc,6s) ease-in-out infinite"></div>
       </div>
+      <!-- ZoeMark SVG: eye + camera-shutter iris + sparkle + status text -->
+      <svg viewBox="0 -52 400 544" style="position:relative;width:100%;height:100%;overflow:visible;display:block">
+        <defs>
+          <linearGradient id="zg0" x1="0.128" y1="0.165" x2="0.872" y2="0.835"><stop offset="0%" stop-color="#9B5DB8"/><stop offset="100%" stop-color="#7E45A6"/></linearGradient>
+          <linearGradient id="zg1" x1="0.604" y1="0.011" x2="0.396" y2="0.989"><stop offset="0%" stop-color="#C43C86"/><stop offset="100%" stop-color="#A62F77"/></linearGradient>
+          <linearGradient id="zg2" x1="0.976" y1="0.346" x2="0.024" y2="0.654"><stop offset="0%" stop-color="#E24D8F"/><stop offset="100%" stop-color="#D23F80"/></linearGradient>
+          <linearGradient id="zg3" x1="0.872" y1="0.835" x2="0.128" y2="0.165"><stop offset="0%" stop-color="#F06B63"/><stop offset="100%" stop-color="#E9564D"/></linearGradient>
+          <linearGradient id="zg4" x1="0.396" y1="0.989" x2="0.604" y2="0.011"><stop offset="0%" stop-color="#EC5A93"/><stop offset="100%" stop-color="#E14D88"/></linearGradient>
+          <linearGradient id="zg5" x1="0.024" y1="0.654" x2="0.976" y2="0.346"><stop offset="0%" stop-color="#F49A4E"/><stop offset="100%" stop-color="#F07E3D"/></linearGradient>
+          <linearGradient id="zStar" x1="50%" y1="0%" x2="50%" y2="100%">
+            <stop offset="0%" stop-color="#F2803F"/>
+            <stop offset="36%" stop-color="#EC5A8E"/>
+            <stop offset="68%" stop-color="#9B6BC7"/>
+            <stop offset="100%" stop-color="#6FA8D9"/>
+          </linearGradient>
+          <clipPath id="zShutClip"><circle cx="200" cy="320" r="51"/></clipPath>
+          <clipPath id="zAlmondClip"><path d="M50,320 Q200,162 350,320 Q200,478 50,320 Z"/></clipPath>
+        </defs>
+        <!-- eye white -->
+        <path d="M50,320 Q200,162 350,320 Q200,478 50,320 Z" fill="#E7C9A6"/>
+        <!-- iris: black socket + spinning shutter blades -->
+        <g clip-path="url(#zAlmondClip)">
+          <circle cx="200" cy="320" r="76" fill="#0c0a0b"/>
+          <g clip-path="url(#zShutClip)">
+            <g style="transform-box:fill-box;transform-origin:center;animation:zoeSpinAnim 26s linear infinite">
+              <path d="M215.0,320.0 L207.5,333.0 L186.9,381.6 L246.8,342.2 Z" fill="url(#zg0)" stroke="#0c0a0b" stroke-width="2.4" stroke-linejoin="round"/>
+              <path d="M207.5,333.0 L192.5,333.0 L140.1,339.5 L186.9,381.6 Z" fill="url(#zg1)" stroke="#0c0a0b" stroke-width="2.4" stroke-linejoin="round"/>
+              <path d="M192.5,333.0 L185.0,320.0 L153.2,277.8 L140.1,339.5 Z" fill="url(#zg2)" stroke="#0c0a0b" stroke-width="2.4" stroke-linejoin="round"/>
+              <path d="M185.0,320.0 L192.5,307.0 L213.1,258.4 L153.2,277.8 Z" fill="url(#zg3)" stroke="#0c0a0b" stroke-width="2.4" stroke-linejoin="round"/>
+              <path d="M192.5,307.0 L207.5,307.0 L259.9,300.5 L213.1,258.4 Z" fill="url(#zg4)" stroke="#0c0a0b" stroke-width="2.4" stroke-linejoin="round"/>
+              <path d="M207.5,307.0 L215.0,320.0 L246.8,342.2 L259.9,300.5 Z" fill="url(#zg5)" stroke="#0c0a0b" stroke-width="2.4" stroke-linejoin="round"/>
+            </g>
+          </g>
+        </g>
+        <!-- sparkle hovering above eye -->
+        <g style="transform-box:fill-box;transform-origin:center;animation:zoeStarSpin 9s linear infinite">
+          <g style="transform-box:fill-box;transform-origin:center;animation:zoeStarPulse 3s ease-in-out infinite">
+            <path d="M200,106 Q206.4,141.2 232,150 Q206.4,158.0 200,190 Q193.6,158.0 168,150 Q193.6,141.2 200,106 Z" fill="url(#zStar)"/>
+          </g>
+        </g>
+        <!-- status text -->
+        <text x="200" y="470" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-weight="500" font-size="44" fill="#EC5A8E" style="animation:zoeAll var(--cyc,3.4s) ease-in-out infinite">all yours.</text>
+        <text x="200" y="470" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-weight="500" font-size="44" fill="#EC5A8E" style="animation:zoeSave var(--cyc,3.4s) ease-in-out infinite">saving<tspan style="animation:zoeDot1 1.25s linear infinite">.</tspan><tspan style="animation:zoeDot2 1.25s linear infinite">.</tspan><tspan style="animation:zoeDot3 1.25s linear infinite">.</tspan></text>
+      </svg>
     </div>
   </div>
 

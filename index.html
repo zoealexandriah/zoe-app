@@ -3240,6 +3240,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
   }
+  #es-color-sliders { padding-top: 10px !important; }
   .blur-scroll-wrap {
     display: contents !important;
   }
@@ -3254,8 +3255,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap !important;
   }
-  /* HSL container needs extra room for channel dots + label above the sliders */
+  /* HSL container needs extra room for channel dots above the sliders */
   #es-hsl-sliders {
+    padding-top: 10px !important;
     display: flex !important;
     flex-direction: column !important;
     overflow-x: hidden !important;
@@ -3381,15 +3383,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     height: 58px !important;
     overflow: hidden !important;
     position: relative !important;
-  }
-  #ev-adjust-subnav::after {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important; right: 0 !important; bottom: 0 !important;
-    width: 56px !important;
-    background: linear-gradient(to right, transparent, #10100f) !important;
-    pointer-events: none !important;
-    z-index: 10 !important;
   }
   /* Left pinned section (ATMOSPHERE + FX) */
   .ev-subnav-left {
@@ -6524,7 +6517,6 @@ function buildSectionHTML(p, section, rows, state) {
   if (section === 'HSL') {
     let html = '';
     html += `<div class="slider-section-title">HSL<span class="sl-reset-btn" data-section="HSL" onclick="resetSection('${p.id}','HSL')">RESET</span></div>`;
-    html += `<div class="hsl-channel-label" id="hsl-chan-label-${p.id}">HLS ALL SETTINGS</div>`;
     html += `<div class="hsl-channels" id="hsl-channels-${p.id}">
       <div class="hsl-dot hsl-dot-all active" data-channel="ALL" data-preset="${p.id}" onclick="hslSelectChannel(this)" title="ALL" style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red)"></div>
       <div class="hsl-dot" data-channel="SAT_REDS" data-preset="${p.id}" onclick="hslSelectChannel(this)" title="REDS" style="background:#d04040"></div>

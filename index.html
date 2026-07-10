@@ -5070,18 +5070,17 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
       </div>
 
       <!-- ── Replace Photo Save Prompt ── -->
-      <div id="replace-photo-modal" style="display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;justify-content:flex-end;">
-        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.60);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);" onclick="document.getElementById('replace-photo-modal').style.display='none'"></div>
-        <div style="position:relative;background:rgba(18,14,28,0.98);border-radius:18px 18px 0 0;border-top:0.5px solid rgba(201,184,212,0.12);padding-bottom:env(safe-area-inset-bottom);">
-          <div style="width:36px;height:4px;border-radius:2px;background:rgba(201,184,212,0.22);margin:10px auto 20px;"></div>
-          <div style="padding:0 22px 28px;display:flex;flex-direction:column;">
-            <div style="font-size:9px;letter-spacing:0.26em;color:rgba(220,180,190,0.92);font-family:var(--mono);font-weight:500;margin-bottom:10px;">REPLACE PHOTO</div>
-            <div style="font-size:12px;color:rgba(220,210,240,0.82);font-family:-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.5;margin-bottom:26px;">Save your current edits to the gallery before importing a new photo?</div>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-              <div onclick="editorSaveAndReplace()" style="-webkit-tap-highlight-color:transparent;cursor:pointer;padding:14px 0;text-align:center;background:linear-gradient(135deg,rgba(205,58,92,1),rgba(162,32,62,1));border-radius:100px;color:rgba(255,255,255,0.96);font-size:9px;letter-spacing:0.22em;font-family:var(--mono);box-shadow:0 4px 18px rgba(180,48,78,0.35);">SAVE &amp; IMPORT</div>
-              <div onclick="editorSkipSaveAndReplace()" style="-webkit-tap-highlight-color:transparent;cursor:pointer;padding:14px 0;text-align:center;background:rgba(201,184,212,0.06);border:0.5px solid rgba(201,184,212,0.15);border-radius:100px;color:rgba(201,184,212,0.70);font-size:9px;letter-spacing:0.22em;font-family:var(--mono);">IMPORT WITHOUT SAVING</div>
-              <div onclick="document.getElementById('replace-photo-modal').style.display='none'" style="-webkit-tap-highlight-color:transparent;cursor:pointer;padding:14px 0;text-align:center;font-size:9px;letter-spacing:0.22em;color:rgba(175,162,200,0.45);font-family:var(--mono);">CANCEL</div>
-            </div>
+      <div id="replace-photo-modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,0.70);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);">
+        <div style="background:rgba(14,10,22,0.97);border-radius:22px;border:0.5px solid rgba(201,184,212,0.13);padding:26px 22px 22px;width:288px;max-width:88vw;">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:18px;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="rgba(218,90,125,0.95)"><path d="M12,1 Q13.6,8 19,12 Q13.6,16 12,23 Q10.4,16 5,12 Q10.4,8 12,1 Z"/></svg>
+            <span style="font-size:9px;letter-spacing:0.26em;color:rgba(218,90,125,0.90);font-family:var(--mono);font-weight:500;">REPLACE PHOTO</span>
+          </div>
+          <div style="font-size:17px;color:rgba(226,199,179,0.92);font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-weight:400;line-height:1.4;margin-bottom:26px;">Save your edits before importing a new photo?</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div onclick="editorSaveAndReplace()" style="-webkit-tap-highlight-color:transparent;cursor:pointer;padding:13px 0;text-align:center;background:transparent;border:1.5px solid rgba(218,90,125,0.70);border-radius:100px;color:rgba(218,90,125,1);font-size:9px;letter-spacing:0.18em;font-family:var(--mono);">SAVE &amp; IMPORT</div>
+            <div onclick="editorSkipSaveAndReplace()" style="-webkit-tap-highlight-color:transparent;cursor:pointer;padding:13px 0;text-align:center;background:transparent;border:0.5px solid rgba(201,184,212,0.22);border-radius:100px;color:rgba(201,184,212,0.60);font-size:9px;letter-spacing:0.18em;font-family:var(--mono);">IMPORT WITHOUT SAVING</div>
+            <div onclick="document.getElementById('replace-photo-modal').style.display='none'" style="-webkit-tap-highlight-color:transparent;cursor:pointer;padding:10px 0;text-align:center;font-size:9px;letter-spacing:0.18em;color:rgba(175,162,200,0.38);font-family:var(--mono);">CANCEL</div>
           </div>
         </div>
       </div>
@@ -14204,18 +14203,19 @@ function galleryPasteEdits() {
   if (!window.copiedEdits || !libSelected.length) return;
   var n = libSelected.length;
   var modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:flex-end;';
-  modal.innerHTML = '<div style="position:absolute;inset:0;background:rgba(0,0,0,0.60);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);" onclick="this.parentElement.remove()"></div>'
-    + '<div style="position:relative;background:rgba(18,14,28,0.98);border-radius:18px 18px 0 0;border-top:0.5px solid rgba(201,184,212,0.12);padding-bottom:env(safe-area-inset-bottom);">'
-    + '<div style="width:36px;height:4px;border-radius:2px;background:rgba(201,184,212,0.22);margin:10px auto 20px;"></div>'
-    + '<div style="padding:0 22px 28px;display:flex;flex-direction:column;">'
-    + '<div style="font-size:9px;letter-spacing:0.26em;color:rgba(220,180,190,0.92);font-family:var(--mono);font-weight:500;margin-bottom:10px;">PASTE EDITS</div>'
-    + '<div style="font-size:12px;color:rgba(220,210,240,0.82);font-family:-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.5;margin-bottom:4px;">Apply copied edits to ' + n + ' photo' + (n===1?'':'s') + '?</div>'
-    + '<div style="font-size:11px;color:rgba(175,162,200,0.50);font-family:-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.5;margin-bottom:26px;">This will overwrite any existing edits.</div>'
-    + '<div style="display:flex;flex-direction:column;gap:10px;">'
-    + '<button onclick="_doGalleryPasteEdits();this.closest(\'[data-paste-confirm]\').remove()" style="-webkit-tap-highlight-color:transparent;width:100%;padding:14px 0;background:linear-gradient(135deg,rgba(205,58,92,1),rgba(162,32,62,1));border:none;border-radius:100px;color:rgba(255,255,255,0.96);font-size:9px;letter-spacing:0.22em;font-family:var(--mono);cursor:pointer;box-shadow:0 4px 18px rgba(180,48,78,0.35);">APPLY</button>'
-    + '<button onclick="this.closest(\'[data-paste-confirm]\').remove()" style="-webkit-tap-highlight-color:transparent;width:100%;padding:14px 0;background:rgba(201,184,212,0.06);border:0.5px solid rgba(201,184,212,0.15);border-radius:100px;color:rgba(201,184,212,0.55);font-size:9px;letter-spacing:0.22em;font-family:var(--mono);cursor:pointer;">CANCEL</button>'
-    + '</div></div></div>';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.70);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);';
+  modal.innerHTML =
+    '<div style="background:rgba(14,10,22,0.97);border-radius:22px;border:0.5px solid rgba(201,184,212,0.13);padding:26px 22px 22px;width:288px;max-width:88vw;">'
+    + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:18px;">'
+    + '<svg width="11" height="11" viewBox="0 0 24 24" fill="rgba(218,90,125,0.95)"><path d="M12,1 Q13.6,8 19,12 Q13.6,16 12,23 Q10.4,16 5,12 Q10.4,8 12,1 Z"/></svg>'
+    + '<span style="font-size:9px;letter-spacing:0.26em;color:rgba(218,90,125,0.90);font-family:var(--mono);font-weight:500;">PASTE EDITS</span>'
+    + '</div>'
+    + '<div style="font-size:17px;color:rgba(226,199,179,0.92);font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-weight:400;line-height:1.4;margin-bottom:8px;">Apply copied edits to ' + n + ' photo' + (n===1?'':'s') + '?</div>'
+    + '<div style="font-size:12px;color:rgba(175,162,200,0.48);font-family:-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.5;margin-bottom:26px;">This will overwrite any existing edits.</div>'
+    + '<div style="display:flex;gap:10px;">'
+    + '<button onclick="this.closest(\'[data-paste-confirm]\').remove()" style="-webkit-tap-highlight-color:transparent;flex:1;padding:13px 0;background:transparent;border:0.5px solid rgba(201,184,212,0.22);border-radius:100px;color:rgba(201,184,212,0.60);font-size:9px;letter-spacing:0.18em;font-family:var(--mono);cursor:pointer;">CANCEL</button>'
+    + '<button onclick="_doGalleryPasteEdits();this.closest(\'[data-paste-confirm]\').remove()" style="-webkit-tap-highlight-color:transparent;flex:1;padding:13px 0;background:transparent;border:1.5px solid rgba(218,90,125,0.70);border-radius:100px;color:rgba(218,90,125,1);font-size:9px;letter-spacing:0.18em;font-family:var(--mono);cursor:pointer;">APPLY</button>'
+    + '</div></div>';
   modal.setAttribute('data-paste-confirm', '1');
   modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
   document.body.appendChild(modal);

@@ -12876,7 +12876,9 @@ function _clearPresetThumbCaches() {
 function renderPresetThumb(canvas, p) {
   if (!canvas) return;
   if (!userImage) {
-    renderPhoto(canvas, p.imgKey||'strip_halo', p.tint, p.orbs||[], p.acc, p.warm, 'thumb');
+    var _ctx0 = canvas.getContext('2d');
+    _ctx0.fillStyle = '#10100f';
+    _ctx0.fillRect(0, 0, canvas.width, canvas.height);
     return;
   }
   var ctx = canvas.getContext('2d');

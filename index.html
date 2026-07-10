@@ -16497,7 +16497,7 @@ function hslSelectChannel(dot) {
       width: 140px;
       height: 140px;
       position: relative;
-      --cyc: 3.4s;
+      --cyc: 6s;
       --glow: 0.4;
     }
     @keyframes zoeStarSpin { 0%{transform:perspective(340px) rotateY(0deg)} 100%{transform:perspective(340px) rotateY(360deg)} }
@@ -16506,8 +16506,8 @@ function hslSelectChannel(dot) {
       50%{transform:scale(1.08);filter:drop-shadow(0 0 11px rgba(236,90,142,.6))}
       100%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(236,90,142,.28))}
     }
-    @keyframes zoeSpinAnim { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
-    @keyframes zoeGlowAnim { 0%{opacity:.4;transform:scale(.98)} 50%{opacity:.7;transform:scale(1.06)} 100%{opacity:.4;transform:scale(.98)} }
+    @keyframes zoeSpin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+    @keyframes zoeGlow { 0%{opacity:.4;transform:scale(.98)} 50%{opacity:.7;transform:scale(1.06)} 100%{opacity:.4;transform:scale(.98)} }
     @keyframes zoeAll  { 0%{opacity:0}3%{opacity:.9}42%{opacity:.9}48%{opacity:0}100%{opacity:0} }
     @keyframes zoeSave { 0%{opacity:0}50%{opacity:0}56%{opacity:.85}96%{opacity:.85}99%{opacity:0}100%{opacity:0} }
     @keyframes zoeDot1 { 0%{fill-opacity:0}6%{fill-opacity:1}88%{fill-opacity:1}89%{fill-opacity:0}100%{fill-opacity:0} }
@@ -16519,7 +16519,7 @@ function hslSelectChannel(dot) {
     <div id="save-anim-content">
       <!-- glow -->
       <div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:22%;opacity:var(--glow,.85);pointer-events:none">
-        <div style="width:52%;height:30%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(236,90,142,.5),rgba(155,107,199,.18) 48%,transparent 72%);filter:blur(10px);animation:zoeGlowAnim var(--cyc,6s) ease-in-out infinite"></div>
+        <div style="width:52%;height:30%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(236,90,142,.5),rgba(155,107,199,.18) 48%,transparent 72%);filter:blur(10px);animation:zoeGlow var(--cyc,6s) ease-in-out infinite"></div>
       </div>
       <!-- ZoeMark SVG: eye + camera-shutter iris + sparkle + status text -->
       <svg viewBox="0 -52 400 544" style="position:relative;width:100%;height:100%;overflow:visible;display:block">
@@ -16545,7 +16545,7 @@ function hslSelectChannel(dot) {
         <g clip-path="url(#zAlmondClip)">
           <circle cx="200" cy="320" r="76" fill="#0c0a0b"/>
           <g clip-path="url(#zShutClip)">
-            <g style="transform-box:fill-box;transform-origin:center;animation:zoeSpinAnim 26s linear infinite">
+            <g style="transform-box:fill-box;transform-origin:center;animation:zoeSpin 26s linear infinite">
               <path d="M215.0,320.0 L207.5,333.0 L186.9,381.6 L246.8,362.2 Z" fill="url(#zg0)" stroke="#0c0a0b" stroke-width="2.4" stroke-linejoin="round"/>
               <path d="M207.5,333.0 L192.5,333.0 L140.1,339.5 L186.9,381.6 Z" fill="url(#zg1)" stroke="#0c0a0b" stroke-width="2.4" stroke-linejoin="round"/>
               <path d="M192.5,333.0 L185.0,320.0 L153.2,277.8 L140.1,339.5 Z" fill="url(#zg2)" stroke="#0c0a0b" stroke-width="2.4" stroke-linejoin="round"/>

@@ -3271,7 +3271,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     contain: layout style !important;
   }
 
-  #es-hsl-sliders { display: flex !important; flex-direction: column !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
+  #es-hsl-sliders { display: none !important; }
+  #ev-editor-suite.hsl-active #es-hsl-sliders { display: flex !important; flex-direction: column !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
+  #ev-editor-suite.hsl-active #es-color-sliders { display: none !important; }
 
   /* Each slider: vertical — icon+name+value header row, full-width track below */
   .sl-row {
@@ -3364,7 +3366,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     box-sizing: border-box !important;
   }
   .hsl-dot { width: 20px !important; height: 20px !important; flex-shrink: 0 !important; }
-  .hsl-channel-label { display: block !important; font-size: 7px !important; letter-spacing: 0.12em !important; padding: 4px 16px 2px !important; color: rgba(201,184,212,0.45) !important; border-top: 0.5px solid var(--border) !important; }
+  .hsl-channel-label { display: block !important; font-size: 7px !important; letter-spacing: 0.12em !important; padding: 4px 16px 2px !important; color: rgba(201,184,212,0.45) !important; }
 
   /* Adjust sub-nav — icon+label tabs with horizontal scroll, pinned back arrow */
   #ev-adjust-subnav {
@@ -4985,6 +4987,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           </div>
           <!-- COLOR panel: TEMPERATURE TINT VIBRANCE SATURATION + HSL subtab -->
           <div class="es-tab-panel" id="es-panel-color">
+            <div class="crop-subtabs" id="ev-color-subtabs">
+              <button class="crop-subtab active" data-subtab="color" onclick="evColorSubTab(this,'color')">COLOR</button>
+              <button class="crop-subtab" data-subtab="hsl" onclick="evColorSubTab(this,'hsl')">HSL</button>
+            </div>
             <div id="es-color-sliders"></div>
             <div id="es-hsl-sliders"></div>
           </div>
@@ -6434,7 +6440,7 @@ function buildEditorSliders(p) {
       if (section === 'COLOR') {
         colHtml += sectionHtml;
       } else if (section === 'HSL') {
-        colHtml += sectionHtml;
+        hslHtml += sectionHtml;
       } else if (section === 'LIGHT') {
         var _lightRows = Object.assign({'BRIGHTNESS': '+0.00'}, rows);
         delete _lightRows.MATTE_LIFT;

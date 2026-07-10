@@ -6936,11 +6936,11 @@ function doRender(presetId) {
   if (!adj.halation && p.defaults && p.defaults.HALATION) adj.halation = p.defaults.HALATION;
   if (p.splitTone) adj.split_tone = p.splitTone;
   if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
-  if (p.shadowTint) adj.shadow_tint = p.shadowTint;
-  if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+  adj.shadow_tint = p.shadowTint || null;
+  adj.highlight_tint = p.highlightTint || null;
   if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
-  if (p.curve) adj.curve = p.curve;
-  if (p.halationBloom) adj.halationBloom = p.halationBloom;
+  adj.curve = p.curve || null;
+  adj.halationBloom = p.halationBloom || null;
   if (p.matteFade) adj.matteFade = p.matteFade;
   if (p.scanLines) adj.scanLines = p.scanLines;
   if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
@@ -7676,13 +7676,13 @@ function applyLookToUserImage(presetId) {
   if (!_applyAdj.halation && p.defaults && p.defaults.HALATION) _applyAdj.halation = p.defaults.HALATION;
   if (p.splitTone) _applyAdj.split_tone = p.splitTone;
   if (p.halationHue !== undefined) _applyAdj.halation_hue = p.halationHue;
-  if (p.shadowTint) _applyAdj.shadow_tint = p.shadowTint;
-  if (p.highlightTint) _applyAdj.highlight_tint = p.highlightTint;
+  _applyAdj.shadow_tint = p.shadowTint || null;
+  _applyAdj.highlight_tint = p.highlightTint || null;
   if (p.duotone) { _applyAdj.duotone_a = p.duotone.a; _applyAdj.duotone_b = p.duotone.b; _applyAdj.duotone_strength = p.duotone.strength || 0.7; }
-  if (p.curve) _applyAdj.curve = p.curve;
-  if (p.hueTempZones) _applyAdj.hueTempZones = p.hueTempZones;
-  if (p.colorGlow !== undefined) _applyAdj.colorGlow = p.colorGlow;
-  if (p.skinLift !== undefined) _applyAdj.skinLift = p.skinLift;
+  _applyAdj.curve = p.curve || null;
+  _applyAdj.hueTempZones = p.hueTempZones || null;
+  _applyAdj.colorGlow = p.colorGlow !== undefined ? p.colorGlow : 0;
+  _applyAdj.skinLift = p.skinLift !== undefined ? p.skinLift : 0;
   renderHeroUser(_applyAdj);
   showToast(p.name.toUpperCase() + ' — APPLIED');
 }
@@ -12791,9 +12791,9 @@ function _evRenderCanvasImmediate() {
     if (!adj.halation && _evCurPreset.defaults && _evCurPreset.defaults.HALATION) adj.halation = _evCurPreset.defaults.HALATION;
     // Only inject preset color-science when a look is actually applied
     if (activePreset) {
-      if (activePreset.hueTempZones) adj.hueTempZones = activePreset.hueTempZones;
-      if (activePreset.colorGlow !== undefined) adj.colorGlow = activePreset.colorGlow;
-      if (activePreset.skinLift !== undefined) adj.skinLift = activePreset.skinLift;
+      adj.hueTempZones = activePreset.hueTempZones || null;
+      adj.colorGlow = activePreset.colorGlow !== undefined ? activePreset.colorGlow : 0;
+      adj.skinLift = activePreset.skinLift !== undefined ? activePreset.skinLift : 0;
       if (activePreset.splitTone) adj.split_tone = activePreset.splitTone;
       if (activePreset.shadowTint) adj.shadow_tint = activePreset.shadowTint;
       if (activePreset.highlightTint) adj.highlight_tint = activePreset.highlightTint;
@@ -12945,12 +12945,12 @@ function renderPresetThumb(canvas, p) {
     var adj = buildAdjustments(_evMergeAdjState(p, _tState));
     if (p.splitTone) adj.split_tone = p.splitTone;
     if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
-    if (p.shadowTint) adj.shadow_tint = p.shadowTint;
-    if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+    adj.shadow_tint = p.shadowTint || null;
+    adj.highlight_tint = p.highlightTint || null;
     if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
-    if (p.hueTempZones) adj.hueTempZones = p.hueTempZones;
-    if (p.colorGlow !== undefined) adj.colorGlow = p.colorGlow;
-    if (p.skinLift !== undefined) adj.skinLift = p.skinLift;
+    adj.hueTempZones = p.hueTempZones || null;
+    adj.colorGlow = p.colorGlow !== undefined ? p.colorGlow : 0;
+    adj.skinLift = p.skinLift !== undefined ? p.skinLift : 0;
     var imageData = ctx.getImageData(0, 0, w, h);
     var processed = applyPixelAdjustments(imageData, adj);
     ctx.putImageData(new ImageData(processed, w, h), 0, 0);
@@ -14112,13 +14112,13 @@ function evSaveAndReturn() {
     var p = activePreset || evActivePreset;
     if (p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) {
       var adj = buildAdjustments(sliderState[p.id]);
-      if (p.hueTempZones) adj.hueTempZones = p.hueTempZones;
-      if (p.colorGlow !== undefined) adj.colorGlow = p.colorGlow;
+      adj.hueTempZones = p.hueTempZones || null;
+      adj.colorGlow = p.colorGlow !== undefined ? p.colorGlow : 0;
       if (p.skinLift  !== undefined) adj.skinLift  = p.skinLift;
       if (p.splitTone) adj.split_tone = p.splitTone;
       if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
-      if (p.shadowTint) adj.shadow_tint = p.shadowTint;
-      if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+      adj.shadow_tint = p.shadowTint || null;
+      adj.highlight_tint = p.highlightTint || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       var origData  = ctx.getImageData(0, 0, iw, ih);
       var processed = applyPixelAdjustments(origData, adj);
@@ -14201,8 +14201,8 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (p.skinLift   !== undefined)  adj.skinLift      = p.skinLift;
       if (p.splitTone)                 adj.split_tone    = p.splitTone;
       if (p.halationHue !== undefined) adj.halation_hue  = p.halationHue;
-      if (p.shadowTint) adj.shadow_tint = p.shadowTint;
-      if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+      adj.shadow_tint = p.shadowTint || null;
+      adj.highlight_tint = p.highlightTint || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       const origData = ctx.getImageData(0, 0, w, h);
       let processed  = applyPixelAdjustments(origData, adj);
@@ -14316,8 +14316,8 @@ function _exportEntry(entry, onDone) {
       if (p.skinLift   !== undefined)  adj.skinLift      = p.skinLift;
       if (p.splitTone)                 adj.split_tone    = p.splitTone;
       if (p.halationHue !== undefined) adj.halation_hue  = p.halationHue;
-      if (p.shadowTint) adj.shadow_tint = p.shadowTint;
-      if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+      adj.shadow_tint = p.shadowTint || null;
+      adj.highlight_tint = p.highlightTint || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       const origData = ctx.getImageData(0, 0, iw, ih);
       let processed  = applyPixelAdjustments(origData, adj);
@@ -14691,8 +14691,8 @@ window.exportDownload = function() {
       if (p.skinLift   !== undefined)  adj.skinLift     = p.skinLift;
       if (p.splitTone)                 adj.split_tone   = p.splitTone;
       if (p.halationHue !== undefined)  adj.halation_hue = p.halationHue;
-      if (p.shadowTint) adj.shadow_tint = p.shadowTint;
-      if (p.highlightTint) adj.highlight_tint = p.highlightTint;
+      adj.shadow_tint = p.shadowTint || null;
+      adj.highlight_tint = p.highlightTint || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
 
       // Pixel adjustments at full resolution
@@ -16220,9 +16220,9 @@ function _evBuildCurAdj() {
   var adj = buildAdjustments(_st);
   if (!adj.halation && _c.defaults && _c.defaults.HALATION) adj.halation = _c.defaults.HALATION;
   if (activePreset) {
-    if (activePreset.hueTempZones) adj.hueTempZones = activePreset.hueTempZones;
-    if (activePreset.colorGlow !== undefined) adj.colorGlow = activePreset.colorGlow;
-    if (activePreset.skinLift !== undefined) adj.skinLift = activePreset.skinLift;
+    adj.hueTempZones = activePreset.hueTempZones || null;
+    adj.colorGlow = activePreset.colorGlow !== undefined ? activePreset.colorGlow : 0;
+    adj.skinLift = activePreset.skinLift !== undefined ? activePreset.skinLift : 0;
     if (activePreset.splitTone) adj.split_tone = activePreset.splitTone;
     if (activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
   }

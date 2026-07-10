@@ -7906,7 +7906,7 @@ function hslToRgb(h, s, l) {
 // adj: { exposure, contrast, highlights, shadows, temperature, tint,
 //        saturation, vibrance, grain, chrome, glow, halo }
 // All values normalised: bipolar sliders -1..+1, effects 0..1.
-function applyPixelAdjustments(srcData, adj) {
+function applyPixelAdjustments(srcData, adj, resScale) {
   const src = srcData.data;
 
   // Fast-path: guarantee sliders at +0.00 never alter the image.
@@ -7961,7 +7961,7 @@ function applyPixelAdjustments(srcData, adj) {
 
   // Pre-generate grain noise array (same per-call, varied per-pixel position)
   // Using pseudo-random seeded by pixel index for organic feel
-  const grainStrength = grain * 70;     // max ±70 per channel at full
+  const grainStrength = grain * 70 * (resScale || 1);  // scale with resolution so grain size matches preview
 
   for (let i = 0; i < src.length; i += 4) {
     let r = src[i], g = src[i+1], b = src[i+2];
@@ -8964,7 +8964,7 @@ function applyCurveLUTs(canvas, curve, offX, offY, imgW, imgH) {
 }
 
 // ── Apply glow/bloom via offscreen canvas blur composite ──────────────────
-function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH) {
+function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH, resScale) {
   if (glowAmt < 0.01) return;
   const ctx = canvas.getContext('2d');
   const original = ctx.getImageData(offX, offY, imgW, imgH);
@@ -8975,7 +8975,7 @@ function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH) {
   src1.getContext('2d').putImageData(original, 0, 0);
 
   // Blurred version on separate canvas (CSS filter applied before drawImage)
-  const blurPx = Math.round(glowAmt * 18);
+  const blurPx = Math.round(glowAmt * 18 * (resScale || 1));
   const blurred = document.createElement('canvas');
   blurred.width = imgW; blurred.height = imgH;
   const bCtx = blurred.getContext('2d');
@@ -9070,7 +9070,7 @@ function applyBlemishHeal(canvas, spots, offX, offY, imgW, imgH) {
   ctx.putImageData(imageData, offX, offY);
 }
 
-function applyHalation(canvas, amount, hue, offX, offY, imgW, imgH) {
+function applyHalation(canvas, amount, hue, offX, offY, imgW, imgH, resScale) {
   if (amount < 0.005) return;
   const ctx = canvas.getContext('2d');
   const imageData = ctx.getImageData(offX, offY, imgW, imgH);
@@ -9081,7 +9081,7 @@ function applyHalation(canvas, amount, hue, offX, offY, imgW, imgH) {
   // Warm halation color: rgba(255, 175, 120) — orange-amber film bleed
   const halR = 255, halG = 165, halB = 105;
   const threshold = 210 - amount * 55; // lower threshold = more halation
-  const radius = Math.max(2, Math.round(amount * 9));
+  const radius = Math.max(2, Math.round(amount * 9 * (resScale || 1)));
   const strength = amount * 0.38;
 
   // Build brightness mask first (avoid modifying d while reading it)
@@ -9424,10 +9424,10 @@ function applyMatteFade(canvas, params, offX, offY, imgW, imgH) {
   ctx.putImageData(orig, offX, offY);
 }
 
-function applyDiffusion(canvas, amount, offX, offY, imgW, imgH) {
+function applyDiffusion(canvas, amount, offX, offY, imgW, imgH, resScale) {
   if (!amount || amount < 0.01) return;
   const ctx = canvas.getContext('2d');
-  const blurPx = Math.round(amount * 18 + 3);
+  const blurPx = Math.round((amount * 18 + 3) * (resScale || 1));
 
   // Draw current canvas region onto offscreen canvas
   const src = document.createElement('canvas');
@@ -12509,36 +12509,45 @@ function evSaveWithAnimation() {
 
 function _evDoSave() {
   if (!userImage) return;
-  var iw = userImage.naturalWidth;
-  var ih = userImage.naturalHeight;
-  var _maxExport = 3000;
-  if (Math.max(iw, ih) > _maxExport) {
-    var _es = _maxExport / Math.max(iw, ih);
-    iw = Math.round(iw * _es);
-    ih = Math.round(ih * _es);
-  }
+  var nw = userImage.naturalWidth, nh = userImage.naturalHeight;
+  // Render at preview reference resolution — same pixel values as what user sees
+  var _ref = 1200;
+  var ps = Math.min(1, _ref / Math.max(nw, nh));
+  var pw = Math.round(nw * ps), ph = Math.round(nh * ps);
   var off = document.createElement('canvas');
-  off.width  = iw;
-  off.height = ih;
+  off.width = pw; off.height = ph;
   var ctx = off.getContext('2d');
-  ctx.drawImage(userImage, 0, 0, iw, ih);
+  ctx.drawImage(userImage, 0, 0, pw, ph);
   var p = activePreset;
-  var hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
-  if (hasPreset) {
+  if (p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) {
+    // Apply tint overlay + orbs exactly as preview does
+    var _tintMap = { purple:{r:130,g:72,b:195}, pink:{r:195,g:55,b:135}, blue:{r:35,g:72,b:195}, warm:{r:175,g:95,b:35} };
+    var _t = _tintMap[p.tint];
+    if (_t) {
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = 'rgba('+_t.r+','+_t.g+','+_t.b+',0.25)';
+      ctx.fillRect(0, 0, pw, ph);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    (p.orbs||[]).forEach(function(o){
+      var gx=pw*o[2], gy=ph*0.44, gr=Math.max(pw,ph)*o[3];
+      var g=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);
+      g.addColorStop(0,o[0]+Math.round(Math.min(o[1]*0.7,1)*255).toString(16).padStart(2,'0'));
+      g.addColorStop(1,'transparent');
+      ctx.globalCompositeOperation='screen'; ctx.fillStyle=g;
+      ctx.fillRect(0,0,pw,ph); ctx.globalCompositeOperation='source-over';
+    });
     var adj = buildAdjustments(_evMergeAdjState(p, sliderState[p.id]));
-    if (p.hueTempZones)              adj.hueTempZones        = p.hueTempZones;
-    if (p.colorGlow  !== undefined)  adj.colorGlow           = p.colorGlow;
-    if (p.skinLift   !== undefined)  adj.skinLift            = p.skinLift;
-    if (p.splitTone)                 adj.split_tone          = p.splitTone;
-    if (p.shadowTint)                adj.shadow_tint         = p.shadowTint;
-    if (p.highlightTint)             adj.highlight_tint      = p.highlightTint;
-    if (p.halationBloom)             adj.halationBloom       = p.halationBloom;
-    if (p.matteFade)                 adj.matteFade           = p.matteFade;
-    if (p.scanLines)                 adj.scanLines           = p.scanLines;
-    if (p.chromaticAberration)       adj.chromaticAberration = p.chromaticAberration;
-    if (p.halationHue !== undefined) adj.halation_hue        = p.halationHue;
-    if (p.duotone)                   { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
-    var origData  = ctx.getImageData(0, 0, iw, ih);
+    if (!adj.halation && p.defaults && p.defaults.HALATION) adj.halation = p.defaults.HALATION;
+    adj.hueTempZones = p.hueTempZones || null;
+    adj.colorGlow    = p.colorGlow !== undefined ? p.colorGlow : 0;
+    adj.skinLift     = p.skinLift   !== undefined ? p.skinLift  : 0;
+    if (p.splitTone)                 adj.split_tone  = p.splitTone;
+    if (p.shadowTint)                adj.shadow_tint = p.shadowTint;
+    if (p.highlightTint)             adj.highlight_tint = p.highlightTint;
+    if (p.halationHue !== undefined) adj.halation_hue   = p.halationHue;
+    if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+    var origData = ctx.getImageData(0, 0, pw, ph);
     var processed = applyPixelAdjustments(origData, adj);
     var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
     if (intensity < 0.999) {
@@ -12549,32 +12558,47 @@ function _evDoSave() {
         processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
       }
     }
-    ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
-    if (p.curve)                                                          applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
-    if ((adj.glow     || 0) > 0.01)                                       applyGlow(off, adj.glow, 0, 0, iw, ih);
-    if ((adj.mist     || 0) > 0.01)                                       applyMist(off, adj.mist, 0, 0, iw, ih);
-    if ((adj.sharpen  || 0) > 0.01)                                       applySharpness(off, adj.sharpen, 0, 0, iw, ih);
-    if (Math.abs(adj.clarity || 0) > 0.005)                               applyClarity(off, adj.clarity, 0, 0, iw, ih);
-    if ((adj.blur     || 0) > 0.01)                                       applyBlur(off, adj.blur, 0, 0, iw, ih);
-    if ((adj.vignette_blur || 0) > 0.01)                                  applyVignetteBlur(off, adj.vignette_blur, 0, 0, iw, ih);
-    if ((adj.motion_blur   || 0) > 0.01)                                  applyMotionBlur(off, adj.motion_blur, 0, 0, iw, ih);
-    if ((adj.radial_blur   || 0) > 0.01)                                  applyRadialBlur(off, adj.radial_blur, 0, 0, iw, ih);
-    if ((adj.halation || 0) > 0.01)                                       applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
-    if (adj.halationBloom)                                                applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
-    if (adj.matteFade)                                                    applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
-    if (adj.scanLines)                                                    applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
-    if (adj.chromaticAberration)                                          applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
-    if (adj.vhsBleed)                                                     applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
-    if ((adj.diffusion || 0) > 0.01)                                      applyDiffusion(off, adj.diffusion, 0, 0, iw, ih);
-    if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01) applyDuotone(off, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, iw, ih);
-    if ((adj.vignette || 0) > 0.01)                                       applyVignette(off, adj.vignette, 0, 0, iw, ih);
+    ctx.putImageData(new ImageData(processed, pw, ph), 0, 0);
+    if (p.curve) applyCurveLUTs(off, p.curve, 0, 0, pw, ph);
+    if ((adj.glow   || 0) > 0.01)          applyGlow(off, adj.glow, 0, 0, pw, ph);
+    if ((adj.mist   || 0) > 0.01)          applyMist(off, adj.mist, 0, 0, pw, ph);
+    if ((adj.sharpen|| 0) > 0.01)          applySharpness(off, adj.sharpen, 0, 0, pw, ph);
+    if (Math.abs(adj.clarity||0) > 0.005)  applyClarity(off, adj.clarity, 0, 0, pw, ph);
+    if ((adj.blur   || 0) > 0.01)          applyBlur(off, adj.blur, 0, 0, pw, ph);
+    if ((adj.vignette_blur||0) > 0.01)     applyVignetteBlur(off, adj.vignette_blur, 0, 0, pw, ph);
+    if ((adj.motion_blur  ||0) > 0.01)     applyMotionBlur(off, adj.motion_blur, 0, 0, pw, ph);
+    if ((adj.radial_blur  ||0) > 0.01)     applyRadialBlur(off, adj.radial_blur, 0, 0, pw, ph);
+    // Mirror preview: re-inject preset properties before halation/diffusion
+    if (p.splitTone)                 adj.split_tone     = p.splitTone;
+    if (p.halationHue !== undefined) adj.halation_hue   = p.halationHue;
+    if (p.shadowTint)                adj.shadow_tint    = p.shadowTint;
+    if (p.highlightTint)             adj.highlight_tint = p.highlightTint;
+    if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+    if ((adj.halation||0) > 0.01)          applyHalation(off, adj.halation, adj.halation_hue||0, 0, 0, pw, ph);
+    if (p.halationBloom)                   applyHalationBloom(off, p.halationBloom, 0, 0, pw, ph);
+    if ((adj.diffusion||0) > 0.01)         applyDiffusion(off, adj.diffusion, 0, 0, pw, ph);
+    if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01)
+                                           applyDuotone(off, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, pw, ph);
+    if ((adj.vignette||0) > 0.01)          applyVignette(off, adj.vignette, 0, 0, pw, ph);
+    if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
+                                           applyBlemishHeal(off, blemishSpots, 0, 0, pw, ph);
   }
+  // Upscale to export resolution with high-quality interpolation
+  var _maxExport = 3000;
+  var es = Math.min(1, _maxExport / Math.max(nw, nh));
+  var ew = Math.round(nw * es), eh = Math.round(nh * es);
+  var out = document.createElement('canvas');
+  out.width = ew; out.height = eh;
+  var outCtx = out.getContext('2d');
+  outCtx.imageSmoothingEnabled = true;
+  outCtx.imageSmoothingQuality = 'high';
+  outCtx.drawImage(off, 0, 0, ew, eh);
   var d  = new Date();
   var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
   var ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
   var a  = document.createElement('a');
   a.download = 'ZOE_' + ds + '_' + ts + '.jpg';
-  a.href = off.toDataURL('image/jpeg', 0.95);
+  a.href = out.toDataURL('image/jpeg', 0.95);
   a.click();
 }
 

@@ -12522,7 +12522,7 @@ function _evDoSave() {
   off.height = ih;
   var ctx = off.getContext('2d');
   ctx.drawImage(userImage, 0, 0, iw, ih);
-  var p = activePreset || evActivePreset;
+  var p = activePreset;
   var hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
   if (hasPreset) {
     var adj = buildAdjustments(_evMergeAdjState(p, sliderState[p.id]));

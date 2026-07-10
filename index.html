@@ -16538,24 +16538,24 @@ function hslSelectChannel(dot) {
     }
     @keyframes zoeStarSpin { 0%{transform:perspective(340px) rotateY(0deg)} 100%{transform:perspective(340px) rotateY(360deg)} }
     @keyframes zoeStarPulse {
-      0%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(236,90,142,.28))}
-      50%{transform:scale(1.08);filter:drop-shadow(0 0 11px rgba(236,90,142,.6))}
-      100%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(236,90,142,.28))}
+      0%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(218,90,125,.28))}
+      50%{transform:scale(1.08);filter:drop-shadow(0 0 11px rgba(218,90,125,.6))}
+      100%{transform:scale(.84);filter:drop-shadow(0 0 2px rgba(218,90,125,.28))}
     }
     @keyframes zoeSpin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
     @keyframes zoeGlow { 0%{opacity:.4;transform:scale(.98)} 50%{opacity:.7;transform:scale(1.06)} 100%{opacity:.4;transform:scale(.98)} }
     @keyframes zoeAll  { 0%{opacity:0}3%{opacity:.9}42%{opacity:.9}48%{opacity:0}100%{opacity:0} }
     @keyframes zoeSave { 0%{opacity:0}50%{opacity:0}56%{opacity:.85}96%{opacity:.85}99%{opacity:0}100%{opacity:0} }
-    @keyframes zoeDot1 { 0%{fill-opacity:0}6%{fill-opacity:1}88%{fill-opacity:1}89%{fill-opacity:0}100%{fill-opacity:0} }
-    @keyframes zoeDot2 { 0%{fill-opacity:0}34%{fill-opacity:0}40%{fill-opacity:1}88%{fill-opacity:1}89%{fill-opacity:0}100%{fill-opacity:0} }
-    @keyframes zoeDot3 { 0%{fill-opacity:0}62%{fill-opacity:0}68%{fill-opacity:1}88%{fill-opacity:1}89%{fill-opacity:0}100%{fill-opacity:0} }
+    @keyframes zoeDot1 { 0%,55%{fill-opacity:0} 58%,96%{fill-opacity:1} 99%,100%{fill-opacity:0} }
+    @keyframes zoeDot2 { 0%,62%{fill-opacity:0} 65%,96%{fill-opacity:1} 99%,100%{fill-opacity:0} }
+    @keyframes zoeDot3 { 0%,69%{fill-opacity:0} 72%,96%{fill-opacity:1} 99%,100%{fill-opacity:0} }
   </style>
 
   <div id="save-anim-overlay">
     <div id="save-anim-content">
       <!-- glow -->
       <div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:22%;opacity:var(--glow,.85);pointer-events:none">
-        <div style="width:52%;height:30%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(236,90,142,.5),rgba(155,107,199,.18) 48%,transparent 72%);filter:blur(10px);animation:zoeGlow var(--cyc,6s) ease-in-out infinite"></div>
+        <div style="width:52%;height:30%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(218,90,125,.5),rgba(155,107,199,.18) 48%,transparent 72%);filter:blur(10px);animation:zoeGlow var(--cyc,6s) ease-in-out infinite"></div>
       </div>
       <!-- ZoeMark SVG: eye + camera-shutter iris + sparkle + status text -->
       <svg viewBox="0 -52 400 544" style="position:relative;width:100%;height:100%;overflow:visible;display:block">
@@ -16598,8 +16598,8 @@ function hslSelectChannel(dot) {
           </g>
         </g>
         <!-- status text -->
-        <text x="200" y="470" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-weight="500" font-size="60" fill="#EC5A8E" style="animation:zoeAll 6s ease-in-out infinite">all yours.</text>
-        <text x="200" y="470" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-weight="500" font-size="60" fill="#EC5A8E" style="animation:zoeSave 6s ease-in-out infinite">saving<tspan style="animation:zoeDot1 1.25s linear infinite">.</tspan><tspan style="animation:zoeDot2 1.25s linear infinite">.</tspan><tspan style="animation:zoeDot3 1.25s linear infinite">.</tspan></text>
+        <text x="200" y="488" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-weight="500" font-size="60" fill="#DA5A7D" style="animation:zoeAll 6s ease-in-out infinite">all yours.</text>
+        <text x="200" y="470" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-weight="500" font-size="60" fill="#DA5A7D" style="animation:zoeSave 6s ease-in-out infinite">saving<tspan style="animation:zoeDot1 6s ease-in-out infinite">.</tspan><tspan style="animation:zoeDot2 6s ease-in-out infinite">.</tspan><tspan style="animation:zoeDot3 6s ease-in-out infinite">.</tspan></text>
       </svg>
     </div>
   </div>

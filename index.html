@@ -14326,11 +14326,9 @@ function galleryExportSelected() {
     }); });
   }
 
-  showToast('EXPORTING ' + selected.length + ' PHOTO' + (selected.length === 1 ? '' : 'S') + '…');
   let i = 0;
   function next() {
     if (i >= selected.length) {
-      showToast('EXPORTED ' + selected.length + ' PHOTO' + (selected.length === 1 ? '' : 'S'));
       if (ov) {
         setTimeout(function() {
           ov.style.transition = 'opacity 0.45s ease-in-out';

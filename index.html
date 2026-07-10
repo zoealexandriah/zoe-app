@@ -6435,7 +6435,7 @@ function buildEditorSliders(p) {
       if (section === 'COLOR') {
         colHtml += sectionHtml;
       } else if (section === 'HSL') {
-        hslHtml += sectionHtml;
+        colHtml += sectionHtml;
       } else if (section === 'LIGHT') {
         var _lightRows = Object.assign({'BRIGHTNESS': '+0.00'}, rows);
         delete _lightRows.MATTE_LIFT;

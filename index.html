@@ -12552,6 +12552,7 @@ function _evDoSave() {
     ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
     if (p.curve)                                                          applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
     if ((adj.sharpen  || 0) > 0.01)                                       applySharpness(off, adj.sharpen, 0, 0, iw, ih);
+    if (Math.abs(adj.clarity || 0) > 0.005)                               applyClarity(off, adj.clarity, 0, 0, iw, ih);
     if ((adj.blur     || 0) > 0.01)                                       applyBlur(off, adj.blur, 0, 0, iw, ih);
     if ((adj.vignette_blur || 0) > 0.01)                                  applyVignetteBlur(off, adj.vignette_blur, 0, 0, iw, ih);
     if ((adj.motion_blur   || 0) > 0.01)                                  applyMotionBlur(off, adj.motion_blur, 0, 0, iw, ih);

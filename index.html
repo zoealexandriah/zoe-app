@@ -14320,8 +14320,15 @@ function galleryExportSelected() {
     ov.classList.remove('saf-active');
     ov.style.opacity = '';
     ov.style.transition = '';
+    ov.style.background = 'rgba(0,0,0,0)';
+    ov.style.backdropFilter = 'blur(0px)';
+    ov.style.webkitBackdropFilter = 'blur(0px)';
     ov.style.display = 'flex';
     requestAnimationFrame(function() { requestAnimationFrame(function() {
+      ov.style.transition = 'background 0.35s ease-in-out, backdrop-filter 0.35s ease-in-out, -webkit-backdrop-filter 0.35s ease-in-out';
+      ov.style.background = 'rgba(5,6,9,0.72)';
+      ov.style.backdropFilter = 'blur(3px)';
+      ov.style.webkitBackdropFilter = 'blur(3px)';
       ov.classList.add('saf-active');
     }); });
   }

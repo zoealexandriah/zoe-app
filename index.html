@@ -7973,7 +7973,7 @@ function applyPixelAdjustments(srcData, adj) {
 
   // Pre-generate grain noise array (same per-call, varied per-pixel position)
   // Using pseudo-random seeded by pixel index for organic feel
-  const grainStrength = grain * 52;     // max ±52 per channel at full
+  const grainStrength = grain * 70;     // max ±70 per channel at full
 
   for (let i = 0; i < src.length; i += 4) {
     let r = src[i], g = src[i+1], b = src[i+2];

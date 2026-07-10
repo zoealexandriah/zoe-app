@@ -13026,6 +13026,10 @@ function evRenderPresets() {
     +'</div>';
   noneCard.onclick = function() {
     evHistoryPush();
+    // Carry current slider state into nolook so user adjustments persist
+    if (evActivePreset && sliderState[evActivePreset.id]) {
+      sliderState[_evNoLookPreset.id] = Object.assign({}, sliderState[evActivePreset.id]);
+    }
     // Swap active highlight without rebuilding the whole list
     if (_evActiveCardEl) _evActiveCardEl.style.boxShadow = '';
     _evActiveCardEl = noneCard;

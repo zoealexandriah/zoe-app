@@ -8810,11 +8810,11 @@ function applyBlur(canvas, amount, offX, offY, imgW, imgH) {
   const ctx = canvas.getContext('2d');
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
-  // Fractional radius gives a smooth continuous gradient across the full slider range.
-  const rawR = Math.min(8, Math.max(1, Math.pow(amount, 1.1) * 12));
-  const r1 = Math.floor(rawR);
-  const r2 = r1 + 1;
-  const frac = rawR - r1;
+  // Remap so 100% slider = intensity that was previously at 36%.
+  // rawR goes 0→1.86 smoothly across the full slider range.
+  const t = amount * 2;
+  const rawR = Math.pow(t, 1.1) * 1.86;
+  if (rawR < 0.02) return;
   function boxBlur(input, r) {
     const tmp = new Uint8ClampedArray(input.length);
     const out = new Uint8ClampedArray(input.length);
@@ -8836,9 +8836,18 @@ function applyBlur(canvas, amount, offX, offY, imgW, imgH) {
     }
     return out;
   }
-  const b1 = boxBlur(src, r1);
+  const b1 = boxBlur(src, 1);
+  if (rawR < 1.0) {
+    // Sub-radius: blend fractionally between no-blur and radius-1 blur (no glow at r=1)
+    const out = new Uint8ClampedArray(src.length);
+    for (let i = 0; i < src.length; i++) out[i] = src[i] * (1 - rawR) + b1[i] * rawR;
+    ctx.putImageData(new ImageData(out, imgW, imgH), offX, offY);
+    return;
+  }
+  // rawR 1–1.86: fractional interpolation between radius-1 and radius-2
+  const frac = rawR - 1;
   if (frac < 0.02) { ctx.putImageData(new ImageData(b1, imgW, imgH), offX, offY); return; }
-  const b2 = boxBlur(src, r2);
+  const b2 = boxBlur(src, 2);
   const out = new Uint8ClampedArray(src.length);
   for (let i = 0; i < src.length; i++) out[i] = b1[i] * (1 - frac) + b2[i] * frac;
   ctx.putImageData(new ImageData(out, imgW, imgH), offX, offY);

@@ -8810,9 +8810,8 @@ function applyBlur(canvas, amount, offX, offY, imgW, imgH) {
   const ctx = canvas.getContext('2d');
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
-  // Steeper curve so blur kicks in gradually; max radius 6 keeps it from getting crushing.
-  const radius = Math.round(Math.pow(amount, 1.2) * 6);
-  if (radius < 1) return;
+  // Steeper curve so blur grows gradually; max radius 6 keeps it from getting crushing.
+  const radius = Math.max(1, Math.round(Math.pow(amount, 1.2) * 6));
   const tmp = new Uint8ClampedArray(src.length);
   const out = new Uint8ClampedArray(src.length);
   // Pass 1: horizontal

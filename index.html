@@ -8696,55 +8696,44 @@ function applyPixelAdjustments(srcData, adj, resScale) {
     if (st) {
       const lumN = (0.299*r + 0.587*g + 0.114*b) / 255;
 
-      // Helper: normalize r/g/b — supports both 0-255 integers and 0.0-1.0 floats
-      // Detects by checking if any channel > 1.0
-      const stNorm = (band) => {
-        if (!band) return null;
-        const isInt = band.r > 1 || band.g > 1 || band.b > 1;
-        return isInt
-          ? { r: band.r / 255, g: band.g / 255, b: band.b / 255, a: band.a }
-          : band;
-      };
-
-      // Shadows: additive tint, full strength at pure black, zero at lum 0.45
-      const stn = stNorm(st.shadows);
-      if (stn && stn.a > 0 && lumN < 0.45) {
+      // Shadows: full strength at pure black, zero at lum 0.45
+      if (st.shadows && st.shadows.a > 0 && lumN < 0.45) {
         const sw = Math.pow((0.45 - lumN) / 0.45, 0.75);
-        const str = stn.a * sw * 80;
-        r = Math.min(255, Math.max(0, r + stn.r * str));
-        g = Math.min(255, Math.max(0, g + stn.g * str));
-        b = Math.min(255, Math.max(0, b + stn.b * str));
+        const str = st.shadows.a * sw;
+        r = Math.min(255, Math.max(0, r + (st.shadows.r - r) * str));
+        g = Math.min(255, Math.max(0, g + (st.shadows.g - g) * str));
+        b = Math.min(255, Math.max(0, b + (st.shadows.b - b) * str));
       }
 
-      // Midtones: additive tint, peaks at lum 0.50
-      const mtn = stNorm(st.midtones);
-      if (mtn && mtn.a > 0) {
+      // Midtones: peaks at lum 0.50, zero below 0.25 and above 0.75
+      if (st.midtones && st.midtones.a > 0) {
         const mw = Math.max(0, 1 - Math.abs(lumN - 0.50) / 0.25);
         if (mw > 0) {
-          const str = mtn.a * mw * 80;
-          r = Math.min(255, Math.max(0, r + mtn.r * str));
-          g = Math.min(255, Math.max(0, g + mtn.g * str));
-          b = Math.min(255, Math.max(0, b + mtn.b * str));
+          const str = st.midtones.a * mw;
+          r = Math.min(255, Math.max(0, r + (st.midtones.r - r) * str));
+          g = Math.min(255, Math.max(0, g + (st.midtones.g - g) * str));
+          b = Math.min(255, Math.max(0, b + (st.midtones.b - b) * str));
         }
       }
 
-      // Highlights: additive tint, starts at lum 0.70, full strength at lum 0.95+
-      const htn = stNorm(st.highlights);
-      if (htn && htn.a > 0 && lumN > 0.70) {
+      // Highlights: starts at lum 0.70, full strength at lum 0.95+
+      // Power curve so it ramps steeply in the brightest zone
+      if (st.highlights && st.highlights.a > 0 && lumN > 0.70) {
         const hw = Math.pow((lumN - 0.70) / 0.30, 1.4);
-        const str = htn.a * Math.min(1, hw) * 80;
-        r = Math.min(255, Math.max(0, r + htn.r * str));
-        g = Math.min(255, Math.max(0, g + htn.g * str));
-        b = Math.min(255, Math.max(0, b + htn.b * str));
+        const str = st.highlights.a * Math.min(1, hw);
+        r = Math.min(255, Math.max(0, r + (st.highlights.r - r) * str));
+        g = Math.min(255, Math.max(0, g + (st.highlights.g - g) * str));
+        b = Math.min(255, Math.max(0, b + (st.highlights.b - b) * str));
       }
 
       // Film base: deepest shadows only (lum < 0.12), colored black point
-      if (stn && stn.a > 0 && lumN < 0.12) {
+      // Uses shadows color at reduced strength — gives film stock base color
+      if (st.shadows && st.shadows.a > 0 && lumN < 0.12) {
         const fbw = (0.12 - lumN) / 0.12;
-        const str = stn.a * fbw * 0.4 * 80;
-        r = Math.min(255, Math.max(0, r + stn.r * str));
-        g = Math.min(255, Math.max(0, g + stn.g * str));
-        b = Math.min(255, Math.max(0, b + stn.b * str));
+        const str = st.shadows.a * fbw * 0.4;
+        r = Math.min(255, Math.max(0, r + (st.shadows.r - r) * str));
+        g = Math.min(255, Math.max(0, g + (st.shadows.g - g) * str));
+        b = Math.min(255, Math.max(0, b + (st.shadows.b - b) * str));
       }
     }
 

@@ -9237,7 +9237,14 @@ function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH, resScale) {
   bCtx.drawImage(src1, 0, 0);
   bCtx.filter = 'none';
 
-  // Screen-blend the blurred version back onto the canvas
+  // Desaturate the blurred layer before screen-blending to prevent color fringing
+  const bData = blurred.getContext('2d').getImageData(0, 0, imgW, imgH);
+  const bd = bData.data;
+  for (let i = 0; i < bd.length; i += 4) {
+    const lum = Math.round(0.299 * bd[i] + 0.587 * bd[i+1] + 0.114 * bd[i+2]);
+    bd[i] = lum; bd[i+1] = lum; bd[i+2] = lum;
+  }
+  blurred.getContext('2d').putImageData(bData, 0, 0);
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
   ctx.globalAlpha = glowAmt * 0.55;
@@ -9697,7 +9704,14 @@ function applyDiffusion(canvas, amount, offX, offY, imgW, imgH, resScale) {
   bCtx.drawImage(src, 0, 0);
   bCtx.filter = 'none';
 
-  // Screen-blend the blurred version back onto the main canvas
+  // Desaturate the blurred layer before screen-blending to prevent color fringing
+  const bData2 = blurred.getContext('2d').getImageData(0, 0, imgW, imgH);
+  const bd2 = bData2.data;
+  for (let i = 0; i < bd2.length; i += 4) {
+    const lum2 = Math.round(0.299 * bd2[i] + 0.587 * bd2[i+1] + 0.114 * bd2[i+2]);
+    bd2[i] = lum2; bd2[i+1] = lum2; bd2[i+2] = lum2;
+  }
+  blurred.getContext('2d').putImageData(bData2, 0, 0);
   ctx.save();
   ctx.globalAlpha = amount * 0.55;
   ctx.globalCompositeOperation = 'screen';

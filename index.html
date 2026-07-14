@@ -8449,7 +8449,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
         b = Math.min(255, Math.max(0, (b - 128) * (1 + boost) + 128));
         const [hd, sd, ld] = rgbToHsl(r, g, b);
         const newSd = Math.min(1, sd + dehaze * midW_dh * 0.25);
-        if (newSd !== sd) { const [ndr, ndg, ndb] = hslToRgb(hd, newSd, ld); r=ndr; g=ndg; b=ndb; }
+        if (newSd !== sd && sd > 0.05 && ld < 0.92) { const [ndr, ndg, ndb] = hslToRgb(hd, newSd, ld); r=ndr; g=ndg; b=ndb; }
       } else {
         const hazeStr = Math.abs(dehaze);
         const floor_dh = hazeStr * midW_dh * 22;

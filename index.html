@@ -5490,6 +5490,12 @@ const presets = [
     tint:'none', orbs:[], acc:'#a07848', warm:true,
     skinLift: 0.14,
     colorGlow: 0.08,
+    hueTempZones: [{ center: 28, halfWidth: 20, warm: 0.07 }],
+    halationBloom: { threshold: 0.78, radius: 14, hue: 28, intensity: 0.05 },
+    shadowTint:    { r: 0.18, g: 0.12, b: 0.04, strength: 0.05 },
+    highlightTint: { r: 0.22, g: 0.18, b: 0.10, strength: 0.04 },
+    matteFade:     { lift: 0.04, rolloff: 0.20 },
+    chromaticAberration: { amount: 0.15, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: -0.05, g: +0.04, b: -0.06, strength: 0.50 },
       shoulder: { r: +0.07, g: +0.03, b: -0.05, strength: 0.40 }
@@ -5930,6 +5936,29 @@ const presets = [
     id:'delirun', num:'14', name:'Ghost', series:'FILM',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#6a8aa0', warm:false,
+    skinLift: 0.04,
+    colorGlow: 0.0,
+    hueTempZones: [],
+    halationBloom: { threshold: 0.72, radius: 16, hue: 180, intensity: 0.06 },
+    shadowTint:    { r: 0.02, g: 0.04, b: 0.08, strength: 0.04 },
+    highlightTint: { r: 0.08, g: 0.08, b: 0.10, strength: 0.03 },
+    matteFade:     { lift: 0.04, rolloff: 0.20 },
+    chromaticAberration: { amount: 0.15, falloff: 0.90 },
+    filmCrossover: {
+      toe:      { r: -0.02, g: +0.02, b: +0.04, strength: 0.45 },
+      shoulder: { r: +0.02, g: +0.02, b: +0.03, strength: 0.25 }
+    },
+    splitTone:{
+      shadows:    {r:18,  g:22,  b:32,  a:0.08},
+      midtones:   {r:168, g:172, b:182, a:0.02},
+      highlights: {r:232, g:235, b:242, a:0.04}
+    },
+    curve:{
+      master: [[0,0],[40,36],[100,98],[160,158],[220,218],[255,248]],
+      r:      [[0,0],[128,124],[255,240]],
+      g:      [[0,0],[128,126],[255,244]],
+      b:      [[0,0],[128,130],[255,250]]
+    },
     defaults:{
       EXPOSURE:0.455, CONTRAST:0.563, HIGHLIGHTS:0.463, SHADOWS:0.520,
       WHITES:0.500, BLACKS:0.505, TEMPERATURE:0.460, TINT:0.498,
@@ -5949,6 +5978,29 @@ const presets = [
     id:'velma', num:'15', name:'Velma', series:'FILM',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#b8882a', warm:true,
+    skinLift: 0.08,
+    colorGlow: 0.04,
+    hueTempZones: [{ center: 30, halfWidth: 22, warm: 0.08 }],
+    halationBloom: { threshold: 0.76, radius: 14, hue: 30, intensity: 0.06 },
+    shadowTint:    { r: 0.16, g: 0.10, b: 0.04, strength: 0.05 },
+    highlightTint: { r: 0.20, g: 0.16, b: 0.10, strength: 0.04 },
+    matteFade:     { lift: 0.04, rolloff: 0.20 },
+    chromaticAberration: { amount: 0.18, falloff: 0.90 },
+    filmCrossover: {
+      toe:      { r: -0.06, g: +0.04, b: -0.06, strength: 0.50 },
+      shoulder: { r: +0.08, g: +0.03, b: -0.05, strength: 0.40 }
+    },
+    splitTone:{
+      shadows:    {r:48,  g:36,  b:16,  a:0.09},
+      midtones:   {r:208, g:192, b:158, a:0.03},
+      highlights: {r:255, g:242, b:215, a:0.06}
+    },
+    curve:{
+      master: [[0,2],[40,44],[100,106],[160,164],[220,218],[255,250]],
+      r:      [[0,0],[128,132],[220,222],[255,252]],
+      g:      [[0,0],[128,128],[220,218],[255,248]],
+      b:      [[0,0],[80,74],[128,120],[220,212],[255,236]]
+    },
     defaults:{
       EXPOSURE:0.513, CONTRAST:0.570, HIGHLIGHTS:0.450, SHADOWS:0.610,
       WHITES:0.500, BLACKS:0.500, TEMPERATURE:0.613, TINT:0.501,
@@ -6028,6 +6080,15 @@ const presets = [
     skinLift: 0.16,
     colorGlow: 0.07,
     hueTempZones: [{ center: 24, halfWidth: 24, warm: 0.08 }],
+    halationBloom: { threshold: 0.76, radius: 14, hue: 26, intensity: 0.07 },
+    shadowTint:    { r: 0.20, g: 0.12, b: 0.04, strength: 0.06 },
+    highlightTint: { r: 0.24, g: 0.18, b: 0.10, strength: 0.05 },
+    matteFade:     { lift: 0.03, rolloff: 0.18 },
+    chromaticAberration: { amount: 0.18, falloff: 0.90 },
+    filmCrossover: {
+      toe:      { r: -0.06, g: +0.05, b: -0.08, strength: 0.60 },
+      shoulder: { r: +0.09, g: +0.04, b: -0.06, strength: 0.50 }
+    },
     splitTone:{
       shadows:    {r:55,  g:28,  b:8,   a:0.18},
       midtones:   {r:225, g:185, b:135, a:0.05},
@@ -6144,6 +6205,15 @@ const presets = [
     tint:'none', orbs:[], acc:'#2a5c4a', warm:false,
     skinLift: 0.05,
     colorGlow: 0.0,
+    halationBloom: { threshold: 0.74, radius: 16, hue: 185, intensity: 0.06 },
+    shadowTint:    { r: 0.04, g: 0.10, b: 0.08, strength: 0.04 },
+    highlightTint: { r: 0.08, g: 0.12, b: 0.10, strength: 0.03 },
+    matteFade:     { lift: 0.05, rolloff: 0.22 },
+    chromaticAberration: { amount: 0.20, falloff: 0.88 },
+    filmCrossover: {
+      toe:      { r: -0.02, g: +0.03, b: +0.05, strength: 0.45 },
+      shoulder: { r: +0.03, g: +0.04, b: +0.02, strength: 0.30 }
+    },
     splitTone:{
       shadows:    {r:18,  g:55,  b:45,  a:0.16},
       midtones:   {r:180, g:210, b:195, a:0.04},

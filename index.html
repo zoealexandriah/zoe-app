@@ -5711,7 +5711,7 @@ const presets = [
     shadowTint:    { r: 0.18, g: 0.12, b: 0.04, strength: 0.06 },
     highlightTint: { r: 0.22, g: 0.18, b: 0.10, strength: 0.02 },
     matteFade:     { lift: 0.00, rolloff: 0.10 },
-    chromaticAberration: { amount: 0.25, falloff: 0.85 },
+    chromaticAberration: { amount: 0.25, falloff: 0.92 },
     splitTone:{
       shadows:    {r:36,  g:30,  b:20,  a:0.07},
       midtones:   {r:198, g:192, b:178, a:0.02},
@@ -9393,7 +9393,7 @@ function renderWithAdjustments(canvas, adj) {
   if (adj.halationBloom) applyHalationBloom(canvas, adj.halationBloom, _origOffX, _origOffY, _origW, _origH);
   if (adj.matteFade) applyMatteFade(canvas, adj.matteFade, _origOffX, _origOffY, _origW, _origH);
   if (adj.scanLines) applyScanLines(canvas, adj.scanLines, _origOffX, _origOffY, _origW, _origH);
-  if (adj.chromaticAberration) applyChromaticAberration(canvas, adj.chromaticAberration.intensity || 3, _origOffX, _origOffY, _origW, _origH);
+  if (adj.chromaticAberration) applyChromaticAberration(canvas, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, _origOffX, _origOffY, _origW, _origH);
   if (adj.vhsBleed) applyVHSBleed(canvas, adj.vhsBleed.intensity || 8, _origOffX, _origOffY, _origW, _origH);
   if ((adj.diffusion || 0) > 0.01) applyDiffusion(canvas, adj.diffusion, _origOffX, _origOffY, _origW, _origH);
   if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, _origOffX, _origOffY, _origW, _origH);
@@ -9404,8 +9404,9 @@ function renderWithAdjustments(canvas, adj) {
 }
 
 // ── CHROMATIC ABERRATION: RGB channel shift ───────────────────────────────
-function applyChromaticAberration(canvas, intensity, offX, offY, imgW, imgH) {
+function applyChromaticAberration(canvas, intensity, edgeFalloff, offX, offY, imgW, imgH) {
   if (!intensity || intensity < 0.1) return;
+  const _falloff = (edgeFalloff !== undefined) ? edgeFalloff : 0.85;
   const ctx = canvas.getContext('2d');
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
@@ -9420,7 +9421,7 @@ function applyChromaticAberration(canvas, intensity, offX, offY, imgW, imgH) {
       const dx = x - cx;
       const dy = y - cy;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const falloff = (dist / maxDist); // 0 at center, 1 at corner
+      const falloff = Math.pow(dist / maxDist, 1 / _falloff);
       const mag = falloff * scale * imgW;
       const nx = dx / (dist || 1);
       const ny = dy / (dist || 1);
@@ -14337,7 +14338,7 @@ function evSaveAndReturn() {
       if (adj.halationBloom)           applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
       if (adj.matteFade)               applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
       if (adj.scanLines)               applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
-      if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
+      if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
     }
@@ -14419,7 +14420,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (adj.halationBloom)             applyHalationBloom(off, adj.halationBloom, 0, 0, w, h);
       if (adj.matteFade)                 applyMatteFade(off, adj.matteFade, 0, 0, w, h);
       if (adj.scanLines)                 applyScanLines(off, adj.scanLines, 0, 0, w, h);
-      if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, w, h);
+      if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, w, h);
       if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
     }
@@ -14539,7 +14540,7 @@ function _exportEntry(entry, onDone) {
       if (adj.halationBloom)                  applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
       if (adj.matteFade)                      applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
       if (adj.scanLines)                      applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
-      if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.intensity || 3, 0, 0, iw, ih);
+      if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                       applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01)         applyVignette(off, adj.vignette, 0, 0, iw, ih);
     }

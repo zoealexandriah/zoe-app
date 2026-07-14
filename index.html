@@ -5770,49 +5770,49 @@ const presets = [
     id:'malta', num:'36', name:'Malta', series:'POOLSIDE', seriesGroup:'POOLSIDE',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#1a6050', warm:false,
-    skinLift: 0.07,
-    colorGlow: 0.04,
-    hueTempZones: [{ center: 200, halfWidth: 30, warm: -0.10 }],
-    halationBloom: { threshold: 0.82, radius: 10, hue: 195, intensity: 0.04 },
-    shadowTint:    { r: 0.10, g: 0.14, b: 0.16, strength: 0.05 },
-    highlightTint: { r: 0.22, g: 0.20, b: 0.14, strength: 0.05 },
-    matteFade:     { lift: 0.01, rolloff: 0.10 },
-    chromaticAberration: { amount: 0.12, falloff: 0.90 },
+    skinLift: 0.06,
+    colorGlow: 0.03,
+    hueTempZones: [{ center: 28, halfWidth: 22, warm: 0.12 }],
+    halationBloom: { threshold: 0.84, radius: 9, hue: 25, intensity: 0.03 },
+    shadowTint:    { r: 0.04, g: 0.14, b: 0.18, strength: 0.09 },
+    highlightTint: { r: 0.24, g: 0.20, b: 0.10, strength: 0.04 },
+    matteFade:     { lift: 0.00, rolloff: 0.08 },
+    chromaticAberration: { amount: 0.10, falloff: 0.88 },
     filmCrossover: {
-      toe:      { r: -0.04, g: +0.02, b: +0.06, strength: 0.40 },
-      shoulder: { r: +0.06, g: +0.04, b: -0.03, strength: 0.40 }
+      toe:      { r: -0.06, g: +0.02, b: +0.08, strength: 0.50 },
+      shoulder: { r: +0.08, g: +0.04, b: -0.05, strength: 0.42 }
     },
     splitTone:{
-      shadows:    {r:30,  g:48,  b:58,  a:0.06},
-      midtones:   {r:180, g:200, b:210, a:0.02},
-      highlights: {r:252, g:244, b:220, a:0.06}
+      shadows:    {r:20,  g:44,  b:52,  a:0.12},
+      midtones:   {r:185, g:195, b:175, a:0.02},
+      highlights: {r:252, g:240, b:210, a:0.05}
     },
     curve:{
-      master: [[0,0],[40,42],[100,108],[160,168],[220,222],[255,255]],
-      r:      [[0,0],[128,130],[220,222],[255,254]],
-      g:      [[0,0],[128,131],[220,223],[255,254]],
-      b:      [[0,0],[80,84],[128,134],[200,206],[255,255]]
+      master: [[0,0],[30,22],[80,78],[128,132],[180,186],[220,224],[255,255]],
+      r:      [[0,0],[60,54],[128,128],[220,222],[255,254]],
+      g:      [[0,0],[60,58],[128,130],[200,204],[255,252]],
+      b:      [[0,0],[60,64],[128,136],[180,190],[220,218],[255,248]]
     },
     defaults:{
-      EXPOSURE:0.400, CONTRAST:0.755, HIGHLIGHTS:0.700, SHADOWS:0.480,
-      WHITES:0.600, BLACKS:0.104, TEMPERATURE:0.490, TINT:0.431,
-      VIBRANCE:0.475, SATURATION:0.415,
-      GLOW:0.0, GRAIN:0.17, SHARPEN:0.0, CLARITY:0.12, BLUR:0.05, FADE:0.0,
-      TEXTURE:0.04, DIFFUSION:0.01,
-      SAT_REDS:0.545, SAT_ORANGES:0.535, SAT_YELLOWS:0.570,
-      SAT_GREENS:0.495, SAT_BLUES:0.540, SAT_PURPLES:0.530, HUE_SHIFT:0.500,
-      HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.440,
-      HUE_GREENS:0.488, HUE_BLUES:0.464, HUE_PURPLES:0.492,
-      LUM_REDS:0.412, LUM_ORANGES:0.429, LUM_YELLOWS:0.642,
-      LUM_GREENS:0.410, LUM_BLUES:0.398, LUM_PURPLES:0.410,
-      VIGNETTE:0.04, HALATION:0.0,
-      MATTE_LIFT:0.500, DEHAZE:0.52
+      EXPOSURE:0.540, CONTRAST:0.700, HIGHLIGHTS:0.440, SHADOWS:0.520,
+      WHITES:0.508, BLACKS:0.490, TEMPERATURE:0.488, TINT:0.494,
+      VIBRANCE:0.660, SATURATION:0.555,
+      GLOW:0.0, GRAIN:0.05, SHARPEN:0.0, CLARITY:0.15, BLUR:0.0, FADE:0.0,
+      TEXTURE:0.06, DIFFUSION:0.01,
+      SAT_REDS:0.540, SAT_ORANGES:0.580, SAT_YELLOWS:0.515,
+      SAT_GREENS:0.510, SAT_BLUES:0.510, SAT_PURPLES:0.500, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.506, HUE_YELLOWS:0.496,
+      HUE_GREENS:0.468, HUE_BLUES:0.472, HUE_PURPLES:0.500,
+      LUM_REDS:0.498, LUM_ORANGES:0.506, LUM_YELLOWS:0.504,
+      LUM_GREENS:0.494, LUM_BLUES:0.484, LUM_PURPLES:0.500,
+      VIGNETTE:0.06, HALATION:0.0,
+      MATTE_LIFT:0.500, DEHAZE:0.08
     },
     sliders:{
-      LIGHT:{EXPOSURE:'-0.20',PUSH_PULL:'+0.18',CONTRAST:'+0.51',HIGHLIGHTS:'+0.40',SHADOWS:'-0.04',WHITES:'+0.20',BLACKS:'-0.79',MATTE_LIFT:'+0.00',DEHAZE:'+0.52'},
-      COLOR:{TEMPERATURE:'-0.02',TINT:'-0.14',VIBRANCE:'-0.05',SATURATION:'-0.17'},
-      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.17',SHARPEN:'+0.00',CLARITY:'+0.12',BLUR:'+0.05',FADE:'+0.00',TEXTURE:'+0.04',DIFFUSION:'+0.01'},
-      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.09',SAT_ORANGES:'+0.07',SAT_YELLOWS:'+0.14',SAT_GREENS:'-0.01',SAT_BLUES:'+0.08',SAT_PURPLES:'+0.06',HUE_YELLOWS:'-0.12',HUE_BLUES:'-0.07',HUE_GREENS:'-0.02',HUE_PURPLES:'-0.02',LUM_REDS:'-0.18',LUM_ORANGES:'-0.14',LUM_YELLOWS:'+0.28',LUM_GREENS:'-0.18',LUM_BLUES:'-0.20',LUM_PURPLES:'-0.18'}
+      LIGHT:{EXPOSURE:'+0.08',PUSH_PULL:'+0.00',CONTRAST:'+0.40',HIGHLIGHTS:'-0.12',SHADOWS:'+0.04',WHITES:'+0.02',BLACKS:'-0.02',MATTE_LIFT:'+0.00',DEHAZE:'+0.08'},
+      COLOR:{TEMPERATURE:'-0.02',TINT:'-0.01',VIBRANCE:'+0.32',SATURATION:'+0.11'},
+      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.05',SHARPEN:'+0.00',CLARITY:'+0.15',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.06',DIFFUSION:'+0.01'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.08',SAT_ORANGES:'+0.16',SAT_YELLOWS:'+0.03',SAT_GREENS:'+0.02',SAT_BLUES:'+0.02',SAT_PURPLES:'+0.00',HUE_ORANGES:'+0.01',HUE_YELLOWS:'-0.01',HUE_GREENS:'-0.06',HUE_BLUES:'-0.06',LUM_REDS:'-0.01',LUM_ORANGES:'+0.01',LUM_BLUES:'-0.02'}
     }
   },
   {

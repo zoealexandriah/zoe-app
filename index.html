@@ -5725,18 +5725,18 @@ const presets = [
     colorGlow: 0.05,
     hueTempZones: [{ center: 28, halfWidth: 20, warm: 0.08 }],
     halationBloom: { threshold: 0.80, radius: 12, hue: 30, intensity: 0.05 },
-    shadowTint:    { r: 0.14, g: 0.10, b: 0.04, strength: 0.04 },
-    highlightTint: { r: 0.22, g: 0.18, b: 0.10, strength: 0.04 },
+    shadowTint:    { r: 0.22, g: 0.15, b: 0.04, strength: 0.07 },
+    highlightTint: { r: 0.32, g: 0.24, b: 0.10, strength: 0.07 },
     matteFade:     { lift: 0.01, rolloff: 0.12 },
     chromaticAberration: { amount: 0.15, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: -0.05, g: +0.04, b: -0.06, strength: 0.45 },
-      shoulder: { r: +0.07, g: +0.03, b: -0.04, strength: 0.40 }
+      shoulder: { r: +0.10, g: +0.05, b: -0.06, strength: 0.50 }
     },
     splitTone:{
-      shadows:    {r:42,  g:36,  b:16,  a:0.07},
+      shadows:    {r:52,  g:40,  b:14,  a:0.09},
       midtones:   {r:205, g:195, b:165, a:0.02},
-      highlights: {r:252, g:246, b:222, a:0.05}
+      highlights: {r:255, g:244, b:200, a:0.08}
     },
     curve:{
       master: [[0,0],[40,38],[100,108],[160,170],[220,224],[255,255]],
@@ -5746,22 +5746,22 @@ const presets = [
     },
     defaults:{
       EXPOSURE:0.565, CONTRAST:0.650, HIGHLIGHTS:0.455, SHADOWS:0.565,
-      WHITES:0.515, BLACKS:0.505, TEMPERATURE:0.538, TINT:0.500,
+      WHITES:0.515, BLACKS:0.505, TEMPERATURE:0.558, TINT:0.508,
       VIBRANCE:0.620, SATURATION:0.530,
       GLOW:0.0, GRAIN:0.03, SHARPEN:0.0, CLARITY:0.10, BLUR:0.0, FADE:0.0,
       TEXTURE:0.05, DIFFUSION:0.01,
-      SAT_REDS:0.510, SAT_ORANGES:0.518, SAT_YELLOWS:0.545,
+      SAT_REDS:0.510, SAT_ORANGES:0.530, SAT_YELLOWS:0.545,
       SAT_GREENS:0.558, SAT_BLUES:0.575, SAT_PURPLES:0.504, HUE_SHIFT:0.500,
       HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
       HUE_GREENS:0.494, HUE_BLUES:0.482, HUE_PURPLES:0.500,
-      LUM_REDS:0.502, LUM_ORANGES:0.504, LUM_YELLOWS:0.504,
-      LUM_GREENS:0.498, LUM_BLUES:0.482, LUM_PURPLES:0.500,
+      LUM_REDS:0.502, LUM_ORANGES:0.510, LUM_YELLOWS:0.504,
+      LUM_GREENS:0.498, LUM_BLUES:0.480, LUM_PURPLES:0.500,
       VIGNETTE:0.04, HALATION:0.0,
       MATTE_LIFT:0.500, DEHAZE:0.18
     },
     sliders:{
       LIGHT:{EXPOSURE:'+0.13',PUSH_PULL:'+0.00',CONTRAST:'+0.30',HIGHLIGHTS:'-0.09',SHADOWS:'+0.13',WHITES:'+0.03',BLACKS:'+0.01',MATTE_LIFT:'+0.00',DEHAZE:'+0.18'},
-      COLOR:{TEMPERATURE:'+0.08',TINT:'+0.00',VIBRANCE:'+0.24',SATURATION:'+0.06'},
+      COLOR:{TEMPERATURE:'+0.12',TINT:'+0.02',VIBRANCE:'+0.24',SATURATION:'+0.06'},
       EFFECTS:{GLOW:'+0.00',GRAIN:'+0.03',SHARPEN:'+0.00',CLARITY:'+0.10',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.05',DIFFUSION:'+0.01'},
       HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.02',SAT_ORANGES:'+0.04',SAT_YELLOWS:'+0.07',SAT_GREENS:'+0.12',SAT_BLUES:'+0.15',SAT_PURPLES:'+0.01',LUM_BLUES:'-0.02'}
     }

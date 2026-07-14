@@ -6240,7 +6240,7 @@ const presets = [
 // CINEMATIC CANVAS RENDERER
 // ══════════════════════════════════════
 function renderPhoto(canvas, imgKey, tint, orbs, acc, warm, size){
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const w = canvas.width, h = canvas.height;
   const isHero = (size==='hero'||size==='preview');
 
@@ -6360,7 +6360,7 @@ function renderPhoto(canvas, imgKey, tint, orbs, acc, warm, size){
 function drawBg(){
   const c=document.getElementById('bg-canvas');
   c.width=window.innerWidth; c.height=window.innerHeight;
-  const ctx=c.getContext('2d'), w=c.width, h=c.height;
+  const ctx=c.getContext('2d', { willReadFrequently: true }), w=c.width, h=c.height;
 
   // Chromatic dark base
   const base=ctx.createRadialGradient(w*0.35,h*0.30,0,w*0.55,h*0.55,Math.max(w,h)*0.92);
@@ -7198,7 +7198,7 @@ function doRender(presetId) {
     const pvc = document.getElementById('pv-canvas');
     if (pvc && pvc.width > 0 && userImage) {
       // Re-render pv-canvas with current adj
-      const ctx = pvc.getContext('2d');
+      const ctx = pvc.getContext('2d', { willReadFrequently: true });
       const iw = userImage.naturalWidth, ih = userImage.naturalHeight;
       const scale = Math.min(pvc.width/iw, pvc.height/ih, 1);
       const sw = iw*scale, sh = ih*scale;
@@ -7208,7 +7208,7 @@ function doRender(presetId) {
       // Apply tint+orbs from preset then slider adj on top via offscreen
       const tmp = document.createElement('canvas');
       tmp.width = pvc.width; tmp.height = pvc.height;
-      tmp.getContext('2d').drawImage(pvc, 0, 0);
+      tmp.getContext('2d', { willReadFrequently: true }).drawImage(pvc, 0, 0);
       pvRenderCanvas(); // re-render with current preset
     }
   }
@@ -7283,7 +7283,7 @@ function buildAdjustments(state) {
 
 // ── Extended renderer that applies adjustments ──
 function renderPhotoAdjusted(canvas, imgKey, tint, orbs, acc, warm, size, adj) {
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const w = canvas.width, h = canvas.height;
   const isHero = (size === 'hero');
   adj = adj || {};
@@ -7501,7 +7501,7 @@ function applyPerChannelHSL(canvas, adj) {
   const hueShift   = adj.hue_shift   || 0;
   if (!satReds && !satOranges && !satGreens && !satBlues && !satPurples && !hueShift) return;
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const d = imageData.data;
 
@@ -7591,7 +7591,7 @@ function applyPerChannelHSL(canvas, adj) {
 function renderRaw(canvas, imgKey) {
   // Draw the source photo with zero treatment — pure image, no overlays.
   // This is the "canvas" state before any look is applied.
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0,0,w,h);
   const im = getImg(imgKey);
@@ -8016,13 +8016,13 @@ function drawImageHQ(ctx, img, dx, dy, tw, th) {
   let cur = document.createElement('canvas');
   let cw = sw, ch = sh;
   cur.width = cw; cur.height = ch;
-  cur.getContext('2d').drawImage(img, 0, 0);
+  cur.getContext('2d', { willReadFrequently: true }).drawImage(img, 0, 0);
   while (cw > tw * 2 || ch > th * 2) {
     const nw = Math.max(Math.ceil(cw / 2), tw);
     const nh = Math.max(Math.ceil(ch / 2), th);
     const tmp = document.createElement('canvas');
     tmp.width = nw; tmp.height = nh;
-    const tc = tmp.getContext('2d');
+    const tc = tmp.getContext('2d', { willReadFrequently: true });
     tc.imageSmoothingEnabled = true;
     tc.imageSmoothingQuality = 'high';
     tc.drawImage(cur, 0, 0, nw, nh);
@@ -8036,7 +8036,7 @@ function drawImageHQ(ctx, img, dx, dy, tw, th) {
 // ── Capture original pixel data after drawing raw image to canvas ──────────
 // Returns a Promise so callers can await before applying adjustments.
 async function captureOriginal(canvas, img) {
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const cw = canvas.width, ch = canvas.height;
 
   ctx.clearRect(0, 0, cw, ch);
@@ -8755,7 +8755,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
 // ══════════════════════════════════════════════════════
 function applyStars(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.005) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
   // ── 1. Detect hotspots on downsampled pixel data ──────────────────────
   // Sample every Nth pixel for performance
@@ -8805,7 +8805,7 @@ function applyStars(canvas, amount, offX, offY, imgW, imgH) {
   // ── 3. Draw each star onto overlay canvas ────────────────────────────
   const overlay = document.createElement('canvas');
   overlay.width = imgW; overlay.height = imgH;
-  const oc = overlay.getContext('2d');
+  const oc = overlay.getContext('2d', { willReadFrequently: true });
 
   const sixPoint = amount > 0.55;  // add diagonal arms at high values
 
@@ -8911,7 +8911,7 @@ function applyStars(canvas, amount, offX, offY, imgW, imgH) {
 // ── SHARPEN: unsharp mask ─────────────────────────────────────────────────
 function applySharpness(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const od = orig.data;
   // Software two-pass box blur — radius 1 gives tight edge sharpening.
@@ -8949,7 +8949,7 @@ function applySharpness(canvas, amount, offX, offY, imgW, imgH) {
 // Uses software box blur so it works in Safari (ctx.filter not supported there).
 function applyClarity(canvas, amount, offX, offY, imgW, imgH) {
   if (Math.abs(amount) < 0.005) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const od = orig.data;
   // Large radius for micro-contrast (Lightroom-style clarity)
@@ -8990,7 +8990,7 @@ function applyClarity(canvas, amount, offX, offY, imgW, imgH) {
 // ── BLUR: software two-pass box blur (Safari-safe, no ctx.filter) ────────
 function applyBlur(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
   // Remap so 100% slider = intensity that was previously at 36%.
@@ -9038,7 +9038,7 @@ function applyBlur(canvas, amount, offX, offY, imgW, imgH) {
 
 function applyVignetteBlur(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
   // Two box-blur passes approximate Gaussian — smooth, optical, no color smear
@@ -9088,7 +9088,7 @@ function applyVignetteBlur(canvas, amount, offX, offY, imgW, imgH) {
 
 function applyMotionBlur(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
   const out = new Uint8ClampedArray(src.length);
@@ -9111,7 +9111,7 @@ function applyMotionBlur(canvas, amount, offX, offY, imgW, imgH) {
 
 function applyRadialBlur(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
   const out = new Uint8ClampedArray(src.length);
@@ -9199,7 +9199,7 @@ function buildCurveLUT(points) {
 
 function applyCurveLUTs(canvas, curve, offX, offY, imgW, imgH) {
   if (!curve) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const imageData = ctx.getImageData(offX, offY, imgW, imgH);
   const d = imageData.data;
 
@@ -9224,31 +9224,31 @@ function applyCurveLUTs(canvas, curve, offX, offY, imgW, imgH) {
 // ── Apply glow/bloom via offscreen canvas blur composite ──────────────────
 function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH, resScale) {
   if (glowAmt < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const original = ctx.getImageData(offX, offY, imgW, imgH);
 
   // Source canvas
   const src1 = document.createElement('canvas');
   src1.width = imgW; src1.height = imgH;
-  src1.getContext('2d').putImageData(original, 0, 0);
+  src1.getContext('2d', { willReadFrequently: true }).putImageData(original, 0, 0);
 
   // Blurred version on separate canvas (CSS filter applied before drawImage)
   const blurPx = Math.round(glowAmt * 18 * (resScale || 1));
   const blurred = document.createElement('canvas');
   blurred.width = imgW; blurred.height = imgH;
-  const bCtx = blurred.getContext('2d');
+  const bCtx = blurred.getContext('2d', { willReadFrequently: true });
   bCtx.filter = `blur(${blurPx}px)`;
   bCtx.drawImage(src1, 0, 0);
   bCtx.filter = 'none';
 
   // Desaturate the blurred layer before screen-blending to prevent color fringing
-  const bData = blurred.getContext('2d').getImageData(0, 0, imgW, imgH);
+  const bData = blurred.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, imgW, imgH);
   const bd = bData.data;
   for (let i = 0; i < bd.length; i += 4) {
     const lum = Math.round(0.299 * bd[i] + 0.587 * bd[i+1] + 0.114 * bd[i+2]);
     bd[i] = lum; bd[i+1] = lum; bd[i+2] = lum;
   }
-  blurred.getContext('2d').putImageData(bData, 0, 0);
+  blurred.getContext('2d', { willReadFrequently: true }).putImageData(bData, 0, 0);
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
   ctx.globalAlpha = glowAmt * 0.55;
@@ -9259,17 +9259,17 @@ function applyGlow(canvas, glowAmt, offX, offY, imgW, imgH, resScale) {
 function applyMist(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
   amount = amount * 0.9;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
 
   const tmp = document.createElement('canvas');
   tmp.width = imgW; tmp.height = imgH;
-  tmp.getContext('2d').putImageData(orig, 0, 0);
+  tmp.getContext('2d', { willReadFrequently: true }).putImageData(orig, 0, 0);
 
   const blurPx = Math.max(1, Math.round(amount * 10));
   const blurred = document.createElement('canvas');
   blurred.width = imgW; blurred.height = imgH;
-  const bCtx = blurred.getContext('2d');
+  const bCtx = blurred.getContext('2d', { willReadFrequently: true });
   bCtx.filter = `blur(${blurPx}px)`;
   bCtx.drawImage(tmp, 0, 0);
   bCtx.filter = 'none';
@@ -9289,7 +9289,7 @@ function applyMist(canvas, amount, offX, offY, imgW, imgH) {
 
 function applyBlemishHeal(canvas, spots, offX, offY, imgW, imgH) {
   if (!spots || spots.length === 0) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const imageData = ctx.getImageData(offX, offY, imgW, imgH);
   const d = imageData.data;
   for (var si = 0; si < spots.length; si++) {
@@ -9337,7 +9337,7 @@ function applyBlemishHeal(canvas, spots, offX, offY, imgW, imgH) {
 
 function applyHalation(canvas, amount, hue, offX, offY, imgW, imgH, resScale) {
   if (amount < 0.005) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const imageData = ctx.getImageData(offX, offY, imgW, imgH);
   const d = imageData.data;
   const w = imgW, h = imgH;
@@ -9401,7 +9401,7 @@ function applyHalation(canvas, amount, hue, offX, offY, imgW, imgH, resScale) {
 // ── Main render: apply all sliders to the stored original ─────────────────
 function renderWithAdjustments(canvas, adj) {
   if (!_origPixels || !canvas) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
   // Start from dark background
   ctx.fillStyle = '#050310';
@@ -9466,7 +9466,7 @@ function renderWithAdjustments(canvas, adj) {
 function applyChromaticAberration(canvas, intensity, edgeFalloff, offX, offY, imgW, imgH) {
   if (!intensity || intensity < 0.1) return;
   const _falloff = (edgeFalloff !== undefined) ? edgeFalloff : 0.85;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
   const out = new Uint8ClampedArray(src.length);
@@ -9511,7 +9511,7 @@ function applyChromaticAberration(canvas, intensity, edgeFalloff, offX, offY, im
 // ── VHS COLOR BLEED: horizontal edge-detected color smear (VHS signal artifact) ────
 function applyVHSBleed(canvas, intensity, offX, offY, imgW, imgH) {
   if (!intensity || intensity < 0.1) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
   const out = new Uint8ClampedArray(src.length);
@@ -9547,7 +9547,7 @@ function applyVHSBleed(canvas, intensity, offX, offY, imgW, imgH) {
 // ── HALATION BLOOM: light bleed from highlights into surrounding darks ────
 function applyHalationBloom(canvas, params, offX, offY, imgW, imgH) {
   if (!params || !params.intensity || params.intensity < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
   const threshold = (params.threshold || 0.75) * 255;
@@ -9600,7 +9600,7 @@ function applyHalationBloom(canvas, params, offX, offY, imgW, imgH) {
 }
 
 function _evBloomLayer(srcCanvas, params, imgW, imgH) {
-  const ctx = srcCanvas.getContext('2d');
+  const ctx = srcCanvas.getContext('2d', { willReadFrequently: true });
   const src = ctx.getImageData(0, 0, imgW, imgH).data;
   const threshold = (params.threshold || 0.75) * 255;
   const radius = Math.round((params.radius || 12) * (imgW / 400));
@@ -9639,7 +9639,7 @@ function _evBloomLayer(srcCanvas, params, imgW, imgH) {
   }
   const layer = document.createElement('canvas');
   layer.width = imgW; layer.height = imgH;
-  const lCtx = layer.getContext('2d');
+  const lCtx = layer.getContext('2d', { willReadFrequently: true });
   const ld = lCtx.createImageData(imgW, imgH);
   const od = ld.data;
   for (let i = 0; i < n; i++) {
@@ -9659,7 +9659,7 @@ function _evBloomLayer(srcCanvas, params, imgW, imgH) {
 // ── SCAN LINES: horizontal banding overlay ────────────────────────────────
 function applyScanLines(canvas, params, offX, offY, imgW, imgH) {
   if (!params || !params.opacity || params.opacity < 0.005) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const spacing = params.spacing || 2;
   const opacity = params.opacity || 0.08;
   ctx.save();
@@ -9674,7 +9674,7 @@ function applyScanLines(canvas, params, offX, offY, imgW, imgH) {
 // ── MATTE FADE: organic highlight rolloff ─────────────────────────────────
 function applyMatteFade(canvas, params, offX, offY, imgW, imgH) {
   if (!params || !params.lift || params.lift < 0.001) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const od = orig.data;
   const lift = params.lift || 0.08;       // shadow floor lift (0–0.3)
@@ -9692,30 +9692,30 @@ function applyMatteFade(canvas, params, offX, offY, imgW, imgH) {
 
 function applyDiffusion(canvas, amount, offX, offY, imgW, imgH, resScale) {
   if (!amount || amount < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const blurPx = Math.round((amount * 18 + 3) * (resScale || 1));
 
   // Draw current canvas region onto offscreen canvas
   const src = document.createElement('canvas');
   src.width = imgW; src.height = imgH;
-  src.getContext('2d').drawImage(canvas, offX, offY, imgW, imgH, 0, 0, imgW, imgH);
+  src.getContext('2d', { willReadFrequently: true }).drawImage(canvas, offX, offY, imgW, imgH, 0, 0, imgW, imgH);
 
   // Apply blur on a SECOND offscreen canvas — never on the main ctx
   const blurred = document.createElement('canvas');
   blurred.width = imgW; blurred.height = imgH;
-  const bCtx = blurred.getContext('2d');
+  const bCtx = blurred.getContext('2d', { willReadFrequently: true });
   bCtx.filter = `blur(${blurPx}px)`;
   bCtx.drawImage(src, 0, 0);
   bCtx.filter = 'none';
 
   // Desaturate the blurred layer before screen-blending to prevent color fringing
-  const bData2 = blurred.getContext('2d').getImageData(0, 0, imgW, imgH);
+  const bData2 = blurred.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, imgW, imgH);
   const bd2 = bData2.data;
   for (let i = 0; i < bd2.length; i += 4) {
     const lum2 = Math.round(0.299 * bd2[i] + 0.587 * bd2[i+1] + 0.114 * bd2[i+2]);
     bd2[i] = lum2; bd2[i+1] = lum2; bd2[i+2] = lum2;
   }
-  blurred.getContext('2d').putImageData(bData2, 0, 0);
+  blurred.getContext('2d', { willReadFrequently: true }).putImageData(bData2, 0, 0);
   ctx.save();
   ctx.globalAlpha = amount * 0.55;
   ctx.globalCompositeOperation = 'screen';
@@ -9726,7 +9726,7 @@ function applyDiffusion(canvas, amount, offX, offY, imgW, imgH, resScale) {
 
 function applyDuotone(canvas, colorA, colorB, strength, offX, offY, imgW, imgH) {
   if (!colorA || !colorB || !strength) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const d = orig.data;
   for (let i = 0; i < d.length; i += 4) {
@@ -9743,7 +9743,7 @@ function applyDuotone(canvas, colorA, colorB, strength, offX, offY, imgW, imgH) 
 
 function applyVignette(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const cx = offX + imgW / 2, cy = offY + imgH / 2;
   const radius = Math.sqrt(imgW * imgW + imgH * imgH) * 0.52;
   const vig = ctx.createRadialGradient(cx, cy, radius * (1 - amount * 0.55), cx, cy, radius);
@@ -10940,7 +10940,7 @@ function _blemishShowPreview(clientX, clientY) {
   var py = (clientY - rect.top)  * scaleY;
   var zoom = (typeof evZoomLevel !== 'undefined' ? evZoomLevel : 1) || 1;
   var r  = (_blemishRadius * Math.min(canvas.width, canvas.height)) / zoom;
-  var ctx = ov.getContext('2d');
+  var ctx = ov.getContext('2d', { willReadFrequently: true });
   ctx.clearRect(0, 0, ov.width, ov.height);
   ctx.beginPath();
   ctx.arc(px, py, r, 0, Math.PI * 2);
@@ -10974,7 +10974,7 @@ function _blemishSyncOverlay() {
   ov.style.height = rect.height + 'px';
   ov.style.left   = (rect.left - pRect.left) + 'px';
   ov.style.top    = (rect.top  - pRect.top)  + 'px';
-  ov.getContext('2d').clearRect(0, 0, ov.width, ov.height);
+  ov.getContext('2d', { willReadFrequently: true }).clearRect(0, 0, ov.width, ov.height);
 }
 
 function _blemishHandleTap(e) {
@@ -11082,7 +11082,7 @@ function toolsCropDraw() {
 }
 
 function toolsCropDrawRect(ov) {
-  const ctx = ov.getContext('2d');
+  const ctx = ov.getContext('2d', { willReadFrequently: true });
   ctx.clearRect(0, 0, ov.width, ov.height);
   if (!cropRect) return;
   const { x, y, w, h } = cropRect;
@@ -11243,7 +11243,7 @@ function toolsCropApply() {
   _savedCropRect = { x: x, y: y, w: w, h: h }; // remember for re-adjust
   const tmp = document.createElement('canvas');
   tmp.width = Math.round(w); tmp.height = Math.round(h);
-  tmp.getContext('2d').drawImage(hc, x, y, w, h, 0, 0, w, h);
+  tmp.getContext('2d', { willReadFrequently: true }).drawImage(hc, x, y, w, h, 0, 0, w, h);
   const newImg = new Image();
   newImg.onload = () => {
     userImage = newImg; loadImageToCanvas(hc, newImg);
@@ -11351,7 +11351,7 @@ function toolsStraightenUpdate(v) {
   // Hide hero-canvas while work canvas is showing
   hc.style.opacity = '0';
 
-  const ctx = sc.getContext('2d');
+  const ctx = sc.getContext('2d', { willReadFrequently: true });
   ctx.clearRect(0, 0, cw, ch);
   ctx.fillStyle = '#050310';
   ctx.fillRect(0, 0, cw, ch);
@@ -11413,7 +11413,7 @@ function toolsStraightenApply() {
     }
     const tmp = document.createElement('canvas');
     tmp.width = cropW; tmp.height = cropH;
-    tmp.getContext('2d').drawImage(sc, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    tmp.getContext('2d', { willReadFrequently: true }).drawImage(sc, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
     const newImg = new Image();
     newImg.onload = () => {
       userImage = newImg;
@@ -11481,7 +11481,7 @@ function toolsFlipApply(dir) {
   var ih = userImage.naturalHeight || userImage.height;
   const tmp = document.createElement('canvas');
   tmp.width = iw; tmp.height = ih;
-  const ctx = tmp.getContext('2d');
+  const ctx = tmp.getContext('2d', { willReadFrequently: true });
   ctx.save();
   if (dir === 'h') { ctx.scale(-1, 1); ctx.drawImage(userImage, -iw, 0, iw, ih); }
   else             { ctx.scale(1, -1); ctx.drawImage(userImage, 0, -ih, iw, ih); }
@@ -11634,7 +11634,7 @@ const MAX_GLOBAL_HISTORY = 20;
 function globalHistoryPush() {
   const hc = document.getElementById('hero-canvas');
   if (!hc) return;
-  const snap = hc.getContext('2d').getImageData(0, 0, hc.width, hc.height);
+  const snap = hc.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, hc.width, hc.height);
   globalHistory.push(snap);
   if (globalHistory.length > MAX_GLOBAL_HISTORY) globalHistory.shift();
   globalFuture.length = 0; // clear redo on new action
@@ -11654,9 +11654,9 @@ function globalUndo() {
   if (globalHistory.length === 0) return;
   const hc = document.getElementById('hero-canvas');
   if (!hc) return;
-  globalFuture.push(hc.getContext('2d').getImageData(0, 0, hc.width, hc.height));
+  globalFuture.push(hc.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, hc.width, hc.height));
   const prev = globalHistory.pop();
-  hc.getContext('2d').putImageData(prev, 0, 0);
+  hc.getContext('2d', { willReadFrequently: true }).putImageData(prev, 0, 0);
   globalUndoRedoUpdate();
 }
 
@@ -11673,9 +11673,9 @@ function globalRedo() {
   if (globalFuture.length === 0) return;
   const hc = document.getElementById('hero-canvas');
   if (!hc) return;
-  globalHistory.push(hc.getContext('2d').getImageData(0, 0, hc.width, hc.height));
+  globalHistory.push(hc.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, hc.width, hc.height));
   const next = globalFuture.pop();
-  hc.getContext('2d').putImageData(next, 0, 0);
+  hc.getContext('2d', { willReadFrequently: true }).putImageData(next, 0, 0);
   globalUndoRedoUpdate();
 }
 
@@ -11883,7 +11883,7 @@ function pvRenderCanvas() {
   canvas.height = Math.round(ih * scale);
   canvas.style.transform = `scale(${pvZoomLevel}) translate(${pvPanX}px,${pvPanY}px)`;
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
 
   const p = pvActivePreset;
@@ -11992,7 +11992,7 @@ function pvExport() {
   const iw = userImage.naturalWidth, ih = userImage.naturalHeight;
   const off = document.createElement('canvas');
   off.width = iw; off.height = ih;
-  const ctx = off.getContext('2d');
+  const ctx = off.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(userImage, 0, 0, iw, ih);
   applyPixelEdits(off, buildAdj(pvActivePreset));
   applyVignette(off, buildAdj(pvActivePreset).vignette, 0, 0, iw, ih);
@@ -12043,7 +12043,7 @@ function pvApplyZoom() {
 function pvHistoryPush() {
   const c = document.getElementById('pv-canvas');
   if (!c) return;
-  const snap = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+  const snap = c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height);
   pvHistory.push(snap);
   if (pvHistory.length > 20) pvHistory.shift();
   pvFuture.length = 0;
@@ -12054,8 +12054,8 @@ function pvUndo() {
   if (!pvHistory.length) return;
   const c = document.getElementById('pv-canvas');
   if (!c) return;
-  pvFuture.push(c.getContext('2d').getImageData(0, 0, c.width, c.height));
-  c.getContext('2d').putImageData(pvHistory.pop(), 0, 0);
+  pvFuture.push(c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height));
+  c.getContext('2d', { willReadFrequently: true }).putImageData(pvHistory.pop(), 0, 0);
   pvUpdateUndoRedo();
 }
 
@@ -12063,8 +12063,8 @@ function pvRedo() {
   if (!pvFuture.length) return;
   const c = document.getElementById('pv-canvas');
   if (!c) return;
-  pvHistory.push(c.getContext('2d').getImageData(0, 0, c.width, c.height));
-  c.getContext('2d').putImageData(pvFuture.pop(), 0, 0);
+  pvHistory.push(c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height));
+  c.getContext('2d', { willReadFrequently: true }).putImageData(pvFuture.pop(), 0, 0);
   pvUpdateUndoRedo();
 }
 
@@ -12303,7 +12303,7 @@ function fix2HistoryPush(presetId) {
 
   const hc = document.getElementById('hero-canvas');
   if (!hc) return;
-  const canvasData  = hc.getContext('2d').getImageData(0, 0, hc.width, hc.height);
+  const canvasData  = hc.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, hc.width, hc.height);
   const sliderSnap  = JSON.parse(JSON.stringify(sliderState[presetId] || {}));
   fix2History.push({ canvasData, sliderSnap, presetId });
   if (fix2History.length > FIX2_MAX) fix2History.shift();
@@ -12578,7 +12578,7 @@ function globalReset() {
     var _rstThumbEl = document.getElementById('es-preset-thumb');
     if (_rstNameEl) _rstNameEl.textContent = '— NO PRESET —';
     if (_rstSeriesEl) _rstSeriesEl.textContent = '';
-    if (_rstThumbEl) { var _rtCtx = _rstThumbEl.getContext('2d'); if (_rtCtx) _rtCtx.clearRect(0, 0, _rstThumbEl.width, _rstThumbEl.height); }
+    if (_rstThumbEl) { var _rtCtx = _rstThumbEl.getContext('2d', { willReadFrequently: true }); if (_rtCtx) _rtCtx.clearRect(0, 0, _rstThumbEl.width, _rstThumbEl.height); }
     presetIntensity = 1.0;
     document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = 100; });
     document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = '100%'; });
@@ -12610,9 +12610,9 @@ function globalReset() {
       };
       _pbRestoreImg.src = _savedPerspBaseURL;
     } else if (hc && _origPixels) {
-      hc.getContext('2d').fillStyle = '#050310';
-      hc.getContext('2d').fillRect(0, 0, hc.width, hc.height);
-      hc.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(_origPixels.data), _origW, _origH), _origOffX, _origOffY);
+      hc.getContext('2d', { willReadFrequently: true }).fillStyle = '#050310';
+      hc.getContext('2d', { willReadFrequently: true }).fillRect(0, 0, hc.width, hc.height);
+      hc.getContext('2d', { willReadFrequently: true }).putImageData(new ImageData(new Uint8ClampedArray(_origPixels.data), _origW, _origH), _origOffX, _origOffY);
       _finishReset();
     } else if (_rstOrigURL) {
       var _rstReloadImg = new Image();
@@ -12627,9 +12627,9 @@ function globalReset() {
       _finishReset();
     }
   } else if (hc && _origPixels) {
-    hc.getContext('2d').fillStyle = '#050310';
-    hc.getContext('2d').fillRect(0, 0, hc.width, hc.height);
-    hc.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(_origPixels.data), _origW, _origH), _origOffX, _origOffY);
+    hc.getContext('2d', { willReadFrequently: true }).fillStyle = '#050310';
+    hc.getContext('2d', { willReadFrequently: true }).fillRect(0, 0, hc.width, hc.height);
+    hc.getContext('2d', { willReadFrequently: true }).putImageData(new ImageData(new Uint8ClampedArray(_origPixels.data), _origW, _origH), _origOffX, _origOffY);
     _finishReset();
   } else {
     _finishReset();
@@ -12789,7 +12789,7 @@ function _evDoSave() {
   var pw = Math.round(nw * ps), ph = Math.round(nh * ps);
   var off = document.createElement('canvas');
   off.width = pw; off.height = ph;
-  var ctx = off.getContext('2d');
+  var ctx = off.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(userImage, 0, 0, pw, ph);
   var p = activePreset;
   if (p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) {
@@ -12862,7 +12862,7 @@ function _evDoSave() {
   var ew = Math.round(nw * es), eh = Math.round(nh * es);
   var out = document.createElement('canvas');
   out.width = ew; out.height = eh;
-  var outCtx = out.getContext('2d');
+  var outCtx = out.getContext('2d', { willReadFrequently: true });
   outCtx.imageSmoothingEnabled = true;
   outCtx.imageSmoothingQuality = 'high';
   outCtx.drawImage(off, 0, 0, ew, eh);
@@ -12990,7 +12990,7 @@ function _evRenderCanvasImmediate() {
   canvas.style.left = '';
   canvas.style.top  = '';
   canvas.style.transform = 'scale('+evZoomLevel+') translate('+evPanX+'px,'+evPanY+'px)';
-  var ctx = canvas.getContext('2d');
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
   // Defensive reset — prior canvas ops (tint, orbs, etc.) must not leave stale composite state
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
@@ -13091,17 +13091,17 @@ function _evRenderCanvasImmediate() {
         var _hbW = Math.round(_hbNw * _hbS), _hbH = Math.round(_hbNh * _hbS);
         var _hbSrc = document.createElement('canvas');
         _hbSrc.width = _hbW; _hbSrc.height = _hbH;
-        _hbSrc.getContext('2d').drawImage(userImage, 0, 0, _hbW, _hbH);
+        _hbSrc.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0, _hbW, _hbH);
         if (activePreset.curve) applyCurveLUTs(_hbSrc, activePreset.curve, 0, 0, _hbW, _hbH);
         var _hbLayer = _evBloomLayer(_hbSrc, activePreset.halationBloom, _hbW, _hbH);
-        var _hbCtx = canvas.getContext('2d');
+        var _hbCtx = canvas.getContext('2d', { willReadFrequently: true });
         _hbCtx.save(); _hbCtx.globalCompositeOperation = 'lighter';
         _hbCtx.drawImage(_hbLayer, 0, 0, canvas.width, canvas.height);
         _hbCtx.restore();
       } else if (_dragging) {
         // Drag: bloom from already-rendered canvas (same size, fast)
         var _hbLayer2 = _evBloomLayer(canvas, activePreset.halationBloom, canvas.width, canvas.height);
-        var _hbCtx2 = canvas.getContext('2d');
+        var _hbCtx2 = canvas.getContext('2d', { willReadFrequently: true });
         _hbCtx2.save(); _hbCtx2.globalCompositeOperation = 'lighter';
         _hbCtx2.drawImage(_hbLayer2, 0, 0);
         _hbCtx2.restore();
@@ -13128,7 +13128,7 @@ function _evRenderCanvasImmediate() {
     var canvas = document.getElementById('ev-canvas');
     if (!canvas) return;
     _showingBefore = true;
-    canvas.getContext('2d').drawImage(userImage, 0, 0, canvas.width, canvas.height);
+    canvas.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0, canvas.width, canvas.height);
   }
 
   function restoreAfter() {
@@ -13175,12 +13175,12 @@ function _clearPresetThumbCaches() {
 function renderPresetThumb(canvas, p) {
   if (!canvas) return;
   if (!userImage) {
-    var _ctx0 = canvas.getContext('2d');
+    var _ctx0 = canvas.getContext('2d', { willReadFrequently: true });
     _ctx0.fillStyle = '#10100f';
     _ctx0.fillRect(0, 0, canvas.width, canvas.height);
     return;
   }
-  var ctx = canvas.getContext('2d');
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
   var w = canvas.width, h = canvas.height;
   var imgSrc = userImage.src;
 
@@ -13303,7 +13303,7 @@ function evRenderPresets() {
   requestAnimationFrame(function(){
     var c = document.getElementById('evt-none');
     if (!c) return;
-    var ctx = c.getContext('2d');
+    var ctx = c.getContext('2d', { willReadFrequently: true });
     if (userImage) {
       var _iw = userImage.naturalWidth, _ih = userImage.naturalHeight;
       var _sc = Math.max(c.width / _iw, c.height / _ih);
@@ -13654,7 +13654,7 @@ function evShowSaveFormula() {
   if (evC && evC.width > 0) {
     var _sz = Math.min(evC.width, evC.height);
     var _tOff = document.createElement('canvas'); _tOff.width = 104; _tOff.height = 104;
-    _tOff.getContext('2d').drawImage(evC, (evC.width-_sz)/2, (evC.height-_sz)/2, _sz, _sz, 0, 0, 104, 104);
+    _tOff.getContext('2d', { willReadFrequently: true }).drawImage(evC, (evC.width-_sz)/2, (evC.height-_sz)/2, _sz, _sz, 0, 0, 104, 104);
     previewThumb = _tOff.toDataURL('image/jpeg', 0.82);
   }
   var PLACEHOLDER = 'WESTMINSTER';
@@ -13719,7 +13719,7 @@ function evConfirmSaveFormula() {
   if (evC && evC.width > 0) {
     var _tw = 156, _th = Math.round(156 * evC.height / Math.max(evC.width, 1));
     var _tOff = document.createElement('canvas'); _tOff.width = _tw; _tOff.height = _th;
-    _tOff.getContext('2d').drawImage(evC, 0, 0, _tw, _th);
+    _tOff.getContext('2d', { willReadFrequently: true }).drawImage(evC, 0, 0, _tw, _th);
     thumbDataURL = _tOff.toDataURL('image/jpeg', 0.78);
   }
   var formula = {
@@ -13886,7 +13886,7 @@ function galleryOpenInEditor(idx) {
   // or the import screen). Must happen before clearRect so we can composite it.
   var _evC0 = document.getElementById('ev-canvas');
   if (_evC0 && entry.img) {
-    try { _evC0.getContext('2d').drawImage(entry.img, 0, 0, _evC0.width || entry.img.width, _evC0.height || entry.img.height); } catch(e) {}
+    try { _evC0.getContext('2d', { willReadFrequently: true }).drawImage(entry.img, 0, 0, _evC0.width || entry.img.width, _evC0.height || entry.img.height); } catch(e) {}
   }
   // Set up globals
   editingIdx = idx;
@@ -14235,7 +14235,7 @@ function editorSaveToGallery() {
   const off = document.createElement('canvas');
   off.width  = userImage.naturalWidth  || hc.width;
   off.height = userImage.naturalHeight || hc.height;
-  off.getContext('2d').drawImage(hc, 0, 0, hc.width, hc.height, 0, 0, off.width, off.height);
+  off.getContext('2d', { willReadFrequently: true }).drawImage(hc, 0, 0, hc.width, hc.height, 0, 0, off.width, off.height);
   const dataURL = off.toDataURL('image/jpeg', 0.92);
   const name = 'EDIT_' + new Date().toISOString().slice(0,10) + '_' + Date.now() + '.jpg';
   const img  = new Image();
@@ -14366,7 +14366,7 @@ function evSaveAndReturn() {
     var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
     var off = document.createElement('canvas');
     off.width = iw; off.height = ih;
-    var ctx = off.getContext('2d');
+    var ctx = off.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(userImage, 0, 0, iw, ih);
     var p = activePreset || evActivePreset;
     if (p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) {
@@ -14450,7 +14450,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
     const h = Math.max(1, Math.round(src.naturalHeight * scale));
     const off = document.createElement('canvas');
     off.width = w; off.height = h;
-    const ctx = off.getContext('2d');
+    const ctx = off.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(src, 0, 0, w, h);
     if (p) {
       const _mergedSliders = (typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, sliders) : sliders;
@@ -14570,7 +14570,7 @@ function _exportEntry(entry, onDone) {
     const iw = src.naturalWidth, ih = src.naturalHeight;
     const off = document.createElement('canvas');
     off.width = iw; off.height = ih;
-    const ctx = off.getContext('2d');
+    const ctx = off.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(src, 0, 0, iw, ih);
     if (p) {
       const _mergedSliders = (typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, sliders) : sliders;
@@ -14753,7 +14753,7 @@ function _bakePendingCropForSave() {
       var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
       var _cc = document.createElement('canvas');
       _cc.width = _iw; _cc.height = _ih;
-      var _ctx = _cc.getContext('2d');
+      var _ctx = _cc.getContext('2d', { willReadFrequently: true });
       var _rad = _cropStraightenVal * Math.PI / 180;
       var _absR = Math.abs(_rad), _cosR = Math.cos(_absR), _sinR = Math.sin(_absR);
       var _cos2R = Math.cos(2 * _absR);
@@ -14785,11 +14785,11 @@ function _bakePendingCropForSave() {
     out = document.createElement('canvas');
     out.width  = Math.round(cropRect.w);
     out.height = Math.round(cropRect.h);
-    out.getContext('2d').drawImage(_cropSrc, cropRect.x * _scaleX, cropRect.y * _scaleY, cropRect.w * _scaleX, cropRect.h * _scaleY, 0, 0, out.width, out.height);
+    out.getContext('2d', { willReadFrequently: true }).drawImage(_cropSrc, cropRect.x * _scaleX, cropRect.y * _scaleY, cropRect.w * _scaleX, cropRect.h * _scaleY, 0, 0, out.width, out.height);
   } else if (src !== ac) {
     out = document.createElement('canvas');
     out.width = src.width; out.height = src.height;
-    out.getContext('2d').drawImage(src, 0, 0);
+    out.getContext('2d', { willReadFrequently: true }).drawImage(src, 0, 0);
   }
   if (out) {
     var _newImg = new Image();
@@ -14923,7 +14923,7 @@ window.editorSaveToGallery = function() {
   const off = document.createElement('canvas');
   off.width  = userImage.naturalWidth  || hc.width;
   off.height = userImage.naturalHeight || hc.height;
-  off.getContext('2d').drawImage(hc, 0, 0, hc.width, hc.height, 0, 0, off.width, off.height);
+  off.getContext('2d', { willReadFrequently: true }).drawImage(hc, 0, 0, hc.width, hc.height, 0, 0, off.width, off.height);
   const dataURL = off.toDataURL('image/jpeg', 0.95);
   const name = 'ZOE_EDIT_' + Date.now();
   const img  = new Image();
@@ -14955,7 +14955,7 @@ window.exportDownload = function() {
     const off = document.createElement('canvas');
     off.width  = iw;
     off.height = ih;
-    const ctx = off.getContext('2d');
+    const ctx = off.getContext('2d', { willReadFrequently: true });
 
     if (expFmt === 'jpg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, iw, ih); }
 
@@ -15023,11 +15023,11 @@ window.exportDownload = function() {
 // ── Fix 14: Motion Blur ───────────────────────────────────────────────────
 function applyMotionBlurFX(canvas, intensity, offX, offY, imgW, imgH) {
   if (intensity < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const tmp = document.createElement('canvas');
   tmp.width = imgW; tmp.height = imgH;
-  tmp.getContext('2d').putImageData(orig, 0, 0);
+  tmp.getContext('2d', { willReadFrequently: true }).putImageData(orig, 0, 0);
   const steps = 12;
   const maxOffset = intensity * 24;
   ctx.save();
@@ -15044,14 +15044,14 @@ function applyMotionBlurFX(canvas, intensity, offX, offY, imgW, imgH) {
 // ── Fix 11: Halation ─────────────────────────────────────────────────────
 function applyHalation(canvas, intensity, hue, offX, offY, imgW, imgH) {
   if (intensity < 0.01) return;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const tmp = document.createElement('canvas');
   tmp.width = imgW; tmp.height = imgH;
-  tmp.getContext('2d').putImageData(orig, 0, 0);
+  tmp.getContext('2d', { willReadFrequently: true }).putImageData(orig, 0, 0);
   const blurred = document.createElement('canvas');
   blurred.width = imgW; blurred.height = imgH;
-  const bCtx = blurred.getContext('2d');
+  const bCtx = blurred.getContext('2d', { willReadFrequently: true });
   const blurPx = Math.round(intensity * 12);
   const bright  = 1 + intensity * 0.6;
   bCtx.filter = `blur(${blurPx}px) brightness(${bright}) hue-rotate(${hue}deg) saturate(${1 + intensity * 2})`;
@@ -15168,7 +15168,7 @@ window.toolsFlipApply = function(dir) {
     const tmp = document.createElement('canvas');
     tmp.width  = userImage.naturalWidth;
     tmp.height = userImage.naturalHeight;
-    const ctx = tmp.getContext('2d');
+    const ctx = tmp.getContext('2d', { willReadFrequently: true });
     ctx.save();
     if (dir === 'h') { ctx.scale(-1, 1); ctx.drawImage(userImage, -tmp.width,  0); }
     else             { ctx.scale(1, -1); ctx.drawImage(userImage, 0, -tmp.height); }
@@ -15182,7 +15182,7 @@ window.toolsFlipApply = function(dir) {
         var _pcTmp = document.createElement('canvas');
         _pcTmp.width = _preCropState.userImage.naturalWidth;
         _pcTmp.height = _preCropState.userImage.naturalHeight;
-        var _pcCtx = _pcTmp.getContext('2d');
+        var _pcCtx = _pcTmp.getContext('2d', { willReadFrequently: true });
         _pcCtx.save();
         if (dir === 'h') { _pcCtx.scale(-1, 1); _pcCtx.drawImage(_preCropState.userImage, -_pcTmp.width, 0); }
         else             { _pcCtx.scale(1, -1); _pcCtx.drawImage(_preCropState.userImage, 0, -_pcTmp.height); }
@@ -15197,7 +15197,7 @@ window.toolsFlipApply = function(dir) {
         _pbFlip.onload = function() {
           var _pbC = document.createElement('canvas');
           _pbC.width = _pbFlip.naturalWidth; _pbC.height = _pbFlip.naturalHeight;
-          var _pbCtx = _pbC.getContext('2d');
+          var _pbCtx = _pbC.getContext('2d', { willReadFrequently: true });
           _pbCtx.save();
           if (dir === 'h') { _pbCtx.scale(-1, 1); _pbCtx.drawImage(_pbFlip, -_pbC.width, 0); }
           else { _pbCtx.scale(1, -1); _pbCtx.drawImage(_pbFlip, 0, -_pbC.height); }
@@ -15487,7 +15487,7 @@ window.toolsCropApply = function() {
       var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
       var _cleanC = document.createElement('canvas');
       _cleanC.width = _iw; _cleanC.height = _ih;
-      var _cleanCtx = _cleanC.getContext('2d');
+      var _cleanCtx = _cleanC.getContext('2d', { willReadFrequently: true });
       var _rad = _cropStraightenVal * Math.PI / 180;
       var _absR = Math.abs(_rad), _cosR = Math.cos(_absR), _sinR = Math.sin(_absR);
       var _cos2R = Math.cos(2 * _absR);
@@ -15546,7 +15546,7 @@ window.toolsCropApply = function() {
     var tmp = document.createElement('canvas');
     tmp.width  = Math.round(cropRect.w * _fsScX);
     tmp.height = Math.round(cropRect.h * _fsScY);
-    tmp.getContext('2d').drawImage(_fsSrc,
+    tmp.getContext('2d', { willReadFrequently: true }).drawImage(_fsSrc,
       cropRect.x * _fsScX, cropRect.y * _fsScY,
       cropRect.w * _fsScX, cropRect.h * _fsScY,
       0, 0, tmp.width, tmp.height);
@@ -15555,7 +15555,7 @@ window.toolsCropApply = function() {
     // Transform only (no crop rect) — bake work canvas
     var tmp2 = document.createElement('canvas');
     tmp2.width = src.width; tmp2.height = src.height;
-    tmp2.getContext('2d').drawImage(src, 0, 0);
+    tmp2.getContext('2d', { willReadFrequently: true }).drawImage(src, 0, 0);
     _finish(tmp2, 'APPLIED');
   } else {
     // Ratio was already baked in-place by _cropApplyRatioInPlace — userImage is correct, just exit
@@ -15598,7 +15598,7 @@ function _cropApplyRatioInPlace(keepStraighten) {
     var _kTmp = document.createElement('canvas');
     _kTmp.width  = Math.round(cropRect.w * _ksx);
     _kTmp.height = Math.round(cropRect.h * _ksy);
-    _kTmp.getContext('2d').drawImage(_cropStraightenOrig,
+    _kTmp.getContext('2d', { willReadFrequently: true }).drawImage(_cropStraightenOrig,
       cropRect.x * _ksx, cropRect.y * _ksy,
       cropRect.w * _ksx, cropRect.h * _ksy,
       0, 0, _kTmp.width, _kTmp.height);
@@ -15631,7 +15631,7 @@ function _cropApplyRatioInPlace(keepStraighten) {
       var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
       var _cc = document.createElement('canvas');
       _cc.width = _iw; _cc.height = _ih;
-      var _ctx = _cc.getContext('2d');
+      var _ctx = _cc.getContext('2d', { willReadFrequently: true });
       var _rad = _cropStraightenVal * Math.PI / 180;
       var _absR = Math.abs(_rad), _cosR = Math.cos(_absR), _sinR = Math.sin(_absR);
       var _cos2R = Math.cos(2 * _absR);
@@ -15662,7 +15662,7 @@ function _cropApplyRatioInPlace(keepStraighten) {
   var tmp = document.createElement('canvas');
   tmp.width  = Math.round(cropRect.w * scaleX);
   tmp.height = Math.round(cropRect.h * scaleY);
-  tmp.getContext('2d').drawImage(src,
+  tmp.getContext('2d', { willReadFrequently: true }).drawImage(src,
     cropRect.x * scaleX, cropRect.y * scaleY,
     cropRect.w * scaleX, cropRect.h * scaleY,
     0, 0, tmp.width, tmp.height);
@@ -15745,7 +15745,7 @@ function _cropRatioConfirm() {
   var tmp = document.createElement('canvas');
   tmp.width  = Math.round(_pendingRect.w * _cScX);
   tmp.height = Math.round(_pendingRect.h * _cScY);
-  tmp.getContext('2d').drawImage(_cSrc, _pendingRect.x * _cScX, _pendingRect.y * _cScY, _pendingRect.w * _cScX, _pendingRect.h * _cScY, 0, 0, tmp.width, tmp.height);
+  tmp.getContext('2d', { willReadFrequently: true }).drawImage(_cSrc, _pendingRect.x * _cScX, _pendingRect.y * _cScY, _pendingRect.w * _cScX, _pendingRect.h * _cScY, 0, 0, tmp.width, tmp.height);
   var newImg = new Image();
   newImg.onload = function() {
     var _p = (typeof evActivePreset !== 'undefined') ? (evActivePreset || activePreset) : null;
@@ -16019,7 +16019,7 @@ function cropStraightenPreview(val) {
     sc.style.height = _acHs + 'px';
     sc.style.left   = Math.round((_arWs - _acWs) / 2) + 'px';
     sc.style.top    = Math.round((_arHs - _acHs) / 2) + 'px';
-    var ctx = sc.getContext('2d');
+    var ctx = sc.getContext('2d', { willReadFrequently: true });
     ctx.clearRect(0, 0, sc.width, sc.height);
     var rad = val * Math.PI / 180;
     var absR = Math.abs(rad);
@@ -16056,7 +16056,7 @@ function cropStraightenAutoApply() {
   if (!sc) return;
   var tmp = document.createElement('canvas');
   tmp.width = sc.width; tmp.height = sc.height;
-  tmp.getContext('2d').drawImage(sc, 0, 0);
+  tmp.getContext('2d', { willReadFrequently: true }).drawImage(sc, 0, 0);
   var newImg = new Image();
   newImg.onload = function() {
     if (!_preCropState) {
@@ -16131,7 +16131,7 @@ function cropRotate90(dir) {
     }
     var tmp = document.createElement('canvas');
     tmp.width = _rDh; tmp.height = _rDw;
-    var ctx = tmp.getContext('2d');
+    var ctx = tmp.getContext('2d', { willReadFrequently: true });
     ctx.save();
     if (dir === 'cw')  { ctx.translate(tmp.width, 0);   ctx.rotate(Math.PI / 2); }
     else               { ctx.translate(0, tmp.height);  ctx.rotate(-Math.PI / 2); }
@@ -16149,7 +16149,7 @@ function cropRotate90(dir) {
         _pbRot.onload = function() {
           var _pbC = document.createElement('canvas');
           _pbC.width = _pbRot.naturalHeight; _pbC.height = _pbRot.naturalWidth;
-          var _pbCtx = _pbC.getContext('2d');
+          var _pbCtx = _pbC.getContext('2d', { willReadFrequently: true });
           _pbCtx.save();
           if (dir === 'cw') { _pbCtx.translate(_pbC.width, 0); _pbCtx.rotate(Math.PI / 2); }
           else { _pbCtx.translate(0, _pbC.height); _pbCtx.rotate(-Math.PI / 2); }
@@ -16222,18 +16222,18 @@ function _cropPerspFlush(onFlush) {
   // Build a cropped canvas at the inscribed bounds
   var _cropped = document.createElement('canvas');
   _cropped.width = _cropW; _cropped.height = _cropH;
-  _cropped.getContext('2d').drawImage(sc, _minX, _minY, _cropW, _cropH, 0, 0, _cropW, _cropH);
+  _cropped.getContext('2d', { willReadFrequently: true }).drawImage(sc, _minX, _minY, _cropW, _cropH, 0, 0, _cropW, _cropH);
 
   // Keep ac at original dimensions — scale cropped region up to fill (zoom in)
   var _origW = ac.width, _origH = ac.height;
   ac.style.opacity = '1';
-  ac.getContext('2d').clearRect(0, 0, _origW, _origH);
-  ac.getContext('2d').drawImage(_cropped, 0, 0, _origW, _origH);
+  ac.getContext('2d', { willReadFrequently: true }).clearRect(0, 0, _origW, _origH);
+  ac.getContext('2d', { willReadFrequently: true }).drawImage(_cropped, 0, 0, _origW, _origH);
 
   // Keep cropped canvas as new perspective base
   var snap = document.createElement('canvas');
   snap.width = _cropW; snap.height = _cropH;
-  snap.getContext('2d').drawImage(_cropped, 0, 0);
+  snap.getContext('2d', { willReadFrequently: true }).drawImage(_cropped, 0, 0);
   _cropPerspOrig = snap;
 
   // Hide overlay
@@ -16256,7 +16256,7 @@ function _cropPerspFlush(onFlush) {
     var _fullW = srcImg.naturalWidth, _fullH = srcImg.naturalHeight;
     var _fullCanvas = document.createElement('canvas');
     _fullCanvas.width = _fullW; _fullCanvas.height = _fullH;
-    _etPerspTrapezoidWarp(_fullCanvas.getContext('2d'), srcImg, _amtV, _amtH, _fullW, _fullH);
+    _etPerspTrapezoidWarp(_fullCanvas.getContext('2d', { willReadFrequently: true }), srcImg, _amtV, _amtH, _fullW, _fullH);
     var _fxInsetV = Math.ceil(_fullW * 0.5 * (1 - 1 / _scaleVedge));
     var _fxInsetH = Math.ceil(_fullW * 0.5 * (1 - 1 / _scaleHedge));
     var _fyInsetV = Math.ceil(_fullH * 0.5 * (1 - 1 / _scaleVedge));
@@ -16269,7 +16269,7 @@ function _cropPerspFlush(onFlush) {
     if (_fCropW < 4 || _fCropH < 4) { _fCropW = _fullW; _fCropH = _fullH; _fMinX = 0; _fMinY = 0; }
     var _fCropped = document.createElement('canvas');
     _fCropped.width = _fCropW; _fCropped.height = _fCropH;
-    _fCropped.getContext('2d').drawImage(_fullCanvas, _fMinX, _fMinY, _fCropW, _fCropH, 0, 0, _fCropW, _fCropH);
+    _fCropped.getContext('2d', { willReadFrequently: true }).drawImage(_fullCanvas, _fMinX, _fMinY, _fCropW, _fCropH, 0, 0, _fCropW, _fCropH);
     var _flushDU = _fCropped.toDataURL('image/jpeg', 0.95);
     var _flushImg = new Image();
     _flushImg.onload = function() {
@@ -16342,8 +16342,8 @@ function cropPerspPreview(val) {
   // Capture the CURRENT edited canvas state (with all slider effects applied) as the warp source.
   // Using userImage here would lose all color edits — we always warp what the user sees.
   var tmp = document.createElement('canvas'); tmp.width = sc.width; tmp.height = sc.height;
-  tmp.getContext('2d').drawImage(ac, 0, 0);
-  var ctx = sc.getContext('2d');
+  tmp.getContext('2d', { willReadFrequently: true }).drawImage(ac, 0, 0);
+  var ctx = sc.getContext('2d', { willReadFrequently: true });
   ctx.clearRect(0, 0, sc.width, sc.height);
   var amount = parseFloat(val) / 100;
   _cropPerspWarp(ctx, tmp, _cropPerspAxis, amount, sc.width, sc.height);
@@ -16395,7 +16395,7 @@ function _cropPerspWarp(dstCtx, srcCanvas, axis, amount, w, h) {
   var maxS = (axis === 'v') ? 0.48 : 0.28;
   var eff = amount * maxS;
   var abs = Math.abs(eff);
-  var srcCtx = srcCanvas.getContext('2d');
+  var srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
   var src = srcCtx.getImageData(0, 0, w, h);
   var dst = dstCtx.createImageData(w, h);
   var t, u, k, sx, sy, sx0, sy0, fx, fy, sx1, sy1, si, si2, di;
@@ -16514,7 +16514,7 @@ function _evBuildCurAdj() {
 function _etApplyAdjCanvas(c) {
   var adj = _evBuildCurAdj();
   if (!adj) return;
-  var ctx = c.getContext('2d');
+  var ctx = c.getContext('2d', { willReadFrequently: true });
   var origData = ctx.getImageData(0, 0, c.width, c.height);
   var processed = applyPixelAdjustments(origData, adj);
   var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
@@ -16567,7 +16567,7 @@ function etPerspUpdate() {
       } else {
         var _pCapC = document.createElement('canvas');
         _pCapC.width = userImage.naturalWidth; _pCapC.height = userImage.naturalHeight;
-        _pCapC.getContext('2d').drawImage(userImage, 0, 0);
+        _pCapC.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0);
         _perspBaseURL = _pCapC.toDataURL('image/jpeg', 0.95);
       }
       _etPerspOrigImg = userImage;
@@ -16600,7 +16600,7 @@ function etPerspUpdate() {
   sc.style.left   = Math.round((_arW - _acW) / 2) + 'px';
   sc.style.top    = Math.round((_arH - _acH) / 2) + 'px';
 
-  var ctx = sc.getContext('2d');
+  var ctx = sc.getContext('2d', { willReadFrequently: true });
   ctx.clearRect(0, 0, sc.width, sc.height);
   ac.style.opacity = '0';
 
@@ -16613,8 +16613,8 @@ function etPerspUpdate() {
     var _zDispW = Math.round(_origNW * _zScale);
     var _zDispH = Math.round(_origNH * _zScale);
     sc.width = _origNW; sc.height = _origNH;
-    sc.getContext('2d').clearRect(0, 0, _origNW, _origNH);
-    sc.getContext('2d').drawImage(_etPerspOrigImg, 0, 0, _origNW, _origNH);
+    sc.getContext('2d', { willReadFrequently: true }).clearRect(0, 0, _origNW, _origNH);
+    sc.getContext('2d', { willReadFrequently: true }).drawImage(_etPerspOrigImg, 0, 0, _origNW, _origNH);
     _etApplyAdjCanvas(sc);
     sc.style.width  = _zDispW + 'px';
     sc.style.height = _zDispH + 'px';
@@ -16645,11 +16645,11 @@ function etPerspUpdate() {
     var _pvCropW = _pvMaxX - _pvMinX + 1, _pvCropH = _pvMaxY - _pvMinY + 1;
     var _pvTmp = document.createElement('canvas');
     _pvTmp.width = _pvCropW; _pvTmp.height = _pvCropH;
-    _pvTmp.getContext('2d').drawImage(sc, _pvMinX, _pvMinY, _pvCropW, _pvCropH, 0, 0, _pvCropW, _pvCropH);
+    _pvTmp.getContext('2d', { willReadFrequently: true }).drawImage(sc, _pvMinX, _pvMinY, _pvCropW, _pvCropH, 0, 0, _pvCropW, _pvCropH);
     // Always draw back to ac (stretched to fill) so transparent corners never show.
     // Leave sc untouched so _cropPerspFlush can read the clean trapezoid from it.
-    ac.getContext('2d').clearRect(0, 0, ac.width, ac.height);
-    ac.getContext('2d').drawImage(_pvTmp, 0, 0, ac.width, ac.height);
+    ac.getContext('2d', { willReadFrequently: true }).clearRect(0, 0, ac.width, ac.height);
+    ac.getContext('2d', { willReadFrequently: true }).drawImage(_pvTmp, 0, 0, ac.width, ac.height);
     _etApplyAdjCanvas(ac);
     ac.style.opacity = '1';
     sc.style.opacity = '0';
@@ -16663,8 +16663,8 @@ function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {
 
   var tmp = document.createElement('canvas');
   tmp.width = W; tmp.height = H;
-  tmp.getContext('2d').drawImage(src, 0, 0, W, H);
-  var srcData = tmp.getContext('2d').getImageData(0, 0, W, H);
+  tmp.getContext('2d', { willReadFrequently: true }).drawImage(src, 0, 0, W, H);
+  var srcData = tmp.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W, H);
   var dstData = dstCtx.createImageData(W, H);
   var s = srcData.data, d = dstData.data;
 
@@ -17035,7 +17035,7 @@ function importSheetChoice(type) {
   // Starfield
   var cv = document.getElementById('zl-stars');
   if (cv) {
-    var ctx = cv.getContext('2d');
+    var ctx = cv.getContext('2d', { willReadFrequently: true });
     var tints = ['#fff4ea','#fff4ea','#ffe6cf','#ffd9c4','#f1e9ff','#ffeede'];
     var w = 1, h = 1, dpr = 1, stars = [];
     function zlResize() {
@@ -17069,7 +17069,7 @@ function importSheetChoice(type) {
   var g = document.getElementById('zl-grain');
   if (g) {
     var nc = document.createElement('canvas'); nc.width = nc.height = 110;
-    var nx = nc.getContext('2d');
+    var nx = nc.getContext('2d', { willReadFrequently: true });
     var gid = nx.createImageData(110, 110);
     for (var j = 0; j < gid.data.length; j += 4) {
       var v = (Math.random() * 255) | 0;

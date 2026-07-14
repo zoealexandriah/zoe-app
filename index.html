@@ -5710,7 +5710,7 @@ const presets = [
     halationBloom: { threshold: 0.72, radius: 18, hue: 10, intensity: 0.08 },
     shadowTint:    { r: 0.10, g: 0.08, b: 0.04, strength: 0.03 },
     highlightTint: { r: 0.18, g: 0.16, b: 0.12, strength: 0.03 },
-    matteFade:     { lift: 0.05, rolloff: 0.22 },
+    matteFade:     { lift: 0.01, rolloff: 0.10 },
     chromaticAberration: { amount: 0.8, falloff: 0.60 },
     splitTone:{
       shadows:    {r:36,  g:30,  b:20,  a:0.07},
@@ -5725,7 +5725,7 @@ const presets = [
     },
     defaults:{
       EXPOSURE:0.585, CONTRAST:0.548, HIGHLIGHTS:0.462, SHADOWS:0.575,
-      WHITES:0.518, BLACKS:0.514, TEMPERATURE:0.508, TINT:0.500,
+      WHITES:0.518, BLACKS:0.506, TEMPERATURE:0.508, TINT:0.500,
       VIBRANCE:0.578, SATURATION:0.515,
       GLOW:0.0, GRAIN:0.09, SHARPEN:0.0, CLARITY:0.06, BLUR:0.0, FADE:0.0,
       TEXTURE:0.08, DIFFUSION:0.03,
@@ -5736,10 +5736,10 @@ const presets = [
       LUM_REDS:0.508, LUM_ORANGES:0.504, LUM_YELLOWS:0.503,
       LUM_GREENS:0.502, LUM_BLUES:0.504, LUM_PURPLES:0.500,
       VIGNETTE:0.07, HALATION:0.10,
-      MATTE_LIFT:0.502, DEHAZE:0.04
+      MATTE_LIFT:0.500, DEHAZE:0.04
     },
     sliders:{
-      LIGHT:{EXPOSURE:'+0.17',PUSH_PULL:'+0.00',CONTRAST:'+0.10',HIGHLIGHTS:'-0.08',SHADOWS:'+0.15',WHITES:'+0.04',BLACKS:'+0.03',MATTE_LIFT:'+0.01',DEHAZE:'+0.04'},
+      LIGHT:{EXPOSURE:'+0.17',PUSH_PULL:'+0.00',CONTRAST:'+0.10',HIGHLIGHTS:'-0.08',SHADOWS:'+0.15',WHITES:'+0.04',BLACKS:'+0.01',MATTE_LIFT:'+0.00',DEHAZE:'+0.04'},
       COLOR:{TEMPERATURE:'+0.02',TINT:'+0.00',VIBRANCE:'+0.16',SATURATION:'+0.03'},
       EFFECTS:{GLOW:'+0.00',GRAIN:'+0.09',SHARPEN:'+0.00',CLARITY:'+0.06',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.08',DIFFUSION:'+0.03'},
       HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.16',SAT_ORANGES:'+0.02',SAT_YELLOWS:'+0.04',SAT_GREENS:'+0.02',SAT_BLUES:'+0.05',SAT_PURPLES:'+0.00'}

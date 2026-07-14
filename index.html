@@ -8393,20 +8393,22 @@ function applyPixelAdjustments(srcData, adj, resScale) {
     // to prevent clipping. Uses additive delta capped by headroom.
     if (sat !== 0) {
       const [h2, s2, l2] = rgbToHsl(r, g, b);
-      if (sat > 0) {
-        // Protection: the more saturated a pixel already is, the less boost it gets
-        const headroom = Math.max(0, 1 - s2); // 0 if fully saturated, 1 if grey
-        const protectedSat = sat * 0.65 * (0.25 + 0.75 * headroom);
-        const newS = Math.min(1, s2 + s2 * protectedSat);
-        if (Math.abs(newS - s2) > 0.001) {
-          const [nr, ng, nb] = hslToRgb(h2, newS, l2);
-          r = nr; g = ng; b = nb;
-        }
-      } else {
-        const newS = Math.min(1, Math.max(0, s2 * (1 + sat)));
-        if (Math.abs(newS - s2) > 0.001) {
-          const [nr, ng, nb] = hslToRgb(h2, newS, l2);
-          r = nr; g = ng; b = nb;
+      if (s2 > 0.02) {
+        if (sat > 0) {
+          // Protection: the more saturated a pixel already is, the less boost it gets
+          const headroom = Math.max(0, 1 - s2); // 0 if fully saturated, 1 if grey
+          const protectedSat = sat * 0.65 * (0.25 + 0.75 * headroom);
+          const newS = Math.min(1, s2 + s2 * protectedSat);
+          if (Math.abs(newS - s2) > 0.001) {
+            const [nr, ng, nb] = hslToRgb(h2, newS, l2);
+            r = nr; g = ng; b = nb;
+          }
+        } else {
+          const newS = Math.min(1, Math.max(0, s2 * (1 + sat)));
+          if (Math.abs(newS - s2) > 0.001) {
+            const [nr, ng, nb] = hslToRgb(h2, newS, l2);
+            r = nr; g = ng; b = nb;
+          }
         }
       }
     }
@@ -8416,23 +8418,25 @@ function applyPixelAdjustments(srcData, adj, resScale) {
     // barely touches already-saturated colors — avoids neon blowout.
     if (vib !== 0) {
       const [h3, s3, l3] = rgbToHsl(r, g, b);
-      let newS = s3;
-      if (vib > 0) {
-        // Softer inverse-saturation curve: gentler exponent avoids harsh colour breakup
-        const satWeight = Math.pow(1 - s3, 1.0);
-        // Skin tone protection (~15°–50°): reduce boost near orange/red skin hues
-        const hueDeg = h3 * 360;
-        const skinDist = Math.min(Math.abs(hueDeg - 30), 360 - Math.abs(hueDeg - 30));
-        const skinProtect = skinDist < 25 ? (0.25 + 0.75 * skinDist / 25) : 1.0;
-        newS = Math.min(1, s3 + vib * satWeight * skinProtect * 0.32);
-      } else {
-        // Negative: desaturate more-saturated pixels first (inverse of above)
-        const satWeight = Math.pow(s3, 0.8);
-        newS = Math.max(0, s3 + vib * satWeight * 0.55);
-      }
-      if (Math.abs(newS - s3) > 0.001) {
-        const [nr, ng, nb] = hslToRgb(h3, newS, l3);
-        r = nr; g = ng; b = nb;
+      if (s3 > 0.02) {
+        let newS = s3;
+        if (vib > 0) {
+          // Softer inverse-saturation curve: gentler exponent avoids harsh colour breakup
+          const satWeight = Math.pow(1 - s3, 1.0);
+          // Skin tone protection (~15°–50°): reduce boost near orange/red skin hues
+          const hueDeg = h3 * 360;
+          const skinDist = Math.min(Math.abs(hueDeg - 30), 360 - Math.abs(hueDeg - 30));
+          const skinProtect = skinDist < 25 ? (0.25 + 0.75 * skinDist / 25) : 1.0;
+          newS = Math.min(1, s3 + vib * satWeight * skinProtect * 0.32);
+        } else {
+          // Negative: desaturate more-saturated pixels first (inverse of above)
+          const satWeight = Math.pow(s3, 0.8);
+          newS = Math.max(0, s3 + vib * satWeight * 0.55);
+        }
+        if (Math.abs(newS - s3) > 0.001) {
+          const [nr, ng, nb] = hslToRgb(h3, newS, l3);
+          r = nr; g = ng; b = nb;
+        }
       }
     }
 

@@ -13427,6 +13427,14 @@ function evSaveWithAnimation() {
   ov.style.transition = '';
   ov.style.display = 'flex';
 
+  // Restart all CSS animations so the typewriter starts from frame 0
+  ov.querySelectorAll('[style*="animation"]').forEach(function(el) {
+    var anim = el.style.animation;
+    el.style.animation = 'none';
+    el.offsetHeight; // force reflow
+    el.style.animation = anim;
+  });
+
   requestAnimationFrame(function() { requestAnimationFrame(function() {
     ov.classList.add('saf-active');
   }); });

@@ -7301,7 +7301,9 @@ function buildEditorSliders(p) {
     } else {
       const sectionHtml = buildSectionHTML(p, section, rows, state);
       if (section === 'COLOR') {
-        colHtml += sectionHtml;
+        var _colorRows = Object.assign({}, rows);
+        if (_colorRows.SKIN_TONE === undefined) _colorRows.SKIN_TONE = '+0.00';
+        colHtml += buildSectionHTML(p, section, _colorRows, state);
       } else if (section === 'HSL') {
         hslHtml += sectionHtml;
       } else if (section === 'LIGHT') {

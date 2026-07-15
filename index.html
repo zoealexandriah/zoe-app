@@ -13457,7 +13457,7 @@ function _evDoSave() {
   if (!userImage) return;
   var nw = userImage.naturalWidth, nh = userImage.naturalHeight;
   // Render at preview reference resolution — same pixel values as what user sees
-  var _ref = 2400;
+  var _ref = 1800;
   var ps = Math.min(1, _ref / Math.max(nw, nh));
   var pw = Math.round(nw * ps), ph = Math.round(nh * ps);
   var off = document.createElement('canvas');

@@ -13522,9 +13522,9 @@ function _evDoSave() {
     var _hpd = _hp.getImageData(0, 0, pw, ph);
     var _hpb = _hpd.data;
     for (var _i = 0; _i < _hpb.length; _i += 4) {
-      _hpb[_i]   = Math.min(_hpb[_i],   230);
-      _hpb[_i+1] = Math.min(_hpb[_i+1], 230);
-      _hpb[_i+2] = Math.min(_hpb[_i+2], 230);
+      _hpb[_i]   = Math.min(_hpb[_i],   218);
+      _hpb[_i+1] = Math.min(_hpb[_i+1], 218);
+      _hpb[_i+2] = Math.min(_hpb[_i+2], 218);
     }
     _hp.putImageData(_hpd, 0, 0);
     if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)

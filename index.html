@@ -7186,7 +7186,7 @@ const sliderConfig = {
   MOTION_BLUR:    [ 0.00, 1.00, '', false],
   RADIAL_BLUR:    [ 0.00, 1.00, '', false],
   MIST:           [ 0.00, 1.00, '', false],
-  SKIN_TONE:      [ 0.00, 1.00, '', true],
+  SKIN_TONE:      [-1.00, 1.00, '', true],
 };
 
 // No-look preset: allows sliders to work when no preset is selected
@@ -8808,7 +8808,8 @@ function applyPixelAdjustments(srcData, adj, resScale) {
     !(adj.vignette_blur > 0.005) &&
     !(adj.motion_blur > 0.005) &&
     !(adj.radial_blur > 0.005) &&
-    !(adj.mist > 0.005);
+    !(adj.mist > 0.005) &&
+    !(Math.abs(adj.skin_tone || 0) > 0.005);
   if (_noEffect) return new Uint8ClampedArray(src);
 
   const out = new Uint8ClampedArray(src.length);

@@ -6017,26 +6017,26 @@ const presets = [
     tint:'none', orbs:[], acc:'#8b4820', warm:true,
     skinLift: 0.06,
     colorGlow: 0.04,
-    hueTempZones: [{ center: 28, halfWidth: 30, warm: 0.12 }],
-    halationBloom: { threshold: 0.78, radius: 12, hue: 32, intensity: 0.05 },
-    shadowTint:    { r: 0.28, g: 0.16, b: 0.08, strength: 0.08 },
-    highlightTint: { r: 0.34, g: 0.22, b: 0.10, strength: 0.08 },
+    hueTempZones: [{ center: 28, halfWidth: 30, warm: 0.08 }],
+    halationBloom: { threshold: 0.80, radius: 11, hue: 32, intensity: 0.04 },
+    shadowTint:    { r: 0.18, g: 0.12, b: 0.08, strength: 0.04 },
+    highlightTint: { r: 0.24, g: 0.18, b: 0.12, strength: 0.04 },
     matteFade:     { lift: 0.01, rolloff: 0.08 },
-    chromaticAberration: { amount: 0.10, falloff: 0.90 },
+    chromaticAberration: { amount: 0.08, falloff: 0.91 },
     filmCrossover: {
-      toe:      { r: +0.06, g: -0.02, b: -0.08, strength: 0.55 },
-      shoulder: { r: +0.08, g: -0.02, b: -0.10, strength: 0.55 }
+      toe:      { r: +0.03, g: -0.01, b: -0.03, strength: 0.30 },
+      shoulder: { r: +0.04, g: -0.01, b: -0.04, strength: 0.32 }
     },
     splitTone:{
-      shadows:    {r:58,  g:36,  b:20,  a:0.10},
-      midtones:   {r:220, g:180, b:140, a:0.05},
-      highlights: {r:240, g:210, b:168, a:0.08}
+      shadows:    {r:48,  g:36,  b:24,  a:0.06},
+      midtones:   {r:205, g:188, b:168, a:0.03},
+      highlights: {r:228, g:214, b:192, a:0.05}
     },
     curve:{
-      master: [[0,0],[40,38],[100,102],[160,164],[220,218],[255,252]],
-      r:      [[0,0],[60,64],[128,136],[200,212],[255,255]],
-      g:      [[0,0],[60,56],[128,124],[200,202],[255,248]],
-      b:      [[0,0],[60,48],[128,112],[200,188],[255,234]]
+      master: [[0,0],[40,38],[100,104],[160,166],[220,220],[255,254]],
+      r:      [[0,0],[80,82],[128,132],[200,208],[255,255]],
+      g:      [[0,0],[80,78],[128,126],[200,202],[255,250]],
+      b:      [[0,0],[80,76],[128,122],[200,196],[255,242]]
     },
     defaults:{
       EXPOSURE:0.510, CONTRAST:0.640, HIGHLIGHTS:0.420, SHADOWS:0.540,

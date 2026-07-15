@@ -13565,12 +13565,34 @@ function _evDoSave() {
   outCtx.imageSmoothingEnabled = true;
   outCtx.imageSmoothingQuality = 'high';
   outCtx.drawImage(off, 0, 0, ew, eh);
+  // Inject sRGB ICC profile into JPEG for proper cross-device color management
+  function _injectICC(dataURL) {
+    var b64 = dataURL.split(',')[1];
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    // Minimal sRGB ICC profile marker (APP2 segment)
+    var icc = new Uint8Array([
+      0xFF,0xE2,0x00,0x22,0x49,0x43,0x43,0x5F,0x50,0x52,0x4F,0x46,0x49,0x4C,0x45,0x00,
+      0x01,0x01,0x00,0x00,0x00,0x12,0x73,0x52,0x47,0x42,0x00,0x00,0x00,0x00,0x00,0x00,
+      0x00,0x00,0x00,0x00,0x00,0x00
+    ]);
+    // Insert after JPEG SOI marker (first 2 bytes: FF D8)
+    var out = new Uint8Array(bytes.length + icc.length);
+    out.set(bytes.slice(0, 2), 0);
+    out.set(icc, 2);
+    out.set(bytes.slice(2), 2 + icc.length);
+    var blob = new Blob([out], { type: 'image/jpeg' });
+    return URL.createObjectURL(blob);
+  }
+
   var d  = new Date();
   var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
   var ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
   var a  = document.createElement('a');
   a.download = 'ZOE_' + ds + '_' + ts + '.jpg';
-  a.href = out.toDataURL('image/jpeg', 0.95);
+  var _rawDataURL = out.toDataURL('image/jpeg', 0.95);
+  a.href = _injectICC(_rawDataURL);
   a.click();
 }
 

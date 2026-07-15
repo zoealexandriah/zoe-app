@@ -9337,38 +9337,42 @@ function applyPixelAdjustments(srcData, adj, resScale) {
       }
     }
 
-    // ── SKIN TONE — warm/cool shift targeting skin hue range ─────────────
+    // ── SKIN TONE — hue shift within skin zone: negative=cool/pink, positive=warm/amber ─────
     const skinTone = adj.skin_tone || 0;
     if (Math.abs(skinTone) > 0.001) {
       const rn_st=r/255, gn_st=g/255, bn_st=b/255;
       const cmx_st=Math.max(rn_st,gn_st,bn_st), cmn_st=Math.min(rn_st,gn_st,bn_st);
       const dlt_st=cmx_st-cmn_st;
-      if (dlt_st > 0.04) {
+      if (dlt_st > 0.05) {
         let ph_st=0;
-        if (cmx_st===rn_st) ph_st=60*(((gn_st-bn_st)/dlt_st)%6);
+        if      (cmx_st===rn_st) ph_st=60*(((gn_st-bn_st)/dlt_st+6)%6);
         else if (cmx_st===gn_st) ph_st=60*((bn_st-rn_st)/dlt_st+2);
-        else ph_st=60*((rn_st-gn_st)/dlt_st+4);
-        ph_st=(ph_st+360)%360;
-        let hd_st=Math.abs(ph_st-22); if (hd_st>180) hd_st=360-hd_st;
-        if (hd_st < 38) {
-          const ll_st=(cmx_st+cmn_st)/2;
-          if (ll_st > 0.25 && ll_st < 0.85) {
-            const lumW_st=Math.exp(-Math.pow((ll_st-0.55)/0.22,2));
-            const hueW_st=Math.max(0,1-hd_st/38);
-            const blend=skinTone*lumW_st*hueW_st*0.18;
-            if (Math.abs(blend) > 0.001) {
-              if (skinTone > 0) {
-                r = Math.min(255, Math.round(r + blend * 255 * 1.2));
-                g = Math.min(255, Math.round(g + blend * 255 * 0.5));
-                b = Math.max(0,   Math.round(b - blend * 255 * 0.3));
-              } else {
-                const cb=Math.abs(blend);
-                r = Math.max(0,   Math.round(r - cb * 255 * 0.8));
-                g = Math.min(255, Math.round(g + cb * 255 * 0.4));
-                b = Math.min(255, Math.round(b + cb * 255 * 1.1));
-              }
-            }
-          }
+        else                      ph_st=60*((rn_st-gn_st)/dlt_st+4);
+        const ll_st=(cmx_st+cmn_st)/2;
+        const ss_st= ll_st < 0.5 ? dlt_st/(2*ll_st) : dlt_st/(2-2*ll_st);
+        // Target hue: skin is roughly 5°–40°. Center at 20°.
+        let hd_st=Math.abs(ph_st-20); if(hd_st>180) hd_st=360-hd_st;
+        if (hd_st < 35 && ll_st > 0.20 && ll_st < 0.82 && ss_st > 0.08) {
+          const hueW_st = Math.max(0, 1 - hd_st/35);
+          const lumW_st = Math.exp(-Math.pow((ll_st-0.52)/0.24,2));
+          const satW_st = Math.min(1, (ss_st-0.08)/0.15);
+          // Positive = warm (shift hue toward amber ~30°), negative = cool (shift toward pink ~355°)
+          const hueShift = skinTone * hueW_st * lumW_st * satW_st * 18;
+          let newH = (ph_st + hueShift + 360) % 360;
+          // Reconstruct RGB from shifted hue, keeping S and L
+          const c_st=(1-Math.abs(2*ll_st-1))*ss_st;
+          const x_st=c_st*(1-Math.abs((newH/60)%2-1));
+          const m_st=ll_st-c_st/2;
+          let r_st=0,g_st=0,b_st=0;
+          if      (newH<60)  {r_st=c_st;g_st=x_st;b_st=0;}
+          else if (newH<120) {r_st=x_st;g_st=c_st;b_st=0;}
+          else if (newH<180) {r_st=0;   g_st=c_st;b_st=x_st;}
+          else if (newH<240) {r_st=0;   g_st=x_st;b_st=c_st;}
+          else if (newH<300) {r_st=x_st;g_st=0;   b_st=c_st;}
+          else               {r_st=c_st;g_st=0;   b_st=x_st;}
+          r=Math.round((r_st+m_st)*255);
+          g=Math.round((g_st+m_st)*255);
+          b=Math.round((b_st+m_st)*255);
         }
       }
     }

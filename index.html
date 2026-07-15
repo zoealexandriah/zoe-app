@@ -5816,6 +5816,55 @@ const presets = [
     }
   },
   {
+    id:'bumbum', num:'38', name:'Bumbum', series:'POOLSIDE', seriesGroup:'POOLSIDE',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#c06878', warm:false,
+    skinLift: 0.08,
+    colorGlow: 0.03,
+    hueTempZones: [{ center: 28, halfWidth: 22, warm: 0.14 }],
+    halationBloom: { threshold: 0.74, radius: 15, hue: 210, intensity: 0.07 },
+    shadowTint:    { r: 0.10, g: 0.11, b: 0.13, strength: 0.03 },
+    highlightTint: { r: 0.16, g: 0.18, b: 0.22, strength: 0.06 },
+    matteFade:     { lift: 0.03, rolloff: 0.14 },
+    chromaticAberration: { amount: 0.08, falloff: 0.92 },
+    filmCrossover: {
+      toe:      { r: +0.01, g: +0.02, b: +0.02, strength: 0.20 },
+      shoulder: { r: +0.03, g: +0.05, b: +0.04, strength: 0.35 }
+    },
+    splitTone:{
+      shadows:    {r:30,  g:32,  b:38,  a:0.04},
+      midtones:   {r:195, g:198, b:200, a:0.01},
+      highlights: {r:220, g:232, b:248, a:0.09}
+    },
+    curve:{
+      master: [[0,0],[40,44],[100,112],[160,172],[210,220],[255,255]],
+      r:      [[0,0],[80,81],[128,130],[200,206],[255,254]],
+      g:      [[0,0],[80,83],[128,133],[200,210],[255,255]],
+      b:      [[0,0],[80,83],[128,131],[200,208],[255,254]]
+    },
+    defaults:{
+      EXPOSURE:0.610, CONTRAST:0.550, HIGHLIGHTS:0.475, SHADOWS:0.575,
+      WHITES:0.522, BLACKS:0.506, TEMPERATURE:0.494, TINT:0.500,
+      VIBRANCE:0.545, SATURATION:0.500,
+      GLOW:0.0, GRAIN:0.05, SHARPEN:0.0, CLARITY:0.04, BLUR:0.0, FADE:0.0,
+      TEXTURE:0.03, DIFFUSION:0.02,
+      SAT_REDS:0.508, SAT_ORANGES:0.514, SAT_YELLOWS:0.506,
+      SAT_GREENS:0.474, SAT_BLUES:0.492, SAT_PURPLES:0.508, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.502, HUE_YELLOWS:0.500,
+      HUE_GREENS:0.480, HUE_BLUES:0.494, HUE_PURPLES:0.496,
+      LUM_REDS:0.502, LUM_ORANGES:0.504, LUM_YELLOWS:0.504,
+      LUM_GREENS:0.506, LUM_BLUES:0.500, LUM_PURPLES:0.500,
+      VIGNETTE:0.02, HALATION:0.0,
+      MATTE_LIFT:0.500, DEHAZE:0.06
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'+0.22',PUSH_PULL:'+0.00',CONTRAST:'+0.10',HIGHLIGHTS:'-0.05',SHADOWS:'+0.15',WHITES:'+0.04',BLACKS:'+0.01',MATTE_LIFT:'+0.00',DEHAZE:'+0.06'},
+      COLOR:{TEMPERATURE:'-0.01',TINT:'+0.00',VIBRANCE:'+0.09',SATURATION:'+0.00'},
+      EFFECTS:{GLOW:'+0.00',GRAIN:'+0.05',SHARPEN:'+0.00',CLARITY:'+0.04',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.03',DIFFUSION:'+0.02'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.02',SAT_ORANGES:'+0.03',SAT_YELLOWS:'+0.01',SAT_GREENS:'-0.05',SAT_BLUES:'-0.02',SAT_PURPLES:'+0.02',HUE_GREENS:'-0.04',HUE_BLUES:'-0.01',HUE_PURPLES:'-0.01',LUM_ORANGES:'+0.01',LUM_GREENS:'+0.01'}
+    }
+  },
+  {
     id:'malta', num:'36', name:'Malta', series:'POOLSIDE', seriesGroup:'POOLSIDE',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#1a6050', warm:false,

@@ -13449,7 +13449,7 @@ function _evDoSave() {
   if (!userImage) return;
   var nw = userImage.naturalWidth, nh = userImage.naturalHeight;
   // Render at preview reference resolution — same pixel values as what user sees
-  var _ref = 1200;
+  var _ref = 2400;
   var ps = Math.min(1, _ref / Math.max(nw, nh));
   var pw = Math.round(nw * ps), ph = Math.round(nh * ps);
   var off = document.createElement('canvas');
@@ -13518,6 +13518,15 @@ function _evDoSave() {
     if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01)
                                            applyDuotone(off, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, pw, ph);
     if ((adj.vignette||0) > 0.01)          applyVignette(off, adj.vignette, 0, 0, pw, ph);
+    var _hp = off.getContext('2d', {willReadFrequently:true});
+    var _hpd = _hp.getImageData(0, 0, pw, ph);
+    var _hpb = _hpd.data;
+    for (var _i = 0; _i < _hpb.length; _i += 4) {
+      _hpb[_i]   = Math.min(_hpb[_i],   230);
+      _hpb[_i+1] = Math.min(_hpb[_i+1], 230);
+      _hpb[_i+2] = Math.min(_hpb[_i+2], 230);
+    }
+    _hp.putImageData(_hpd, 0, 0);
     if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
                                            applyBlemishHeal(off, blemishSpots, 0, 0, pw, ph);
   }

@@ -13529,10 +13529,27 @@ function _evDoSave() {
     var _hp = off.getContext('2d', {willReadFrequently:true});
     var _hpd = _hp.getImageData(0, 0, pw, ph);
     var _hpb = _hpd.data;
+    var _maxSat = 0.82;
     for (var _i = 0; _i < _hpb.length; _i += 4) {
-      _hpb[_i]   = Math.min(_hpb[_i],   218);
-      _hpb[_i+1] = Math.min(_hpb[_i+1], 218);
-      _hpb[_i+2] = Math.min(_hpb[_i+2], 218);
+      var _r = Math.min(_hpb[_i], 218) / 255;
+      var _g = Math.min(_hpb[_i+1], 218) / 255;
+      var _b = Math.min(_hpb[_i+2], 218) / 255;
+      var _mx = Math.max(_r, _g, _b), _mn = Math.min(_r, _g, _b);
+      var _d = _mx - _mn;
+      if (_d > 0.01) {
+        var _l = (_mx + _mn) / 2;
+        var _s = _d / (1 - Math.abs(2 * _l - 1));
+        if (_s > _maxSat) {
+          var _sf = _maxSat / _s;
+          var _mid = _l;
+          _r = _mid + (_r - _mid) * _sf;
+          _g = _mid + (_g - _mid) * _sf;
+          _b = _mid + (_b - _mid) * _sf;
+        }
+      }
+      _hpb[_i]   = Math.round(_r * 255);
+      _hpb[_i+1] = Math.round(_g * 255);
+      _hpb[_i+2] = Math.round(_b * 255);
     }
     _hp.putImageData(_hpd, 0, 0);
     if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)

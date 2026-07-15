@@ -13686,7 +13686,15 @@ function evRenderPresets() {
   });
 
   var _presetsToRender = presets.slice().sort(function(a, b) {
-    return (evFavPresets.includes(b.id) ? 1 : 0) - (evFavPresets.includes(a.id) ? 1 : 0);
+    var aFav = evFavPresets.includes(a.id) ? 1 : 0;
+    var bFav = evFavPresets.includes(b.id) ? 1 : 0;
+    if (bFav !== aFav) return bFav - aFav;
+    if (evCatFilter === 'ALL') {
+      var aUncat = !a.series ? 1 : 0;
+      var bUncat = !b.series ? 1 : 0;
+      if (bUncat !== aUncat) return bUncat - aUncat;
+    }
+    return 0;
   });
   _presetsToRender.forEach(function(p){
     if (evSearchTerm) {

@@ -9941,13 +9941,13 @@ function applyMist(canvas, amount, offX, offY, imgW, imgH) {
 
   // soft diffusion layer
   ctx.save();
-  ctx.globalAlpha = amount * 0.50;
+  ctx.globalAlpha = amount * 0.30;
   ctx.drawImage(blurred, offX, offY);
   ctx.restore();
 
   // white haze
   ctx.save();
-  ctx.fillStyle = `rgba(255,255,255,${amount * 0.28})`;
+  ctx.fillStyle = `rgba(255,255,255,${amount * 0.14})`;
   ctx.fillRect(offX, offY, imgW, imgH);
   ctx.restore();
 }
@@ -15727,12 +15727,12 @@ function applyHalation(canvas, intensity, hue, offX, offY, imgW, imgH) {
   const bCtx = blurred.getContext('2d', { willReadFrequently: true });
   const blurPx = Math.round(intensity * 12);
   const bright  = 1 + intensity * 0.6;
-  bCtx.filter = `blur(${blurPx}px) brightness(${bright}) hue-rotate(${hue}deg) saturate(${1 + intensity * 2})`;
+  bCtx.filter = `blur(${blurPx}px) hue-rotate(${hue}deg)`;
   bCtx.drawImage(tmp, 0, 0);
   bCtx.filter = 'none';
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
-  ctx.globalAlpha = intensity * 0.7;
+  ctx.globalAlpha = intensity * 0.45;
   ctx.drawImage(blurred, offX, offY);
   ctx.restore();
 }

@@ -6113,6 +6113,29 @@ const presets = [
     id:'toast', num:'44', name:'Toast',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#c8843c', warm:true,
+    skinLift: 0.04,
+    colorGlow: 0.02,
+    hueTempZones: [],
+    halationBloom: { threshold: 0.88, radius: 10, hue: 28, intensity: 0.02 },
+    shadowTint:    { r: 0.50, g: 0.50, b: 0.50, strength: 0.00 },
+    highlightTint: { r: 0.50, g: 0.50, b: 0.50, strength: 0.00 },
+    matteFade:     { lift: 0.00, rolloff: 0.00 },
+    chromaticAberration: { amount: 0.00, falloff: 1.00 },
+    filmCrossover: {
+      toe:      { r: 0.00, g: 0.00, b: 0.00, strength: 0.00 },
+      shoulder: { r: 0.00, g: 0.00, b: 0.00, strength: 0.00 }
+    },
+    splitTone:{
+      shadows:    {r:128, g:128, b:128, a:0.00},
+      midtones:   {r:128, g:128, b:128, a:0.00},
+      highlights: {r:128, g:128, b:128, a:0.00}
+    },
+    curve:{
+      master: [[0,0],[128,128],[255,255]],
+      r:      [[0,0],[128,128],[255,255]],
+      g:      [[0,0],[128,128],[255,255]],
+      b:      [[0,0],[128,128],[255,255]]
+    },
     defaults:{
       EXPOSURE:0.500, CONTRAST:0.500, HIGHLIGHTS:0.650, SHADOWS:0.500,
       WHITES:0.500, BLACKS:0.585, TEMPERATURE:0.575, TINT:0.585,
@@ -6133,7 +6156,7 @@ const presets = [
       LIGHT:{EXPOSURE:'+0.00',PUSH_PULL:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.30',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.17',MATTE_LIFT:'+0.00',DEHAZE:'+0.18'},
       COLOR:{TEMPERATURE:'+0.15',TINT:'+0.17',VIBRANCE:'-0.17',SATURATION:'+0.00',SKIN_TONE:'+0.11'},
       EFFECTS:{GLOW:'+0.12',GRAIN:'+0.07',SHARPEN:'+0.00',CLARITY:'+0.00',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.00',DIFFUSION:'+0.00'},
-      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
+      HSL:{HUE_SHIFT:'0°'}
     }
   },
   {

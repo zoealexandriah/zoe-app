@@ -6113,28 +6113,11 @@ const presets = [
     id:'toast', num:'44', name:'Toast',
     imgKey:'strip_after', heroKey:'strip_after',
     tint:'none', orbs:[], acc:'#c8843c', warm:true,
-    skinLift: 0.10,
-    colorGlow: 0.05,
-    hueTempZones: [{ center: 28, halfWidth: 22, warm: 0.06 }],
-    halationBloom: { threshold: 0.86, radius: 10, hue: 32, intensity: 0.04 },
-    shadowTint:    { r: 0.22, g: 0.16, b: 0.06, strength: 0.06 },
-    highlightTint: { r: 0.20, g: 0.16, b: 0.08, strength: 0.05 },
-    matteFade:     { lift: 0.03, rolloff: 0.18 },
-    chromaticAberration: { amount: 0.15, falloff: 0.92 },
-    filmCrossover: {
-      toe:      { r: -0.06, g: +0.04, b: -0.07, strength: 0.50 },
-      shoulder: { r: +0.08, g: +0.04, b: -0.04, strength: 0.45 }
-    },
-    splitTone:{
-      shadows:    {r:58,  g:46,  b:24,  a:0.08},
-      midtones:   {r:210, g:195, b:160, a:0.03},
-      highlights: {r:255, g:245, b:215, a:0.06}
-    },
     curve:{
-      master: [[0,0],[40,36],[100,104],[160,166],[220,218],[255,252]],
-      r:      [[0,0],[128,132],[220,222],[255,254]],
-      g:      [[0,0],[128,130],[220,220],[255,250]],
-      b:      [[0,0],[80,74],[128,122],[220,212],[255,238]]
+      master: [[0,0],[255,255]],
+      r:      [[0,0],[255,255]],
+      g:      [[0,0],[255,255]],
+      b:      [[0,0],[255,255]]
     },
     defaults:{
       EXPOSURE:0.500, CONTRAST:0.500, HIGHLIGHTS:0.650, SHADOWS:0.500,

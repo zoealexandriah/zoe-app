@@ -5272,15 +5272,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="3" fill="rgba(255,60,60,0.6)" rx="1"/><rect x="5" y="15" width="18" height="2" fill="rgba(60,200,255,0.5)" rx="1"/><rect x="2" y="18" width="24" height="1.5" fill="rgba(255,255,255,0.3)" rx="1"/></svg>
                 <span class="fx-cat-label">VHS BLEED</span>
               </div>
-              <div class="fx-cat-btn" onclick="fxOpenCat('paperfold')" data-cat="paperfold">
+              <div class="fx-cat-btn" onclick="fxOpenCat('paper')" data-cat="paper">
                 <div class="fx-cat-dot"></div>
-                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="1" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/><line x1="4" y1="14" x2="24" y2="14" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/><line x1="14" y1="4" x2="14" y2="24" stroke="rgba(255,255,255,0.3)" stroke-width="1"/></svg>
-                <span class="fx-cat-label">PAPER FOLD</span>
-              </div>
-              <div class="fx-cat-btn" onclick="fxOpenCat('papertexture')" data-cat="papertexture">
-                <div class="fx-cat-dot"></div>
-                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="1" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/><line x1="7" y1="9" x2="21" y2="9" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/><line x1="7" y1="13" x2="19" y2="13" stroke="rgba(255,255,255,0.18)" stroke-width="0.8"/><line x1="7" y1="17" x2="20" y2="17" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/><line x1="7" y1="21" x2="17" y2="21" stroke="rgba(255,255,255,0.18)" stroke-width="0.8"/></svg>
-                <span class="fx-cat-label">PAPER TEXTURE</span>
+                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="1" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/><line x1="4" y1="14" x2="24" y2="14" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><line x1="7" y1="9" x2="21" y2="9" stroke="rgba(255,255,255,0.22)" stroke-width="0.8"/><line x1="7" y1="19" x2="19" y2="19" stroke="rgba(255,255,255,0.22)" stroke-width="0.8"/></svg>
+                <span class="fx-cat-label">PAPER</span>
               </div>
               <div class="fx-cat-btn" onclick="fxOpenCat('frames')" data-cat="frames">
                 <div class="fx-cat-dot"></div>
@@ -18248,8 +18243,7 @@ var fxState = {
   glossy:      { variant: null, intensity: 0 },
   scanlines:   { variant: null, intensity: 0 },
   vhsbleed:    { variant: null, intensity: 0 },
-  paperfold:   { variant: null, intensity: 0 },
-  papertexture:{ variant: null, intensity: 0 },
+  paper:       { fold: 0, texture: 0 },
   frames:      { variant: 'none', intensity: 100 }
 };
 
@@ -18258,9 +18252,9 @@ var _fxActiveVariant = null;
 var _fxPendingIntensity = 0;
 
 /* Categories that skip variant screen and go straight to intensity slider */
-var FX_DIRECT = ['glossy','scanlines','vhsbleed','paperfold','papertexture'];
+var FX_DIRECT = ['glossy','scanlines','vhsbleed'];
 /* GLOW opens a multi-slider panel */
-var FX_MULTI = ['glow'];
+var FX_MULTI = ['glow','paper'];
 
 /* Variant definitions for FRAMES */
 var FX_VARIANTS = {
@@ -18290,7 +18284,7 @@ function fxShowLevel(level) {
 
 function fxOpenCat(cat) {
   _fxActiveCat = cat;
-  var label = cat.replace(/([a-z])([A-Z])/g,'$1 $2').toUpperCase().replace('SCANLINES','SCAN LINES').replace('VHSBLEED','VHS BLEED').replace('PAPERFOLD','PAPER FOLD').replace('PAPERTEXTURE','PAPER TEXTURE');
+  var label = cat.replace(/([a-z])([A-Z])/g,'$1 $2').toUpperCase().replace('SCANLINES','SCAN LINES').replace('VHSBLEED','VHS BLEED').replace('PAPERTEXTURE','PAPER TEXTURE');
 
   if (FX_MULTI && FX_MULTI.indexOf(cat) !== -1) {
     /* multi-slider panel: GLOW → shows glow + diffusion + halation sliders */
@@ -18330,6 +18324,43 @@ function fxOpenCat(cat) {
     document.getElementById('fxmv-halation').textContent = fxState.glow.halation;
     mv.classList.add('active');
     fxShowLevel(4);
+    return;
+  }
+
+  if (cat === 'paper') {
+    var pv = document.getElementById('fx-paper-view');
+    if (!pv) {
+      pv = document.createElement('div');
+      pv.id = 'fx-paper-view';
+      pv.style.cssText = 'display:none;flex-direction:column;flex:1;overflow:hidden;';
+      pv.innerHTML =
+        '<div style="display:flex;align-items:center;padding:10px 14px 8px;gap:8px;border-bottom:0.5px solid rgba(255,255,255,0.08);flex-shrink:0;">' +
+          '<button style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:16px;cursor:pointer;padding:0 6px 0 0;line-height:1;" onclick="fxBackToGrid()">←</button>' +
+          '<span style="font-family:var(--mono,monospace);font-size:9px;letter-spacing:0.12em;color:rgba(255,255,255,0.8);flex:1;">PAPER</span>' +
+        '</div>' +
+        '<div style="display:flex;flex-shrink:0;background:rgba(255,255,255,0.08);border-radius:11px;margin:10px 14px 6px;padding:3px;gap:2px;">' +
+          '<div id="fx-paper-pill-fold" style="flex:1;text-align:center;font-size:8px;letter-spacing:0.05em;padding:7px 2px;cursor:pointer;border-radius:8px;background:#fff;color:#0d0a14;font-weight:700;font-family:var(--mono,monospace);transition:background 0.18s,color 0.18s;" onclick="fxPaperTab(\'fold\')">FOLD</div>' +
+          '<div id="fx-paper-pill-texture" style="flex:1;text-align:center;font-size:8px;letter-spacing:0.05em;padding:7px 2px;cursor:pointer;border-radius:8px;background:transparent;color:rgba(255,255,255,0.45);font-weight:500;font-family:var(--mono,monospace);transition:background 0.18s,color 0.18s;" onclick="fxPaperTab(\'texture\')">TEXTURE</div>' +
+        '</div>' +
+        '<div id="fx-paper-fold-panel" style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 20px;">' +
+          '<div class="fx-msl-row"><span class="fx-msl-label">FOLD</span><input type="range" class="fx-msl-track" min="0" max="100" value="0" oninput="fxPaperSlide(\'fold\',this.value)"><span class="fx-msl-val" id="fxpv-fold">0</span></div>' +
+        '</div>' +
+        '<div id="fx-paper-texture-panel" style="flex:1;display:none;flex-direction:column;justify-content:center;padding:0 20px;">' +
+          '<div class="fx-msl-row"><span class="fx-msl-label">TEXTURE</span><input type="range" class="fx-msl-track" min="0" max="100" value="0" oninput="fxPaperSlide(\'texture\',this.value)"><span class="fx-msl-val" id="fxpv-texture">0</span></div>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:flex-end;padding:0 20px 20px;">' +
+          '<button class="fx-action-btn" style="color:rgba(255,255,255,0.85);" onclick="fxBackToGrid()">✓</button>' +
+        '</div>';
+      document.getElementById('es-panel-fx').appendChild(pv);
+    }
+    /* sync values */
+    pv.querySelector('[oninput*="\'fold\'"]').value = fxState.paper.fold;
+    pv.querySelector('[oninput*="\'texture\'"]').value = fxState.paper.texture;
+    document.getElementById('fxpv-fold').textContent = fxState.paper.fold;
+    document.getElementById('fxpv-texture').textContent = fxState.paper.texture;
+    pv.classList.add('active');
+    fxShowLevel(4);
+    document.getElementById('fx-paper-view') && (document.getElementById('fx-paper-view').style.display = 'flex');
     return;
   }
 
@@ -18446,6 +18477,26 @@ function fxUpdateCatDot(cat) {
 }
 
 /* ── FRAME THUMB PREVIEW (canvas drawn) ─────────────── */
+function fxPaperTab(tab) {
+  document.getElementById('fx-paper-fold-panel').style.display    = (tab === 'fold')    ? 'flex' : 'none';
+  document.getElementById('fx-paper-texture-panel').style.display = (tab === 'texture') ? 'flex' : 'none';
+  document.getElementById('fx-paper-pill-fold').style.background    = (tab === 'fold')    ? '#fff' : 'transparent';
+  document.getElementById('fx-paper-pill-fold').style.color         = (tab === 'fold')    ? '#0d0a14' : 'rgba(255,255,255,0.45)';
+  document.getElementById('fx-paper-pill-fold').style.fontWeight    = (tab === 'fold')    ? '700' : '500';
+  document.getElementById('fx-paper-pill-texture').style.background = (tab === 'texture') ? '#fff' : 'transparent';
+  document.getElementById('fx-paper-pill-texture').style.color      = (tab === 'texture') ? '#0d0a14' : 'rgba(255,255,255,0.45)';
+  document.getElementById('fx-paper-pill-texture').style.fontWeight = (tab === 'texture') ? '700' : '500';
+}
+
+function fxPaperSlide(key, val) {
+  fxState.paper[key] = parseInt(val, 10);
+  document.getElementById('fxpv-' + key).textContent = val;
+  var hasVal = fxState.paper.fold > 0 || fxState.paper.texture > 0;
+  var btn = document.querySelector('.fx-cat-btn[data-cat="paper"]');
+  if (btn) btn.classList.toggle('has-value', hasVal);
+  /* TODO: wire into render pipeline */
+}
+
 function fxMultiSlide(cat, key, val) {
   fxState[cat][key] = parseInt(val, 10);
   var el = document.getElementById('fxmv-' + key);

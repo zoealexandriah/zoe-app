@@ -8033,13 +8033,14 @@ function evAdjustSubTab(name) {
   }
   // All other tabs: hide preset strip
   if (strip) strip.classList.remove('visible');
-  // FX tab: open suite and show fx panel
+  // FX tab: open suite and show fx panel; re-tap resets to category grid
   if (name === 'fx') {
     if (suite) suite.classList.add('open');
     document.querySelectorAll('.es-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.es-tab-panel').forEach(p => p.classList.remove('active'));
     var fxPanel = document.getElementById('es-panel-fx');
     if (fxPanel) fxPanel.classList.add('active');
+    if (typeof fxBackToGrid === 'function') fxBackToGrid();
     return;
   }
   var panelTab = panelMap[name];

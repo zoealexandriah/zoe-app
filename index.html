@@ -3384,73 +3384,222 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     overflow: hidden !important;
     position: relative !important;
   }
-/* ── FX TAB ─────────────────────────────────────────── */
-.fx-slider-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-}
-.fx-sl-name {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.08em;
-  color: rgba(255,255,255,0.55);
-  width: 90px;
-  flex-shrink: 0;
-}
-.fx-sl-track-wrap {
+/* ── FX TAB — 3-level nav ───────────────────────────── */
+#es-panel-fx {
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
   flex: 1;
 }
-.fx-sl-track {
-  width: 100%;
-  accent-color: var(--accent, #c9b8d4);
-  height: 2px;
-  cursor: pointer;
+#es-panel-fx.active { display: flex; }
+
+/* Level 1: category grid */
+#fx-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 14px;
+  overflow-y: auto;
+  flex: 1;
 }
-.fx-sl-val {
-  font-family: var(--mono);
-  font-size: 8px;
-  color: rgba(255,255,255,0.45);
-  width: 22px;
-  text-align: right;
+.fx-cat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 10px;
+  padding: 14px 6px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+.fx-cat-btn:active { background: rgba(255,255,255,0.10); }
+.fx-cat-btn.has-value { border-color: var(--accent, #c9b8d4); }
+.fx-cat-icon {
+  width: 28px;
+  height: 28px;
+  opacity: 0.7;
+}
+.fx-cat-label {
+  font-family: var(--mono, monospace);
+  font-size: 7px;
+  letter-spacing: 0.09em;
+  color: rgba(255,255,255,0.55);
+  text-align: center;
+  line-height: 1.3;
+}
+.fx-cat-dot {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent, #c9b8d4);
+  display: none;
+}
+.fx-cat-btn.has-value .fx-cat-dot { display: block; }
+
+/* Level 2: variant thumbnail strip */
+#fx-variant-view {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+#fx-variant-view.active { display: flex; }
+#fx-variant-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px 8px;
+  gap: 8px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
   flex-shrink: 0;
 }
-#fx-frame-strip {
+#fx-variant-back {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 6px 0 0;
+  line-height: 1;
+}
+#fx-variant-title {
+  font-family: var(--mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.8);
+  flex: 1;
+}
+#fx-variant-strip {
   display: flex;
   flex-direction: row;
   overflow-x: auto;
-  gap: 8px;
-  padding: 8px 14px 12px;
+  gap: 10px;
+  padding: 12px 14px;
   scrollbar-width: none;
-}
-#fx-frame-strip::-webkit-scrollbar { display: none; }
-.fx-frame-thumb {
   flex-shrink: 0;
-  width: 62px;
-  height: 62px;
-  border-radius: 6px;
-  border: 1.5px solid rgba(255,255,255,0.15);
+}
+#fx-variant-strip::-webkit-scrollbar { display: none; }
+.fx-var-thumb {
+  flex-shrink: 0;
+  width: 70px;
+  height: 70px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.04);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   cursor: pointer;
-  padding-bottom: 5px;
+  padding-bottom: 6px;
   transition: border-color 0.15s;
   position: relative;
   overflow: hidden;
 }
-.fx-frame-thumb.active {
-  border-color: var(--accent, #c9b8d4);
+.fx-var-thumb.active { border-color: var(--accent, #c9b8d4); }
+.fx-var-thumb.none-thumb {
+  justify-content: center;
+  background: rgba(255,255,255,0.02);
 }
-.fx-frame-label {
-  font-family: var(--mono);
+.fx-var-label {
+  font-family: var(--mono, monospace);
   font-size: 6.5px;
   letter-spacing: 0.06em;
   color: rgba(255,255,255,0.6);
   text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Level 3: intensity slider */
+#fx-intensity-view {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+}
+#fx-intensity-view.active { display: flex; }
+#fx-intensity-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px 8px;
+  gap: 8px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+#fx-intensity-back {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 6px 0 0;
+  line-height: 1;
+}
+#fx-intensity-title {
+  font-family: var(--mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.8);
+  flex: 1;
+}
+#fx-intensity-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 20px 20px;
+  gap: 18px;
+}
+#fx-intensity-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+#fx-intensity-name {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.08em;
+}
+#fx-intensity-val {
+  font-family: var(--mono, monospace);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+#fx-intensity-slider {
+  width: 100%;
+  accent-color: var(--accent, #c9b8d4);
+  height: 2px;
+  cursor: pointer;
+}
+#fx-intensity-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px 24px;
+  flex-shrink: 0;
+}
+.fx-action-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 8px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.fx-action-btn:active { color: #fff; }
+#fx-intensity-confirm {
+  color: rgba(255,255,255,0.85);
 }
 
   /* Left pinned section (ATMOSPHERE + FX) */
@@ -5092,90 +5241,83 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <div id="es-blur-sliders"></div>
             </div>
           </div>
-          <!-- FX panel -->
+          <!-- FX panel — 3-level nav -->
           <div class="es-tab-panel" id="es-panel-fx">
 
-            <!-- GLOW section -->
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">G L O W</span></div>
-            <div id="es-fx-glow-sliders">
-              <div class="fx-slider-row" id="fxsl-glow">
-                <span class="fx-sl-name">GLOW</span>
-                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-glow" min="0" max="100" value="0" oninput="fxSliderChange('glow',this.value)"></div>
-                <span class="fx-sl-val" id="fxv-glow">0</span>
+            <!-- LEVEL 1: category grid -->
+            <div id="fx-cat-grid">
+              <div class="fx-cat-btn" onclick="fxOpenCat('glow')" data-cat="glow">
+                <div class="fx-cat-dot"></div>
+                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="5" fill="rgba(255,255,255,0.8)"/><circle cx="14" cy="14" r="9" fill="rgba(255,255,255,0.15)"/><circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.06)"/></svg>
+                <span class="fx-cat-label">GLOW</span>
               </div>
-              <div class="fx-slider-row" id="fxsl-diffusion">
-                <span class="fx-sl-name">DIFFUSION</span>
-                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-diffusion" min="0" max="100" value="0" oninput="fxSliderChange('diffusion',this.value)"></div>
-                <span class="fx-sl-val" id="fxv-diffusion">0</span>
+              <div class="fx-cat-btn" onclick="fxOpenCat('diffusion')" data-cat="diffusion">
+                <div class="fx-cat-dot"></div>
+                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><ellipse cx="14" cy="14" rx="12" ry="8" fill="rgba(255,255,255,0.12)"/><ellipse cx="14" cy="14" rx="7" ry="4" fill="rgba(255,255,255,0.3)"/><ellipse cx="14" cy="14" rx="3" ry="2" fill="rgba(255,255,255,0.7)"/></svg>
+                <span class="fx-cat-label">DIFFUSION</span>
               </div>
-              <div class="fx-slider-row" id="fxsl-halation">
-                <span class="fx-sl-name">HALATION</span>
-                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-halation" min="0" max="100" value="0" oninput="fxSliderChange('halation',this.value)"></div>
-                <span class="fx-sl-val" id="fxv-halation">0</span>
+              <div class="fx-cat-btn" onclick="fxOpenCat('halation')" data-cat="halation">
+                <div class="fx-cat-dot"></div>
+                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="5" fill="rgba(255,200,150,0.9)"/><circle cx="14" cy="14" r="10" fill="rgba(255,100,80,0.2)"/><circle cx="14" cy="14" r="13" fill="rgba(255,60,60,0.07)"/></svg>
+                <span class="fx-cat-label">HALATION</span>
               </div>
-              <div class="fx-slider-row" id="fxsl-glossy">
-                <span class="fx-sl-name">GLOSSY</span>
-                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-glossy" min="0" max="100" value="0" oninput="fxSliderChange('glossy',this.value)"></div>
-                <span class="fx-sl-val" id="fxv-glossy">0</span>
+              <div class="fx-cat-btn" onclick="fxOpenCat('glossy')" data-cat="glossy">
+                <div class="fx-cat-dot"></div>
+                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><ellipse cx="11" cy="10" rx="4" ry="2.5" fill="rgba(255,255,255,0.9)" transform="rotate(-30 11 10)"/><circle cx="14" cy="14" r="10" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/></svg>
+                <span class="fx-cat-label">GLOSSY</span>
+              </div>
+              <div class="fx-cat-btn" onclick="fxOpenCat('scanlines')" data-cat="scanlines">
+                <div class="fx-cat-dot"></div>
+                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><line x1="4" y1="7" x2="24" y2="7" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/><line x1="4" y1="11" x2="24" y2="11" stroke="rgba(255,255,255,0.4)" stroke-width="1"/><line x1="4" y1="15" x2="24" y2="15" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/><line x1="4" y1="19" x2="24" y2="19" stroke="rgba(255,255,255,0.4)" stroke-width="1"/><line x1="4" y1="23" x2="24" y2="23" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/></svg>
+                <span class="fx-cat-label">SCAN LINES</span>
+              </div>
+              <div class="fx-cat-btn" onclick="fxOpenCat('vhsbleed')" data-cat="vhsbleed">
+                <div class="fx-cat-dot"></div>
+                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="3" fill="rgba(255,60,60,0.6)" rx="1"/><rect x="5" y="15" width="18" height="2" fill="rgba(60,200,255,0.5)" rx="1"/><rect x="2" y="18" width="24" height="1.5" fill="rgba(255,255,255,0.3)" rx="1"/></svg>
+                <span class="fx-cat-label">VHS BLEED</span>
+              </div>
+              <div class="fx-cat-btn" onclick="fxOpenCat('paperfold')" data-cat="paperfold">
+                <div class="fx-cat-dot"></div>
+                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="1" stroke="rgba(255,255,255,0.4)" stroke-width="1" fill="none"/><line x1="4" y1="14" x2="24" y2="14" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/><line x1="14" y1="4" x2="14" y2="24" stroke="rgba(255,255,255,0.3)" stroke-width="1"/></svg>
+                <span class="fx-cat-label">PAPER FOLD</span>
+              </div>
+              <div class="fx-cat-btn" onclick="fxOpenCat('papertexture')" data-cat="papertexture">
+                <div class="fx-cat-dot"></div>
+                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="1" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/><line x1="7" y1="9" x2="21" y2="9" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/><line x1="7" y1="13" x2="19" y2="13" stroke="rgba(255,255,255,0.18)" stroke-width="0.8"/><line x1="7" y1="17" x2="20" y2="17" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/><line x1="7" y1="21" x2="17" y2="21" stroke="rgba(255,255,255,0.18)" stroke-width="0.8"/></svg>
+                <span class="fx-cat-label">PAPER TEXTURE</span>
+              </div>
+              <div class="fx-cat-btn" onclick="fxOpenCat('frames')" data-cat="frames">
+                <div class="fx-cat-dot"></div>
+                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="2" stroke="rgba(255,255,255,0.6)" stroke-width="2" fill="none"/><rect x="8" y="8" width="12" height="12" rx="1" stroke="rgba(255,255,255,0.25)" stroke-width="1" fill="none"/></svg>
+                <span class="fx-cat-label">FRAMES</span>
               </div>
             </div>
 
-            <!-- ARTIFACT section -->
-            <div class="ev-panel-hdr" style="margin-top:14px;"><span class="ev-panel-hdr-title">A R T I F A C T</span></div>
-            <div id="es-fx-artifact-sliders">
-              <div class="fx-slider-row" id="fxsl-scanlines">
-                <span class="fx-sl-name">SCAN LINES</span>
-                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-scanlines" min="0" max="100" value="0" oninput="fxSliderChange('scanlines',this.value)"></div>
-                <span class="fx-sl-val" id="fxv-scanlines">0</span>
+            <!-- LEVEL 2: variant thumbnails -->
+            <div id="fx-variant-view">
+              <div id="fx-variant-header">
+                <button id="fx-variant-back" onclick="fxBackToGrid()">←</button>
+                <span id="fx-variant-title">GLOW</span>
               </div>
-              <div class="fx-slider-row" id="fxsl-vhsbleed">
-                <span class="fx-sl-name">VHS BLEED</span>
-                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-vhsbleed" min="0" max="100" value="0" oninput="fxSliderChange('vhsbleed',this.value)"></div>
-                <span class="fx-sl-val" id="fxv-vhsbleed">0</span>
-              </div>
-              <div class="fx-slider-row" id="fxsl-paperfold">
-                <span class="fx-sl-name">PAPER FOLD</span>
-                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-paperfold" min="0" max="100" value="0" oninput="fxSliderChange('paperfold',this.value)"></div>
-                <span class="fx-sl-val" id="fxv-paperfold">0</span>
-              </div>
-              <div class="fx-slider-row" id="fxsl-papertexture">
-                <span class="fx-sl-name">PAPER TEXTURE</span>
-                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-papertexture" min="0" max="100" value="0" oninput="fxSliderChange('papertexture',this.value)"></div>
-                <span class="fx-sl-val" id="fxv-papertexture">0</span>
-              </div>
+              <div id="fx-variant-strip"></div>
             </div>
 
-            <!-- FRAMES section -->
-            <div class="ev-panel-hdr" style="margin-top:14px;"><span class="ev-panel-hdr-title">F R A M E S</span></div>
-            <div id="es-fx-frames">
-              <div id="fx-frame-strip">
-                <div class="fx-frame-thumb fx-frame-none active" onclick="fxSelectFrame('none')" title="None">
-                  <span class="fx-frame-label">NONE</span>
+            <!-- LEVEL 3: intensity slider -->
+            <div id="fx-intensity-view">
+              <div id="fx-intensity-header">
+                <button id="fx-intensity-back" onclick="fxBackToVariants()">←</button>
+                <span id="fx-intensity-title">GLOW</span>
+              </div>
+              <div id="fx-intensity-body">
+                <div id="fx-intensity-label-row">
+                  <span id="fx-intensity-name">GLOW</span>
+                  <span id="fx-intensity-val">0</span>
                 </div>
-                <div class="fx-frame-thumb fx-frame-polaroid" onclick="fxSelectFrame('polaroid')" title="Polaroid">
-                  <span class="fx-frame-label">POLAROID</span>
-                </div>
-                <div class="fx-frame-thumb fx-frame-filmneg" onclick="fxSelectFrame('filmneg')" title="Film Negative">
-                  <span class="fx-frame-label">FILM</span>
-                </div>
-                <div class="fx-frame-thumb fx-frame-letterbox" onclick="fxSelectFrame('letterbox')" title="Letterbox">
-                  <span class="fx-frame-label">LETTERBOX</span>
-                </div>
-                <div class="fx-frame-thumb fx-frame-tape" onclick="fxSelectFrame('tape')" title="Tape">
-                  <span class="fx-frame-label">TAPE</span>
-                </div>
-                <div class="fx-frame-thumb fx-frame-stamp" onclick="fxSelectFrame('stamp')" title="Postage Stamp">
-                  <span class="fx-frame-label">STAMP</span>
-                </div>
-                <div class="fx-frame-thumb fx-frame-oval" onclick="fxSelectFrame('oval')" title="Oval">
-                  <span class="fx-frame-label">OVAL</span>
-                </div>
-                <div class="fx-frame-thumb fx-frame-ornate" onclick="fxSelectFrame('ornate')" title="Ornate (asset required)">
-                  <span class="fx-frame-label">ORNATE</span>
-                </div>
-                <div class="fx-frame-thumb fx-frame-linen" onclick="fxSelectFrame('linen')" title="Linen (asset required)">
-                  <span class="fx-frame-label">LINEN</span>
-                </div>
+                <input type="range" id="fx-intensity-slider" min="0" max="100" value="0" oninput="fxIntensityChange(this.value)">
+              </div>
+              <div id="fx-intensity-actions">
+                <button class="fx-action-btn" onclick="fxIntensityCancel()">✕</button>
+                <button class="fx-action-btn" id="fx-intensity-confirm" onclick="fxIntensityConfirm()">✓</button>
               </div>
             </div>
 
@@ -18104,26 +18246,268 @@ function importSheetChoice(type) {
 
 })();
 
-/* Global FX state */
+/* ── FX STATE ───────────────────────────────────────── */
 var fxState = {
-  glow: 0, diffusion: 0, halation: 0, glossy: 0,
-  scanlines: 0, vhsbleed: 0, paperfold: 0, papertexture: 0,
-  frame: 'none'
+  glow: { variant: null, intensity: 0 },
+  diffusion: { variant: null, intensity: 0 },
+  halation: { variant: null, intensity: 0 },
+  glossy: { variant: null, intensity: 0 },
+  scanlines: { variant: null, intensity: 0 },
+  vhsbleed: { variant: null, intensity: 0 },
+  paperfold: { variant: null, intensity: 0 },
+  papertexture: { variant: null, intensity: 0 },
+  frames: { variant: 'none', intensity: 100 }
 };
 
-function fxSliderChange(key, val) {
-  fxState[key] = parseInt(val, 10);
-  var valEl = document.getElementById('fxv-' + key);
-  if (valEl) valEl.textContent = val;
-  // TODO: wire into render pipeline
+var _fxActiveCat = null;
+var _fxActiveVariant = null;
+var _fxPendingIntensity = 0;
+
+/* Categories that skip variant screen and go straight to intensity slider */
+var FX_DIRECT = ['glow','diffusion','halation','glossy','scanlines','vhsbleed','paperfold','papertexture'];
+
+/* Variant definitions for FRAMES */
+var FX_VARIANTS = {
+  frames: [
+    { id:'none',       label:'NONE' },
+    { id:'polaroid',   label:'POLAROID' },
+    { id:'filmneg',    label:'FILM' },
+    { id:'letterbox',  label:'LETTERBOX' },
+    { id:'tape',       label:'TAPE' },
+    { id:'stamp',      label:'STAMP' },
+    { id:'oval',       label:'OVAL' },
+    { id:'ornate',     label:'ORNATE' },
+    { id:'linen',      label:'LINEN' }
+  ]
+};
+
+/* ── NAVIGATION ─────────────────────────────────────── */
+function fxShowLevel(level) {
+  document.getElementById('fx-cat-grid').style.display    = (level === 1) ? 'grid'  : 'none';
+  var v = document.getElementById('fx-variant-view');
+  var i = document.getElementById('fx-intensity-view');
+  v.classList.toggle('active', level === 2);
+  i.classList.toggle('active', level === 3);
 }
 
-function fxSelectFrame(name) {
-  fxState.frame = name;
-  document.querySelectorAll('.fx-frame-thumb').forEach(function(t) {
-    t.classList.toggle('active', t.classList.contains('fx-frame-' + name));
+function fxOpenCat(cat) {
+  _fxActiveCat = cat;
+  var label = cat.replace(/([a-z])([A-Z])/g,'$1 $2').toUpperCase().replace('SCANLINES','SCAN LINES').replace('VHSBLEED','VHS BLEED').replace('PAPERFOLD','PAPER FOLD').replace('PAPERTEXTURE','PAPER TEXTURE');
+
+  if (FX_DIRECT.indexOf(cat) !== -1) {
+    /* go straight to intensity */
+    _fxActiveVariant = cat;
+    _fxPendingIntensity = fxState[cat].intensity;
+    document.getElementById('fx-intensity-title').textContent = label;
+    document.getElementById('fx-intensity-name').textContent  = label;
+    document.getElementById('fx-intensity-val').textContent   = _fxPendingIntensity;
+    document.getElementById('fx-intensity-slider').value      = _fxPendingIntensity;
+    /* back button goes to grid for direct cats */
+    document.getElementById('fx-intensity-back').onclick = fxBackToGrid;
+    fxShowLevel(3);
+  } else {
+    /* show variant strip */
+    document.getElementById('fx-variant-title').textContent = label;
+    fxBuildVariantStrip(cat);
+    fxShowLevel(2);
+  }
+}
+
+function fxBuildVariantStrip(cat) {
+  var strip = document.getElementById('fx-variant-strip');
+  strip.innerHTML = '';
+  var variants = FX_VARIANTS[cat] || [];
+  var current = fxState[cat] ? fxState[cat].variant : null;
+  variants.forEach(function(v) {
+    var div = document.createElement('div');
+    div.className = 'fx-var-thumb' + (v.id === 'none' ? ' none-thumb' : '') + (v.id === current ? ' active' : '');
+    div.onclick = function() { fxSelectVariant(cat, v.id); };
+    /* preview canvas for frame types */
+    if (cat === 'frames' && v.id !== 'none') {
+      var c = document.createElement('canvas');
+      c.width = 70; c.height = 70;
+      fxDrawFrameThumb(c, v.id);
+      c.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border-radius:7px;';
+      div.appendChild(c);
+    }
+    var lbl = document.createElement('span');
+    lbl.className = 'fx-var-label';
+    lbl.textContent = v.label;
+    div.appendChild(lbl);
+    strip.appendChild(div);
   });
-  // TODO: wire into render + export pipeline
+}
+
+function fxSelectVariant(cat, variantId) {
+  _fxActiveVariant = variantId;
+  document.querySelectorAll('.fx-var-thumb').forEach(function(t) {
+    t.classList.remove('active');
+  });
+  event.currentTarget.classList.add('active');
+
+  if (variantId === 'none') {
+    /* selecting none resets and goes back to grid */
+    fxState[cat].variant = null;
+    fxState[cat].intensity = 0;
+    fxUpdateCatDot(cat);
+    fxBackToGrid();
+    return;
+  }
+
+  /* frames: go to intensity (opacity) */
+  _fxPendingIntensity = fxState[cat].intensity || 100;
+  var label = variantId.toUpperCase();
+  document.getElementById('fx-intensity-title').textContent = label;
+  document.getElementById('fx-intensity-name').textContent  = label;
+  document.getElementById('fx-intensity-val').textContent   = _fxPendingIntensity;
+  document.getElementById('fx-intensity-slider').value      = _fxPendingIntensity;
+  document.getElementById('fx-intensity-back').onclick      = fxBackToVariants;
+  fxShowLevel(3);
+}
+
+function fxIntensityChange(val) {
+  _fxPendingIntensity = parseInt(val, 10);
+  document.getElementById('fx-intensity-val').textContent = _fxPendingIntensity;
+}
+
+function fxIntensityConfirm() {
+  if (!_fxActiveCat) return;
+  fxState[_fxActiveCat].intensity = _fxPendingIntensity;
+  if (_fxActiveVariant && _fxActiveVariant !== _fxActiveCat) {
+    fxState[_fxActiveCat].variant = _fxActiveVariant;
+  }
+  fxUpdateCatDot(_fxActiveCat);
+  fxBackToGrid();
+  /* TODO: wire into render + export pipeline */
+}
+
+function fxIntensityCancel() {
+  if (FX_DIRECT.indexOf(_fxActiveCat) !== -1) {
+    fxBackToGrid();
+  } else {
+    fxBackToVariants();
+  }
+}
+
+function fxBackToGrid() {
+  _fxActiveCat = null;
+  _fxActiveVariant = null;
+  fxShowLevel(1);
+}
+
+function fxBackToVariants() {
+  fxShowLevel(2);
+}
+
+function fxUpdateCatDot(cat) {
+  var btn = document.querySelector('.fx-cat-btn[data-cat="' + cat + '"]');
+  if (!btn) return;
+  var hasVal = fxState[cat].intensity > 0;
+  btn.classList.toggle('has-value', hasVal);
+}
+
+/* ── FRAME THUMB PREVIEW (canvas drawn) ─────────────── */
+function fxDrawFrameThumb(canvas, frameId) {
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = 'rgba(30,25,35,0.85)';
+  ctx.fillRect(0,0,w,h);
+
+  if (frameId === 'polaroid') {
+    ctx.fillStyle = '#e8e0d0';
+    ctx.fillRect(5,5,60,60);
+    ctx.fillStyle = '#1a1520';
+    ctx.fillRect(9,9,52,44);
+    ctx.fillStyle = '#e8e0d0';
+    ctx.fillRect(9,53,52,8);
+  } else if (frameId === 'filmneg') {
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(8,8,54,54);
+    for (var i=0; i<4; i++) {
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillRect(2, 12 + i*12, 4, 7);
+      ctx.fillRect(64, 12 + i*12, 4, 7);
+    }
+  } else if (frameId === 'letterbox') {
+    ctx.fillStyle = '#1a1520';
+    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0,0,w,14);
+    ctx.fillRect(0,56,w,14);
+  } else if (frameId === 'tape') {
+    ctx.fillStyle = '#1a1520';
+    ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(10,10,50,50);
+    var tapeColor = 'rgba(220,210,180,0.55)';
+    ctx.fillStyle = tapeColor;
+    ctx.save(); ctx.translate(10,10); ctx.rotate(-0.4);
+    ctx.fillRect(-8,-5,18,8);
+    ctx.restore();
+    ctx.save(); ctx.translate(60,60); ctx.rotate(-0.4);
+    ctx.fillRect(-8,-5,18,8);
+    ctx.restore();
+  } else if (frameId === 'stamp') {
+    ctx.fillStyle = '#d0c8b8';
+    ctx.beginPath();
+    var pw = 56, ph = 56, px = 7, py = 7, pr = 3;
+    for (var a=0; a<360; a+=8) {
+      var rad = a * Math.PI/180;
+      var ox = (px+pw/2) + (pw/2+4)*Math.cos(rad);
+      var oy = (py+ph/2) + (ph/2+4)*Math.sin(rad);
+      ctx.lineTo(ox, oy);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#1a1520';
+    ctx.fillRect(11,11,48,40);
+    ctx.fillStyle = '#d0c8b8';
+    ctx.fillRect(11,51,48,8);
+  } else if (frameId === 'oval') {
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.beginPath();
+    ctx.ellipse(35,35,30,25,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = '#1a1520';
+    ctx.beginPath();
+    ctx.ellipse(35,35,26,21,0,0,Math.PI*2);
+    ctx.fill();
+  } else if (frameId === 'ornate') {
+    ctx.strokeStyle = 'rgba(200,180,140,0.7)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(6,6,58,58);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(200,180,140,0.4)';
+    ctx.strokeRect(10,10,50,50);
+    ctx.fillStyle = 'rgba(200,180,140,0.5)';
+    [[6,6],[64,6],[6,64],[64,64]].forEach(function(p){
+      ctx.beginPath(); ctx.arc(p[0],p[1],4,0,Math.PI*2); ctx.fill();
+    });
+    ctx.fillStyle = '#1a1520';
+    ctx.fillRect(12,12,46,46);
+    ctx.font = '7px serif';
+    ctx.fillStyle = 'rgba(200,180,140,0.5)';
+    ctx.textAlign = 'center';
+    ctx.fillText('PNG ASSET', 35, 38);
+  } else if (frameId === 'linen') {
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(8,8,54,54);
+    ctx.fillStyle = '#1a1520';
+    ctx.fillRect(10,10,50,50);
+    ctx.font = '7px serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.textAlign = 'center';
+    ctx.fillText('PNG ASSET', 35, 38);
+  }
 }
 </script>
 

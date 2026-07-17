@@ -3384,6 +3384,75 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     overflow: hidden !important;
     position: relative !important;
   }
+/* ── FX TAB ─────────────────────────────────────────── */
+.fx-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+}
+.fx-sl-name {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.55);
+  width: 90px;
+  flex-shrink: 0;
+}
+.fx-sl-track-wrap {
+  flex: 1;
+}
+.fx-sl-track {
+  width: 100%;
+  accent-color: var(--accent, #c9b8d4);
+  height: 2px;
+  cursor: pointer;
+}
+.fx-sl-val {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: rgba(255,255,255,0.45);
+  width: 22px;
+  text-align: right;
+  flex-shrink: 0;
+}
+#fx-frame-strip {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  gap: 8px;
+  padding: 8px 14px 12px;
+  scrollbar-width: none;
+}
+#fx-frame-strip::-webkit-scrollbar { display: none; }
+.fx-frame-thumb {
+  flex-shrink: 0;
+  width: 62px;
+  height: 62px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
+  padding-bottom: 5px;
+  transition: border-color 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.fx-frame-thumb.active {
+  border-color: var(--accent, #c9b8d4);
+}
+.fx-frame-label {
+  font-family: var(--mono);
+  font-size: 6.5px;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+}
+
   /* Left pinned section (ATMOSPHERE + FX) */
   .ev-subnav-left {
     display: flex !important;
@@ -5023,6 +5092,95 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <div id="es-blur-sliders"></div>
             </div>
           </div>
+          <!-- FX panel -->
+          <div class="es-tab-panel" id="es-panel-fx">
+
+            <!-- GLOW section -->
+            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">G L O W</span></div>
+            <div id="es-fx-glow-sliders">
+              <div class="fx-slider-row" id="fxsl-glow">
+                <span class="fx-sl-name">GLOW</span>
+                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-glow" min="0" max="100" value="0" oninput="fxSliderChange('glow',this.value)"></div>
+                <span class="fx-sl-val" id="fxv-glow">0</span>
+              </div>
+              <div class="fx-slider-row" id="fxsl-diffusion">
+                <span class="fx-sl-name">DIFFUSION</span>
+                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-diffusion" min="0" max="100" value="0" oninput="fxSliderChange('diffusion',this.value)"></div>
+                <span class="fx-sl-val" id="fxv-diffusion">0</span>
+              </div>
+              <div class="fx-slider-row" id="fxsl-halation">
+                <span class="fx-sl-name">HALATION</span>
+                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-halation" min="0" max="100" value="0" oninput="fxSliderChange('halation',this.value)"></div>
+                <span class="fx-sl-val" id="fxv-halation">0</span>
+              </div>
+              <div class="fx-slider-row" id="fxsl-glossy">
+                <span class="fx-sl-name">GLOSSY</span>
+                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-glossy" min="0" max="100" value="0" oninput="fxSliderChange('glossy',this.value)"></div>
+                <span class="fx-sl-val" id="fxv-glossy">0</span>
+              </div>
+            </div>
+
+            <!-- ARTIFACT section -->
+            <div class="ev-panel-hdr" style="margin-top:14px;"><span class="ev-panel-hdr-title">A R T I F A C T</span></div>
+            <div id="es-fx-artifact-sliders">
+              <div class="fx-slider-row" id="fxsl-scanlines">
+                <span class="fx-sl-name">SCAN LINES</span>
+                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-scanlines" min="0" max="100" value="0" oninput="fxSliderChange('scanlines',this.value)"></div>
+                <span class="fx-sl-val" id="fxv-scanlines">0</span>
+              </div>
+              <div class="fx-slider-row" id="fxsl-vhsbleed">
+                <span class="fx-sl-name">VHS BLEED</span>
+                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-vhsbleed" min="0" max="100" value="0" oninput="fxSliderChange('vhsbleed',this.value)"></div>
+                <span class="fx-sl-val" id="fxv-vhsbleed">0</span>
+              </div>
+              <div class="fx-slider-row" id="fxsl-paperfold">
+                <span class="fx-sl-name">PAPER FOLD</span>
+                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-paperfold" min="0" max="100" value="0" oninput="fxSliderChange('paperfold',this.value)"></div>
+                <span class="fx-sl-val" id="fxv-paperfold">0</span>
+              </div>
+              <div class="fx-slider-row" id="fxsl-papertexture">
+                <span class="fx-sl-name">PAPER TEXTURE</span>
+                <div class="fx-sl-track-wrap"><input type="range" class="fx-sl-track" id="fxr-papertexture" min="0" max="100" value="0" oninput="fxSliderChange('papertexture',this.value)"></div>
+                <span class="fx-sl-val" id="fxv-papertexture">0</span>
+              </div>
+            </div>
+
+            <!-- FRAMES section -->
+            <div class="ev-panel-hdr" style="margin-top:14px;"><span class="ev-panel-hdr-title">F R A M E S</span></div>
+            <div id="es-fx-frames">
+              <div id="fx-frame-strip">
+                <div class="fx-frame-thumb fx-frame-none active" onclick="fxSelectFrame('none')" title="None">
+                  <span class="fx-frame-label">NONE</span>
+                </div>
+                <div class="fx-frame-thumb fx-frame-polaroid" onclick="fxSelectFrame('polaroid')" title="Polaroid">
+                  <span class="fx-frame-label">POLAROID</span>
+                </div>
+                <div class="fx-frame-thumb fx-frame-filmneg" onclick="fxSelectFrame('filmneg')" title="Film Negative">
+                  <span class="fx-frame-label">FILM</span>
+                </div>
+                <div class="fx-frame-thumb fx-frame-letterbox" onclick="fxSelectFrame('letterbox')" title="Letterbox">
+                  <span class="fx-frame-label">LETTERBOX</span>
+                </div>
+                <div class="fx-frame-thumb fx-frame-tape" onclick="fxSelectFrame('tape')" title="Tape">
+                  <span class="fx-frame-label">TAPE</span>
+                </div>
+                <div class="fx-frame-thumb fx-frame-stamp" onclick="fxSelectFrame('stamp')" title="Postage Stamp">
+                  <span class="fx-frame-label">STAMP</span>
+                </div>
+                <div class="fx-frame-thumb fx-frame-oval" onclick="fxSelectFrame('oval')" title="Oval">
+                  <span class="fx-frame-label">OVAL</span>
+                </div>
+                <div class="fx-frame-thumb fx-frame-ornate" onclick="fxSelectFrame('ornate')" title="Ornate (asset required)">
+                  <span class="fx-frame-label">ORNATE</span>
+                </div>
+                <div class="fx-frame-thumb fx-frame-linen" onclick="fxSelectFrame('linen')" title="Linen (asset required)">
+                  <span class="fx-frame-label">LINEN</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
           <!-- OPTICAL panel: VERTICAL + HORIZONTAL perspective -->
           <div class="es-tab-panel" id="es-panel-optical">
             <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">O P T I C A L</span></div>
@@ -7703,9 +7861,13 @@ function evAdjustSubTab(name) {
   }
   // All other tabs: hide preset strip
   if (strip) strip.classList.remove('visible');
-  // FX tab: blank — close suite, nothing to show
+  // FX tab: open suite and show fx panel
   if (name === 'fx') {
-    if (suite) suite.classList.remove('open');
+    if (suite) suite.classList.add('open');
+    document.querySelectorAll('.es-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.es-tab-panel').forEach(p => p.classList.remove('active'));
+    var fxPanel = document.getElementById('es-panel-fx');
+    if (fxPanel) fxPanel.classList.add('active');
     return;
   }
   var panelTab = panelMap[name];
@@ -17941,6 +18103,28 @@ function importSheetChoice(type) {
   });
 
 })();
+
+/* Global FX state */
+var fxState = {
+  glow: 0, diffusion: 0, halation: 0, glossy: 0,
+  scanlines: 0, vhsbleed: 0, paperfold: 0, papertexture: 0,
+  frame: 'none'
+};
+
+function fxSliderChange(key, val) {
+  fxState[key] = parseInt(val, 10);
+  var valEl = document.getElementById('fxv-' + key);
+  if (valEl) valEl.textContent = val;
+  // TODO: wire into render pipeline
+}
+
+function fxSelectFrame(name) {
+  fxState.frame = name;
+  document.querySelectorAll('.fx-frame-thumb').forEach(function(t) {
+    t.classList.toggle('active', t.classList.contains('fx-frame-' + name));
+  });
+  // TODO: wire into render + export pipeline
+}
 </script>
 
 </body>

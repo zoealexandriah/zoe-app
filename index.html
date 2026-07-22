@@ -3426,11 +3426,17 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .fx-gem-card-adjust {
   position: absolute;
-  top: 6px; right: 6px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 5;
   opacity: 0;
   transition: opacity 0.2s;
   pointer-events: none;
+  background: rgba(10,6,20,0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 20px;
+  padding: 6px 10px;
 }
 .fx-gem-card.active .fx-gem-card-adjust {
   opacity: 1;
@@ -18636,7 +18642,7 @@ function fxBuildVariantStrip(cat) {
       grad.className = 'fx-gem-card-grad';
       var adj = document.createElement('div');
       adj.className = 'fx-gem-card-adjust';
-      adj.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2" fill="rgba(255,255,255,0.85)" stroke="none"/><circle cx="15" cy="12" r="2" fill="rgba(255,255,255,0.85)" stroke="none"/><circle cx="9" cy="18" r="2" fill="rgba(255,255,255,0.85)" stroke="none"/></svg>';
+      adj.innerHTML = '<div style="position:relative;width:22px;height:6px;"><div style="position:absolute;top:50%;left:0;right:0;height:1.5px;background:#e8d0f0;transform:translateY(-50%);border-radius:1px;"></div><div style="position:absolute;top:50%;left:50%;width:6px;height:6px;background:#e8d0f0;border-radius:50%;transform:translate(-50%,-50%);"></div></div>';
       div.appendChild(imgBg);
       div.appendChild(grad);
       div.appendChild(adj);

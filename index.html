@@ -5361,8 +5361,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
             <!-- Permanent FX subtab bar -->
             <div id="fx-subtab-bar" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:0.5px solid rgba(200,168,232,0.07);">
-              <div class="ev-cat-btn active" onclick="fxOpenCat('new')" data-fxstrip="new">NEW</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('frames')" data-fxstrip="frames">FRAMES</div>
+              <div class="ev-cat-btn active" onclick="fxOpenCat('frames')" data-fxstrip="frames">FRAMES</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('glow')" data-fxstrip="glow">GLOW</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('glossy')" data-fxstrip="glossy">GLOSSY</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('scanlines')" data-fxstrip="scanlines">SCAN LINES</div>
@@ -5370,21 +5369,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <div class="ev-cat-btn" onclick="fxOpenCat('paper')" data-fxstrip="paper">PAPER</div>
             </div>
 
-            <!-- NEW tab content -->
-            <div id="fx-sub-new" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
-              <div style="padding:10px 14px 6px;flex-shrink:0;">
-                <span style="font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.14em;color:rgba(255,255,255,0.3);">FEATURED</span>
-              </div>
-              <div style="display:flex;flex-direction:row;overflow-x:auto;gap:10px;padding:4px 14px 12px;scrollbar-width:none;">
-                <!-- GEMS featured card -->
-                <div onclick="fxOpenCat('frames')" style="flex-shrink:0;width:100px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;-webkit-touch-callout:none;user-select:none;touch-action:manipulation;">
-                  <div style="width:100px;height:100px;border-radius:12px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.10);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
-                    <svg viewBox="0 0 60 60" width="50" height="50" fill="none" style="opacity:0.7;"><polygon points="30,4 56,20 56,44 30,56 4,44 4,20" stroke="rgba(200,180,240,0.8)" stroke-width="1.5" fill="rgba(180,150,220,0.08)"/><polygon points="30,12 48,22 48,42 30,50 12,42 12,22" stroke="rgba(200,180,240,0.5)" stroke-width="1" fill="rgba(180,150,220,0.05)"/><circle cx="30" cy="30" r="6" fill="rgba(220,200,255,0.25)" stroke="rgba(200,180,240,0.6)" stroke-width="1"/></svg>
-                  </div>
-                  <span style="font-family:var(--mono,monospace);font-size:7.5px;letter-spacing:0.10em;color:rgba(255,255,255,0.6);">GEMS</span>
-                </div>
-              </div>
-            </div>
 
             <!-- Variant thumbnail strip (FRAMES gem cards etc) -->
             <div id="fx-variant-view" style="flex:1;overflow:hidden;">
@@ -8097,7 +8081,7 @@ function evAdjustSubTab(name) {
     document.querySelectorAll('.es-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.es-tab-panel').forEach(p => p.classList.remove('active'));
     if (fxPanel) fxPanel.classList.add('active');
-    if (typeof fxOpenCat === 'function') fxOpenCat('new');
+    if (typeof fxOpenCat === 'function') fxOpenCat('frames');
     return;
   }
   var panelTab = panelMap[name];
@@ -18468,20 +18452,15 @@ function fxShowLevel(level) {
   var i  = document.getElementById('fx-intensity-view');
   var m  = document.getElementById('fx-multi-view');
   var p  = document.getElementById('fx-paper-view');
-  var nw = document.getElementById('fx-sub-new');
   var gc = document.getElementById('fx-gem-controls');
   /* hide all content panels */
   if (v)  { v.classList.remove('active'); v.style.display = 'none'; }
   if (i)  i.classList.remove('active');
   if (m)  m.classList.remove('active');
   if (p)  { p.classList.remove('active'); p.style.display = 'none'; }
-  if (nw) nw.style.display = 'none';
   if (gc) gc.style.display = 'none';
   /* show the right one */
-  if (level === 1) {
-    /* NEW tab */
-    if (nw) { nw.style.display = 'flex'; nw.style.flexDirection = 'column'; }
-  } else if (level === 2) {
+  if (level === 2) {
     if (v) { v.classList.add('active'); v.style.display = 'flex'; }
   } else if (level === 3) {
     if (i) i.classList.add('active');
@@ -18500,7 +18479,7 @@ function fxOpenCat(cat) {
     b.classList.toggle('active', b.dataset.fxstrip === cat);
   });
   /* NEW tab — just show placeholder */
-  if (cat === 'new') { fxShowLevel(1); return; }
+
 
   if (FX_MULTI && FX_MULTI.indexOf(cat) !== -1) {
     /* multi-slider panel: GLOW → shows glow + diffusion + halation sliders */
@@ -18752,7 +18731,7 @@ function fxBackToGrid() {
   _fxActiveCat = null;
   _fxActiveVariant = null;
   /* default back to FRAMES tab */
-  fxOpenCat('new');
+  fxOpenCat('frames');
 }
 
 function fxBackToVariants() {

@@ -13971,46 +13971,85 @@ function _evDoSave() {
     var origData;
     try { origData = ctx.getImageData(0, 0, pw, ph); } catch(e) { origData = null; }
     if (!origData || !origData.data || origData.data.length === 0) { showToast('Export failed — reduce photo size and try again'); return; }
-    var processed = applyPixelAdjustments(origData, adj);
     var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
-    if (intensity < 0.999) {
-      var od = origData.data;
-      for (var i = 0; i < processed.length; i += 4) {
-        processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
-        processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
-        processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
+    var _fxFrameVariant2 = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
+
+    function _afterPixels(processed) {
+      ctx.putImageData(new ImageData(processed, pw, ph), 0, 0);
+      if (p.curve) applyCurveLUTs(off, p.curve, 0, 0, pw, ph);
+      if ((adj.glow   || 0) > 0.01)          applyGlow(off, adj.glow, 0, 0, pw, ph);
+      if ((adj.mist   || 0) > 0.01)          applyMist(off, adj.mist, 0, 0, pw, ph);
+      if ((adj.sharpen|| 0) > 0.01)          applySharpness(off, adj.sharpen, 0, 0, pw, ph);
+      if (Math.abs(adj.clarity||0) > 0.005)  applyClarity(off, adj.clarity, 0, 0, pw, ph);
+      if ((adj.blur   || 0) > 0.01)          applyBlur(off, adj.blur, 0, 0, pw, ph);
+      if ((adj.vignette_blur||0) > 0.01)     applyVignetteBlur(off, adj.vignette_blur, 0, 0, pw, ph);
+      if ((adj.motion_blur  ||0) > 0.01)     applyMotionBlur(off, adj.motion_blur, 0, 0, pw, ph);
+      if ((adj.radial_blur  ||0) > 0.01)     applyRadialBlur(off, adj.radial_blur, 0, 0, pw, ph);
+      if (p.splitTone)                 adj.split_tone     = p.splitTone;
+      if (p.halationHue !== undefined) adj.halation_hue   = p.halationHue;
+      if (p.shadowTint)                adj.shadow_tint    = p.shadowTint;
+      if (p.highlightTint)             adj.highlight_tint = p.highlightTint;
+      if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+      if ((adj.halation||0) > 0.01)          applyHalation(off, adj.halation, adj.halation_hue||0, 0, 0, pw, ph);
+      if (p.halationBloom)                   applyHalationBloom(off, p.halationBloom, 0, 0, pw, ph);
+      if ((adj.diffusion||0) > 0.01)         applyDiffusion(off, adj.diffusion, 0, 0, pw, ph);
+      if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01)
+                                             applyDuotone(off, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, pw, ph);
+      if ((adj.vignette||0) > 0.01)          applyVignette(off, adj.vignette, 0, 0, pw, ph);
+      if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
+                                             applyBlemishHeal(off, blemishSpots, 0, 0, pw, ph);
+      var out = off;
+      if (_fxFrameVariant2 && _fxFrameVariant2 !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
+        fxApplyFrameToCanvas(out, _fxFrameVariant2, fxState.frames, function() { _doSaveBlob(out); });
+      } else {
+        _doSaveBlob(out);
       }
     }
-    ctx.putImageData(new ImageData(processed, pw, ph), 0, 0);
-    if (p.curve) applyCurveLUTs(off, p.curve, 0, 0, pw, ph);
-    if ((adj.glow   || 0) > 0.01)          applyGlow(off, adj.glow, 0, 0, pw, ph);
-    if ((adj.mist   || 0) > 0.01)          applyMist(off, adj.mist, 0, 0, pw, ph);
-    if ((adj.sharpen|| 0) > 0.01)          applySharpness(off, adj.sharpen, 0, 0, pw, ph);
-    if (Math.abs(adj.clarity||0) > 0.005)  applyClarity(off, adj.clarity, 0, 0, pw, ph);
-    if ((adj.blur   || 0) > 0.01)          applyBlur(off, adj.blur, 0, 0, pw, ph);
-    if ((adj.vignette_blur||0) > 0.01)     applyVignetteBlur(off, adj.vignette_blur, 0, 0, pw, ph);
-    if ((adj.motion_blur  ||0) > 0.01)     applyMotionBlur(off, adj.motion_blur, 0, 0, pw, ph);
-    if ((adj.radial_blur  ||0) > 0.01)     applyRadialBlur(off, adj.radial_blur, 0, 0, pw, ph);
-    // Mirror preview: re-inject preset properties before halation/diffusion
-    if (p.splitTone)                 adj.split_tone     = p.splitTone;
-    if (p.halationHue !== undefined) adj.halation_hue   = p.halationHue;
-    if (p.shadowTint)                adj.shadow_tint    = p.shadowTint;
-    if (p.highlightTint)             adj.highlight_tint = p.highlightTint;
-    if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
-    if ((adj.halation||0) > 0.01)          applyHalation(off, adj.halation, adj.halation_hue||0, 0, 0, pw, ph);
-    if (p.halationBloom)                   applyHalationBloom(off, p.halationBloom, 0, 0, pw, ph);
-    if ((adj.diffusion||0) > 0.01)         applyDiffusion(off, adj.diffusion, 0, 0, pw, ph);
-    if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01)
-                                           applyDuotone(off, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, pw, ph);
-    if ((adj.vignette||0) > 0.01)          applyVignette(off, adj.vignette, 0, 0, pw, ph);
-    if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
-                                           applyBlemishHeal(off, blemishSpots, 0, 0, pw, ph);
+
+    function _doSaveBlob(out) {
+      var d  = new Date();
+      var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+      var ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
+      var filename = 'ZOE_' + ds + '_' + ts + '.jpg';
+      out.toBlob(function(blob) {
+        if (!blob) { showToast('Export failed'); return; }
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.download = filename;
+        a.href = url;
+        var _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
+        if (_isIOS) {
+          window.open(url, '_blank');
+          showToast('TAP AND HOLD → SAVE TO PHOTOS');
+        } else {
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showToast('SAVED ✓');
+        }
+        setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
+      }, 'image/jpeg', 0.92);
+    }
+
+    var _workerSrc = hue2rgb.toString() + '\n' + rgbToHsl.toString() + '\n' + hslToRgb.toString() + '\n' + applyPixelAdjustments.toString() + '\nself.onmessage=function(e){var src=e.data.src;var adj=e.data.adj;var intensity=e.data.intensity;var out=applyPixelAdjustments({data:src},adj);if(intensity<0.999){for(var i=0;i<out.length;i+=4){out[i]=Math.round(src[i]+(out[i]-src[i])*intensity);out[i+1]=Math.round(src[i+1]+(out[i+1]-src[i+1])*intensity);out[i+2]=Math.round(src[i+2]+(out[i+2]-src[i+2])*intensity);}}self.postMessage({out:out.buffer},[out.buffer]);};';
+    var _wBlob = new Blob([_workerSrc], {type:'application/javascript'});
+    var _wURL = URL.createObjectURL(_wBlob);
+    var _worker = new Worker(_wURL);
+    var _srcBuf = origData.data.buffer.slice(0);
+    _worker.postMessage({src: new Uint8ClampedArray(_srcBuf), adj: adj, intensity: intensity}, [_srcBuf]);
+    _worker.onmessage = function(e) {
+      _worker.terminate(); URL.revokeObjectURL(_wURL);
+      _afterPixels(new Uint8ClampedArray(e.data.out));
+    };
+    _worker.onerror = function(err) {
+      _worker.terminate(); URL.revokeObjectURL(_wURL);
+      console.warn('ZOE worker failed, falling back:', err);
+      var processed = applyPixelAdjustments(origData, adj);
+      if (intensity < 0.999) { var od=origData.data; for(var i=0;i<processed.length;i+=4){processed[i]=Math.round(od[i]+(processed[i]-od[i])*intensity);processed[i+1]=Math.round(od[i+1]+(processed[i+1]-od[i+1])*intensity);processed[i+2]=Math.round(od[i+2]+(processed[i+2]-od[i+2])*intensity);} }
+      _afterPixels(processed);
+    };
+    return;
   }
-  /* Skip upscale — export directly from the render canvas to avoid double memory */
-  var out = off;
-  var outCtx = ctx;
-  // Inject sRGB ICC profile into JPEG for proper cross-device color management
-  /* Apply frame overlay then save */
   var _fxFrameVariant = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
   function _doDownload() {
     var d  = new Date();

@@ -18919,78 +18919,133 @@ function fxOpenGemControls() {
     pv = document.createElement('div');
     pv.id = 'fx-gem-controls';
     pv.style.cssText = 'display:none;flex-direction:column;flex:1;overflow:hidden;';
+
+    function mkSlider(id, label, min, max, val) {
+      var pct = ((val - min) / (max - min) * 100).toFixed(1);
+      return '<div class="sl-row" style="padding:6px 14px;">' +
+        '<div class="sl-header"><span class="sl-name">' + label + '</span><span class="sl-val" id="fxgcv-' + id + '">' + val + '</span></div>' +
+        '<div class="sl-track" id="fxgct-' + id + '" data-min="' + min + '" data-max="' + max + '" data-fxgc="' + id + '">' +
+          '<div class="sl-fill" id="fxgcf-' + id + '" style="width:' + pct + '%"></div>' +
+          '<div class="sl-thumb" id="fxgcth-' + id + '" style="left:' + pct + '%"></div>' +
+        '</div>' +
+      '</div>';
+    }
+
     pv.innerHTML =
       '<div style="display:flex;align-items:center;padding:10px 14px 8px;gap:8px;border-bottom:0.5px solid rgba(255,255,255,0.08);flex-shrink:0;">' +
         '<button style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:16px;cursor:pointer;padding:0 6px 0 0;line-height:1;" onclick="fxCloseGemControls()">←</button>' +
         '<span style="font-family:var(--mono,monospace);font-size:9px;letter-spacing:0.12em;color:rgba(255,255,255,0.8);flex:1;">GEM</span>' +
         '<button onclick="fxRemoveFrame()" style="background:none;border:none;font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;color:rgba(255,100,100,0.7);cursor:pointer;padding:4px 8px;">REMOVE</button>' +
       '</div>' +
-      '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 20px;gap:22px;">' +
-        '<div class="fx-msl-row"><span class="fx-msl-label">OPACITY</span><input type="range" class="fx-msl-track" min="0" max="100" value="100" id="fxgc-opacity" oninput="fxGemControl(\'intensity\',this.value)"><span class="fx-msl-val" id="fxgcv-opacity">100</span></div>' +
-        '<div class="fx-msl-row"><span class="fx-msl-label">SCALE</span><input type="range" class="fx-msl-track" min="50" max="150" value="100" id="fxgc-scale" oninput="fxGemControl(\'scale\',this.value)"><span class="fx-msl-val" id="fxgcv-scale">100</span></div>' +
-        '<div class="fx-msl-row"><span class="fx-msl-label">ROTATION</span><input type="range" class="fx-msl-track" min="-180" max="180" value="0" id="fxgc-rotation" oninput="fxGemControl(\'rotation\',this.value)"><span class="fx-msl-val" id="fxgcv-rotation">0</span></div>' +
-        '<div class="fx-msl-row"><span class="fx-msl-label">MIRROR</span>' +
-          '<div style="flex:1;display:flex;gap:8px;">' +
-            '<div id="fxgc-mirror-off" onclick="fxGemMirror(false)" style="flex:1;text-align:center;font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;padding:6px 4px;border-radius:8px;cursor:pointer;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(201,184,212,0.5);">OFF</div>' +
-            '<div id="fxgc-mirror-on"  onclick="fxGemMirror(true)"  style="flex:1;text-align:center;font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;padding:6px 4px;border-radius:8px;cursor:pointer;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.1);">ON</div>' +
+      '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;">' +
+        mkSlider('opacity',  'OPACITY',  0,    100,  100) +
+        mkSlider('scale',    'SCALE',    50,   150,  100) +
+        mkSlider('position', 'POSITION', -100, 100,  0)   +
+        '<div style="display:flex;justify-content:center;gap:20px;padding:12px 14px 0;">' +
+          '<div class="crop-transform-icon-btn" onclick="fxGemFlip(\'h\')">' +
+            '<div class="crop-transform-icon-box"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M10 5 L3 12 L10 19 Z" opacity="0.92"/><path d="M14 5 L21 12 L14 19 Z" opacity="0.92"/></svg></div>' +
+            '<span class="crop-transform-icon-label">FLIP H</span>' +
           '</div>' +
-          '<span class="fx-msl-val" style="opacity:0;">0</span>' +
+          '<div class="crop-transform-icon-btn" onclick="fxGemFlip(\'v\')">' +
+            '<div class="crop-transform-icon-box"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M5 10 L12 3 L19 10 Z" opacity="0.92"/><path d="M5 14 L12 21 L19 14 Z" opacity="0.92"/></svg></div>' +
+            '<span class="crop-transform-icon-label">FLIP V</span>' +
+          '</div>' +
+          '<div class="crop-transform-icon-btn" onclick="fxGemRotate90()">' +
+            '<div class="crop-transform-icon-box"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M 12 5 A 7 7 0 1 1 5 12" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><polygon points="2.5,9.5 7.5,9.5 5,14.5"/></svg></div>' +
+            '<span class="crop-transform-icon-label">ROTATE</span>' +
+          '</div>' +
         '</div>' +
       '</div>' +
       '<div style="display:flex;justify-content:flex-end;padding:0 20px 20px;">' +
         '<button class="fx-action-btn" style="color:rgba(255,255,255,0.85);" onclick="fxCloseGemControls()">✓</button>' +
       '</div>';
+
     document.getElementById('es-panel-fx').appendChild(pv);
+
+    pv.addEventListener('mousedown', _fxGcDragStart);
+    pv.addEventListener('touchstart', _fxGcDragStart, { passive: false });
   }
-  var op = document.getElementById('fxgc-opacity');
-  var sc = document.getElementById('fxgc-scale');
-  var ro = document.getElementById('fxgc-rotation');
-  if (op) { op.value = fxState.frames.intensity; document.getElementById('fxgcv-opacity').textContent = fxState.frames.intensity; }
-  if (sc) { sc.value = Math.round(fxState.frames.scale * 100); document.getElementById('fxgcv-scale').textContent = Math.round(fxState.frames.scale * 100); }
-  if (ro) { ro.value = fxState.frames.rotation; document.getElementById('fxgcv-rotation').textContent = fxState.frames.rotation; }
-  fxGemMirror(fxState.frames.mirror, true);
+
+  _fxGcSetSlider('opacity',  fxState.frames.intensity,               0,    100);
+  _fxGcSetSlider('scale',    Math.round(fxState.frames.scale * 100), 50,   150);
+  _fxGcSetSlider('position', fxState.frames.positionY || 0,          -100, 100);
+
   pv.style.display = 'flex';
   fxShowLevel(4);
 }
 
+function _fxGcSetSlider(id, val, min, max) {
+  var pct = ((val - min) / (max - min) * 100).toFixed(1);
+  var fill  = document.getElementById('fxgcf-'  + id);
+  var thumb = document.getElementById('fxgcth-' + id);
+  var valEl = document.getElementById('fxgcv-'  + id);
+  if (fill)  fill.style.width = pct + '%';
+  if (thumb) thumb.style.left = pct + '%';
+  if (valEl) valEl.textContent = Math.round(val);
+}
+
+var _fxGcDragging = null;
+function _fxGcDragStart(e) {
+  var track = e.target.closest('[data-fxgc]');
+  if (!track) return;
+  if (e.type === 'touchstart') e.preventDefault();
+  _fxGcDragging = track;
+  _fxGcApplyDrag(e);
+}
+function _fxGcApplyDrag(e) {
+  if (!_fxGcDragging) return;
+  var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  var rect = _fxGcDragging.getBoundingClientRect();
+  var t = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  var id  = _fxGcDragging.dataset.fxgc;
+  var min = parseFloat(_fxGcDragging.dataset.min);
+  var max = parseFloat(_fxGcDragging.dataset.max);
+  var val = min + t * (max - min);
+  _fxGcSetSlider(id, val, min, max);
+  if (id === 'opacity')  { fxState.frames.intensity = Math.round(val); }
+  if (id === 'scale')    { fxState.frames.scale = val / 100; }
+  if (id === 'position') { fxState.frames.positionY = val; }
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+}
+function _fxGcDragEnd() { _fxGcDragging = null; }
+document.addEventListener('mousemove', _fxGcApplyDrag);
+document.addEventListener('touchmove', function(e) { if (_fxGcDragging) { e.preventDefault(); _fxGcApplyDrag(e); } }, { passive: false });
+document.addEventListener('mouseup',   _fxGcDragEnd);
+document.addEventListener('touchend',  _fxGcDragEnd);
+
 function fxCloseGemControls() {
   var pv = document.getElementById('fx-gem-controls');
   if (pv) pv.style.display = 'none';
-  fxBackToGrid();
+  _fxActiveCat = 'gem';
+  fxBuildVariantStrip('gem');
+  fxShowLevel(2);
 }
 
-function fxGemControl(key, val) {
-  val = parseFloat(val);
-  if (key === 'scale') {
-    fxState.frames.scale = val / 100;
-    document.getElementById('fxgcv-scale').textContent = Math.round(val);
-  } else if (key === 'rotation') {
-    fxState.frames.rotation = val;
-    document.getElementById('fxgcv-rotation').textContent = Math.round(val);
-  } else if (key === 'intensity') {
-    fxState.frames.intensity = Math.round(val);
-    document.getElementById('fxgcv-opacity').textContent = Math.round(val);
-  }
+function fxGemFlip(axis) {
+  if (axis === 'h') { fxState.frames.mirror = !fxState.frames.mirror; }
+  else if (axis === 'v') { fxState.frames.flipV = !fxState.frames.flipV; }
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
-function fxGemMirror(on, silent) {
-  fxState.frames.mirror = on;
-  var offBtn = document.getElementById('fxgc-mirror-off');
-  var onBtn  = document.getElementById('fxgc-mirror-on');
-  if (offBtn) { offBtn.style.background = on ? 'transparent' : 'rgba(255,255,255,0.12)'; offBtn.style.color = on ? 'rgba(255,255,255,0.4)' : '#fff'; offBtn.style.borderColor = on ? 'rgba(255,255,255,0.1)' : 'rgba(201,184,212,0.5)'; }
-  if (onBtn)  { onBtn.style.background  = on ? 'rgba(255,255,255,0.12)' : 'transparent'; onBtn.style.color  = on ? '#fff' : 'rgba(255,255,255,0.4)'; onBtn.style.borderColor  = on ? 'rgba(201,184,212,0.5)' : 'rgba(255,255,255,0.1)'; }
-  if (!silent && typeof evRenderCanvas === 'function') evRenderCanvas();
+function fxGemRotate90() {
+  fxState.frames.rotation = ((fxState.frames.rotation || 0) + 90) % 360;
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
 function fxRemoveFrame() {
-  fxState.frames.variant = 'none';
-  fxState.frames.intensity = 100;
-  fxState.frames.scale = 1.0;
-  fxState.frames.rotation = 0;
-  fxState.frames.mirror = false;
+  fxState.frames.variant   = 'none';
+  fxState.frames.intensity  = 100;
+  fxState.frames.scale      = 1.0;
+  fxState.frames.rotation   = 0;
+  fxState.frames.mirror     = false;
+  fxState.frames.flipV      = false;
+  fxState.frames.positionY  = 0;
   fxUpdateCatDot('frames');
-  fxCloseGemControls();
+  var pv = document.getElementById('fx-gem-controls');
+  if (pv) pv.style.display = 'none';
+  _fxActiveCat = 'gem';
+  fxBuildVariantStrip('gem');
+  fxShowLevel(2);
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 </script>

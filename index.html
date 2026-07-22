@@ -18922,7 +18922,7 @@ function fxOpenGemControls() {
     pv.id = 'fx-gem-controls';
     pv.style.cssText = 'display:none;flex-direction:column;flex:1;overflow:hidden;';
     pv.innerHTML =
-      '<div style="display:flex;align-items:center;padding:10px 14px 6px;gap:8px;border-bottom:0.5px solid rgba(255,255,255,0.08);flex-shrink:0;">' +
+      '<div style="display:flex;align-items:center;padding:10px 12px 6px;gap:8px;border-bottom:0.5px solid rgba(255,255,255,0.08);flex-shrink:0;">' +
         '<button style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:16px;cursor:pointer;padding:0 6px 0 0;line-height:1;" onclick="fxCloseGemControls()">←</button>' +
         '<span style="font-family:var(--mono,monospace);font-size:9px;letter-spacing:0.12em;color:rgba(255,255,255,0.8);flex:1;">GEM</span>' +
         '<button class="fx-action-btn" onclick="fxRemoveFrame()" title="Remove frame">✕</button>' +
@@ -18961,7 +18961,7 @@ function fxOpenGemControls() {
           '</div>' +
         '</div>' +
       '</div>' +
-      '<div style="display:flex;justify-content:flex-end;padding:0 20px 20px;flex-shrink:0;">' +
+      '<div style="display:flex;justify-content:flex-end;padding:0 12px 20px;flex-shrink:0;">' +
         '<button class="fx-action-btn crop-exp-confirm" onclick="fxCloseGemControls()">✓</button>' +
       '</div>';
     document.getElementById('es-panel-fx').appendChild(pv);

@@ -13937,13 +13937,15 @@ function evSaveWithAnimation() {
 function _evDoSave() {
   if (!userImage) return;
   var nw = userImage.naturalWidth, nh = userImage.naturalHeight;
-  // Render at safe export resolution — 1800px balances quality vs memory
-  var _ref = 2400;
+  /* Mobile devices cap canvas memory; use 1600px on touch devices, 2400px on desktop */
+  var _isMobile = navigator.maxTouchPoints > 0;
+  var _ref = _isMobile ? 1600 : 2400;
   var ps = Math.min(1, _ref / Math.max(nw, nh));
   var pw = Math.round(nw * ps), ph = Math.round(nh * ps);
   var off = document.createElement('canvas');
   off.width = pw; off.height = ph;
-  var ctx = off.getContext('2d', { willReadFrequently: true });
+  /* Do NOT use willReadFrequently on export canvas — it forces slow software rendering */
+  var ctx = off.getContext('2d');
   if (!ctx) { showToast('Export failed — image too large'); return; }
   ctx.drawImage(userImage, 0, 0, pw, ph);
   var p = activePreset;
@@ -13975,7 +13977,9 @@ function _evDoSave() {
     if (p.highlightTint)             adj.highlight_tint = p.highlightTint;
     if (p.halationHue !== undefined) adj.halation_hue   = p.halationHue;
     if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
-    var origData = ctx.getImageData(0, 0, pw, ph);
+    var origData;
+    try { origData = ctx.getImageData(0, 0, pw, ph); } catch(e) { origData = null; }
+    if (!origData || !origData.data || origData.data.length === 0) { showToast('Export failed — reduce photo size and try again'); return; }
     var processed = applyPixelAdjustments(origData, adj);
     var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
     if (intensity < 0.999) {
@@ -14029,8 +14033,17 @@ function _evDoSave() {
       var a = document.createElement('a');
       a.download = filename;
       a.href = url;
-      a.click();
-      setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+      /* iOS Safari ignores a.click() — use window.open as fallback */
+      var _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
+      if (_isIOS) {
+        window.open(url, '_blank');
+        showToast('TAP AND HOLD → SAVE TO PHOTOS');
+      } else {
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
     }, 'image/jpeg', 0.92);
   }
   if (_fxFrameVariant && _fxFrameVariant !== 'none' && typeof fxApplyFrameToCanvas === 'function') {

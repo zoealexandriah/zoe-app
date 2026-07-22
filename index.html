@@ -3023,7 +3023,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #editor-view:not(.no-image) #ev-adjust-subnav { display: flex !important; }
   /* Hide pill while ratio expanded so crop overlay has full canvas room */
   #editor-view.crop-ratio-active #ev-adjust-subnav { display: none !important; }
-  body:has(#es-panel-fx.active.fx-expanded) #ev-adjust-subnav { display: none !important; }
+
   /* No-image state: hide subnav and slider suite so user can only import or go back */
   #editor-view.no-image #ev-adjust-subnav { display: none !important; }
   #editor-view.no-image #ev-editor-suite { display: none !important; }
@@ -3868,11 +3868,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     padding-bottom: 0 !important;
   }
   #ev-editor-suite.open #es-panel-fx.active.fx-expanded {
-    height: auto !important;
-    max-height: none !important;
-    min-height: unset !important;
+    height: 152px !important;
+    max-height: 152px !important;
+    min-height: 152px !important;
     flex: none !important;
-    overflow: visible !important;
+    overflow: hidden !important;
   }
 
   #ev-editor-suite.open .es-tab-panel.active:not(#es-panel-blemish):not(#es-panel-tools):not(#es-panel-fx) {
@@ -19104,31 +19104,26 @@ function fxOpenGemControls() {
   if (!pv) {
     pv = document.createElement('div');
     pv.id = 'fx-gem-controls';
-    pv.style.cssText = 'display:none;flex-direction:column;overflow:visible;';
+    pv.style.cssText = 'display:none;flex-direction:column;height:152px;overflow:hidden;';
     pv.innerHTML =
-      '<div style="display:flex;align-items:center;padding:10px 12px 6px;gap:8px;border-bottom:0.5px solid rgba(255,255,255,0.08);flex-shrink:0;">' +
-        '<button style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:16px;cursor:pointer;padding:0 6px 0 0;line-height:1;" onclick="fxCloseGemControls()">←</button>' +
-        '<span style="font-family:var(--mono,monospace);font-size:9px;letter-spacing:0.12em;color:rgba(255,255,255,0.8);flex:1;">GEMS</span>' +
-        '<button class="fx-action-btn" onclick="fxRemoveFrame()" title="Remove frame">✕</button>' +
-      '</div>' +
-      '<div class="crop-subtabs" id="fxgc-subtabs" style="margin-top:8px;">' +
+      '<div class="crop-subtabs" id="fxgc-subtabs" style="margin:6px 12px 0;">' +
         '<button class="crop-subtab active" onclick="fxGcSubTab(this,\'opacity\')">OPACITY</button>' +
         '<button class="crop-subtab" onclick="fxGcSubTab(this,\'scale\')">SCALE</button>' +
         '<button class="crop-subtab" onclick="fxGcSubTab(this,\'position\')">POSITION</button>' +
         '<button class="crop-subtab" onclick="fxGcSubTab(this,\'rotate\')">ROTATE</button>' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-opacity">' +
-        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Opacity</span><span class="crop-sub-val" id="fxgcv-opacity">100</span></div>' +
+        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">OPACITY</span><span class="crop-sub-val" id="fxgcv-opacity">100</span></div>' +
         '<input type="range" class="tc-range" id="fxgcr-opacity" min="0" max="100" value="100" oninput="fxGemSlide(\'intensity\',this.value,\'fxgcv-opacity\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-scale" style="display:none;">' +
-        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Scale</span><span class="crop-sub-val" id="fxgcv-scale">100</span></div>' +
+        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">SCALE</span><span class="crop-sub-val" id="fxgcv-scale">100</span></div>' +
         '<input type="range" class="tc-range" id="fxgcr-scale" min="50" max="200" value="100" oninput="fxGemSlide(\'scale\',this.value,\'fxgcv-scale\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-position" style="display:none;">' +
-        '<div class="crop-sub-row" style="margin-top:6px;"><span class="crop-sub-label">X</span><span class="crop-sub-val" id="fxgcv-positionX">0</span></div>' +
+        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">X</span><span class="crop-sub-val" id="fxgcv-positionX">0</span></div>' +
         '<input type="range" class="tc-range" id="fxgcr-positionX" min="-100" max="100" value="0" oninput="fxGemSlide(\'positionX\',this.value,\'fxgcv-positionX\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
-        '<div class="crop-sub-row" style="margin-top:6px;"><span class="crop-sub-label">Y</span><span class="crop-sub-val" id="fxgcv-positionY">0</span></div>' +
+        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Y</span><span class="crop-sub-val" id="fxgcv-positionY">0</span></div>' +
         '<input type="range" class="tc-range" id="fxgcr-positionY" min="-100" max="100" value="0" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-positionY\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-rotate" style="display:none;">' +
@@ -19146,9 +19141,6 @@ function fxOpenGemControls() {
             '<span class="crop-transform-icon-label">ROTATE</span>' +
           '</div>' +
         '</div>' +
-      '</div>' +
-      '<div style="display:flex;justify-content:flex-end;padding:0 12px 12px;flex-shrink:0;">' +
-        '<button class="fx-action-btn crop-exp-confirm" onclick="fxCloseGemControls()">✓</button>' +
       '</div>';
     document.getElementById('es-panel-fx').appendChild(pv);
   }

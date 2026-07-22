@@ -18624,9 +18624,13 @@ function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
     /* 0.92 base gives a 4% buffer on each edge */
     var baseScale = Math.min(sw / iw, sh / ih) * 0.92 * scale;
     var dw = iw * baseScale, dh = ih * baseScale;
-    /* allow frame to move up to 70% off screen in any direction */
-    var offsetY = (positionY / 100) * (sh * 0.7);
-    var offsetX = (positionX / 100) * (sw * 0.7);
+    /* cap offsetY so frame center stays within image bounds */
+    var maxOffsetY = (sh - dh) / 2;
+    var rawOffsetY = (positionY / 100) * (sh * 0.5);
+    var offsetY = Math.max(-Math.abs(maxOffsetY), Math.min(Math.abs(maxOffsetY), rawOffsetY));
+    var maxOffsetX = (sw - dw) / 2;
+    var rawOffsetX = (positionX / 100) * (sw * 0.5);
+    var offsetX = Math.max(-Math.abs(maxOffsetX), Math.min(Math.abs(maxOffsetX), rawOffsetX));
     ctx.save();
     ctx.globalAlpha = opacity;
     ctx.translate(sw / 2 + offsetX, sh / 2 + offsetY);

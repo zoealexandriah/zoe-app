@@ -18549,7 +18549,7 @@ var fxState = {
   scanlines:   { variant: null, intensity: 0 },
   vhsbleed:    { variant: null, intensity: 0 },
   paper:       { fold: 0, texture: 0 },
-  frames:      { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0 }
+  frames:      { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0 }
 };
 
 var _fxActiveCat = null;
@@ -18609,6 +18609,7 @@ function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
   var mirror    = (opts && opts.mirror     !== undefined) ? opts.mirror     : false;
   var flipV     = (opts && opts.flipV      !== undefined) ? opts.flipV      : false;
   var positionY = (opts && opts.positionY  !== undefined) ? opts.positionY  : 0;
+  var positionX = (opts && opts.positionX  !== undefined) ? opts.positionX  : 0;
   function drawIt(img) {
     var ctx = canvas.getContext('2d');
     var sw = canvas.width, sh = canvas.height;
@@ -18620,9 +18621,12 @@ function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
     var maxOffsetY = (sh - dh) / 2;
     var rawOffsetY = (positionY / 100) * (sh * 0.5);
     var offsetY = Math.max(-Math.abs(maxOffsetY), Math.min(Math.abs(maxOffsetY), rawOffsetY));
+    var maxOffsetX = (sw - dw) / 2;
+    var rawOffsetX = (positionX / 100) * (sw * 0.5);
+    var offsetX = Math.max(-Math.abs(maxOffsetX), Math.min(Math.abs(maxOffsetX), rawOffsetX));
     ctx.save();
     ctx.globalAlpha = opacity;
-    ctx.translate(sw / 2, sh / 2 + offsetY);
+    ctx.translate(sw / 2 + offsetX, sh / 2 + offsetY);
     if (rotation) ctx.rotate(rotation * Math.PI / 180);
     if (mirror) ctx.scale(-1, 1);
     if (flipV)  ctx.scale(1, -1);
@@ -19116,9 +19120,11 @@ function fxOpenGemControls() {
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Scale</span><span class="crop-sub-val" id="fxgcv-scale">100</span></div>' +
         '<input type="range" class="tc-range" id="fxgcr-scale" min="50" max="200" value="100" oninput="fxGemSlide(\'scale\',this.value,\'fxgcv-scale\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
-      '<div class="crop-sub-content" id="fxgc-sub-position" style="flex:1;display:none;flex-direction:column;justify-content:center;">' +
-        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Position</span><span class="crop-sub-val" id="fxgcv-position">0</span></div>' +
-        '<input type="range" class="tc-range" id="fxgcr-position" min="-80" max="80" value="0" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-position\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+      '<div class="crop-sub-content" id="fxgc-sub-position" style="flex:1;display:none;flex-direction:column;justify-content:center;gap:4px;">' +
+        '<div class="crop-sub-row" style="margin-top:6px;"><span class="crop-sub-label">X</span><span class="crop-sub-val" id="fxgcv-positionX">0</span></div>' +
+        '<input type="range" class="tc-range" id="fxgcr-positionX" min="-80" max="80" value="0" oninput="fxGemSlide(\'positionX\',this.value,\'fxgcv-positionX\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+        '<div class="crop-sub-row" style="margin-top:6px;"><span class="crop-sub-label">Y</span><span class="crop-sub-val" id="fxgcv-positionY">0</span></div>' +
+        '<input type="range" class="tc-range" id="fxgcr-positionY" min="-80" max="80" value="0" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-positionY\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-rotate" style="flex:1;display:none;flex-direction:column;justify-content:center;">' +
         '<div class="crop-transform-icons">' +
@@ -19143,10 +19149,12 @@ function fxOpenGemControls() {
   }
   var ro = document.getElementById('fxgcr-opacity');
   var rs = document.getElementById('fxgcr-scale');
-  var rp = document.getElementById('fxgcr-position');
   if (ro) { ro.value = fxState.frames.intensity; document.getElementById('fxgcv-opacity').textContent = Math.round(fxState.frames.intensity); }
   if (rs) { rs.value = Math.round(fxState.frames.scale * 100); document.getElementById('fxgcv-scale').textContent = Math.round(fxState.frames.scale * 100); }
-  if (rp) { rp.value = fxState.frames.positionY || 0; document.getElementById('fxgcv-position').textContent = Math.round(fxState.frames.positionY || 0); }
+  var rpY = document.getElementById('fxgcr-positionY');
+  var rpX = document.getElementById('fxgcr-positionX');
+  if (rpY) { rpY.value = fxState.frames.positionY || 0; document.getElementById('fxgcv-positionY').textContent = Math.round(fxState.frames.positionY || 0); }
+  if (rpX) { rpX.value = fxState.frames.positionX || 0; document.getElementById('fxgcv-positionX').textContent = Math.round(fxState.frames.positionX || 0); }
   fxGcSubTab(document.querySelector('#fxgc-subtabs .crop-subtab'), 'opacity');
   pv.style.display = 'flex';
   fxShowLevel(4);
@@ -19172,12 +19180,18 @@ function fxGemSlide(key, val, valId) {
   /* snap position to 0 within ±2 */
   if (key === 'positionY' && Math.abs(val) < 2) {
     val = 0;
-    var _pr = document.getElementById('fxgcr-position');
-    if (_pr) _pr.value = 0;
+    var _prY = document.getElementById('fxgcr-positionY');
+    if (_prY) _prY.value = 0;
+  }
+  if (key === 'positionX' && Math.abs(val) < 2) {
+    val = 0;
+    var _prX = document.getElementById('fxgcr-positionX');
+    if (_prX) _prX.value = 0;
   }
   if (key === 'intensity')  fxState.frames.intensity  = Math.round(val);
   if (key === 'scale')      fxState.frames.scale      = val / 100;
   if (key === 'positionY')  fxState.frames.positionY  = val;
+  if (key === 'positionX')  fxState.frames.positionX  = val;
   var el = document.getElementById(valId);
   if (el) el.textContent = Math.round(val);
   /* use low-res drag mode for smooth scrubbing */
@@ -19212,6 +19226,7 @@ function fxRemoveFrame() {
   fxState.frames.mirror     = false;
   fxState.frames.flipV      = false;
   fxState.frames.positionY  = 0;
+  fxState.frames.positionX  = 0;
   fxUpdateCatDot('frames');
   var pv = document.getElementById('fx-gem-controls');
   if (pv) pv.style.display = 'none';

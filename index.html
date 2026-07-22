@@ -5334,6 +5334,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
             </div>
 
             <div id="fx-variant-view">
+              <span id="fx-variant-title" style="display:none;"></span>
               <div id="fx-variant-strip"></div>
             </div>
 
@@ -18339,7 +18340,7 @@ var FX_MULTI = ['glow','paper'];
 var FX_VARIANTS = {
   frames: [
     { id:'none',        label:'NONE' },
-    { id:'rhinestone',  label:'RHINESTONE' },
+    { id:'gem',  label:'GEM' },
     { id:'polaroid',    label:'POLAROID' },
     { id:'filmneg',     label:'FILM' },
     { id:'letterbox',   label:'LETTERBOX' },
@@ -18528,19 +18529,22 @@ function fxBuildVariantStrip(cat) {
   var current = fxState[cat] ? fxState[cat].variant : null;
   variants.forEach(function(v) {
     var div = document.createElement('div');
-    div.className = 'fx-var-thumb' + (v.id === 'none' ? ' none-thumb' : '') + (v.id === current ? ' active' : '');
+    div.className = 'ev-preset-card fx-var-card' + (v.id === current ? ' active' : '');
+    div.style.cssText = 'flex-shrink:0;width:80px;cursor:pointer;position:relative;';
     div.onclick = function() { fxSelectVariant(cat, v.id); };
-    /* preview canvas for frame types */
-    if (cat === 'frames' && v.id !== 'none') {
-      var c = document.createElement('canvas');
-      c.width = 70; c.height = 70;
-      fxDrawFrameThumb(c, v.id);
-      c.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border-radius:7px;';
-      div.appendChild(c);
+    /* thumbnail area */
+    var thumb = document.createElement('div');
+    thumb.style.cssText = 'width:80px;height:80px;border-radius:10px;background:rgba(255,255,255,0.04);border:1.5px solid ' + (v.id === current ? 'var(--accent,#c9b8d4)' : 'rgba(255,255,255,0.10)') + ';display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;';
+    if (v.id === 'none') {
+      var slash = document.createElement('div');
+      slash.style.cssText = 'width:1px;height:60px;background:rgba(255,255,255,0.2);transform:rotate(45deg);';
+      thumb.appendChild(slash);
     }
-    var lbl = document.createElement('span');
-    lbl.className = 'fx-var-label';
+    /* label below card */
+    var lbl = document.createElement('div');
+    lbl.style.cssText = 'font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;color:rgba(255,255,255,0.55);text-align:center;margin-top:5px;padding:0 2px;';
     lbl.textContent = v.label;
+    div.appendChild(thumb);
     div.appendChild(lbl);
     strip.appendChild(div);
   });

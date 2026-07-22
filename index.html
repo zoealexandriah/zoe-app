@@ -3867,10 +3867,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     padding-bottom: 0 !important;
   }
   #ev-editor-suite.open #es-panel-fx.active.fx-expanded {
-    height: auto !important;
-    max-height: none !important;
-    min-height: unset !important;
-    overflow: hidden !important;
+    height: 170px !important;
+    max-height: 170px !important;
+    min-height: 170px !important;
+    flex: none !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   #ev-editor-suite.open .es-tab-panel.active:not(#es-panel-blemish):not(#es-panel-tools):not(#es-panel-fx) {

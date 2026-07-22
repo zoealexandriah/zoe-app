@@ -18565,7 +18565,7 @@ var FX_MULTI = ['glow','paper'];
 var FX_VARIANTS = {
   frames: [
     { id:'none',       label:'NONE' },
-    { id:'gem',        label:'GEMS', hasDesigns: true },
+    { id:'gem',        label:'GEMS', hasDesigns: true, assetFile:'gemframepreview.png' },
     { id:'polaroid',   label:'POLAROID' },
     { id:'filmneg',    label:'FILM' },
     { id:'letterbox',  label:'LETTERBOX' },
@@ -18779,10 +18779,8 @@ function fxOpenCat(cat) {
     var _ib = document.getElementById('fx-intensity-back'); if (_ib) _ib.onclick = fxBackToGrid;
     fxShowLevel(3);
   } else {
-    /* show variant strip — for 'frames', go directly to gem designs */
-    var _stripCat = (cat === 'frames') ? 'gem' : cat;
     document.getElementById('fx-variant-title').textContent = label;
-    fxBuildVariantStrip(_stripCat);
+    fxBuildVariantStrip(cat);
     fxShowLevel(2);
   }
 }

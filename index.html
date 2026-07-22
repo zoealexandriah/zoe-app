@@ -3866,6 +3866,13 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     padding-top: 0 !important;
     padding-bottom: 0 !important;
   }
+  #ev-editor-suite.open #es-panel-fx.active.fx-expanded {
+    height: 260px !important;
+    max-height: 260px !important;
+    min-height: 260px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
 
   #ev-editor-suite.open .es-tab-panel.active:not(#es-panel-blemish):not(#es-panel-tools):not(#es-panel-fx) {
     height: 170px !important;
@@ -18650,6 +18657,7 @@ function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
 
 /* ── NAVIGATION ─────────────────────────────────────── */
 function fxShowLevel(level) {
+  var _fxPanel = document.getElementById('es-panel-fx');
   var v  = document.getElementById('fx-variant-view');
   var i  = document.getElementById('fx-intensity-view');
   var m  = document.getElementById('fx-multi-view');
@@ -18660,7 +18668,7 @@ function fxShowLevel(level) {
   if (i)  i.classList.remove('active');
   if (m)  m.classList.remove('active');
   if (p)  { p.classList.remove('active'); p.style.display = 'none'; }
-  if (gc) gc.style.display = 'none';
+  if (gc) { gc.style.display = 'none'; if (_fxPanel) _fxPanel.classList.remove('fx-expanded'); }
   /* show the right one */
   if (level === 2) {
     if (v) { v.classList.add('active'); v.style.display = 'flex'; }
@@ -18669,7 +18677,7 @@ function fxShowLevel(level) {
   } else if (level === 4) {
     if (_fxActiveCat === 'glow'  && m)  m.classList.add('active');
     if (_fxActiveCat === 'paper' && p)  { p.classList.add('active'); p.style.display = 'flex'; }
-    if (gc && (_fxActiveCat === 'gem' || (_fxActiveVariant && _fxActiveVariant.indexOf('gem') === 0))) gc.style.display = 'flex';
+    if (gc && (_fxActiveCat === 'gem' || (_fxActiveVariant && _fxActiveVariant.indexOf('gem') === 0))) { gc.style.display = 'flex'; if (_fxPanel) _fxPanel.classList.add('fx-expanded'); }
   }
 }
 

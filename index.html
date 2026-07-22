@@ -18919,29 +18919,32 @@ function fxOpenGemControls() {
     pv = document.createElement('div');
     pv.id = 'fx-gem-controls';
     pv.style.cssText = 'display:none;flex-direction:column;flex:1;overflow:hidden;';
-
-    function mkSlider(id, label, min, max, val) {
-      var pct = ((val - min) / (max - min) * 100).toFixed(1);
-      return '<div class="sl-row" style="padding:6px 14px;">' +
-        '<div class="sl-header"><span class="sl-name">' + label + '</span><span class="sl-val" id="fxgcv-' + id + '">' + val + '</span></div>' +
-        '<div class="sl-track" id="fxgct-' + id + '" data-min="' + min + '" data-max="' + max + '" data-fxgc="' + id + '">' +
-          '<div class="sl-fill" id="fxgcf-' + id + '" style="width:' + pct + '%"></div>' +
-          '<div class="sl-thumb" id="fxgcth-' + id + '" style="left:' + pct + '%"></div>' +
-        '</div>' +
-      '</div>';
-    }
-
     pv.innerHTML =
-      '<div style="display:flex;align-items:center;padding:10px 14px 8px;gap:8px;border-bottom:0.5px solid rgba(255,255,255,0.08);flex-shrink:0;">' +
+      '<div style="display:flex;align-items:center;padding:10px 14px 6px;gap:8px;border-bottom:0.5px solid rgba(255,255,255,0.08);flex-shrink:0;">' +
         '<button style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:16px;cursor:pointer;padding:0 6px 0 0;line-height:1;" onclick="fxCloseGemControls()">←</button>' +
         '<span style="font-family:var(--mono,monospace);font-size:9px;letter-spacing:0.12em;color:rgba(255,255,255,0.8);flex:1;">GEM</span>' +
         '<button onclick="fxRemoveFrame()" style="background:none;border:none;font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;color:rgba(255,100,100,0.7);cursor:pointer;padding:4px 8px;">REMOVE</button>' +
       '</div>' +
-      '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;">' +
-        mkSlider('opacity',  'OPACITY',  0,    100,  100) +
-        mkSlider('scale',    'SCALE',    50,   150,  100) +
-        mkSlider('position', 'POSITION', -100, 100,  0)   +
-        '<div style="display:flex;justify-content:center;gap:20px;padding:12px 14px 0;">' +
+      '<div class="crop-subtabs" id="fxgc-subtabs" style="margin-top:8px;">' +
+        '<button class="crop-subtab active" onclick="fxGcSubTab(this,\'opacity\')">OPACITY</button>' +
+        '<button class="crop-subtab" onclick="fxGcSubTab(this,\'scale\')">SCALE</button>' +
+        '<button class="crop-subtab" onclick="fxGcSubTab(this,\'position\')">POSITION</button>' +
+        '<button class="crop-subtab" onclick="fxGcSubTab(this,\'rotate\')">ROTATE</button>' +
+      '</div>' +
+      '<div class="crop-sub-content" id="fxgc-sub-opacity" style="flex:1;display:flex;flex-direction:column;justify-content:center;">' +
+        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Opacity</span><span class="crop-sub-val" id="fxgcv-opacity">100</span></div>' +
+        '<input type="range" class="tc-range" id="fxgcr-opacity" min="0" max="100" value="100" oninput="fxGemSlide(\'intensity\',this.value,\'fxgcv-opacity\')">' +
+      '</div>' +
+      '<div class="crop-sub-content" id="fxgc-sub-scale" style="flex:1;display:none;flex-direction:column;justify-content:center;">' +
+        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Scale</span><span class="crop-sub-val" id="fxgcv-scale">100</span></div>' +
+        '<input type="range" class="tc-range" id="fxgcr-scale" min="50" max="200" value="100" oninput="fxGemSlide(\'scale\',this.value,\'fxgcv-scale\')">' +
+      '</div>' +
+      '<div class="crop-sub-content" id="fxgc-sub-position" style="flex:1;display:none;flex-direction:column;justify-content:center;">' +
+        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Position</span><span class="crop-sub-val" id="fxgcv-position">0</span></div>' +
+        '<input type="range" class="tc-range" id="fxgcr-position" min="-100" max="100" value="0" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-position\')">' +
+      '</div>' +
+      '<div class="crop-sub-content" id="fxgc-sub-rotate" style="flex:1;display:none;flex-direction:column;justify-content:center;">' +
+        '<div class="crop-transform-icons">' +
           '<div class="crop-transform-icon-btn" onclick="fxGemFlip(\'h\')">' +
             '<div class="crop-transform-icon-box"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M10 5 L3 12 L10 19 Z" opacity="0.92"/><path d="M14 5 L21 12 L14 19 Z" opacity="0.92"/></svg></div>' +
             '<span class="crop-transform-icon-label">FLIP H</span>' +
@@ -18956,62 +18959,40 @@ function fxOpenGemControls() {
           '</div>' +
         '</div>' +
       '</div>' +
-      '<div style="display:flex;justify-content:flex-end;padding:0 20px 20px;">' +
+      '<div style="display:flex;justify-content:flex-end;padding:0 20px 20px;flex-shrink:0;">' +
         '<button class="fx-action-btn" style="color:rgba(255,255,255,0.85);" onclick="fxCloseGemControls()">✓</button>' +
       '</div>';
-
     document.getElementById('es-panel-fx').appendChild(pv);
-
-    pv.addEventListener('mousedown', _fxGcDragStart);
-    pv.addEventListener('touchstart', _fxGcDragStart, { passive: false });
   }
-
-  _fxGcSetSlider('opacity',  fxState.frames.intensity,               0,    100);
-  _fxGcSetSlider('scale',    Math.round(fxState.frames.scale * 100), 50,   150);
-  _fxGcSetSlider('position', fxState.frames.positionY || 0,          -100, 100);
-
+  var ro = document.getElementById('fxgcr-opacity');
+  var rs = document.getElementById('fxgcr-scale');
+  var rp = document.getElementById('fxgcr-position');
+  if (ro) { ro.value = fxState.frames.intensity; document.getElementById('fxgcv-opacity').textContent = Math.round(fxState.frames.intensity); }
+  if (rs) { rs.value = Math.round(fxState.frames.scale * 100); document.getElementById('fxgcv-scale').textContent = Math.round(fxState.frames.scale * 100); }
+  if (rp) { rp.value = fxState.frames.positionY || 0; document.getElementById('fxgcv-position').textContent = Math.round(fxState.frames.positionY || 0); }
+  fxGcSubTab(document.querySelector('#fxgc-subtabs .crop-subtab'), 'opacity');
   pv.style.display = 'flex';
   fxShowLevel(4);
 }
 
-function _fxGcSetSlider(id, val, min, max) {
-  var pct = ((val - min) / (max - min) * 100).toFixed(1);
-  var fill  = document.getElementById('fxgcf-'  + id);
-  var thumb = document.getElementById('fxgcth-' + id);
-  var valEl = document.getElementById('fxgcv-'  + id);
-  if (fill)  fill.style.width = pct + '%';
-  if (thumb) thumb.style.left = pct + '%';
-  if (valEl) valEl.textContent = Math.round(val);
+function fxGcSubTab(btn, tab) {
+  document.querySelectorAll('#fxgc-subtabs .crop-subtab').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  ['opacity','scale','position','rotate'].forEach(function(t) {
+    var el = document.getElementById('fxgc-sub-' + t);
+    if (el) el.style.display = (t === tab) ? 'flex' : 'none';
+  });
 }
 
-var _fxGcDragging = null;
-function _fxGcDragStart(e) {
-  var track = e.target.closest('[data-fxgc]');
-  if (!track) return;
-  if (e.type === 'touchstart') e.preventDefault();
-  _fxGcDragging = track;
-  _fxGcApplyDrag(e);
-}
-function _fxGcApplyDrag(e) {
-  if (!_fxGcDragging) return;
-  var clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  var rect = _fxGcDragging.getBoundingClientRect();
-  var t = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-  var id  = _fxGcDragging.dataset.fxgc;
-  var min = parseFloat(_fxGcDragging.dataset.min);
-  var max = parseFloat(_fxGcDragging.dataset.max);
-  var val = min + t * (max - min);
-  _fxGcSetSlider(id, val, min, max);
-  if (id === 'opacity')  { fxState.frames.intensity = Math.round(val); }
-  if (id === 'scale')    { fxState.frames.scale = val / 100; }
-  if (id === 'position') { fxState.frames.positionY = val; }
+function fxGemSlide(key, val, valId) {
+  val = parseFloat(val);
+  if (key === 'intensity')  fxState.frames.intensity  = Math.round(val);
+  if (key === 'scale')      fxState.frames.scale      = val / 100;
+  if (key === 'positionY')  fxState.frames.positionY  = val;
+  var el = document.getElementById(valId);
+  if (el) el.textContent = Math.round(val);
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
-function _fxGcDragEnd() { _fxGcDragging = null; }
-document.addEventListener('mousemove', _fxGcApplyDrag);
-document.addEventListener('touchmove', function(e) { if (_fxGcDragging) { e.preventDefault(); _fxGcApplyDrag(e); } }, { passive: false });
-document.addEventListener('mouseup',   _fxGcDragEnd);
-document.addEventListener('touchend',  _fxGcDragEnd);
 
 function fxCloseGemControls() {
   var pv = document.getElementById('fx-gem-controls');
@@ -19022,8 +19003,8 @@ function fxCloseGemControls() {
 }
 
 function fxGemFlip(axis) {
-  if (axis === 'h') { fxState.frames.mirror = !fxState.frames.mirror; }
-  else if (axis === 'v') { fxState.frames.flipV = !fxState.frames.flipV; }
+  if (axis === 'h') fxState.frames.mirror = !fxState.frames.mirror;
+  else if (axis === 'v') fxState.frames.flipV = !fxState.frames.flipV;
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 

@@ -18567,23 +18567,22 @@ var FX_VARIANTS = {
     { id:'gem', label:'GEMS', hasDesigns: true, assetFile:'gemframepreview.png' }
   ],
   gem: [
-    { id:'gem1',  label:'', assetFile:'gemframesbypurple1.png' },
-    { id:'gem2',  label:'', assetFile:'gemframesbypurple2.png' },
-    { id:'gem3',  label:'', assetFile:'gemframesbypurple.png' },
-    { id:'gem4',  label:'', assetFile:'gemframesbypurple4.png' },
-    { id:'gem5',  label:'', assetFile:'gemframesbypurple5.png' },
+    { id:'gem10', label:'', assetFile:'gemframesbypurple10.png' },
+    { id:'gem9',  label:'', assetFile:'gemframesbypurple9.png' },
+    { id:'gem8',  label:'', assetFile:'gemframesbypurple8.png', thumbScale: 0.8 },
     { id:'gem6',  label:'', assetFile:'gemframesbypurple6.png' },
     { id:'gem7',  label:'', assetFile:'gemframesbypurple7.png' },
-    { id:'gem8',  label:'', assetFile:'gemframesbypurple8.png' },
-    { id:'gem9',  label:'', assetFile:'gemframesbypurple9.png' },
-    { id:'gem10', label:'', assetFile:'gemframesbypurple10.png' },
+    { id:'gem2',  label:'', assetFile:'gemframesbypurple2.png' },
     { id:'gem11', label:'', assetFile:'gemframesbypurple11.png' },
-    { id:'gem12', label:'', assetFile:'gemframesbypurple12.png' },
-    { id:'gem13', label:'', assetFile:'gemframesbypurple13.png' },
-    { id:'gem14', label:'', assetFile:'gemframesbypurple14.png' },
-    { id:'gem15', label:'', assetFile:'gemframesbypurple15.png' },
     { id:'gem16', label:'', assetFile:'gemframesbypurple16.png' },
-    { id:'gem17', label:'', assetFile:'gemframesbypurple17.png' }
+    { id:'gem3',  label:'', assetFile:'gemframesbypurple.png' },
+    { id:'gem17', label:'', assetFile:'gemframesbypurple17.png' },
+    { id:'gem15', label:'', assetFile:'gemframesbypurple15.png' },
+    { id:'gem1',  label:'', assetFile:'gemframesbypurple1.png' },
+    { id:'gem4',  label:'', assetFile:'gemframesbypurple4.png' },
+    { id:'gem5',  label:'', assetFile:'gemframesbypurple5.png' },
+    { id:'gem13', label:'', assetFile:'gemframesbypurple13.png' },
+    { id:'gem14', label:'', assetFile:'gemframesbypurple14.png' }
   ]
 };
 
@@ -18799,6 +18798,7 @@ function fxBuildVariantStrip(cat) {
       var imgBg = document.createElement('div');
       imgBg.className = 'fx-gem-card-img';
       imgBg.style.backgroundImage = 'url(./assets/frames/' + v.assetFile + ')';
+      if (v.thumbScale) { imgBg.style.backgroundSize = (v.thumbScale * 100) + '%'; }
       var grad = document.createElement('div');
       grad.className = 'fx-gem-card-grad';
       var adj = document.createElement('div');

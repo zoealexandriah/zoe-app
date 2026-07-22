@@ -12042,7 +12042,7 @@ function _blemishShowPreview(clientX, clientY) {
   var logicalY   = (clientY - centerY) / zoom;
   var px = canvas.width  / 2 + logicalX * (canvas.width  / (canvasRect.width  / zoom));
   var py = canvas.height / 2 + logicalY * (canvas.height / (canvasRect.height / zoom));
-  var r  = _blemishRadius * Math.min(canvas.width, canvas.height);
+  var r  = (_blemishRadius * Math.min(canvas.width, canvas.height)) / zoom;
   var ctx = ov.getContext('2d', { willReadFrequently: true });
   ctx.clearRect(0, 0, ov.width, ov.height);
   ctx.beginPath();
@@ -18350,7 +18350,7 @@ var FX_MULTI = ['glow','paper'];
 var FX_VARIANTS = {
   frames: [
     { id:'none',        label:'NONE' },
-    { id:'gem',  label:'GEM' },
+    { id:'gem',         label:'GEM',      hasSubVariants: true },
     { id:'polaroid',    label:'POLAROID' },
     { id:'filmneg',     label:'FILM' },
     { id:'letterbox',   label:'LETTERBOX' },
@@ -18359,6 +18359,13 @@ var FX_VARIANTS = {
     { id:'oval',        label:'OVAL' },
     { id:'ornate',      label:'ORNATE' },
     { id:'linen',       label:'LINEN' }
+  ],
+  gem: [
+    { id:'gem_1x1',   label:'1 : 1',   assetKey:'1x1' },
+    { id:'gem_3x4',   label:'3 : 4',   assetKey:'3x4' },
+    { id:'gem_4x3',   label:'4 : 3',   assetKey:'4x3' },
+    { id:'gem_9x16',  label:'9 : 16',  assetKey:'9x16' },
+    { id:'gem_16x9',  label:'16 : 9',  assetKey:'16x9' }
   ]
 };
 
@@ -18366,15 +18373,21 @@ var FX_VARIANTS = {
 var _fxFrameImgCache = {};
 
 function fxGetFrameAssetURL(frameId, canvasW, canvasH) {
-  if (frameId === 'rhinestone') {
-    var ratio = canvasW / canvasH;
-    var key;
-    if      (ratio > 1.6)  key = '16x9';
-    else if (ratio > 1.1)  key = '4x3';
-    else if (ratio > 0.85) key = '1x1';
-    else if (ratio > 0.6)  key = '3x4';
-    else                   key = '9x16';
+  /* gem sub-variants: id encodes the ratio e.g. gem_9x16 */
+  if (frameId && frameId.indexOf('gem_') === 0) {
+    var key = frameId.replace('gem_', '');
     return './assets/frames/rhinestone A_' + key + '.png';
+  }
+  /* legacy auto-detect (kept for fallback) */
+  if (frameId === 'gem') {
+    var ratio = canvasW / canvasH;
+    var key2;
+    if      (ratio > 1.6)  key2 = '16x9';
+    else if (ratio > 1.1)  key2 = '4x3';
+    else if (ratio > 0.85) key2 = '1x1';
+    else if (ratio > 0.6)  key2 = '3x4';
+    else                   key2 = '9x16';
+    return './assets/frames/rhinestone A_' + key2 + '.png';
   }
   return null;
 }
@@ -18564,24 +18577,41 @@ function fxSelectVariant(cat, variantId) {
   _fxActiveVariant = variantId;
   document.querySelectorAll('.fx-var-card').forEach(function(t) {
     t.classList.remove('active');
-    t.querySelector('div').style.borderColor = 'rgba(255,255,255,0.10)';
+    var th = t.querySelector('div');
+    if (th) th.style.borderColor = 'rgba(255,255,255,0.10)';
   });
-  event.currentTarget.classList.add('active');
-  var th = event.currentTarget.querySelector('div');
-  if (th) th.style.borderColor = 'var(--accent,#c9b8d4)';
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+    var th2 = event.currentTarget.querySelector('div');
+    if (th2) th2.style.borderColor = 'var(--accent,#c9b8d4)';
+  }
 
   if (variantId === 'none') {
-    /* selecting none resets and goes back to grid */
     fxState[cat].variant = null;
     fxState[cat].intensity = 0;
     fxUpdateCatDot(cat);
     fxBackToGrid();
+    if (typeof evRenderCanvas === 'function') evRenderCanvas();
     return;
   }
 
-  /* frames: go to intensity (opacity) */
-  _fxPendingIntensity = fxState[cat].intensity || 100;
-  var label = variantId.toUpperCase();
+  /* check if this variant has sub-variants (e.g. GEM → aspect ratios) */
+  var variants = FX_VARIANTS[cat] || [];
+  var varDef = null;
+  for (var i = 0; i < variants.length; i++) { if (variants[i].id === variantId) { varDef = variants[i]; break; } }
+  if (varDef && varDef.hasSubVariants && FX_VARIANTS[variantId]) {
+    /* open sub-variant strip */
+    _fxActiveCat = variantId;
+    document.getElementById('fx-variant-title').textContent = varDef.label;
+    fxBuildVariantStrip(variantId);
+    fxShowLevel(2);
+    return;
+  }
+
+  /* sub-variant (e.g. gem_1x1) — go to intensity */
+  _fxPendingIntensity = 100;
+  var label = variantId.replace(/_/g,' ').toUpperCase();
+  if (varDef && varDef.label) label = varDef.label;
   document.getElementById('fx-intensity-title').textContent = label;
   document.getElementById('fx-intensity-name').textContent  = label;
   document.getElementById('fx-intensity-val').textContent   = _fxPendingIntensity;

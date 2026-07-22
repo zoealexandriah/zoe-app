@@ -14002,14 +14002,24 @@ function _evDoSave() {
     return URL.createObjectURL(blob);
   }
 
-  var d  = new Date();
-  var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
-  var ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
-  var a  = document.createElement('a');
-  a.download = 'ZOE_' + ds + '_' + ts + '.jpg';
-  var _rawDataURL = out.toDataURL('image/jpeg', 0.95);
-  a.href = _injectICC(_rawDataURL);
-  a.click();
+  /* Apply frame overlay then save */
+  var _fxFrameVariant  = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant  : null;
+  var _fxFrameOpacity  = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.intensity : 100;
+  function _doDownload() {
+    var d  = new Date();
+    var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+    var ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
+    var a  = document.createElement('a');
+    a.download = 'ZOE_' + ds + '_' + ts + '.jpg';
+    var _rawDataURL = out.toDataURL('image/jpeg', 0.95);
+    a.href = _injectICC(_rawDataURL);
+    a.click();
+  }
+  if (_fxFrameVariant && _fxFrameVariant !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
+    fxApplyFrameToCanvas(out, _fxFrameVariant, _fxFrameOpacity, _doDownload);
+  } else {
+    _doDownload();
+  }
 }
 
 // Wire EDITOR nav item
@@ -14252,6 +14262,12 @@ function _evRenderCanvasImmediate() {
   }
   if (blemishSpots && blemishSpots.length > 0) applyBlemishHeal(canvas, blemishSpots, 0, 0, canvas.width, canvas.height);
   if (typeof _blemishSyncOverlay === 'function') _blemishSyncOverlay();
+  /* FX frame overlay — drawn on top of everything */
+  var _fxFV = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant  : null;
+  var _fxFO = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.intensity : 100;
+  if (_fxFV && _fxFV !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
+    fxApplyFrameToCanvas(canvas, _fxFV, _fxFO, null);
+  }
   if (canvas.style.opacity === '0') canvas.style.opacity = '';
 }
 
@@ -18322,17 +18338,67 @@ var FX_MULTI = ['glow','paper'];
 /* Variant definitions for FRAMES */
 var FX_VARIANTS = {
   frames: [
-    { id:'none',       label:'NONE' },
-    { id:'polaroid',   label:'POLAROID' },
-    { id:'filmneg',    label:'FILM' },
-    { id:'letterbox',  label:'LETTERBOX' },
-    { id:'tape',       label:'TAPE' },
-    { id:'stamp',      label:'STAMP' },
-    { id:'oval',       label:'OVAL' },
-    { id:'ornate',     label:'ORNATE' },
-    { id:'linen',      label:'LINEN' }
+    { id:'none',        label:'NONE' },
+    { id:'rhinestone',  label:'RHINESTONE' },
+    { id:'polaroid',    label:'POLAROID' },
+    { id:'filmneg',     label:'FILM' },
+    { id:'letterbox',   label:'LETTERBOX' },
+    { id:'tape',        label:'TAPE' },
+    { id:'stamp',       label:'STAMP' },
+    { id:'oval',        label:'OVAL' },
+    { id:'ornate',      label:'ORNATE' },
+    { id:'linen',       label:'LINEN' }
   ]
 };
+
+/* ── FRAME ASSET SYSTEM ─────────────────────────────── */
+var _fxFrameImgCache = {};
+
+function fxGetFrameAssetURL(frameId, canvasW, canvasH) {
+  if (frameId === 'rhinestone') {
+    var ratio = canvasW / canvasH;
+    var key;
+    if      (ratio > 1.6)  key = '16x9';
+    else if (ratio > 1.1)  key = '4x3';
+    else if (ratio > 0.85) key = '1x1';
+    else if (ratio > 0.6)  key = '3x4';
+    else                   key = '9x16';
+    return './assets/frames/rhinestone A_' + key + '.png';
+  }
+  return null;
+}
+
+function fxApplyFrameToCanvas(canvas, frameId, opacity, callback) {
+  if (!frameId || frameId === 'none') { if (callback) callback(); return; }
+  var url = fxGetFrameAssetURL(frameId, canvas.width, canvas.height);
+  if (!url) { if (callback) callback(); return; }
+  var cacheKey = url;
+  function drawIt(img) {
+    var ctx = canvas.getContext('2d');
+    var alpha = (opacity !== undefined ? opacity : 100) / 100;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    /* Scale frame to cover canvas, centered */
+    var sw = canvas.width, sh = canvas.height;
+    var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+    var scale = Math.max(sw / iw, sh / ih);
+    var dw = iw * scale, dh = ih * scale;
+    var dx = (sw - dw) / 2, dy = (sh - dh) / 2;
+    ctx.drawImage(img, dx, dy, dw, dh);
+    ctx.restore();
+    if (callback) callback();
+  }
+  if (_fxFrameImgCache[cacheKey] && _fxFrameImgCache[cacheKey].complete) {
+    drawIt(_fxFrameImgCache[cacheKey]);
+  } else {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    _fxFrameImgCache[cacheKey] = img;
+    img.onload  = function() { drawIt(img); };
+    img.onerror = function() { if (callback) callback(); };
+    img.src = url;
+  }
+}
 
 /* ── NAVIGATION ─────────────────────────────────────── */
 function fxShowLevel(level) {
@@ -18520,7 +18586,8 @@ function fxIntensityConfirm() {
   }
   fxUpdateCatDot(_fxActiveCat);
   fxBackToGrid();
-  /* TODO: wire into render + export pipeline */
+  /* Trigger preview re-render so frame appears immediately */
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
 function fxIntensityCancel() {

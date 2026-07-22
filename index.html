@@ -13969,13 +13969,14 @@ function evSaveWithAnimation() {
 function _evDoSave() {
   if (!userImage) return;
   var nw = userImage.naturalWidth, nh = userImage.naturalHeight;
-  // Render at preview reference resolution — same pixel values as what user sees
-  var _ref = 2400;
+  // Render at safe export resolution — 1800px balances quality vs memory
+  var _ref = 1800;
   var ps = Math.min(1, _ref / Math.max(nw, nh));
   var pw = Math.round(nw * ps), ph = Math.round(nh * ps);
   var off = document.createElement('canvas');
   off.width = pw; off.height = ph;
   var ctx = off.getContext('2d', { willReadFrequently: true });
+  if (!ctx) { showToast('Export failed — image too large'); return; }
   ctx.drawImage(userImage, 0, 0, pw, ph);
   var p = activePreset;
   if (p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) {
@@ -14042,16 +14043,9 @@ function _evDoSave() {
     if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
                                            applyBlemishHeal(off, blemishSpots, 0, 0, pw, ph);
   }
-  // Upscale to export resolution with high-quality interpolation
-  var _maxExport = 3000;
-  var es = Math.min(1, _maxExport / Math.max(nw, nh));
-  var ew = Math.round(nw * es), eh = Math.round(nh * es);
-  var out = document.createElement('canvas');
-  out.width = ew; out.height = eh;
-  var outCtx = out.getContext('2d', { willReadFrequently: true });
-  outCtx.imageSmoothingEnabled = true;
-  outCtx.imageSmoothingQuality = 'high';
-  outCtx.drawImage(off, 0, 0, ew, eh);
+  /* Skip upscale — export directly from the render canvas to avoid double memory */
+  var out = off;
+  var outCtx = ctx;
   // Inject sRGB ICC profile into JPEG for proper cross-device color management
   function _injectICC(dataURL) {
     var b64 = dataURL.split(',')[1];

@@ -18411,7 +18411,6 @@ function fxApplyFrameToCanvas(canvas, frameId, opacity, callback) {
     drawIt(_fxFrameImgCache[cacheKey]);
   } else {
     var img = new Image();
-    img.crossOrigin = 'anonymous';
     _fxFrameImgCache[cacheKey] = img;
     img.onload  = function() {
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
@@ -18565,7 +18564,6 @@ function fxBuildVariantStrip(cat) {
       /* load the 1x1 version as the thumbnail preview */
       var previewUrl = './assets/frames/' + v.assetPrefix + '_1x1.png';
       var img = document.createElement('img');
-      img.crossOrigin = 'anonymous';
       img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:9px;';
       img.src = previewUrl;
       thumb.appendChild(img);
@@ -18634,7 +18632,6 @@ function fxSelectVariant(cat, variantId) {
         if (_loaded === _ratioKeys.length && typeof evRenderCanvas === 'function') evRenderCanvas();
       } else {
         var _img = new Image();
-        _img.crossOrigin = 'anonymous';
         _fxFrameImgCache[_url] = _img;
         _img.onload = function() {
           _loaded++;

@@ -14027,7 +14027,7 @@ function _evDoSave() {
     a.click();
   }
   if (_fxFrameVariant && _fxFrameVariant !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
-    fxApplyFrameToCanvas(out, _fxFrameVariant, _fxFrameOpacity, _doDownload);
+    fxApplyFrameToCanvas(out, _fxFrameVariant, fxState.frames, _doDownload);
   } else {
     _doDownload();
   }
@@ -14277,7 +14277,7 @@ function _evRenderCanvasImmediate() {
   var _fxFV = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant  : null;
   var _fxFO = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.intensity : 100;
   if (_fxFV && _fxFV !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
-    fxApplyFrameToCanvas(canvas, _fxFV, _fxFO, null);
+    fxApplyFrameToCanvas(canvas, _fxFV, fxState.frames, null);
   }
   if (canvas.style.opacity === '0') canvas.style.opacity = '';
 }
@@ -18334,7 +18334,7 @@ var fxState = {
   scanlines:   { variant: null, intensity: 0 },
   vhsbleed:    { variant: null, intensity: 0 },
   paper:       { fold: 0, texture: 0 },
-  frames:      { variant: 'none', intensity: 100 }
+  frames:      { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false }
 };
 
 var _fxActiveCat = null;
@@ -18361,57 +18361,67 @@ var FX_VARIANTS = {
     { id:'linen',      label:'LINEN' }
   ],
   gem: [
-    { id:'gem_rhinestone_a', label:'', assetPrefix:'rhinestoneA' }
+    { id:'gem1',  label:'', assetFile:'gemframesbypurple1.png' },
+    { id:'gem2',  label:'', assetFile:'gemframesbypurple2.png' },
+    { id:'gem3',  label:'', assetFile:'gemframesbypurple.png' },
+    { id:'gem4',  label:'', assetFile:'gemframesbypurple4.png' },
+    { id:'gem5',  label:'', assetFile:'gemframesbypurple5.png' },
+    { id:'gem6',  label:'', assetFile:'gemframesbypurple6.png' },
+    { id:'gem7',  label:'', assetFile:'gemframesbypurple7.png' },
+    { id:'gem8',  label:'', assetFile:'gemframesbypurple8.png' },
+    { id:'gem9',  label:'', assetFile:'gemframesbypurple9.png' },
+    { id:'gem10', label:'', assetFile:'gemframesbypurple10.png' },
+    { id:'gem11', label:'', assetFile:'gemframesbypurple11.png' },
+    { id:'gem12', label:'', assetFile:'gemframesbypurple12.png' },
+    { id:'gem13', label:'', assetFile:'gemframesbypurple13.png' },
+    { id:'gem14', label:'', assetFile:'gemframesbypurple14.png' },
+    { id:'gem15', label:'', assetFile:'gemframesbypurple15.png' },
+    { id:'gem16', label:'', assetFile:'gemframesbypurple16.png' },
+    { id:'gem17', label:'', assetFile:'gemframesbypurple17.png' }
   ]
 };
 
 /* ── FRAME ASSET SYSTEM ─────────────────────────────── */
 var _fxFrameImgCache = {};
 
-function fxGetFrameAssetURL(frameId, canvasW, canvasH) {
-  /* find design in gem variants by id */
+function fxGetFrameAssetURL(frameId) {
   var gemVariants = FX_VARIANTS.gem || [];
   for (var gi = 0; gi < gemVariants.length; gi++) {
     if (gemVariants[gi].id === frameId) {
-      var prefix = gemVariants[gi].assetPrefix;
-      var ratio = canvasW / canvasH;
-      var key;
-      if      (ratio > 1.6)  key = '16x9';
-      else if (ratio > 1.1)  key = '4x3';
-      else if (ratio > 0.85) key = '1x1';
-      else if (ratio > 0.6)  key = '3x4';
-      else                   key = '9x16';
-      return './assets/frames/' + prefix + '_' + key + '.png';
+      return './assets/frames/' + gemVariants[gi].assetFile;
     }
   }
   return null;
 }
 
-function fxApplyFrameToCanvas(canvas, frameId, opacity, callback) {
+function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
   if (!frameId || frameId === 'none') { if (callback) callback(); return; }
-  var url = fxGetFrameAssetURL(frameId, canvas.width, canvas.height);
+  var url = fxGetFrameAssetURL(frameId);
   if (!url) { if (callback) callback(); return; }
-  var cacheKey = url;
+  var opacity  = (opts && opts.intensity  !== undefined) ? opts.intensity  / 100 : 1.0;
+  var scale    = (opts && opts.scale      !== undefined) ? opts.scale      : 1.0;
+  var rotation = (opts && opts.rotation   !== undefined) ? opts.rotation   : 0;
+  var mirror   = (opts && opts.mirror     !== undefined) ? opts.mirror     : false;
   function drawIt(img) {
     var ctx = canvas.getContext('2d');
-    var alpha = (opacity !== undefined ? opacity : 100) / 100;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    /* Scale frame to cover canvas, centered */
     var sw = canvas.width, sh = canvas.height;
     var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
-    var scale = Math.max(sw / iw, sh / ih);
-    var dw = iw * scale, dh = ih * scale;
-    var dx = (sw - dw) / 2, dy = (sh - dh) / 2;
-    ctx.drawImage(img, dx, dy, dw, dh);
+    var baseScale = Math.min(sw / iw, sh / ih) * scale;
+    var dw = iw * baseScale, dh = ih * baseScale;
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.translate(sw / 2, sh / 2);
+    if (rotation) ctx.rotate(rotation * Math.PI / 180);
+    if (mirror)   ctx.scale(-1, 1);
+    ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
     ctx.restore();
     if (callback) callback();
   }
-  if (_fxFrameImgCache[cacheKey] && _fxFrameImgCache[cacheKey].complete) {
-    drawIt(_fxFrameImgCache[cacheKey]);
+  if (_fxFrameImgCache[url] && _fxFrameImgCache[url].complete && _fxFrameImgCache[url].naturalWidth > 0) {
+    drawIt(_fxFrameImgCache[url]);
   } else {
     var img = new Image();
-    _fxFrameImgCache[cacheKey] = img;
+    _fxFrameImgCache[url] = img;
     img.onload  = function() {
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
       else drawIt(img);
@@ -18435,6 +18445,8 @@ function fxShowLevel(level) {
   i.classList.toggle('active', level === 3);
   if (m) m.classList.toggle('active', level === 4 && _fxActiveCat === 'glow');
   if (p) p.classList.toggle('active', level === 4 && _fxActiveCat === 'paper');
+  var gc = document.getElementById('fx-gem-controls');
+  if (gc && level !== 4) gc.style.display = 'none';
 }
 
 function fxOpenCat(cat) {
@@ -18562,8 +18574,8 @@ function fxBuildVariantStrip(cat) {
       var slash = document.createElement('div');
       slash.style.cssText = 'width:1px;height:60px;background:rgba(255,255,255,0.2);transform:rotate(45deg);pointer-events:none;';
       thumb.appendChild(slash);
-    } else if (v.assetPrefix) {
-      var previewUrl = './assets/frames/' + v.assetPrefix + '_1x1.png';
+    } else if (v.assetFile) {
+      var previewUrl = './assets/frames/' + v.assetFile;
       var imgDiv = document.createElement('div');
       imgDiv.style.cssText = 'width:100%;height:100%;border-radius:9px;background-image:url(' + previewUrl + ');background-size:cover;background-position:center;pointer-events:none;';
       thumb.appendChild(imgDiv);
@@ -18615,34 +18627,29 @@ function fxSelectVariant(cat, variantId) {
     return;
   }
 
-  /* gem design variant — preload all aspect ratio PNGs then render */
-  if (varDef && varDef.assetPrefix) {
+  /* gem design variant — first tap applies, second tap opens controls */
+  if (varDef && varDef.assetFile) {
+    var _alreadySelected = fxState.frames.variant === variantId;
     fxState.frames.variant = variantId;
-    fxState.frames.intensity = 100;
+    fxState.frames.intensity = fxState.frames.intensity || 100;
+    fxState.frames.scale    = fxState.frames.scale    || 1.0;
+    fxState.frames.rotation = fxState.frames.rotation || 0;
+    fxState.frames.mirror   = fxState.frames.mirror   || false;
     fxUpdateCatDot('frames');
-    fxBackToGrid();
-    /* preload all 5 ratio variants into cache so render is synchronous */
-    var _ratioKeys = ['1x1','3x4','4x3','9x16','16x9'];
-    var _loaded = 0;
-    _ratioKeys.forEach(function(rk) {
-      var _url = './assets/frames/' + varDef.assetPrefix + '_' + rk + '.png';
-      if (_fxFrameImgCache[_url] && _fxFrameImgCache[_url].complete) {
-        _loaded++;
-        if (_loaded === _ratioKeys.length && typeof evRenderCanvas === 'function') evRenderCanvas();
-      } else {
-        var _img = new Image();
-        _fxFrameImgCache[_url] = _img;
-        _img.onload = function() {
-          _loaded++;
-          if (_loaded === _ratioKeys.length && typeof evRenderCanvas === 'function') evRenderCanvas();
-        };
-        _img.onerror = function() {
-          _loaded++;
-          if (_loaded === _ratioKeys.length && typeof evRenderCanvas === 'function') evRenderCanvas();
-        };
-        _img.src = _url;
-      }
-    });
+    /* preload into cache */
+    var _url = './assets/frames/' + varDef.assetFile;
+    if (!_fxFrameImgCache[_url] || !_fxFrameImgCache[_url].complete) {
+      var _img = new Image();
+      _fxFrameImgCache[_url] = _img;
+      _img.onload = function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); };
+      _img.src = _url;
+    }
+    if (_alreadySelected) {
+      fxOpenGemControls();
+    } else {
+      fxBackToGrid();
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    }
     return;
   }
 
@@ -18837,6 +18844,87 @@ function fxDrawFrameThumb(canvas, frameId) {
     ctx.textAlign = 'center';
     ctx.fillText('PNG ASSET', 35, 38);
   }
+}
+
+function fxOpenGemControls() {
+  var pv = document.getElementById('fx-gem-controls');
+  if (!pv) {
+    pv = document.createElement('div');
+    pv.id = 'fx-gem-controls';
+    pv.style.cssText = 'display:none;flex-direction:column;flex:1;overflow:hidden;';
+    pv.innerHTML =
+      '<div style="display:flex;align-items:center;padding:10px 14px 8px;gap:8px;border-bottom:0.5px solid rgba(255,255,255,0.08);flex-shrink:0;">' +
+        '<button style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:16px;cursor:pointer;padding:0 6px 0 0;line-height:1;" onclick="fxCloseGemControls()">←</button>' +
+        '<span style="font-family:var(--mono,monospace);font-size:9px;letter-spacing:0.12em;color:rgba(255,255,255,0.8);flex:1;">GEM</span>' +
+        '<button onclick="fxRemoveFrame()" style="background:none;border:none;font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;color:rgba(255,100,100,0.7);cursor:pointer;padding:4px 8px;">REMOVE</button>' +
+      '</div>' +
+      '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 20px;gap:22px;">' +
+        '<div class="fx-msl-row"><span class="fx-msl-label">OPACITY</span><input type="range" class="fx-msl-track" min="0" max="100" value="100" id="fxgc-opacity" oninput="fxGemControl(\'intensity\',this.value)"><span class="fx-msl-val" id="fxgcv-opacity">100</span></div>' +
+        '<div class="fx-msl-row"><span class="fx-msl-label">SCALE</span><input type="range" class="fx-msl-track" min="50" max="150" value="100" id="fxgc-scale" oninput="fxGemControl(\'scale\',this.value)"><span class="fx-msl-val" id="fxgcv-scale">100</span></div>' +
+        '<div class="fx-msl-row"><span class="fx-msl-label">ROTATION</span><input type="range" class="fx-msl-track" min="-180" max="180" value="0" id="fxgc-rotation" oninput="fxGemControl(\'rotation\',this.value)"><span class="fx-msl-val" id="fxgcv-rotation">0</span></div>' +
+        '<div class="fx-msl-row"><span class="fx-msl-label">MIRROR</span>' +
+          '<div style="flex:1;display:flex;gap:8px;">' +
+            '<div id="fxgc-mirror-off" onclick="fxGemMirror(false)" style="flex:1;text-align:center;font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;padding:6px 4px;border-radius:8px;cursor:pointer;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(201,184,212,0.5);">OFF</div>' +
+            '<div id="fxgc-mirror-on"  onclick="fxGemMirror(true)"  style="flex:1;text-align:center;font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;padding:6px 4px;border-radius:8px;cursor:pointer;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.1);">ON</div>' +
+          '</div>' +
+          '<span class="fx-msl-val" style="opacity:0;">0</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:flex-end;padding:0 20px 20px;">' +
+        '<button class="fx-action-btn" style="color:rgba(255,255,255,0.85);" onclick="fxCloseGemControls()">✓</button>' +
+      '</div>';
+    document.getElementById('es-panel-fx').appendChild(pv);
+  }
+  var op = document.getElementById('fxgc-opacity');
+  var sc = document.getElementById('fxgc-scale');
+  var ro = document.getElementById('fxgc-rotation');
+  if (op) { op.value = fxState.frames.intensity; document.getElementById('fxgcv-opacity').textContent = fxState.frames.intensity; }
+  if (sc) { sc.value = Math.round(fxState.frames.scale * 100); document.getElementById('fxgcv-scale').textContent = Math.round(fxState.frames.scale * 100); }
+  if (ro) { ro.value = fxState.frames.rotation; document.getElementById('fxgcv-rotation').textContent = fxState.frames.rotation; }
+  fxGemMirror(fxState.frames.mirror, true);
+  pv.style.display = 'flex';
+  fxShowLevel(4);
+}
+
+function fxCloseGemControls() {
+  var pv = document.getElementById('fx-gem-controls');
+  if (pv) pv.style.display = 'none';
+  fxBackToGrid();
+}
+
+function fxGemControl(key, val) {
+  val = parseFloat(val);
+  if (key === 'scale') {
+    fxState.frames.scale = val / 100;
+    document.getElementById('fxgcv-scale').textContent = Math.round(val);
+  } else if (key === 'rotation') {
+    fxState.frames.rotation = val;
+    document.getElementById('fxgcv-rotation').textContent = Math.round(val);
+  } else if (key === 'intensity') {
+    fxState.frames.intensity = Math.round(val);
+    document.getElementById('fxgcv-opacity').textContent = Math.round(val);
+  }
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+}
+
+function fxGemMirror(on, silent) {
+  fxState.frames.mirror = on;
+  var offBtn = document.getElementById('fxgc-mirror-off');
+  var onBtn  = document.getElementById('fxgc-mirror-on');
+  if (offBtn) { offBtn.style.background = on ? 'transparent' : 'rgba(255,255,255,0.12)'; offBtn.style.color = on ? 'rgba(255,255,255,0.4)' : '#fff'; offBtn.style.borderColor = on ? 'rgba(255,255,255,0.1)' : 'rgba(201,184,212,0.5)'; }
+  if (onBtn)  { onBtn.style.background  = on ? 'rgba(255,255,255,0.12)' : 'transparent'; onBtn.style.color  = on ? '#fff' : 'rgba(255,255,255,0.4)'; onBtn.style.borderColor  = on ? 'rgba(201,184,212,0.5)' : 'rgba(255,255,255,0.1)'; }
+  if (!silent && typeof evRenderCanvas === 'function') evRenderCanvas();
+}
+
+function fxRemoveFrame() {
+  fxState.frames.variant = 'none';
+  fxState.frames.intensity = 100;
+  fxState.frames.scale = 1.0;
+  fxState.frames.rotation = 0;
+  fxState.frames.mirror = false;
+  fxUpdateCatDot('frames');
+  fxCloseGemControls();
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 </script>
 

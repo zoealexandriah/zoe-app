@@ -18349,23 +18349,19 @@ var FX_MULTI = ['glow','paper'];
 /* Variant definitions for FRAMES */
 var FX_VARIANTS = {
   frames: [
-    { id:'none',        label:'NONE' },
-    { id:'gem',         label:'GEM',      hasSubVariants: true },
-    { id:'polaroid',    label:'POLAROID' },
-    { id:'filmneg',     label:'FILM' },
-    { id:'letterbox',   label:'LETTERBOX' },
-    { id:'tape',        label:'TAPE' },
-    { id:'stamp',       label:'STAMP' },
-    { id:'oval',        label:'OVAL' },
-    { id:'ornate',      label:'ORNATE' },
-    { id:'linen',       label:'LINEN' }
+    { id:'none',       label:'NONE' },
+    { id:'gem',        label:'GEM',  hasDesigns: true },
+    { id:'polaroid',   label:'POLAROID' },
+    { id:'filmneg',    label:'FILM' },
+    { id:'letterbox',  label:'LETTERBOX' },
+    { id:'tape',       label:'TAPE' },
+    { id:'stamp',      label:'STAMP' },
+    { id:'oval',       label:'OVAL' },
+    { id:'ornate',     label:'ORNATE' },
+    { id:'linen',      label:'LINEN' }
   ],
   gem: [
-    { id:'gem_1x1',   label:'1 : 1',   assetKey:'1x1' },
-    { id:'gem_3x4',   label:'3 : 4',   assetKey:'3x4' },
-    { id:'gem_4x3',   label:'4 : 3',   assetKey:'4x3' },
-    { id:'gem_9x16',  label:'9 : 16',  assetKey:'9x16' },
-    { id:'gem_16x9',  label:'16 : 9',  assetKey:'16x9' }
+    { id:'gem_rhinestone_a', label:'', assetPrefix:'rhinestone A' }
   ]
 };
 
@@ -18373,21 +18369,20 @@ var FX_VARIANTS = {
 var _fxFrameImgCache = {};
 
 function fxGetFrameAssetURL(frameId, canvasW, canvasH) {
-  /* gem sub-variants: id encodes the ratio e.g. gem_9x16 */
-  if (frameId && frameId.indexOf('gem_') === 0) {
-    var key = frameId.replace('gem_', '');
-    return './assets/frames/rhinestone A_' + key + '.png';
-  }
-  /* legacy auto-detect (kept for fallback) */
-  if (frameId === 'gem') {
-    var ratio = canvasW / canvasH;
-    var key2;
-    if      (ratio > 1.6)  key2 = '16x9';
-    else if (ratio > 1.1)  key2 = '4x3';
-    else if (ratio > 0.85) key2 = '1x1';
-    else if (ratio > 0.6)  key2 = '3x4';
-    else                   key2 = '9x16';
-    return './assets/frames/rhinestone A_' + key2 + '.png';
+  /* find design in gem variants by id */
+  var gemVariants = FX_VARIANTS.gem || [];
+  for (var gi = 0; gi < gemVariants.length; gi++) {
+    if (gemVariants[gi].id === frameId) {
+      var prefix = gemVariants[gi].assetPrefix;
+      var ratio = canvasW / canvasH;
+      var key;
+      if      (ratio > 1.6)  key = '16x9';
+      else if (ratio > 1.1)  key = '4x3';
+      else if (ratio > 0.85) key = '1x1';
+      else if (ratio > 0.6)  key = '3x4';
+      else                   key = '9x16';
+      return './assets/frames/' + prefix + '_' + key + '.png';
+    }
   }
   return null;
 }
@@ -18549,26 +18544,39 @@ function fxBuildVariantStrip(cat) {
   var strip = document.getElementById('fx-variant-strip');
   strip.innerHTML = '';
   var variants = FX_VARIANTS[cat] || [];
-  var current = fxState[cat] ? fxState[cat].variant : null;
+  var current = fxState.frames ? fxState.frames.variant : null;
   variants.forEach(function(v) {
+    var isActive = v.id === current;
     var div = document.createElement('div');
-    div.className = 'ev-preset-card fx-var-card' + (v.id === current ? ' active' : '');
-    div.style.cssText = 'flex-shrink:0;width:80px;cursor:pointer;position:relative;';
-    div.onclick = function() { fxSelectVariant(cat, v.id); };
-    /* thumbnail area */
+    div.className = 'fx-var-card' + (isActive ? ' active' : '');
+    div.style.cssText = 'flex-shrink:0;width:80px;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;';
+    div.onclick = (function(vid){ return function() { fxSelectVariant(cat, vid); }; })(v.id);
+    /* thumbnail */
     var thumb = document.createElement('div');
-    thumb.style.cssText = 'width:80px;height:80px;border-radius:10px;background:rgba(255,255,255,0.04);border:1.5px solid ' + (v.id === current ? 'var(--accent,#c9b8d4)' : 'rgba(255,255,255,0.10)') + ';display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;';
+    thumb.style.cssText = 'width:80px;height:80px;border-radius:10px;background:rgba(255,255,255,0.04);border:1.5px solid ' + (isActive ? 'var(--accent,#c9b8d4)' : 'rgba(255,255,255,0.10)') + ';overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;';
     if (v.id === 'none') {
       var slash = document.createElement('div');
       slash.style.cssText = 'width:1px;height:60px;background:rgba(255,255,255,0.2);transform:rotate(45deg);';
       thumb.appendChild(slash);
+    } else if (v.assetPrefix) {
+      /* load the 1x1 version as the thumbnail preview */
+      var previewUrl = './assets/frames/' + v.assetPrefix + '_1x1.png';
+      var img = document.createElement('img');
+      img.crossOrigin = 'anonymous';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:9px;';
+      img.src = previewUrl;
+      thumb.appendChild(img);
     }
     /* label below card */
-    var lbl = document.createElement('div');
-    lbl.style.cssText = 'font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;color:rgba(255,255,255,0.55);text-align:center;margin-top:5px;padding:0 2px;';
-    lbl.textContent = v.label;
-    div.appendChild(thumb);
-    div.appendChild(lbl);
+    if (v.label) {
+      var lbl = document.createElement('div');
+      lbl.style.cssText = 'font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;color:rgba(255,255,255,0.55);text-align:center;margin-top:5px;padding:0 2px;';
+      lbl.textContent = v.label;
+      div.appendChild(thumb);
+      div.appendChild(lbl);
+    } else {
+      div.appendChild(thumb);
+    }
     strip.appendChild(div);
   });
 }
@@ -18595,23 +18603,31 @@ function fxSelectVariant(cat, variantId) {
     return;
   }
 
-  /* check if this variant has sub-variants (e.g. GEM → aspect ratios) */
+  /* check if this variant opens a design strip (e.g. GEM) */
   var variants = FX_VARIANTS[cat] || [];
   var varDef = null;
   for (var i = 0; i < variants.length; i++) { if (variants[i].id === variantId) { varDef = variants[i]; break; } }
-  if (varDef && varDef.hasSubVariants && FX_VARIANTS[variantId]) {
-    /* open sub-variant strip */
+  if (varDef && varDef.hasDesigns && FX_VARIANTS[variantId]) {
+    /* open design strip */
     _fxActiveCat = variantId;
-    document.getElementById('fx-variant-title').textContent = varDef.label;
     fxBuildVariantStrip(variantId);
     fxShowLevel(2);
     return;
   }
 
-  /* sub-variant (e.g. gem_1x1) — go to intensity */
-  _fxPendingIntensity = 100;
-  var label = variantId.replace(/_/g,' ').toUpperCase();
-  if (varDef && varDef.label) label = varDef.label;
+  /* gem design variant — apply directly, auto-pick aspect ratio at render time */
+  if (varDef && varDef.assetPrefix) {
+    fxState.frames.variant = variantId;
+    fxState.frames.intensity = 100;
+    fxUpdateCatDot('frames');
+    fxBackToGrid();
+    if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    return;
+  }
+
+  /* all other frame variants — go to intensity slider */
+  _fxPendingIntensity = fxState.frames ? (fxState.frames.intensity || 100) : 100;
+  var label = varDef && varDef.label ? varDef.label : variantId.toUpperCase();
   document.getElementById('fx-intensity-title').textContent = label;
   document.getElementById('fx-intensity-name').textContent  = label;
   document.getElementById('fx-intensity-val').textContent   = _fxPendingIntensity;

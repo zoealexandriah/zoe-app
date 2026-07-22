@@ -8086,6 +8086,9 @@ function evAdjustSubTab(name) {
     // Open the suite so the tools panel is visible on mobile
     var _cs = document.getElementById('ev-editor-suite');
     if (_cs) _cs.classList.add('open');
+    // Switch inner panel to TOOLS so crop controls are visible
+    var _toolsTab = document.querySelector('.es-tab[data-tab="tools"]');
+    if (_toolsTab && typeof esTab === 'function') esTab(_toolsTab);
     if (typeof etSelectTool === 'function') etSelectTool(name);
     if (name === 'crop') {
       setTimeout(function() {
@@ -16467,23 +16470,8 @@ window.toolsCropSetRatio = function(r) {
     if (key) item.classList.toggle('active', key[1] === r);
   });
   if (r === 'FREEFORM') {
-    cropRect = null;
-    if (typeof _ratioPreCropUserImage !== 'undefined' && _ratioPreCropUserImage) {
-      userImage = _ratioPreCropUserImage;
-      _ratioPreCropUserImage = null;
-      if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
-      if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = 0;
-      var _rsl = document.getElementById('crop-straighten-slider'); if (_rsl) _rsl.value = 0;
-      var _rvl = document.getElementById('crop-straighten-val'); if (_rvl) _rvl.textContent = '0.00';
-      var _rsw = document.getElementById('crop-straighten-work'); if (_rsw) _rsw.remove();
-      var _rac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
-      if (_rac) _rac.style.opacity = '';
-      var _rev = document.getElementById('editor-view');
-      if (_rev && _rev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
-      else if (_rac && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac, userImage);
-    }
-    var _fov = document.getElementById('crop-overlay-canvas');
-    if (_fov) _fov.style.display = 'none';
+    // Reset to full canvas so user can drag a fresh selection
+    cropRect = { x: 0, y: 0, w: ac.width, h: ac.height };
   } else {
     var pts = r.split(':').map(Number);
     var newW = ac.width, newH = ac.width * pts[1] / pts[0];
@@ -16495,7 +16483,12 @@ window.toolsCropSetRatio = function(r) {
     };
   }
   var ov = document.getElementById('crop-overlay-canvas');
-  if (ov) toolsCropDrawRect(ov);
+  if (!ov) {
+    if (typeof toolsCropDrawOnCanvas === 'function') toolsCropDrawOnCanvas(ac);
+    ov = document.getElementById('crop-overlay-canvas');
+    if (ov && typeof toolsCropBindDrag === 'function') toolsCropBindDrag(ov, ac);
+  }
+  if (ov) { toolsCropDrawRect(ov); ov.style.display = 'block'; }
 };
 
 // Patch toolsCropApply — bake transforms then crop, never clears ev-canvas directly
@@ -16753,6 +16746,9 @@ function _cropExitMode() {
   // Restore hero-canvas visibility in case straighten/perspective hid it
   var _hcExit = document.getElementById('hero-canvas');
   if (_hcExit) _hcExit.style.opacity = '';
+  // Always remove crop overlay canvas so it doesn't persist across sessions
+  var _covExit = document.getElementById('crop-overlay-canvas');
+  if (_covExit) _covExit.remove();
   var edV = document.getElementById('editor-view');
   if (edV) {
     edV.classList.remove('crop-mode');
@@ -17012,11 +17008,19 @@ function cropSelectSubTab(btn, tab) {
       if (typeof toolsCropDrawRect === 'function') toolsCropDrawRect(_ov2);
       _ov2.style.display = 'block';
       if (_needCreate && typeof toolsCropBindDrag === 'function') toolsCropBindDrag(_ov2, ac);
-      // Always reset to FREE on every RATIO open
-      toolsCropRatio = 'FREEFORM';
+      // Detect ratio from current cropRect; fall back to FREEFORM if no match
+      var _detectedRatio = 'FREEFORM';
+      if (cropRect && cropRect.w && cropRect.h) {
+        var _cr = cropRect.w / cropRect.h;
+        var _presets = [['1:1',1],['3:4',3/4],['4:3',4/3],['4:5',4/5],['5:4',5/4],['9:16',9/16],['16:9',16/9]];
+        for (var _pi = 0; _pi < _presets.length; _pi++) {
+          if (Math.abs(_cr - _presets[_pi][1]) < 0.01) { _detectedRatio = _presets[_pi][0]; break; }
+        }
+      }
+      toolsCropRatio = _detectedRatio;
       document.querySelectorAll('.crop-ratio-item').forEach(function(item) {
         var _r = (item.getAttribute('onclick') || '').replace(/.*'([^']+)'.*/, '$1');
-        item.classList.toggle('active', _r === 'FREEFORM');
+        item.classList.toggle('active', _r === _detectedRatio);
       });
     });
   }

@@ -10940,8 +10940,8 @@ async function loadImageToCanvas(canvas, img) {
   // Buffer matches the IMAGE's aspect ratio, capped so pixel ops stay fast.
   // This avoids the landscape-buffer / portrait-photo mismatch that caused blur.
   const iw = img.naturalWidth, ih = img.naturalHeight;
-  const MAX_BUF = 1600;
-  const bufScale = Math.min(1, MAX_BUF / Math.max(iw, ih)) * dpr;
+  const MAX_BUF = 800;
+  const bufScale = Math.min(1, MAX_BUF / Math.max(iw, ih));
   const bufW = Math.round(iw * bufScale);
   const bufH = Math.round(ih * bufScale);
   canvas.width  = bufW;

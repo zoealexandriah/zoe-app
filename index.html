@@ -16054,7 +16054,7 @@ window.editorSaveToGallery = function() {
   img.src = dataURL;
 };
 
-// ── Fix 5: exportDownload — capped at 2400px, async toBlob, iOS fallback ─────
+// ── Fix 5: exportDownload — Web Worker pixel loop, 2400px, async toBlob ──────
 window.exportDownload = function() {
   if (!userImage) { showToast('NO IMAGE TO EXPORT'); return; }
   const fn   = (document.getElementById('exp-filename') || {}).value || 'ZOE_EDIT';
@@ -16072,101 +16072,142 @@ window.exportDownload = function() {
   exportModalClose();
   showToast('RENDERING…');
 
-  setTimeout(function() {
-    const off = document.createElement('canvas');
-    off.width  = iw;
-    off.height = ih;
-    /* No willReadFrequently — forces slow software rendering on export canvas */
-    const ctx = off.getContext('2d');
-    if (!ctx) { showToast('Export failed — image too large'); return; }
+  const off = document.createElement('canvas');
+  off.width = iw; off.height = ih;
+  const ctx = off.getContext('2d');
+  if (!ctx) { showToast('Export failed — image too large'); return; }
+  if (expFmt === 'jpg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, iw, ih); }
+  ctx.drawImage(userImage, 0, 0, iw, ih);
 
-    if (expFmt === 'jpg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, iw, ih); }
-    ctx.drawImage(userImage, 0, 0, iw, ih);
+  const p = activePreset || evActivePreset;
+  const hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
 
-    const p = activePreset || evActivePreset;
-    const hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
-
-    if (hasPreset) {
-      const adj = buildAdjustments(_evMergeAdjState ? _evMergeAdjState(p, sliderState[p.id]) : sliderState[p.id]);
-      if (p.hueTempZones)              adj.hueTempZones    = p.hueTempZones;
-      if (p.colorGlow  !== undefined)  adj.colorGlow       = p.colorGlow;
-      if (p.skinLift   !== undefined)  adj.skinLift        = p.skinLift;
-      if (p.splitTone)                 adj.split_tone      = p.splitTone;
-      if (p.shadowTint)                adj.shadow_tint     = p.shadowTint;
-      if (p.highlightTint)             adj.highlight_tint  = p.highlightTint;
-      if (p.halationHue !== undefined) adj.halation_hue    = p.halationHue;
-      if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
-
-      var origData;
-      try { origData = ctx.getImageData(0, 0, iw, ih); } catch(e) { origData = null; }
-      if (!origData || !origData.data || origData.data.length === 0) {
-        showToast('Export failed — reduce photo size and try again'); return;
-      }
-      let processed = applyPixelAdjustments(origData, adj);
-
-      const intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
-      if (intensity < 0.999) {
-        const od = origData.data;
-        for (let i = 0; i < processed.length; i += 4) {
-          processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
-          processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
-          processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
-        }
-      }
-      ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
-
-      if (p.curve)                          applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
-      if ((adj.glow        || 0) > 0.01)    applyGlow(off, adj.glow, 0, 0, iw, ih);
-      if ((adj.mist        || 0) > 0.01)    applyMist(off, adj.mist, 0, 0, iw, ih);
-      if ((adj.sharpen     || 0) > 0.01)    applySharpness(off, adj.sharpen, 0, 0, iw, ih);
-      if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(off, adj.clarity, 0, 0, iw, ih);
-      if ((adj.blur        || 0) > 0.01)    applyBlur(off, adj.blur, 0, 0, iw, ih);
-      if ((adj.vignette_blur || 0) > 0.01)  applyVignetteBlur(off, adj.vignette_blur, 0, 0, iw, ih);
-      if ((adj.motion_blur   || 0) > 0.01)  applyMotionBlur(off, adj.motion_blur, 0, 0, iw, ih);
-      if ((adj.radial_blur   || 0) > 0.01)  applyRadialBlur(off, adj.radial_blur, 0, 0, iw, ih);
-      if (p.splitTone)                       adj.split_tone      = p.splitTone;
-      if (p.halationHue !== undefined)        adj.halation_hue    = p.halationHue;
-      if (p.shadowTint)                       adj.shadow_tint     = p.shadowTint;
-      if (p.highlightTint)                    adj.highlight_tint  = p.highlightTint;
-      if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
-      if ((adj.halation    || 0) > 0.01)    applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
-      if (p.halationBloom)                   applyHalationBloom(off, p.halationBloom, 0, 0, iw, ih);
-      if ((adj.diffusion   || 0) > 0.01)    applyDiffusion(off, adj.diffusion, 0, 0, iw, ih);
-      if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength || 0) > 0.01)
-                                             applyDuotone(off, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, iw, ih);
-      if ((adj.vignette    || 0) > 0.01)    applyVignette(off, adj.vignette, 0, 0, iw, ih);
+  var origData = null, adj = null;
+  if (hasPreset) {
+    adj = buildAdjustments(_evMergeAdjState ? _evMergeAdjState(p, sliderState[p.id]) : sliderState[p.id]);
+    if (p.hueTempZones)              adj.hueTempZones    = p.hueTempZones;
+    if (p.colorGlow  !== undefined)  adj.colorGlow       = p.colorGlow;
+    if (p.skinLift   !== undefined)  adj.skinLift        = p.skinLift;
+    if (p.splitTone)                 adj.split_tone      = p.splitTone;
+    if (p.shadowTint)                adj.shadow_tint     = p.shadowTint;
+    if (p.highlightTint)             adj.highlight_tint  = p.highlightTint;
+    if (p.halationHue !== undefined) adj.halation_hue    = p.halationHue;
+    if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+    try { origData = ctx.getImageData(0, 0, iw, ih); } catch(e) { origData = null; }
+    if (!origData || !origData.data || origData.data.length === 0) {
+      showToast('Export failed — reduce photo size and try again'); return;
     }
+  }
+
+  function _applyCanvasEffects(adjObj) {
+    if (!adjObj) return;
+    if (p.curve)                             applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
+    if ((adjObj.glow        || 0) > 0.01)   applyGlow(off, adjObj.glow, 0, 0, iw, ih);
+    if ((adjObj.mist        || 0) > 0.01)   applyMist(off, adjObj.mist, 0, 0, iw, ih);
+    if ((adjObj.sharpen     || 0) > 0.01)   applySharpness(off, adjObj.sharpen, 0, 0, iw, ih);
+    if (Math.abs(adjObj.clarity || 0) > 0.005) applyClarity(off, adjObj.clarity, 0, 0, iw, ih);
+    if ((adjObj.blur        || 0) > 0.01)   applyBlur(off, adjObj.blur, 0, 0, iw, ih);
+    if ((adjObj.vignette_blur || 0) > 0.01) applyVignetteBlur(off, adjObj.vignette_blur, 0, 0, iw, ih);
+    if ((adjObj.motion_blur   || 0) > 0.01) applyMotionBlur(off, adjObj.motion_blur, 0, 0, iw, ih);
+    if ((adjObj.radial_blur   || 0) > 0.01) applyRadialBlur(off, adjObj.radial_blur, 0, 0, iw, ih);
+    if (p.splitTone)                 adjObj.split_tone     = p.splitTone;
+    if (p.halationHue !== undefined) adjObj.halation_hue   = p.halationHue;
+    if (p.shadowTint)                adjObj.shadow_tint    = p.shadowTint;
+    if (p.highlightTint)             adjObj.highlight_tint = p.highlightTint;
+    if (p.duotone) { adjObj.duotone_a = p.duotone.a; adjObj.duotone_b = p.duotone.b; adjObj.duotone_strength = p.duotone.strength || 0.7; }
+    if ((adjObj.halation  || 0) > 0.01)   applyHalation(off, adjObj.halation, adjObj.halation_hue || 0, 0, 0, iw, ih);
+    if (p.halationBloom)                   applyHalationBloom(off, p.halationBloom, 0, 0, iw, ih);
+    if ((adjObj.diffusion || 0) > 0.01)   applyDiffusion(off, adjObj.diffusion, 0, 0, iw, ih);
+    if (adjObj.duotone_a && adjObj.duotone_b && (adjObj.duotone_strength || 0) > 0.01)
+      applyDuotone(off, adjObj.duotone_a, adjObj.duotone_b, adjObj.duotone_strength, 0, 0, iw, ih);
+    if ((adjObj.vignette  || 0) > 0.01)   applyVignette(off, adjObj.vignette, 0, 0, iw, ih);
+  }
+
+  function _doModalDownload() {
     if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
       applyBlemishHeal(off, blemishSpots, 0, 0, iw, ih);
+    off.toBlob(function(blob) {
+      if (!blob) { showToast('Export failed'); return; }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.download = fn + ext;
+      a.href = url;
+      const _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
+      if (_isIOS) {
+        window.open(url, '_blank');
+        showToast('TAP AND HOLD → SAVE TO PHOTOS');
+      } else {
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('SAVED — ' + iw + '×' + ih);
+      }
+      setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
+    }, mime, q);
+  }
 
-    function _doModalDownload() {
-      off.toBlob(function(blob) {
-        if (!blob) { showToast('Export failed'); return; }
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.download = fn + ext;
-        a.href = url;
-        const _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
-        if (_isIOS) {
-          window.open(url, '_blank');
-          showToast('TAP AND HOLD → SAVE TO PHOTOS');
-        } else {
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          showToast('SAVED — ' + iw + '×' + ih);
-        }
-        setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
-      }, mime, q);
-    }
-
+  function _finishExport() {
     const _fxFrameVariant = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
     if (_fxFrameVariant && _fxFrameVariant !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
       fxApplyFrameToCanvas(off, _fxFrameVariant, fxState.frames, _doModalDownload);
     } else {
       _doModalDownload();
     }
-  }, 80);
+  }
+
+  if (!hasPreset || !origData) { _finishExport(); return; }
+
+  const intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
+  const workerSrc = `
+self.onmessage = function(e) {
+  var src = e.data.src;
+  var adj = e.data.adj;
+  var intensity = e.data.intensity;
+  var out = applyPixelAdjustments({ data: src }, adj);
+  if (intensity < 0.999) {
+    for (var i = 0; i < out.length; i += 4) {
+      out[i]   = Math.round(src[i]   + (out[i]   - src[i])   * intensity);
+      out[i+1] = Math.round(src[i+1] + (out[i+1] - src[i+1]) * intensity);
+      out[i+2] = Math.round(src[i+2] + (out[i+2] - src[i+2]) * intensity);
+    }
+  }
+  self.postMessage({ out: out.buffer }, [out.buffer]);
+};
+${applyPixelAdjustments.toString()}
+`;
+  const workerBlob = new Blob([workerSrc], { type: 'application/javascript' });
+  const workerURL = URL.createObjectURL(workerBlob);
+  const worker = new Worker(workerURL);
+
+  const srcBuf = origData.data.buffer.slice(0);
+  worker.postMessage({ src: new Uint8ClampedArray(srcBuf), adj: adj, intensity: intensity }, [srcBuf]);
+
+  worker.onmessage = function(e) {
+    worker.terminate();
+    URL.revokeObjectURL(workerURL);
+    const processed = new Uint8ClampedArray(e.data.out);
+    ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+    _applyCanvasEffects(adj);
+    _finishExport();
+  };
+
+  worker.onerror = function(err) {
+    worker.terminate();
+    URL.revokeObjectURL(workerURL);
+    console.warn('ZOE export worker failed, falling back to main thread:', err);
+    const processed = applyPixelAdjustments(origData, adj);
+    if (intensity < 0.999) {
+      const od = origData.data;
+      for (var i = 0; i < processed.length; i += 4) {
+        processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
+        processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
+        processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
+      }
+    }
+    ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+    _applyCanvasEffects(adj);
+    _finishExport();
+  };
 };
 
 

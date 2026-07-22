@@ -3387,20 +3387,22 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 /* ── FX GEM CARDS ───────────────────────────────────── */
 .fx-gem-card {
   flex-shrink: 0;
-  width: 80px;
-  height: 80px;
+  width: 96px;
+  height: 130px;
   position: relative;
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: 0;
   overflow: hidden;
   -webkit-touch-callout: none;
   user-select: none;
   touch-action: manipulation;
-  border: 1.5px solid rgba(255,255,255,0.08);
-  transition: border-color 0.18s;
+  border: none;
+  border-right: 0.5px solid rgba(255,255,255,0.06);
+  transition: flex 0.35s cubic-bezier(0.22,1,0.36,1);
 }
+.fx-gem-card:last-child { border-right: none; }
 .fx-gem-card.active {
-  border-color: var(--accent, #c9b8d4);
+  border-color: transparent;
 }
 .fx-gem-card.active::after {
   content: '';
@@ -3580,8 +3582,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   display: flex;
   flex-direction: row;
   overflow-x: auto;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 0;
+  padding: 0;
   scrollbar-width: none;
   flex-shrink: 0;
 }

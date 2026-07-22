@@ -18462,9 +18462,13 @@ function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
     var ctx = canvas.getContext('2d');
     var sw = canvas.width, sh = canvas.height;
     var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
-    var baseScale = Math.min(sw / iw, sh / ih) * scale;
+    /* 0.92 base gives a 4% buffer on each edge */
+    var baseScale = Math.min(sw / iw, sh / ih) * 0.92 * scale;
     var dw = iw * baseScale, dh = ih * baseScale;
-    var offsetY = (positionY / 100) * (sh * 0.5);
+    /* cap offsetY so frame center stays within image bounds */
+    var maxOffsetY = (sh - dh) / 2;
+    var rawOffsetY = (positionY / 100) * (sh * 0.5);
+    var offsetY = Math.max(-Math.abs(maxOffsetY), Math.min(Math.abs(maxOffsetY), rawOffsetY));
     ctx.save();
     ctx.globalAlpha = opacity;
     ctx.translate(sw / 2, sh / 2 + offsetY);
@@ -18943,7 +18947,7 @@ function fxOpenGemControls() {
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-position" style="flex:1;display:none;flex-direction:column;justify-content:center;">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Position</span><span class="crop-sub-val" id="fxgcv-position">0</span></div>' +
-        '<input type="range" class="tc-range" id="fxgcr-position" min="-100" max="100" value="0" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-position\')">' +
+        '<input type="range" class="tc-range" id="fxgcr-position" min="-80" max="80" value="0" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-position\')">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-rotate" style="flex:1;display:none;flex-direction:column;justify-content:center;">' +
         '<div class="crop-transform-icons">' +
@@ -18988,6 +18992,18 @@ function fxGcSubTab(btn, tab) {
 
 function fxGemSlide(key, val, valId) {
   val = parseFloat(val);
+  /* snap scale to 100 within ±2 */
+  if (key === 'scale' && Math.abs(val - 100) < 2) {
+    val = 100;
+    var _sr = document.getElementById('fxgcr-scale');
+    if (_sr) _sr.value = 100;
+  }
+  /* snap position to 0 within ±2 */
+  if (key === 'positionY' && Math.abs(val) < 2) {
+    val = 0;
+    var _pr = document.getElementById('fxgcr-position');
+    if (_pr) _pr.value = 0;
+  }
   if (key === 'intensity')  fxState.frames.intensity  = Math.round(val);
   if (key === 'scale')      fxState.frames.scale      = val / 100;
   if (key === 'positionY')  fxState.frames.positionY  = val;

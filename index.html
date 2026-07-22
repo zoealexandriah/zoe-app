@@ -18386,7 +18386,7 @@ var fxState = {
   scanlines:   { variant: null, intensity: 0 },
   vhsbleed:    { variant: null, intensity: 0 },
   paper:       { fold: 0, texture: 0 },
-  frames:      { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false }
+  frames:      { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0 }
 };
 
 var _fxActiveCat = null;
@@ -18450,21 +18450,25 @@ function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
   if (!frameId || frameId === 'none') { if (callback) callback(); return; }
   var url = fxGetFrameAssetURL(frameId);
   if (!url) { if (callback) callback(); return; }
-  var opacity  = (opts && opts.intensity  !== undefined) ? opts.intensity  / 100 : 1.0;
-  var scale    = (opts && opts.scale      !== undefined) ? opts.scale      : 1.0;
-  var rotation = (opts && opts.rotation   !== undefined) ? opts.rotation   : 0;
-  var mirror   = (opts && opts.mirror     !== undefined) ? opts.mirror     : false;
+  var opacity   = (opts && opts.intensity  !== undefined) ? opts.intensity  / 100 : 1.0;
+  var scale     = (opts && opts.scale      !== undefined) ? opts.scale      : 1.0;
+  var rotation  = (opts && opts.rotation   !== undefined) ? opts.rotation   : 0;
+  var mirror    = (opts && opts.mirror     !== undefined) ? opts.mirror     : false;
+  var flipV     = (opts && opts.flipV      !== undefined) ? opts.flipV      : false;
+  var positionY = (opts && opts.positionY  !== undefined) ? opts.positionY  : 0;
   function drawIt(img) {
     var ctx = canvas.getContext('2d');
     var sw = canvas.width, sh = canvas.height;
     var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
     var baseScale = Math.min(sw / iw, sh / ih) * scale;
     var dw = iw * baseScale, dh = ih * baseScale;
+    var offsetY = (positionY / 100) * (sh * 0.5);
     ctx.save();
     ctx.globalAlpha = opacity;
-    ctx.translate(sw / 2, sh / 2);
+    ctx.translate(sw / 2, sh / 2 + offsetY);
     if (rotation) ctx.rotate(rotation * Math.PI / 180);
-    if (mirror)   ctx.scale(-1, 1);
+    if (mirror) ctx.scale(-1, 1);
+    if (flipV)  ctx.scale(1, -1);
     ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
     ctx.restore();
     if (callback) callback();
@@ -18682,10 +18686,12 @@ function fxSelectVariant(cat, variantId) {
   if (varDef && varDef.assetFile) {
     var _alreadySelected = fxState.frames.variant === variantId;
     fxState.frames.variant   = variantId;
-    fxState.frames.intensity = fxState.frames.intensity || 100;
-    fxState.frames.scale     = fxState.frames.scale     || 1.0;
-    fxState.frames.rotation  = fxState.frames.rotation  || 0;
-    fxState.frames.mirror    = fxState.frames.mirror     || false;
+    fxState.frames.intensity  = fxState.frames.intensity  || 100;
+    fxState.frames.scale      = fxState.frames.scale      || 1.0;
+    fxState.frames.rotation   = fxState.frames.rotation   || 0;
+    fxState.frames.mirror     = fxState.frames.mirror      || false;
+    fxState.frames.flipV      = fxState.frames.flipV       || false;
+    fxState.frames.positionY  = fxState.frames.positionY  || 0;
     fxUpdateCatDot('frames');
     /* highlight active card in strip */
     document.querySelectorAll('.fx-var-card').forEach(function(t) {

@@ -18564,16 +18564,7 @@ var FX_MULTI = ['glow','paper'];
 /* Variant definitions for FRAMES */
 var FX_VARIANTS = {
   frames: [
-    { id:'none',       label:'NONE' },
-    { id:'gem',        label:'GEMS', hasDesigns: true, assetFile:'gemframepreview.png' },
-    { id:'polaroid',   label:'POLAROID' },
-    { id:'filmneg',    label:'FILM' },
-    { id:'letterbox',  label:'LETTERBOX' },
-    { id:'tape',       label:'TAPE' },
-    { id:'stamp',      label:'STAMP' },
-    { id:'oval',       label:'OVAL' },
-    { id:'ornate',     label:'ORNATE' },
-    { id:'linen',      label:'LINEN' }
+    { id:'gem', label:'GEMS', hasDesigns: true, assetFile:'gemframepreview.png' }
   ],
   gem: [
     { id:'gem1',  label:'', assetFile:'gemframesbypurple1.png' },
@@ -18816,6 +18807,12 @@ function fxBuildVariantStrip(cat) {
       div.appendChild(imgBg);
       div.appendChild(grad);
       div.appendChild(adj);
+      if (v.label) {
+        var lbl = document.createElement('div');
+        lbl.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.88),transparent);pointer-events:none;z-index:3;';
+        lbl.innerHTML = '<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,0.80);font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+v.label+'</div>';
+        div.appendChild(lbl);
+      }
     } else {
       /* none card */
       div.className = 'fx-var-card' + (isActive ? ' active' : '');

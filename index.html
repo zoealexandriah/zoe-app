@@ -18552,10 +18552,13 @@ function fxBuildVariantStrip(cat) {
 
 function fxSelectVariant(cat, variantId) {
   _fxActiveVariant = variantId;
-  document.querySelectorAll('.fx-var-thumb').forEach(function(t) {
+  document.querySelectorAll('.fx-var-card').forEach(function(t) {
     t.classList.remove('active');
+    t.querySelector('div').style.borderColor = 'rgba(255,255,255,0.10)';
   });
   event.currentTarget.classList.add('active');
+  var th = event.currentTarget.querySelector('div');
+  if (th) th.style.borderColor = 'var(--accent,#c9b8d4)';
 
   if (variantId === 'none') {
     /* selecting none resets and goes back to grid */

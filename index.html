@@ -13937,9 +13937,7 @@ function evSaveWithAnimation() {
 function _evDoSave() {
   if (!userImage) return;
   var nw = userImage.naturalWidth, nh = userImage.naturalHeight;
-  /* Mobile devices cap canvas memory; use 1600px on touch devices, 2400px on desktop */
-  var _isMobile = navigator.maxTouchPoints > 0;
-  var _ref = _isMobile ? 1600 : 2400;
+  var _ref = 2400;
   var ps = Math.min(1, _ref / Math.max(nw, nh));
   var pw = Math.round(nw * ps), ph = Math.round(nh * ps);
   var off = document.createElement('canvas');

@@ -3867,11 +3867,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     padding-bottom: 0 !important;
   }
   #ev-editor-suite.open #es-panel-fx.active.fx-expanded {
-    height: 170px !important;
-    max-height: 170px !important;
-    min-height: 170px !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: unset !important;
     flex: none !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 
   #ev-editor-suite.open .es-tab-panel.active:not(#es-panel-blemish):not(#es-panel-tools):not(#es-panel-fx) {
@@ -19103,7 +19103,7 @@ function fxOpenGemControls() {
   if (!pv) {
     pv = document.createElement('div');
     pv.id = 'fx-gem-controls';
-    pv.style.cssText = 'display:none;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;max-height:170px;';
+    pv.style.cssText = 'display:none;flex-direction:column;overflow:visible;';
     pv.innerHTML =
       '<div style="display:flex;align-items:center;padding:10px 12px 6px;gap:8px;border-bottom:0.5px solid rgba(255,255,255,0.08);flex-shrink:0;">' +
         '<button style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:16px;cursor:pointer;padding:0 6px 0 0;line-height:1;" onclick="fxCloseGemControls()">←</button>' +

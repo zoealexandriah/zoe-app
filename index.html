@@ -18939,15 +18939,15 @@ function fxOpenGemControls() {
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-opacity" style="flex:1;display:flex;flex-direction:column;justify-content:center;">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Opacity</span><span class="crop-sub-val" id="fxgcv-opacity">100</span></div>' +
-        '<input type="range" class="tc-range" id="fxgcr-opacity" min="0" max="100" value="100" oninput="fxGemSlide(\'intensity\',this.value,\'fxgcv-opacity\')">' +
+        '<input type="range" class="tc-range" id="fxgcr-opacity" min="0" max="100" value="100" oninput="fxGemSlide(\'intensity\',this.value,\'fxgcv-opacity\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-scale" style="flex:1;display:none;flex-direction:column;justify-content:center;">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Scale</span><span class="crop-sub-val" id="fxgcv-scale">100</span></div>' +
-        '<input type="range" class="tc-range" id="fxgcr-scale" min="50" max="200" value="100" oninput="fxGemSlide(\'scale\',this.value,\'fxgcv-scale\')">' +
+        '<input type="range" class="tc-range" id="fxgcr-scale" min="50" max="200" value="100" oninput="fxGemSlide(\'scale\',this.value,\'fxgcv-scale\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-position" style="flex:1;display:none;flex-direction:column;justify-content:center;">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Position</span><span class="crop-sub-val" id="fxgcv-position">0</span></div>' +
-        '<input type="range" class="tc-range" id="fxgcr-position" min="-80" max="80" value="0" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-position\')">' +
+        '<input type="range" class="tc-range" id="fxgcr-position" min="-80" max="80" value="0" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-position\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-rotate" style="flex:1;display:none;flex-direction:column;justify-content:center;">' +
         '<div class="crop-transform-icons">' +
@@ -19009,6 +19009,8 @@ function fxGemSlide(key, val, valId) {
   if (key === 'positionY')  fxState.frames.positionY  = val;
   var el = document.getElementById(valId);
   if (el) el.textContent = Math.round(val);
+  /* use low-res drag mode for smooth scrubbing */
+  window._slDragging = true;
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 

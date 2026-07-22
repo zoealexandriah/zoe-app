@@ -18618,13 +18618,35 @@ function fxSelectVariant(cat, variantId) {
     return;
   }
 
-  /* gem design variant — apply directly, auto-pick aspect ratio at render time */
+  /* gem design variant — preload all aspect ratio PNGs then render */
   if (varDef && varDef.assetPrefix) {
     fxState.frames.variant = variantId;
     fxState.frames.intensity = 100;
     fxUpdateCatDot('frames');
     fxBackToGrid();
-    if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    /* preload all 5 ratio variants into cache so render is synchronous */
+    var _ratioKeys = ['1x1','3x4','4x3','9x16','16x9'];
+    var _loaded = 0;
+    _ratioKeys.forEach(function(rk) {
+      var _url = './assets/frames/' + varDef.assetPrefix + '_' + rk + '.png';
+      if (_fxFrameImgCache[_url] && _fxFrameImgCache[_url].complete) {
+        _loaded++;
+        if (_loaded === _ratioKeys.length && typeof evRenderCanvas === 'function') evRenderCanvas();
+      } else {
+        var _img = new Image();
+        _img.crossOrigin = 'anonymous';
+        _fxFrameImgCache[_url] = _img;
+        _img.onload = function() {
+          _loaded++;
+          if (_loaded === _ratioKeys.length && typeof evRenderCanvas === 'function') evRenderCanvas();
+        };
+        _img.onerror = function() {
+          _loaded++;
+          if (_loaded === _ratioKeys.length && typeof evRenderCanvas === 'function') evRenderCanvas();
+        };
+        _img.src = _url;
+      }
+    });
     return;
   }
 

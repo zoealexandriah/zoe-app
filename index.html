@@ -18777,9 +18777,10 @@ function fxOpenCat(cat) {
     var _ib = document.getElementById('fx-intensity-back'); if (_ib) _ib.onclick = fxBackToGrid;
     fxShowLevel(3);
   } else {
-    /* show variant strip */
+    /* show variant strip — for 'frames', go directly to gem designs */
+    var _stripCat = (cat === 'frames') ? 'gem' : cat;
     document.getElementById('fx-variant-title').textContent = label;
-    fxBuildVariantStrip(cat);
+    fxBuildVariantStrip(_stripCat);
     fxShowLevel(2);
   }
 }

@@ -14011,43 +14011,30 @@ function _evDoSave() {
       var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
       var ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
       var filename = 'ZOE_' + ds + '_' + ts + '.jpg';
-      out.toBlob(function(blob) {
-        if (!blob) { showToast('Export failed'); return; }
-        var url = URL.createObjectURL(blob);
+      setTimeout(function() {
+        var dataURL = out.toDataURL('image/jpeg', 0.92);
         var a = document.createElement('a');
         a.download = filename;
-        a.href = url;
-        var _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
-        if (_isIOS) {
-          window.open(url, '_blank');
-          showToast('TAP AND HOLD → SAVE TO PHOTOS');
-        } else {
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          showToast('SAVED ✓');
-        }
-        setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
-      }, 'image/jpeg', 0.92);
+        a.href = dataURL;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('SAVED ✓');
+      }, 50);
     }
 
-    var _workerSrc = hue2rgb.toString() + '\n' + rgbToHsl.toString() + '\n' + hslToRgb.toString() + '\n' + applyPixelAdjustments.toString() + '\nself.onmessage=function(e){var src=e.data.src;var adj=e.data.adj;var intensity=e.data.intensity;var out=applyPixelAdjustments({data:src},adj);if(intensity<0.999){for(var i=0;i<out.length;i+=4){out[i]=Math.round(src[i]+(out[i]-src[i])*intensity);out[i+1]=Math.round(src[i+1]+(out[i+1]-src[i+1])*intensity);out[i+2]=Math.round(src[i+2]+(out[i+2]-src[i+2])*intensity);}}self.postMessage({out:out.buffer},[out.buffer]);};';
-    var _wBlob = new Blob([_workerSrc], {type:'application/javascript'});
-    var _wURL = URL.createObjectURL(_wBlob);
-    var _worker = new Worker(_wURL);
-    var _srcBuf = origData.data.buffer.slice(0);
-    _worker.postMessage({src: new Uint8ClampedArray(_srcBuf), adj: adj, intensity: intensity}, [_srcBuf]);
-    _worker.onmessage = function(e) {
-      _worker.terminate(); URL.revokeObjectURL(_wURL);
-      _afterPixels(new Uint8ClampedArray(e.data.out));
-    };
-    _worker.onerror = function(err) {
-      _worker.terminate(); URL.revokeObjectURL(_wURL);
-      console.warn('ZOE worker failed, falling back:', err);
+    setTimeout(function() {
       var processed = applyPixelAdjustments(origData, adj);
-      if (intensity < 0.999) { var od=origData.data; for(var i=0;i<processed.length;i+=4){processed[i]=Math.round(od[i]+(processed[i]-od[i])*intensity);processed[i+1]=Math.round(od[i+1]+(processed[i+1]-od[i+1])*intensity);processed[i+2]=Math.round(od[i+2]+(processed[i+2]-od[i+2])*intensity);} }
+      if (intensity < 0.999) {
+        var od = origData.data;
+        for (var i = 0; i < processed.length; i += 4) {
+          processed[i]   = Math.round(od[i]   + (processed[i]   - od[i])   * intensity);
+          processed[i+1] = Math.round(od[i+1] + (processed[i+1] - od[i+1]) * intensity);
+          processed[i+2] = Math.round(od[i+2] + (processed[i+2] - od[i+2]) * intensity);
+        }
+      }
       _afterPixels(processed);
-    };
+    }, 200);
     return;
   }
   var _fxFrameVariant = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;

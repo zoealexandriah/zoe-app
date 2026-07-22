@@ -18796,7 +18796,14 @@ function fxBuildVariantStrip(cat) {
     var isActive = v.id === current;
     var div = document.createElement('div');
     div.dataset.vid = v.id;
-    var _handler = (function(vid){ return function(e) { e.preventDefault(); e.stopPropagation(); fxSelectVariant(cat, vid); }; })(v.id);
+    var _touchStartX = 0, _touchStartY = 0;
+    var _handler = (function(vid){ return function(e) {
+      var dx = Math.abs((e.changedTouches ? e.changedTouches[0].clientX : 0) - _touchStartX);
+      var dy = Math.abs((e.changedTouches ? e.changedTouches[0].clientY : 0) - _touchStartY);
+      if (dx > 8 || dy > 8) return; // scroll gesture — ignore
+      e.preventDefault(); e.stopPropagation(); fxSelectVariant(cat, vid);
+    }; })(v.id);
+    div.addEventListener('touchstart', function(e) { if (e.touches) { _touchStartX = e.touches[0].clientX; _touchStartY = e.touches[0].clientY; } }, { passive: true });
     if (v.assetFile) {
       /* gem-style preset card */
       div.className = 'fx-gem-card fx-var-card' + (isActive ? ' active' : '');

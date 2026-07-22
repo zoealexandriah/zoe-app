@@ -3023,6 +3023,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #editor-view:not(.no-image) #ev-adjust-subnav { display: flex !important; }
   /* Hide pill while ratio expanded so crop overlay has full canvas room */
   #editor-view.crop-ratio-active #ev-adjust-subnav { display: none !important; }
+  body:has(#es-panel-fx.active.fx-expanded) #ev-adjust-subnav { display: none !important; }
   /* No-image state: hide subnav and slider suite so user can only import or go back */
   #editor-view.no-image #ev-adjust-subnav { display: none !important; }
   #editor-view.no-image #ev-editor-suite { display: none !important; }

@@ -18677,13 +18677,16 @@ function fxSelectVariant(cat, variantId) {
   /* gem design variant — first tap applies, second tap opens controls */
   if (varDef && varDef.assetFile) {
     var _alreadySelected = fxState.frames.variant === variantId;
-    fxState.frames.variant   = variantId;
-    fxState.frames.intensity  = fxState.frames.intensity  || 100;
-    fxState.frames.scale      = fxState.frames.scale      || 1.0;
-    fxState.frames.rotation   = fxState.frames.rotation   || 0;
-    fxState.frames.mirror     = fxState.frames.mirror      || false;
-    fxState.frames.flipV      = fxState.frames.flipV       || false;
-    fxState.frames.positionY  = fxState.frames.positionY  || 0;
+    fxState.frames.variant = variantId;
+    if (!_alreadySelected) {
+      /* new frame selected — reset all transform settings */
+      fxState.frames.intensity = 100;
+      fxState.frames.scale     = 1.0;
+      fxState.frames.rotation  = 0;
+      fxState.frames.mirror    = false;
+      fxState.frames.flipV     = false;
+      fxState.frames.positionY = 0;
+    }
     fxUpdateCatDot('frames');
     /* highlight active card in strip */
     document.querySelectorAll('.fx-var-card').forEach(function(t) {

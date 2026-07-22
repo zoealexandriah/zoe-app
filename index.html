@@ -12023,13 +12023,15 @@ function _blemishShowPreview(clientX, clientY) {
   var ov     = document.getElementById('blemish-overlay-canvas');
   var canvas = document.getElementById('ev-canvas');
   if (!ov || !canvas) return;
-  var rect   = ov.getBoundingClientRect();
-  var scaleX = ov.width  / rect.width;
-  var scaleY = ov.height / rect.height;
-  var px = (clientX - rect.left) * scaleX;
-  var py = (clientY - rect.top)  * scaleY;
-  var zoom = (typeof evZoomLevel !== 'undefined' ? evZoomLevel : 1) || 1;
-  var r  = (_blemishRadius * Math.min(canvas.width, canvas.height)) / zoom;
+  var zoom       = (typeof evZoomLevel !== 'undefined' ? evZoomLevel : 1) || 1;
+  var canvasRect = canvas.getBoundingClientRect();
+  var centerX    = canvasRect.left + canvasRect.width  / 2;
+  var centerY    = canvasRect.top  + canvasRect.height / 2;
+  var logicalX   = (clientX - centerX) / zoom;
+  var logicalY   = (clientY - centerY) / zoom;
+  var px = canvas.width  / 2 + logicalX * (canvas.width  / (canvasRect.width  / zoom));
+  var py = canvas.height / 2 + logicalY * (canvas.height / (canvasRect.height / zoom));
+  var r  = _blemishRadius * Math.min(canvas.width, canvas.height);
   var ctx = ov.getContext('2d', { willReadFrequently: true });
   ctx.clearRect(0, 0, ov.width, ov.height);
   ctx.beginPath();
@@ -12080,13 +12082,25 @@ function _blemishHandleTap(e) {
   } else {
     clientX = e.clientX; clientY = e.clientY;
   }
-  var rect   = ov.getBoundingClientRect();
-  var scaleX = ov.width  / rect.width;
-  var scaleY = ov.height / rect.height;
-  var px = (clientX - rect.left) * scaleX;
-  var py = (clientY - rect.top)  * scaleY;
+  /* Account for CSS zoom+pan transform on the canvas.
+     getBoundingClientRect() returns the scaled rect, so we must
+     reverse the zoom to get the true canvas-space coordinate. */
+  var zoom   = (typeof evZoomLevel !== 'undefined' ? evZoomLevel : 1) || 1;
+  var canvasRect = canvas.getBoundingClientRect();
+  /* Canvas center in client space (after zoom) */
+  var centerX = canvasRect.left + canvasRect.width  / 2;
+  var centerY = canvasRect.top  + canvasRect.height / 2;
+  /* Offset from center in client space, then divide by zoom to get logical offset */
+  var logicalX = (clientX - centerX) / zoom;
+  var logicalY = (clientY - centerY) / zoom;
+  /* Convert to canvas pixel coords (canvas.width/2 is the logical center) */
+  var px = canvas.width  / 2 + logicalX * (canvas.width  / (canvasRect.width  / zoom));
+  var py = canvas.height / 2 + logicalY * (canvas.height / (canvasRect.height / zoom));
   var cx = px / canvas.width;
   var cy = py / canvas.height;
+  /* Clamp to valid range */
+  cx = Math.max(0, Math.min(1, cx));
+  cy = Math.max(0, Math.min(1, cy));
   _blemishPush();
   blemishSpots.push({ cx: cx, cy: cy, r: _blemishRadius });
   if (typeof evRenderCanvas === 'function') evRenderCanvas();

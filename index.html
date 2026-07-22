@@ -13134,19 +13134,12 @@ function pvBackToPresets() {
 }
 
 function pvExport() {
-  if (!userImage || !pvActivePreset) return;
-  const iw = userImage.naturalWidth, ih = userImage.naturalHeight;
-  const off = document.createElement('canvas');
-  off.width = iw; off.height = ih;
-  const ctx = off.getContext('2d', { willReadFrequently: true });
-  ctx.drawImage(userImage, 0, 0, iw, ih);
-  applyPixelEdits(off, buildAdj(pvActivePreset));
-  applyVignette(off, buildAdj(pvActivePreset).vignette, 0, 0, iw, ih);
-  const link = document.createElement('a');
-  link.download = (pvActivePreset ? pvActivePreset.name : 'zoe') + '_edited.png';
-  link.href = off.toDataURL('image/png');
-  link.click();
-  showToast('EXPORTING…');
+  // Delegate to the full pipeline export (capped at 2400px, async toBlob, no freeze)
+  if (typeof _evDoSave === 'function') {
+    _evDoSave();
+  } else {
+    showToast('EXPORT NOT READY');
+  }
 }
 
 // ── Zoom ──────────────────────────────────────────────────────────────────

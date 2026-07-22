@@ -10078,12 +10078,41 @@ function applySharpness(canvas, amount, offX, offY, imgW, imgH) {
 // Uses software box blur so it works in Safari (ctx.filter not supported there).
 function applyClarity(canvas, amount, offX, offY, imgW, imgH) {
   if (Math.abs(amount) < 0.005) return;
+  // For large canvases (export), use CSS filter unsharp mask — prevents main thread freeze
+  // For small canvases (preview), use software loop for Safari compatibility
+  if (imgW > 900) {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const blurPx = Math.max(1, Math.round(Math.min(imgW, imgH) * 0.015));
+    const src = document.createElement('canvas');
+    src.width = imgW; src.height = imgH;
+    const sCtx = src.getContext('2d', { willReadFrequently: true });
+    sCtx.drawImage(canvas, offX, offY, imgW, imgH, 0, 0, imgW, imgH);
+    const blurred = document.createElement('canvas');
+    blurred.width = imgW; blurred.height = imgH;
+    const bCtx = blurred.getContext('2d');
+    bCtx.filter = 'blur(' + blurPx + 'px)';
+    bCtx.drawImage(src, 0, 0);
+    bCtx.filter = 'none';
+    const orig = sCtx.getImageData(0, 0, imgW, imgH);
+    const blurData = blurred.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, imgW, imgH);
+    const od = orig.data, bd = blurData.data;
+    const strength = amount * 3.0;
+    for (let i = 0; i < od.length; i += 4) {
+      const r = od[i], g = od[i+1], b = od[i+2];
+      const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+      const midWeight = Math.exp(-Math.pow((lum - 0.5) / 0.30, 2));
+      const w = strength * midWeight;
+      od[i]   = Math.min(255, Math.max(0, r + w * (r - bd[i])));
+      od[i+1] = Math.min(255, Math.max(0, g + w * (g - bd[i+1])));
+      od[i+2] = Math.min(255, Math.max(0, b + w * (b - bd[i+2])));
+    }
+    ctx.putImageData(new ImageData(od, imgW, imgH), offX, offY);
+    return;
+  }
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const od = orig.data;
-  // Large radius for micro-contrast (Lightroom-style clarity)
   const radius = Math.max(12, Math.round(Math.min(imgW, imgH) * 0.055));
-  // Two-pass box blur: horizontal then vertical
   const tmp = new Uint8ClampedArray(od.length);
   const blr = new Uint8ClampedArray(od.length);
   for (let y = 0; y < imgH; y++) {
@@ -10106,7 +10135,6 @@ function applyClarity(canvas, amount, offX, offY, imgW, imgH) {
   for (let i = 0; i < od.length; i += 4) {
     const r = od[i], g = od[i+1], b = od[i+2];
     const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
-    // Bell-curve weight peaking at midtones (lum≈0.5), fading at shadows+highlights
     const midWeight = Math.exp(-Math.pow((lum - 0.5) / 0.30, 2));
     const w = strength * midWeight;
     od[i]   = Math.min(255, Math.max(0, r + w * (r - blr[i])));

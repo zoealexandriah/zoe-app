@@ -14186,6 +14186,7 @@ function evInit() {
   // Reset zoom/pan and active preset so stale effects aren't applied to a new photo
   evZoomLevel = 1; evPanX = 0; evPanY = 0;
   evActivePreset = null; activePreset = null;
+  fxRemoveFrame();
   // Open directly to adjust mode — subnav always visible, no landing screen
   var _subnav = document.getElementById('ev-adjust-subnav');
   var _mnav   = document.getElementById('ev-mobile-nav');

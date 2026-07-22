@@ -16159,6 +16159,10 @@ window.exportDownload = function() {
 
   const intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
   const workerSrc = `
+${hue2rgb.toString()}
+${rgbToHsl.toString()}
+${hslToRgb.toString()}
+${applyPixelAdjustments.toString()}
 self.onmessage = function(e) {
   var src = e.data.src;
   var adj = e.data.adj;
@@ -16173,7 +16177,6 @@ self.onmessage = function(e) {
   }
   self.postMessage({ out: out.buffer }, [out.buffer]);
 };
-${applyPixelAdjustments.toString()}
 `;
   const workerBlob = new Blob([workerSrc], { type: 'application/javascript' });
   const workerURL = URL.createObjectURL(workerBlob);

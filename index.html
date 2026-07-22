@@ -5358,57 +5358,29 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
           <!-- FX panel — 3-level nav -->
           <div class="es-tab-panel" id="es-panel-fx">
 
-            <!-- LEVEL 1: category grid -->
-            <div id="fx-cat-grid">
-              <div class="fx-cat-btn" onclick="fxOpenCat('glow')" data-cat="glow">
-                <div class="fx-cat-dot"></div>
-                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="5" fill="rgba(255,255,255,0.8)"/><circle cx="14" cy="14" r="9" fill="rgba(255,255,255,0.15)"/><circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.06)"/></svg>
-                <span class="fx-cat-label">GLOW</span>
-              </div>
-              <div class="fx-cat-btn" onclick="fxOpenCat('glossy')" data-cat="glossy">
-                <div class="fx-cat-dot"></div>
-                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><ellipse cx="11" cy="10" rx="4" ry="2.5" fill="rgba(255,255,255,0.9)" transform="rotate(-30 11 10)"/><circle cx="14" cy="14" r="10" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" fill="none"/></svg>
-                <span class="fx-cat-label">GLOSSY</span>
-              </div>
-              <div class="fx-cat-btn" onclick="fxOpenCat('scanlines')" data-cat="scanlines">
-                <div class="fx-cat-dot"></div>
-                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><line x1="4" y1="7" x2="24" y2="7" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/><line x1="4" y1="11" x2="24" y2="11" stroke="rgba(255,255,255,0.4)" stroke-width="1"/><line x1="4" y1="15" x2="24" y2="15" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/><line x1="4" y1="19" x2="24" y2="19" stroke="rgba(255,255,255,0.4)" stroke-width="1"/><line x1="4" y1="23" x2="24" y2="23" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/></svg>
-                <span class="fx-cat-label">SCAN LINES</span>
-              </div>
-              <div class="fx-cat-btn" onclick="fxOpenCat('vhsbleed')" data-cat="vhsbleed">
-                <div class="fx-cat-dot"></div>
-                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="3" y="10" width="22" height="3" fill="rgba(255,60,60,0.6)" rx="1"/><rect x="5" y="15" width="18" height="2" fill="rgba(60,200,255,0.5)" rx="1"/><rect x="2" y="18" width="24" height="1.5" fill="rgba(255,255,255,0.3)" rx="1"/></svg>
-                <span class="fx-cat-label">VHS BLEED</span>
-              </div>
-              <div class="fx-cat-btn" onclick="fxOpenCat('paper')" data-cat="paper">
-                <div class="fx-cat-dot"></div>
-                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="1" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/><line x1="4" y1="14" x2="24" y2="14" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><line x1="7" y1="9" x2="21" y2="9" stroke="rgba(255,255,255,0.22)" stroke-width="0.8"/><line x1="7" y1="19" x2="19" y2="19" stroke="rgba(255,255,255,0.22)" stroke-width="0.8"/></svg>
-                <span class="fx-cat-label">PAPER</span>
-              </div>
-              <div class="fx-cat-btn" onclick="fxOpenCat('frames')" data-cat="frames">
-                <div class="fx-cat-dot"></div>
-                <svg class="fx-cat-icon" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="2" stroke="rgba(255,255,255,0.6)" stroke-width="2" fill="none"/><rect x="8" y="8" width="12" height="12" rx="1" stroke="rgba(255,255,255,0.25)" stroke-width="1" fill="none"/></svg>
-                <span class="fx-cat-label">FRAMES</span>
-              </div>
+            <!-- Permanent FX subtab bar -->
+            <div class="crop-subtabs" id="fx-subtab-bar" style="flex-shrink:0;margin-bottom:0;">
+              <button class="crop-subtab" onclick="fxOpenCat('new')" data-fxstrip="new">NEW</button>
+              <button class="crop-subtab" onclick="fxOpenCat('frames')" data-fxstrip="frames">FRAMES</button>
+              <button class="crop-subtab" onclick="fxOpenCat('glow')" data-fxstrip="glow">GLOW</button>
+              <button class="crop-subtab" onclick="fxOpenCat('glossy')" data-fxstrip="glossy">GLOSSY</button>
+              <button class="crop-subtab" onclick="fxOpenCat('scanlines')" data-fxstrip="scanlines">SCAN LINES</button>
+              <button class="crop-subtab" onclick="fxOpenCat('vhsbleed')" data-fxstrip="vhsbleed">VHS BLEED</button>
+              <button class="crop-subtab" onclick="fxOpenCat('paper')" data-fxstrip="paper">PAPER</button>
             </div>
 
-            <!-- LEVEL 2: variant thumbnails -->
-            <!-- shared category strip — shown whenever inside any FX sub-panel -->
-            <div id="fx-cat-strip" style="display:none;">
-              <div class="fx-strip-btn" onclick="fxOpenCat('glow')" data-fxstrip="glow">GLOW</div>
-              <div class="fx-strip-btn" onclick="fxOpenCat('glossy')" data-fxstrip="glossy">GLOSSY</div>
-              <div class="fx-strip-btn" onclick="fxOpenCat('scanlines')" data-fxstrip="scanlines">SCAN LINES</div>
-              <div class="fx-strip-btn" onclick="fxOpenCat('vhsbleed')" data-fxstrip="vhsbleed">VHS BLEED</div>
-              <div class="fx-strip-btn" onclick="fxOpenCat('paper')" data-fxstrip="paper">PAPER</div>
-              <div class="fx-strip-btn" onclick="fxOpenCat('frames')" data-fxstrip="frames">FRAMES</div>
+            <!-- NEW tab content (placeholder) -->
+            <div id="fx-sub-new" style="display:none;flex:1;align-items:center;justify-content:center;">
+              <span style="font-family:var(--mono,monospace);font-size:8px;letter-spacing:0.12em;color:rgba(255,255,255,0.2);">COMING SOON</span>
             </div>
 
-            <div id="fx-variant-view">
+            <!-- Variant thumbnail strip (FRAMES gem cards etc) -->
+            <div id="fx-variant-view" style="flex:1;overflow:hidden;">
               <span id="fx-variant-title" style="display:none;"></span>
               <div id="fx-variant-strip"></div>
             </div>
 
-            <!-- LEVEL 3: intensity slider -->
+            <!-- Intensity slider (GLOSSY, SCAN LINES, VHS BLEED) -->
             <div id="fx-intensity-view">
               <div id="fx-intensity-body">
                 <div id="fx-intensity-label-row">
@@ -8113,7 +8085,7 @@ function evAdjustSubTab(name) {
     document.querySelectorAll('.es-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.es-tab-panel').forEach(p => p.classList.remove('active'));
     if (fxPanel) fxPanel.classList.add('active');
-    if (fxWasActive && typeof fxBackToGrid === 'function') fxBackToGrid();
+    if (typeof fxOpenCat === 'function') fxOpenCat('frames');
     return;
   }
   var panelTab = panelMap[name];
@@ -18495,29 +18467,43 @@ function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
 
 /* ── NAVIGATION ─────────────────────────────────────── */
 function fxShowLevel(level) {
-  var grid  = document.getElementById('fx-cat-grid');
-  var strip = document.getElementById('fx-cat-strip');
-  var v     = document.getElementById('fx-variant-view');
-  var i     = document.getElementById('fx-intensity-view');
-  var m     = document.getElementById('fx-multi-view');
-  var p     = document.getElementById('fx-paper-view');
-  grid.style.display  = (level === 1) ? 'flex' : 'none';
-  strip.style.display = (level === 1) ? 'none' : 'flex';
-  v.classList.toggle('active', level === 2);
-  i.classList.toggle('active', level === 3);
-  if (m) m.classList.toggle('active', level === 4 && _fxActiveCat === 'glow');
-  if (p) p.classList.toggle('active', level === 4 && _fxActiveCat === 'paper');
+  var v  = document.getElementById('fx-variant-view');
+  var i  = document.getElementById('fx-intensity-view');
+  var m  = document.getElementById('fx-multi-view');
+  var p  = document.getElementById('fx-paper-view');
+  var nw = document.getElementById('fx-sub-new');
   var gc = document.getElementById('fx-gem-controls');
-  if (gc && level !== 4) gc.style.display = 'none';
+  /* hide all content panels */
+  if (v)  { v.classList.remove('active'); v.style.display = 'none'; }
+  if (i)  i.classList.remove('active');
+  if (m)  m.classList.remove('active');
+  if (p)  { p.classList.remove('active'); p.style.display = 'none'; }
+  if (nw) nw.style.display = 'none';
+  if (gc) gc.style.display = 'none';
+  /* show the right one */
+  if (level === 1) {
+    /* NEW tab */
+    if (nw) nw.style.display = 'flex';
+  } else if (level === 2) {
+    if (v) { v.classList.add('active'); v.style.display = 'flex'; }
+  } else if (level === 3) {
+    if (i) i.classList.add('active');
+  } else if (level === 4) {
+    if (_fxActiveCat === 'glow'  && m)  m.classList.add('active');
+    if (_fxActiveCat === 'paper' && p)  { p.classList.add('active'); p.style.display = 'flex'; }
+    if (gc && (_fxActiveCat === 'gem' || (_fxActiveVariant && _fxActiveVariant.indexOf('gem') === 0))) gc.style.display = 'flex';
+  }
 }
 
 function fxOpenCat(cat) {
   _fxActiveCat = cat;
   var label = cat.replace(/([a-z])([A-Z])/g,'$1 $2').toUpperCase().replace('SCANLINES','SCAN LINES').replace('VHSBLEED','VHS BLEED').replace('PAPERTEXTURE','PAPER TEXTURE');
-  /* highlight active pill in the strip */
-  document.querySelectorAll('.fx-strip-btn').forEach(function(b) {
+  /* highlight active subtab */
+  document.querySelectorAll('#fx-subtab-bar .crop-subtab').forEach(function(b) {
     b.classList.toggle('active', b.dataset.fxstrip === cat);
   });
+  /* NEW tab — just show placeholder */
+  if (cat === 'new') { fxShowLevel(1); return; }
 
   if (FX_MULTI && FX_MULTI.indexOf(cat) !== -1) {
     /* multi-slider panel: GLOW → shows glow + diffusion + halation sliders */
@@ -18765,13 +18751,8 @@ function fxIntensityCancel() {
 function fxBackToGrid() {
   _fxActiveCat = null;
   _fxActiveVariant = null;
-  /* hide any dynamically created panels */
-  var m = document.getElementById('fx-multi-view');
-  var p = document.getElementById('fx-paper-view');
-  if (m) m.classList.remove('active');
-  if (p) { p.classList.remove('active'); p.style.display = 'none'; }
-  document.querySelectorAll('.fx-strip-btn').forEach(function(b) { b.classList.remove('active'); });
-  fxShowLevel(1);
+  /* default back to FRAMES tab */
+  fxOpenCat('frames');
 }
 
 function fxBackToVariants() {

@@ -13974,75 +13974,95 @@ function evSaveWithAnimation() {
 function _evDoSave() {
   if (!userImage) return;
   var nw = userImage.naturalWidth, nh = userImage.naturalHeight;
-  var _ref = 2400;
-  var ps = Math.min(1, _ref / Math.max(nw, nh));
-  var pw = Math.round(nw * ps), ph = Math.round(nh * ps);
-  var off = document.createElement('canvas');
-  off.width = pw; off.height = ph;
-  /* Do NOT use willReadFrequently on export canvas — it forces slow software rendering */
-  var ctx = off.getContext('2d');
-  if (!ctx) { showToast('Export failed — image too large'); return; }
-  ctx.drawImage(userImage, 0, 0, pw, ph);
+
+  // PROXY: run the entire effect pipeline on an 800px working canvas,
+  // then GPU-upscale to 2400px for the final save. This is how every
+  // real photo app works — effects run fast, output stays full resolution.
+  var PROXY = 800;
+  var EXPORT = 2400;
+  var proxyScale = Math.min(1, PROXY / Math.max(nw, nh));
+  var pw = Math.round(nw * proxyScale), ph = Math.round(nh * proxyScale);
+  var exportScale = Math.min(1, EXPORT / Math.max(nw, nh));
+  var ew = Math.round(nw * exportScale), eh = Math.round(nh * exportScale);
+
+  // Build 800px proxy canvas — all pixel ops run here
+  var proxy = document.createElement('canvas');
+  proxy.width = pw; proxy.height = ph;
+  var pCtx = proxy.getContext('2d');
+  if (!pCtx) { showToast('Export failed — image too large'); return; }
+  pCtx.drawImage(userImage, 0, 0, pw, ph);
+
   var p = activePreset;
   if (p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) {
-    // Apply tint overlay + orbs exactly as preview does
     var _tintMap = { purple:{r:130,g:72,b:195}, pink:{r:195,g:55,b:135}, blue:{r:35,g:72,b:195}, warm:{r:175,g:95,b:35} };
     var _t = _tintMap[p.tint];
     if (_t) {
-      ctx.globalCompositeOperation = 'multiply';
-      ctx.fillStyle = 'rgba('+_t.r+','+_t.g+','+_t.b+',0.25)';
-      ctx.fillRect(0, 0, pw, ph);
-      ctx.globalCompositeOperation = 'source-over';
+      pCtx.globalCompositeOperation = 'multiply';
+      pCtx.fillStyle = 'rgba('+_t.r+','+_t.g+','+_t.b+',0.25)';
+      pCtx.fillRect(0, 0, pw, ph);
+      pCtx.globalCompositeOperation = 'source-over';
     }
     (p.orbs||[]).forEach(function(o){
       var gx=pw*o[2], gy=ph*0.44, gr=Math.max(pw,ph)*o[3];
-      var g=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);
+      var g=pCtx.createRadialGradient(gx,gy,0,gx,gy,gr);
       g.addColorStop(0,o[0]+Math.round(Math.min(o[1]*0.7,1)*255).toString(16).padStart(2,'0'));
       g.addColorStop(1,'transparent');
-      ctx.globalCompositeOperation='screen'; ctx.fillStyle=g;
-      ctx.fillRect(0,0,pw,ph); ctx.globalCompositeOperation='source-over';
+      pCtx.globalCompositeOperation='screen'; pCtx.fillStyle=g;
+      pCtx.fillRect(0,0,pw,ph); pCtx.globalCompositeOperation='source-over';
     });
+
     var adj = buildAdjustments(_evMergeAdjState(p, sliderState[p.id]));
     if (!adj.halation && p.defaults && p.defaults.HALATION) adj.halation = p.defaults.HALATION;
     adj.hueTempZones = p.hueTempZones || null;
     adj.colorGlow    = p.colorGlow !== undefined ? p.colorGlow : 0;
     adj.skinLift     = p.skinLift   !== undefined ? p.skinLift  : 0;
-    if (p.splitTone)                 adj.split_tone  = p.splitTone;
-    if (p.shadowTint)                adj.shadow_tint = p.shadowTint;
+    if (p.splitTone)                 adj.split_tone     = p.splitTone;
+    if (p.shadowTint)                adj.shadow_tint    = p.shadowTint;
     if (p.highlightTint)             adj.highlight_tint = p.highlightTint;
     if (p.halationHue !== undefined) adj.halation_hue   = p.halationHue;
     if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+
     var origData;
-    try { origData = ctx.getImageData(0, 0, pw, ph); } catch(e) { origData = null; }
+    try { origData = pCtx.getImageData(0, 0, pw, ph); } catch(e) { origData = null; }
     if (!origData || !origData.data || origData.data.length === 0) { showToast('Export failed — reduce photo size and try again'); return; }
     var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
     var _fxFrameVariant2 = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
 
     function _afterPixels(processed) {
-      ctx.putImageData(new ImageData(processed, pw, ph), 0, 0);
-      if (p.curve) applyCurveLUTs(off, p.curve, 0, 0, pw, ph);
-      if ((adj.glow   || 0) > 0.01)          applyGlow(off, adj.glow, 0, 0, pw, ph);
-      if ((adj.mist   || 0) > 0.01)          applyMist(off, adj.mist, 0, 0, pw, ph);
-      if ((adj.sharpen|| 0) > 0.01)          applySharpness(off, adj.sharpen, 0, 0, pw, ph);
-      if (Math.abs(adj.clarity||0) > 0.005)  applyClarity(off, adj.clarity, 0, 0, pw, ph);
-      if ((adj.blur   || 0) > 0.01)          applyBlur(off, adj.blur, 0, 0, pw, ph);
-      if ((adj.vignette_blur||0) > 0.01)     applyVignetteBlur(off, adj.vignette_blur, 0, 0, pw, ph);
-      if ((adj.motion_blur  ||0) > 0.01)     applyMotionBlur(off, adj.motion_blur, 0, 0, pw, ph);
-      if ((adj.radial_blur  ||0) > 0.01)     applyRadialBlur(off, adj.radial_blur, 0, 0, pw, ph);
+      // Write processed pixels back to proxy canvas
+      pCtx.putImageData(new ImageData(processed, pw, ph), 0, 0);
+      // Run all canvas effects on 800px proxy — fast on any device
+      if (p.curve)                          applyCurveLUTs(proxy, p.curve, 0, 0, pw, ph);
+      if ((adj.glow        || 0) > 0.01)   applyGlow(proxy, adj.glow, 0, 0, pw, ph);
+      if ((adj.mist        || 0) > 0.01)   applyMist(proxy, adj.mist, 0, 0, pw, ph);
+      if ((adj.sharpen     || 0) > 0.01)   applySharpness(proxy, adj.sharpen, 0, 0, pw, ph);
+      if (Math.abs(adj.clarity||0) > 0.005) applyClarity(proxy, adj.clarity, 0, 0, pw, ph);
+      if ((adj.blur        || 0) > 0.01)   applyBlur(proxy, adj.blur, 0, 0, pw, ph);
+      if ((adj.vignette_blur||0) > 0.01)   applyVignetteBlur(proxy, adj.vignette_blur, 0, 0, pw, ph);
+      if ((adj.motion_blur  ||0) > 0.01)   applyMotionBlur(proxy, adj.motion_blur, 0, 0, pw, ph);
+      if ((adj.radial_blur  ||0) > 0.01)   applyRadialBlur(proxy, adj.radial_blur, 0, 0, pw, ph);
       if (p.splitTone)                 adj.split_tone     = p.splitTone;
       if (p.halationHue !== undefined) adj.halation_hue   = p.halationHue;
       if (p.shadowTint)                adj.shadow_tint    = p.shadowTint;
       if (p.highlightTint)             adj.highlight_tint = p.highlightTint;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
-      if ((adj.halation||0) > 0.01)          applyHalation(off, adj.halation, adj.halation_hue||0, 0, 0, pw, ph);
-      if (p.halationBloom)                   applyHalationBloom(off, p.halationBloom, 0, 0, pw, ph);
-      if ((adj.diffusion||0) > 0.01)         applyDiffusion(off, adj.diffusion, 0, 0, pw, ph);
+      if ((adj.halation    || 0) > 0.01)   applyHalation(proxy, adj.halation, adj.halation_hue||0, 0, 0, pw, ph);
+      if (p.halationBloom)                  applyHalationBloom(proxy, p.halationBloom, 0, 0, pw, ph);
+      if ((adj.diffusion   || 0) > 0.01)   applyDiffusion(proxy, adj.diffusion, 0, 0, pw, ph);
       if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01)
-                                             applyDuotone(off, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, pw, ph);
-      if ((adj.vignette||0) > 0.01)          applyVignette(off, adj.vignette, 0, 0, pw, ph);
+                                            applyDuotone(proxy, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, pw, ph);
+      if ((adj.vignette    || 0) > 0.01)   applyVignette(proxy, adj.vignette, 0, 0, pw, ph);
       if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
-                                             applyBlemishHeal(off, blemishSpots, 0, 0, pw, ph);
-      var out = off;
+                                            applyBlemishHeal(proxy, blemishSpots, 0, 0, pw, ph);
+
+      // GPU-upscale proxy → 2400px final canvas
+      var out = document.createElement('canvas');
+      out.width = ew; out.height = eh;
+      var outCtx = out.getContext('2d');
+      outCtx.imageSmoothingEnabled = true;
+      outCtx.imageSmoothingQuality = 'high';
+      outCtx.drawImage(proxy, 0, 0, ew, eh);
+
       if (_fxFrameVariant2 && _fxFrameVariant2 !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
         fxApplyFrameToCanvas(out, _fxFrameVariant2, fxState.frames, function() { _doSaveBlob(out); });
       } else {
@@ -14055,16 +14075,32 @@ function _evDoSave() {
       var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
       var ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
       var filename = 'ZOE_' + ds + '_' + ts + '.jpg';
-      setTimeout(function() {
-        var dataURL = out.toDataURL('image/jpeg', 0.92);
-        var a = document.createElement('a');
-        a.download = filename;
-        a.href = dataURL;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showToast('SAVED ✓');
-      }, 50);
+      var _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
+      var _isFile = location.protocol === 'file:';
+      if (_isFile) {
+        setTimeout(function() {
+          var dataURL = out.toDataURL('image/jpeg', 0.92);
+          var a = document.createElement('a');
+          a.download = filename; a.href = dataURL;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          showToast('SAVED ✓');
+        }, 50);
+        return;
+      }
+      out.toBlob(function(blob) {
+        if (!blob) { showToast('Export failed'); return; }
+        var url = URL.createObjectURL(blob);
+        if (_isIOS) {
+          window.open(url, '_blank');
+          showToast('TAP AND HOLD → SAVE TO PHOTOS');
+        } else {
+          var a = document.createElement('a');
+          a.download = filename; a.href = url;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          showToast('SAVED ✓');
+        }
+        setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
+      }, 'image/jpeg', 0.92);
     }
 
     setTimeout(function() {
@@ -14081,28 +14117,43 @@ function _evDoSave() {
     }, 200);
     return;
   }
+
+  // No preset active — draw plain image to 2400px and save
+  var out = document.createElement('canvas');
+  out.width = ew; out.height = eh;
+  var outCtx = out.getContext('2d');
+  outCtx.imageSmoothingEnabled = true;
+  outCtx.imageSmoothingQuality = 'high';
+  outCtx.drawImage(userImage, 0, 0, ew, eh);
   var _fxFrameVariant = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
   function _doDownload() {
     var d  = new Date();
     var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
     var ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
     var filename = 'ZOE_' + ds + '_' + ts + '.jpg';
-    /* Use canvas.toBlob for async non-blocking encode — avoids timeout on mobile */
+    var _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
+    var _isFile = location.protocol === 'file:';
+    if (_isFile) {
+      setTimeout(function() {
+        var dataURL = out.toDataURL('image/jpeg', 0.92);
+        var a = document.createElement('a');
+        a.download = filename; a.href = dataURL;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        showToast('SAVED ✓');
+      }, 50);
+      return;
+    }
     out.toBlob(function(blob) {
       if (!blob) { showToast('Export failed'); return; }
       var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.download = filename;
-      a.href = url;
-      /* iOS Safari ignores a.click() — use window.open as fallback */
-      var _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
       if (_isIOS) {
         window.open(url, '_blank');
         showToast('TAP AND HOLD → SAVE TO PHOTOS');
       } else {
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        var a = document.createElement('a');
+        a.download = filename; a.href = url;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        showToast('SAVED ✓');
       }
       setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
     }, 'image/jpeg', 0.92);

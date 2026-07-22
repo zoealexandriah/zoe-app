@@ -18563,6 +18563,7 @@ function fxBuildVariantStrip(cat) {
     var isActive = v.id === current;
     var div = document.createElement('div');
     div.className = 'fx-var-card' + (isActive ? ' active' : '');
+    div.dataset.vid = v.id;
     div.style.cssText = 'flex-shrink:0;width:80px;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;-webkit-touch-callout:none;user-select:none;touch-action:manipulation;';
     var _handler = (function(vid){ return function(e) { e.preventDefault(); e.stopPropagation(); fxSelectVariant(cat, vid); }; })(v.id);
     div.addEventListener('touchend', _handler, { passive: false });
@@ -18630,25 +18631,35 @@ function fxSelectVariant(cat, variantId) {
   /* gem design variant — first tap applies, second tap opens controls */
   if (varDef && varDef.assetFile) {
     var _alreadySelected = fxState.frames.variant === variantId;
-    fxState.frames.variant = variantId;
+    fxState.frames.variant   = variantId;
     fxState.frames.intensity = fxState.frames.intensity || 100;
-    fxState.frames.scale    = fxState.frames.scale    || 1.0;
-    fxState.frames.rotation = fxState.frames.rotation || 0;
-    fxState.frames.mirror   = fxState.frames.mirror   || false;
+    fxState.frames.scale     = fxState.frames.scale     || 1.0;
+    fxState.frames.rotation  = fxState.frames.rotation  || 0;
+    fxState.frames.mirror    = fxState.frames.mirror     || false;
     fxUpdateCatDot('frames');
-    /* preload into cache */
+    /* highlight active card in strip */
+    document.querySelectorAll('.fx-var-card').forEach(function(t) {
+      var isActive = t.dataset && t.dataset.vid === variantId;
+      t.classList.toggle('active', isActive);
+      var th = t.querySelector('div');
+      if (th) th.style.borderColor = isActive ? 'var(--accent,#c9b8d4)' : 'rgba(255,255,255,0.10)';
+    });
+    if (_alreadySelected) {
+      /* second tap — open controls */
+      fxOpenGemControls();
+      return;
+    }
+    /* first tap — stay in gem strip, load and render */
     var _url = './assets/frames/' + varDef.assetFile;
-    if (!_fxFrameImgCache[_url] || !_fxFrameImgCache[_url].complete) {
+    var _cached = _fxFrameImgCache[_url];
+    if (_cached && _cached.complete && _cached.naturalWidth > 0) {
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    } else {
       var _img = new Image();
       _fxFrameImgCache[_url] = _img;
       _img.onload = function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); };
+      _img.onerror = function() { console.warn('Frame load failed:', _url); };
       _img.src = _url;
-    }
-    if (_alreadySelected) {
-      fxOpenGemControls();
-    } else {
-      fxBackToGrid();
-      if (typeof evRenderCanvas === 'function') evRenderCanvas();
     }
     return;
   }

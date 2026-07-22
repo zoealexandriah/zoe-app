@@ -16054,52 +16054,56 @@ window.editorSaveToGallery = function() {
   img.src = dataURL;
 };
 
-// ── Fix 5: exportDownload — full-resolution re-render, no upscaling ─────────
+// ── Fix 5: exportDownload — capped at 2400px, async toBlob, iOS fallback ─────
 window.exportDownload = function() {
   if (!userImage) { showToast('NO IMAGE TO EXPORT'); return; }
   const fn   = (document.getElementById('exp-filename') || {}).value || 'ZOE_EDIT';
   const rawQ = parseInt((document.getElementById('exp-quality') || {}).value || 95);
   const mime = expFmt === 'png' ? 'image/png' : 'image/jpeg';
   const ext  = expFmt === 'png' ? '.png' : '.jpg';
-  const q    = expFmt === 'png' ? 1.0 : Math.max(0.95, rawQ / 100);
+  const q    = expFmt === 'png' ? 1.0 : Math.max(0.92, rawQ / 100);
 
-  const iw = userImage.naturalWidth;
-  const ih = userImage.naturalHeight;
+  const nw = userImage.naturalWidth;
+  const nh = userImage.naturalHeight;
+  const ps = Math.min(1, 2400 / Math.max(nw, nh));
+  const iw = Math.round(nw * ps);
+  const ih = Math.round(nh * ps);
+
   exportModalClose();
-  showToast('RENDERING ' + iw + '×' + ih + '…');
+  showToast('RENDERING…');
 
-  // Defer heavy work so toast renders first
   setTimeout(function() {
     const off = document.createElement('canvas');
     off.width  = iw;
     off.height = ih;
-    const ctx = off.getContext('2d', { willReadFrequently: true });
+    /* No willReadFrequently — forces slow software rendering on export canvas */
+    const ctx = off.getContext('2d');
+    if (!ctx) { showToast('Export failed — image too large'); return; }
 
     if (expFmt === 'jpg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, iw, ih); }
-
-    // Draw original image at full native resolution
     ctx.drawImage(userImage, 0, 0, iw, ih);
 
-    // Re-run the full render pipeline at full resolution
     const p = activePreset || evActivePreset;
     const hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
 
     if (hasPreset) {
-      const adj = buildAdjustments(sliderState[p.id]);
-      if (p.hueTempZones)             adj.hueTempZones  = p.hueTempZones;
-      if (p.colorGlow  !== undefined)  adj.colorGlow    = p.colorGlow;
-      if (p.skinLift   !== undefined)  adj.skinLift     = p.skinLift;
-      if (p.splitTone)                 adj.split_tone   = p.splitTone;
-      if (p.halationHue !== undefined)  adj.halation_hue = p.halationHue;
-      adj.shadow_tint = p.shadowTint || null;
-      adj.highlight_tint = p.highlightTint || null;
+      const adj = buildAdjustments(_evMergeAdjState ? _evMergeAdjState(p, sliderState[p.id]) : sliderState[p.id]);
+      if (p.hueTempZones)              adj.hueTempZones    = p.hueTempZones;
+      if (p.colorGlow  !== undefined)  adj.colorGlow       = p.colorGlow;
+      if (p.skinLift   !== undefined)  adj.skinLift        = p.skinLift;
+      if (p.splitTone)                 adj.split_tone      = p.splitTone;
+      if (p.shadowTint)                adj.shadow_tint     = p.shadowTint;
+      if (p.highlightTint)             adj.highlight_tint  = p.highlightTint;
+      if (p.halationHue !== undefined) adj.halation_hue    = p.halationHue;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
 
-      // Pixel adjustments at full resolution
-      const origData = ctx.getImageData(0, 0, iw, ih);
-      let processed  = applyPixelAdjustments(origData, adj);
+      var origData;
+      try { origData = ctx.getImageData(0, 0, iw, ih); } catch(e) { origData = null; }
+      if (!origData || !origData.data || origData.data.length === 0) {
+        showToast('Export failed — reduce photo size and try again'); return;
+      }
+      let processed = applyPixelAdjustments(origData, adj);
 
-      // Blend with original per presetIntensity
       const intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
       if (intensity < 0.999) {
         const od = origData.data;
@@ -16111,25 +16115,57 @@ window.exportDownload = function() {
       }
       ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
 
-      // Canvas post-processing at full resolution
-      if (p.curve)                      applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
-      if ((adj.sharpen  || 0) > 0.01)   applySharpness(off, adj.sharpen,  0, 0, iw, ih);
-      if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, iw, ih);
-      if ((adj.vignette_blur || 0) > 0.01) applyVignetteBlur(off, adj.vignette_blur, 0, 0, iw, ih);
-      if ((adj.motion_blur   || 0) > 0.01) applyMotionBlur(off, adj.motion_blur, 0, 0, iw, ih);
-      if ((adj.radial_blur   || 0) > 0.01) applyRadialBlur(off, adj.radial_blur, 0, 0, iw, ih);
-      if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, iw, ih);
-      if ((adj.mist     || 0) > 0.01)   applyMist(off,     adj.mist,      0, 0, iw, ih);
-      if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
-      if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, iw, ih);
+      if (p.curve)                          applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
+      if ((adj.glow        || 0) > 0.01)    applyGlow(off, adj.glow, 0, 0, iw, ih);
+      if ((adj.mist        || 0) > 0.01)    applyMist(off, adj.mist, 0, 0, iw, ih);
+      if ((adj.sharpen     || 0) > 0.01)    applySharpness(off, adj.sharpen, 0, 0, iw, ih);
+      if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(off, adj.clarity, 0, 0, iw, ih);
+      if ((adj.blur        || 0) > 0.01)    applyBlur(off, adj.blur, 0, 0, iw, ih);
+      if ((adj.vignette_blur || 0) > 0.01)  applyVignetteBlur(off, adj.vignette_blur, 0, 0, iw, ih);
+      if ((adj.motion_blur   || 0) > 0.01)  applyMotionBlur(off, adj.motion_blur, 0, 0, iw, ih);
+      if ((adj.radial_blur   || 0) > 0.01)  applyRadialBlur(off, adj.radial_blur, 0, 0, iw, ih);
+      if (p.splitTone)                       adj.split_tone      = p.splitTone;
+      if (p.halationHue !== undefined)        adj.halation_hue    = p.halationHue;
+      if (p.shadowTint)                       adj.shadow_tint     = p.shadowTint;
+      if (p.highlightTint)                    adj.highlight_tint  = p.highlightTint;
+      if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+      if ((adj.halation    || 0) > 0.01)    applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
+      if (p.halationBloom)                   applyHalationBloom(off, p.halationBloom, 0, 0, iw, ih);
+      if ((adj.diffusion   || 0) > 0.01)    applyDiffusion(off, adj.diffusion, 0, 0, iw, ih);
+      if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength || 0) > 0.01)
+                                             applyDuotone(off, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, iw, ih);
+      if ((adj.vignette    || 0) > 0.01)    applyVignette(off, adj.vignette, 0, 0, iw, ih);
     }
-    if (blemishSpots && blemishSpots.length > 0) applyBlemishHeal(off, blemishSpots, 0, 0, iw, ih);
+    if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
+      applyBlemishHeal(off, blemishSpots, 0, 0, iw, ih);
 
-    const a = document.createElement('a');
-    a.download = fn + ext;
-    a.href = off.toDataURL(mime, q);
-    a.click();
-    showToast('SAVED — ' + iw + '×' + ih);
+    function _doModalDownload() {
+      off.toBlob(function(blob) {
+        if (!blob) { showToast('Export failed'); return; }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.download = fn + ext;
+        a.href = url;
+        const _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
+        if (_isIOS) {
+          window.open(url, '_blank');
+          showToast('TAP AND HOLD → SAVE TO PHOTOS');
+        } else {
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showToast('SAVED — ' + iw + '×' + ih);
+        }
+        setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
+      }, mime, q);
+    }
+
+    const _fxFrameVariant = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
+    if (_fxFrameVariant && _fxFrameVariant !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
+      fxApplyFrameToCanvas(off, _fxFrameVariant, fxState.frames, _doModalDownload);
+    } else {
+      _doModalDownload();
+    }
   }, 80);
 };
 

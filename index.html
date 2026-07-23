@@ -3874,7 +3874,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex: none !important;
     overflow: visible !important;
   }
-  body:has(#es-panel-fx.active.fx-expanded) #ev-adjust-subnav { display: none !important; }
+  body:has(#es-panel-fx.active.fx-expanded) #fx-subtab-bar { display: none !important; }
 
   #ev-editor-suite.open .es-tab-panel.active:not(#es-panel-blemish):not(#es-panel-tools):not(#es-panel-fx) {
     height: 170px !important;
@@ -19100,13 +19100,20 @@ function fxDrawFrameThumb(canvas, frameId) {
   }
 }
 
+var _fxGemSnapshot = null;
 function fxOpenGemControls() {
+  _fxGemSnapshot = JSON.parse(JSON.stringify(fxState.frames));
   var pv = document.getElementById('fx-gem-controls');
   if (!pv) {
     pv = document.createElement('div');
     pv.id = 'fx-gem-controls';
     pv.style.cssText = 'display:none;flex-direction:column;';
     pv.innerHTML =
+      '<div class="blemish-action-bar">' +
+        '<button class="blemish-act-btn" onclick="fxGemControlsDiscard()">✕</button>' +
+        '<span class="blemish-act-label">GEMS</span>' +
+        '<button class="blemish-act-btn blemish-act-confirm" onclick="fxCloseGemControls()">✓</button>' +
+      '</div>' +
       '<div class="crop-subtabs" id="fxgc-subtabs" style="margin:6px 12px 0;">' +
         '<button class="crop-subtab active" onclick="fxGcSubTab(this,\'opacity\')">OPACITY</button>' +
         '<button class="crop-subtab" onclick="fxGcSubTab(this,\'scale\')">SCALE</button>' +
@@ -19195,6 +19202,20 @@ function fxGemSlide(key, val, valId) {
   /* use low-res drag mode for smooth scrubbing */
   window._slDragging = true;
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
+}
+
+function fxGemControlsDiscard() {
+  if (_fxGemSnapshot) {
+    fxState.frames.intensity  = _fxGemSnapshot.intensity;
+    fxState.frames.scale      = _fxGemSnapshot.scale;
+    fxState.frames.positionY  = _fxGemSnapshot.positionY;
+    fxState.frames.positionX  = _fxGemSnapshot.positionX;
+    fxState.frames.mirror     = _fxGemSnapshot.mirror;
+    fxState.frames.flipV      = _fxGemSnapshot.flipV;
+    fxState.frames.rotation   = _fxGemSnapshot.rotation;
+    if (typeof evRenderCanvas === 'function') evRenderCanvas();
+  }
+  fxCloseGemControls();
 }
 
 function fxCloseGemControls() {

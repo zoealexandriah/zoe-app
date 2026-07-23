@@ -18859,6 +18859,8 @@ function fxBuildVariantStrip(cat) {
 
 function fxSelectVariant(cat, variantId) {
   _fxActiveVariant = variantId;
+  /* letterbox variants live under frames state */
+  var _stateCat = (cat === 'letterbox') ? 'frames' : cat;
   document.querySelectorAll('.fx-var-card').forEach(function(t) {
     t.classList.remove('active');
     var th = t.querySelector('div');
@@ -18871,9 +18873,9 @@ function fxSelectVariant(cat, variantId) {
   }
 
   if (variantId === 'none') {
-    fxState[cat].variant = null;
-    fxState[cat].intensity = 0;
-    fxUpdateCatDot(cat);
+    fxState[_stateCat].variant = null;
+    fxState[_stateCat].intensity = 0;
+    fxUpdateCatDot(_stateCat);
     fxBackToGrid();
     if (typeof evRenderCanvas === 'function') evRenderCanvas();
     return;

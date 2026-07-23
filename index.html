@@ -14082,9 +14082,13 @@ function _evDoSave() {
         outCtx.imageSmoothingEnabled = true;
         outCtx.imageSmoothingQuality = 'high';
         /* Cover-scale the processed proxy into the 16:9 canvas */
-        var _lbS = Math.max(_lbEW / proxy.width, _lbEH / proxy.height);
+        var _lbUserScaleEx = (fxState.frames && fxState.frames.lbScale !== undefined) ? fxState.frames.lbScale : 1.0;
+        var _lbS = Math.max(_lbEW / proxy.width, _lbEH / proxy.height) * _lbUserScaleEx;
         var _lbDW = Math.round(proxy.width * _lbS), _lbDH = Math.round(proxy.height * _lbS);
-        var _lbDX = Math.round((_lbEW - _lbDW) / 2), _lbDY = Math.round((_lbEH - _lbDH) / 2);
+        var _lbOffXEx = (fxState.frames && fxState.frames.lbPosX) ? (_lbEW * (fxState.frames.lbPosX / 100) * 0.5) : 0;
+        var _lbOffYEx = (fxState.frames && fxState.frames.lbPosY) ? (_lbEH * (fxState.frames.lbPosY / 100) * 0.5) : 0;
+        var _lbDX = Math.round((_lbEW - _lbDW) / 2 + _lbOffXEx);
+        var _lbDY = Math.round((_lbEH - _lbDH) / 2 + _lbOffYEx);
         outCtx.drawImage(proxy, _lbDX, _lbDY, _lbDW, _lbDH);
         fxApplyFrameToCanvas(out, _fxFrameVariant2, fxState.frames, function() { _doSaveBlob(out); });
       } else {
@@ -14463,9 +14467,13 @@ function _evRenderCanvasImmediate() {
       /* Draw photo cover-scaled to fill the 16:9 canvas */
       var _lbCtx = canvas.getContext('2d', { willReadFrequently: true });
       var _phW = userImage.naturalWidth, _phH = userImage.naturalHeight;
-      var _cvS = Math.max(_lbPxW / _phW, _lbPxH / _phH);
+      var _lbUserScale = (fxState.frames && fxState.frames.lbScale !== undefined) ? fxState.frames.lbScale : 1.0;
+      var _cvS = Math.max(_lbPxW / _phW, _lbPxH / _phH) * _lbUserScale;
       var _drW = Math.round(_phW * _cvS), _drH = Math.round(_phH * _cvS);
-      var _drX = Math.round((_lbPxW - _drW) / 2), _drY = Math.round((_lbPxH - _drH) / 2);
+      var _lbOffX = (fxState.frames && fxState.frames.lbPosX) ? (_lbPxW * (fxState.frames.lbPosX / 100) * 0.5) : 0;
+      var _lbOffY = (fxState.frames && fxState.frames.lbPosY) ? (_lbPxH * (fxState.frames.lbPosY / 100) * 0.5) : 0;
+      var _drX = Math.round((_lbPxW - _drW) / 2 + _lbOffX);
+      var _drY = Math.round((_lbPxH - _drH) / 2 + _lbOffY);
       _lbCtx.drawImage(userImage, _drX, _drY, _drW, _drH);
       /* Re-apply active preset pixel adjustments over the resized photo */
       if (typeof _evCurPreset !== 'undefined' && _evCurPreset && typeof adj !== 'undefined' && adj) {
@@ -18650,14 +18658,14 @@ var FX_VARIANTS = {
     { id:'gem8',  label:'', assetFile:'gemframesbypurple8.png',  thumbScale: 0.8,   assetDir:'frames' }
   ],
   letterbox: [
-    { id:'lb-vintage',   label:'VINTAGE CINEMASCOPE', assetFile:'letterboxVintageCinemascope.png',  assetDir:'frames', noControls: true },
-    { id:'lb-1x1',       label:'1:1 SQUARE',          assetFile:'letterbox1x1.png',                 assetDir:'frames', noControls: true },
-    { id:'lb-univisium', label:'UNIVISIUM',            assetFile:'letterbox2-1Univisium.png',        assetDir:'frames', noControls: true },
-    { id:'lb-oldtv',     label:'OLD TV',               assetFile:'letterbox4-3OldTV.png',            assetDir:'frames', noControls: true },
-    { id:'lb-4x5',       label:'4:5',                  assetFile:'letterbox4x5.png',                 assetDir:'frames', noControls: true },
-    { id:'lb-vertical',  label:'9:16 VERTICAL',        assetFile:'letterbox9-16VerticalVideo.png',   assetDir:'frames', noControls: true },
-    { id:'lb-academy',   label:'ACADEMY RATIO',        assetFile:'letterboxAcademyRatio.png',        assetDir:'frames', noControls: true },
-    { id:'lb-35mm',      label:'CLASSIC 35MM',         assetFile:'letterboxClassic35mm.png',         assetDir:'frames', noControls: true }
+    { id:'lb-vintage',   label:'VINTAGE CINEMASCOPE', assetFile:'letterboxVintageCinemascope.png',  assetDir:'frames' },
+    { id:'lb-1x1',       label:'1:1 SQUARE',          assetFile:'letterbox1x1.png',                 assetDir:'frames' },
+    { id:'lb-univisium', label:'UNIVISIUM',            assetFile:'letterbox2-1Univisium.png',        assetDir:'frames' },
+    { id:'lb-oldtv',     label:'OLD TV',               assetFile:'letterbox4-3OldTV.png',            assetDir:'frames' },
+    { id:'lb-4x5',       label:'4:5',                  assetFile:'letterbox4x5.png',                 assetDir:'frames' },
+    { id:'lb-vertical',  label:'9:16 VERTICAL',        assetFile:'letterbox9-16VerticalVideo.png',   assetDir:'frames' },
+    { id:'lb-academy',   label:'ACADEMY RATIO',        assetFile:'letterboxAcademyRatio.png',        assetDir:'frames' },
+    { id:'lb-35mm',      label:'CLASSIC 35MM',         assetFile:'letterboxClassic35mm.png',         assetDir:'frames' }
   ]
 };
 
@@ -18732,12 +18740,14 @@ function fxShowLevel(level) {
   var m  = document.getElementById('fx-multi-view');
   var p  = document.getElementById('fx-paper-view');
   var gc = document.getElementById('fx-gem-controls');
+  var lc = document.getElementById('fx-lb-controls');
   /* hide all content panels */
   if (v)  { v.classList.remove('active'); v.style.display = 'none'; }
   if (i)  i.classList.remove('active');
   if (m)  m.classList.remove('active');
   if (p)  { p.classList.remove('active'); p.style.display = 'none'; }
   if (gc) { gc.style.display = 'none'; if (_fxPanel) _fxPanel.classList.remove('fx-expanded'); }
+  if (lc) lc.style.display = 'none';
   /* show the right one */
   if (level === 2) {
     if (v) { v.classList.add('active'); v.style.display = 'flex'; }
@@ -18747,6 +18757,9 @@ function fxShowLevel(level) {
     if (_fxActiveCat === 'glow'  && m)  m.classList.add('active');
     if (_fxActiveCat === 'paper' && p)  { p.classList.add('active'); p.style.display = 'flex'; }
     if (gc && (_fxActiveCat === 'gem' || (_fxActiveVariant && _fxActiveVariant.indexOf('gem') === 0))) { gc.style.display = 'flex'; if (_fxPanel) _fxPanel.classList.add('fx-expanded'); }
+  } else if (level === 5) {
+    var lc2 = document.getElementById('fx-lb-controls');
+    if (lc2) { lc2.style.display = 'flex'; if (_fxPanel) _fxPanel.classList.add('fx-expanded'); }
   }
 }
 
@@ -18957,6 +18970,9 @@ function fxSelectVariant(cat, variantId) {
       fxState.frames.mirror    = false;
       fxState.frames.flipV     = false;
       fxState.frames.positionY = 0;
+      fxState.frames.lbPosX    = 0;
+      fxState.frames.lbPosY    = 0;
+      fxState.frames.lbScale   = 1.0;
     }
     fxUpdateCatDot('frames');
     /* highlight active card in strip */
@@ -18967,8 +18983,12 @@ function fxSelectVariant(cat, variantId) {
       if (th) th.style.borderColor = isActive ? 'var(--accent,#c9b8d4)' : 'rgba(255,255,255,0.10)';
     });
     if (_alreadySelected && !varDef.noControls) {
-      /* second tap — open controls (gem only) */
-      fxOpenGemControls();
+      var _isLbVariant = variantId && variantId.indexOf('lb-') === 0;
+      if (_isLbVariant) {
+        fxOpenLbControls();
+      } else {
+        fxOpenGemControls();
+      }
       return;
     }
     /* first tap — stay in gem strip, load and render */
@@ -19175,6 +19195,99 @@ function fxDrawFrameThumb(canvas, frameId) {
   }
 }
 
+function fxOpenLbControls() {
+  _fxGemSnapshot = JSON.parse(JSON.stringify(fxState.frames));
+  var pv = document.getElementById('fx-lb-controls');
+  if (!pv) {
+    pv = document.createElement('div');
+    pv.id = 'fx-lb-controls';
+    pv.style.cssText = 'display:none;flex-direction:column;overflow-y:auto;';
+    pv.innerHTML =
+      '<div class="blemish-action-bar">' +
+        '<button class="blemish-act-btn" onclick="fxLbControlsDiscard()">✕</button>' +
+        '<span class="blemish-act-label">LETTERBOX</span>' +
+        '<button class="blemish-act-btn blemish-act-confirm" onclick="fxCloseLbControls()">✓</button>' +
+      '</div>' +
+      '<div class="crop-subtabs" id="fxlbc-subtabs" style="margin:6px 12px 0;">' +
+        '<button class="crop-subtab active" onclick="fxLbcSubTab(this,\'position\')">POSITION</button>' +
+        '<button class="crop-subtab" onclick="fxLbcSubTab(this,\'scale\')">SCALE</button>' +
+      '</div>' +
+      '<div class="crop-sub-content" id="fxlbc-sub-position">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;">' +
+          '<span class="crop-sub-label" style="flex-shrink:0;width:14px;">X</span>' +
+          '<input type="range" class="tc-range" id="fxlbcr-posX" min="-100" max="100" value="0" style="flex:1;margin:0;" oninput="fxLbSlide(\'lbPosX\',this.value,\'fxlbcv-posX\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+          '<span class="crop-sub-val" id="fxlbcv-posX" style="flex-shrink:0;width:20px;text-align:right;">0</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-top:8px;">' +
+          '<span class="crop-sub-label" style="flex-shrink:0;width:14px;">Y</span>' +
+          '<input type="range" class="tc-range" id="fxlbcr-posY" min="-100" max="100" value="0" style="flex:1;margin:0;" oninput="fxLbSlide(\'lbPosY\',this.value,\'fxlbcv-posY\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+          '<span class="crop-sub-val" id="fxlbcv-posY" style="flex-shrink:0;width:20px;text-align:right;">0</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="crop-sub-content" id="fxlbc-sub-scale" style="display:none;">' +
+        '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">SCALE</span><span class="crop-sub-val" id="fxlbcv-scale">100</span></div>' +
+        '<input type="range" class="tc-range" id="fxlbcr-scale" min="100" max="300" value="100" oninput="fxLbSlide(\'lbScale\',this.value,\'fxlbcv-scale\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+      '</div>';
+    document.getElementById('es-panel-fx').appendChild(pv);
+  }
+  var rX = document.getElementById('fxlbcr-posX');
+  var rY = document.getElementById('fxlbcr-posY');
+  var rS = document.getElementById('fxlbcr-scale');
+  var lbPosX  = fxState.frames.lbPosX  || 0;
+  var lbPosY  = fxState.frames.lbPosY  || 0;
+  var lbScale = fxState.frames.lbScale !== undefined ? fxState.frames.lbScale : 1.0;
+  if (rX) { rX.value = lbPosX;  document.getElementById('fxlbcv-posX').textContent  = Math.round(lbPosX); }
+  if (rY) { rY.value = lbPosY;  document.getElementById('fxlbcv-posY').textContent  = Math.round(lbPosY); }
+  if (rS) { rS.value = Math.round(lbScale * 100); document.getElementById('fxlbcv-scale').textContent = Math.round(lbScale * 100); }
+  fxLbcSubTab(document.querySelector('#fxlbc-subtabs .crop-subtab'), 'position');
+  pv.style.display = 'flex';
+  _fxActiveCat = 'letterbox';
+  fxShowLevel(5);
+}
+
+function fxLbcSubTab(btn, tab) {
+  document.querySelectorAll('#fxlbc-subtabs .crop-subtab').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  ['position','scale'].forEach(function(t) {
+    var el = document.getElementById('fxlbc-sub-' + t);
+    if (el) el.style.display = (t === tab) ? '' : 'none';
+  });
+}
+
+function fxLbSlide(key, val, valId) {
+  val = parseFloat(val);
+  if (key === 'lbPosX' && Math.abs(val) < 2) { val = 0; var r = document.getElementById('fxlbcr-posX'); if (r) r.value = 0; }
+  if (key === 'lbPosY' && Math.abs(val) < 2) { val = 0; var r = document.getElementById('fxlbcr-posY'); if (r) r.value = 0; }
+  if (key === 'lbScale' && Math.abs(val - 100) < 2) { val = 100; var r = document.getElementById('fxlbcr-scale'); if (r) r.value = 100; }
+  if (key === 'lbScale') {
+    fxState.frames.lbScale = val / 100;
+  } else {
+    fxState.frames[key] = val;
+  }
+  var el = document.getElementById(valId);
+  if (el) el.textContent = Math.round(key === 'lbScale' ? val : val);
+  window._slDragging = true;
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+}
+
+function fxLbControlsDiscard() {
+  if (_fxGemSnapshot) {
+    fxState.frames.lbPosX  = _fxGemSnapshot.lbPosX  || 0;
+    fxState.frames.lbPosY  = _fxGemSnapshot.lbPosY  || 0;
+    fxState.frames.lbScale = _fxGemSnapshot.lbScale !== undefined ? _fxGemSnapshot.lbScale : 1.0;
+    if (typeof evRenderCanvas === 'function') evRenderCanvas();
+  }
+  fxCloseLbControls();
+}
+
+function fxCloseLbControls() {
+  var pv = document.getElementById('fx-lb-controls');
+  if (pv) pv.style.display = 'none';
+  _fxActiveCat = 'letterbox';
+  fxBuildVariantStrip('letterbox');
+  fxShowLevel(2);
+}
+
 var _fxGemSnapshot = null;
 function fxOpenGemControls() {
   _fxGemSnapshot = JSON.parse(JSON.stringify(fxState.frames));
@@ -19327,6 +19440,9 @@ function fxRemoveFrame() {
   fxState.frames.flipV      = false;
   fxState.frames.positionY  = 0;
   fxState.frames.positionX  = 0;
+  fxState.frames.lbPosX     = 0;
+  fxState.frames.lbPosY     = 0;
+  fxState.frames.lbScale    = 1.0;
   fxUpdateCatDot('frames');
   var pv = document.getElementById('fx-gem-controls');
   if (pv) pv.style.display = 'none';

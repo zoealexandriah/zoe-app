@@ -18918,7 +18918,8 @@ function fxSelectVariant(cat, variantId) {
       return;
     }
     /* first tap — stay in gem strip, load and render */
-    var _url = './assets/frames/' + varDef.assetFile;
+    var _dir = varDef.assetDir || 'frames';
+    var _url = './assets/' + _dir + '/' + varDef.assetFile;
     var _cached = _fxFrameImgCache[_url];
     if (_cached && _cached.complete && _cached.naturalWidth > 0) {
       if (typeof evRenderCanvas === 'function') evRenderCanvas();

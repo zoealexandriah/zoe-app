@@ -18747,7 +18747,7 @@ function fxShowLevel(level) {
   if (m)  m.classList.remove('active');
   if (p)  { p.classList.remove('active'); p.style.display = 'none'; }
   if (gc) { gc.style.display = 'none'; if (_fxPanel) _fxPanel.classList.remove('fx-expanded'); }
-  if (lc) lc.style.display = 'none';
+  if (lc) { lc.style.display = 'none'; if (_fxPanel) _fxPanel.classList.remove('fx-expanded'); }
   /* show the right one */
   if (level === 2) {
     if (v) { v.classList.add('active'); v.style.display = 'flex'; }

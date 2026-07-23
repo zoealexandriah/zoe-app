@@ -14070,18 +14070,36 @@ function _evDoSave() {
       if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
                                             applyBlemishHeal(proxy, blemishSpots, 0, 0, pw, ph);
 
-      // GPU-upscale proxy → 2400px final canvas
-      var out = document.createElement('canvas');
-      out.width = ew; out.height = eh;
-      var outCtx = out.getContext('2d');
-      outCtx.imageSmoothingEnabled = true;
-      outCtx.imageSmoothingQuality = 'high';
-      outCtx.drawImage(proxy, 0, 0, ew, eh);
-
-      if (_fxFrameVariant2 && _fxFrameVariant2 !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
+      var _isLBExport = _fxFrameVariant2 && _fxFrameVariant2.indexOf('lb-') === 0;
+      if (_isLBExport) {
+        /* Letterbox export: output canvas is 16:9, photo cover-scaled into center */
+        var _lbEW, _lbEH;
+        if (ew / eh > 16/9) { _lbEH = eh; _lbEW = Math.round(eh * 16/9); }
+        else { _lbEW = ew; _lbEH = Math.round(ew * 9/16); }
+        var out = document.createElement('canvas');
+        out.width = _lbEW; out.height = _lbEH;
+        var outCtx = out.getContext('2d');
+        outCtx.imageSmoothingEnabled = true;
+        outCtx.imageSmoothingQuality = 'high';
+        /* Cover-scale the processed proxy into the 16:9 canvas */
+        var _lbS = Math.max(_lbEW / proxy.width, _lbEH / proxy.height);
+        var _lbDW = Math.round(proxy.width * _lbS), _lbDH = Math.round(proxy.height * _lbS);
+        var _lbDX = Math.round((_lbEW - _lbDW) / 2), _lbDY = Math.round((_lbEH - _lbDH) / 2);
+        outCtx.drawImage(proxy, _lbDX, _lbDY, _lbDW, _lbDH);
         fxApplyFrameToCanvas(out, _fxFrameVariant2, fxState.frames, function() { _doSaveBlob(out); });
       } else {
-        _doSaveBlob(out);
+        /* Standard export: GPU-upscale proxy → 2400px final canvas */
+        var out = document.createElement('canvas');
+        out.width = ew; out.height = eh;
+        var outCtx = out.getContext('2d');
+        outCtx.imageSmoothingEnabled = true;
+        outCtx.imageSmoothingQuality = 'high';
+        outCtx.drawImage(proxy, 0, 0, ew, eh);
+        if (_fxFrameVariant2 && _fxFrameVariant2 !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
+          fxApplyFrameToCanvas(out, _fxFrameVariant2, fxState.frames, function() { _doSaveBlob(out); });
+        } else {
+          _doSaveBlob(out);
+        }
       }
     }
 
@@ -14425,7 +14443,40 @@ function _evRenderCanvasImmediate() {
   var _fxFV = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant  : null;
   var _fxFO = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.intensity : 100;
   if (_fxFV && _fxFV !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
-    fxApplyFrameToCanvas(canvas, _fxFV, fxState.frames, null);
+    var _isLB = _fxFV.indexOf('lb-') === 0;
+    if (_isLB) {
+      /* Letterbox: resize canvas to 16:9, draw photo cover-scaled into center, then overlay */
+      var _lbAR = 16/9;
+      var _lbCssW, _lbCssH;
+      var _area2 = document.getElementById('ev-canvas-area');
+      if (_area2) {
+        var _aw2 = _area2.clientWidth || 500, _ah2 = _area2.clientHeight || 400;
+        if (_aw2 / _ah2 > _lbAR) { _lbCssH = _ah2; _lbCssW = Math.round(_ah2 * _lbAR); }
+        else { _lbCssW = _aw2; _lbCssH = Math.round(_aw2 / _lbAR); }
+      } else { _lbCssW = canvas.width; _lbCssH = Math.round(canvas.width / _lbAR); }
+      var _dpr2 = Math.min(window.devicePixelRatio || 1, 2);
+      var _lbPxW = Math.round(_lbCssW * _dpr2), _lbPxH = Math.round(_lbCssH * _dpr2);
+      canvas.width  = _lbPxW;
+      canvas.height = _lbPxH;
+      canvas.style.width  = _lbCssW + 'px';
+      canvas.style.height = _lbCssH + 'px';
+      /* Draw photo cover-scaled to fill the 16:9 canvas */
+      var _lbCtx = canvas.getContext('2d', { willReadFrequently: true });
+      var _phW = userImage.naturalWidth, _phH = userImage.naturalHeight;
+      var _cvS = Math.max(_lbPxW / _phW, _lbPxH / _phH);
+      var _drW = Math.round(_phW * _cvS), _drH = Math.round(_phH * _cvS);
+      var _drX = Math.round((_lbPxW - _drW) / 2), _drY = Math.round((_lbPxH - _drH) / 2);
+      _lbCtx.drawImage(userImage, _drX, _drY, _drW, _drH);
+      /* Re-apply active preset pixel adjustments over the resized photo */
+      if (typeof _evCurPreset !== 'undefined' && _evCurPreset && typeof adj !== 'undefined' && adj) {
+        var _lbOrig = _lbCtx.getImageData(0, 0, _lbPxW, _lbPxH);
+        var _lbProc = applyPixelAdjustments(_lbOrig, adj);
+        _lbCtx.putImageData(new ImageData(_lbProc, _lbPxW, _lbPxH), 0, 0);
+      }
+      fxApplyFrameToCanvas(canvas, _fxFV, fxState.frames, null);
+    } else {
+      fxApplyFrameToCanvas(canvas, _fxFV, fxState.frames, null);
+    }
   }
   if (canvas.style.opacity === '0') canvas.style.opacity = '';
 }

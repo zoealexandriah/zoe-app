@@ -14082,9 +14082,14 @@ function _evDoSave() {
         outCtx.imageSmoothingEnabled = true;
         outCtx.imageSmoothingQuality = 'high';
         /* Cover-scale the processed proxy into the 16:9 canvas */
-        var _lbS = Math.max(_lbEW / proxy.width, _lbEH / proxy.height);
+        var _lbS = Math.max(_lbEW / proxy.width, _lbEH / proxy.height) * lbZoom;
         var _lbDW = Math.round(proxy.width * _lbS), _lbDH = Math.round(proxy.height * _lbS);
-        var _lbDX = Math.round((_lbEW - _lbDW) / 2), _lbDY = Math.round((_lbEH - _lbDH) / 2);
+        var _lbMPX = Math.max(0, (_lbDW - _lbEW) / 2);
+        var _lbMPY = Math.max(0, (_lbDH - _lbEH) / 2);
+        var _lbCPX = Math.max(-_lbMPX, Math.min(_lbMPX, lbPanX * _lbEW));
+        var _lbCPY = Math.max(-_lbMPY, Math.min(_lbMPY, lbPanY * _lbEH));
+        var _lbDX = Math.round((_lbEW - _lbDW) / 2 + _lbCPX);
+        var _lbDY = Math.round((_lbEH - _lbDH) / 2 + _lbCPY);
         outCtx.drawImage(proxy, _lbDX, _lbDY, _lbDW, _lbDH);
         fxApplyFrameToCanvas(out, _fxFrameVariant2, fxState.frames, function() { _doSaveBlob(out); });
       } else {
@@ -14210,6 +14215,7 @@ function evSaveFavs(){ try{ localStorage.setItem('ev_fav_presets', JSON.stringif
 let evActivePreset = null;
 let evZoomLevel   = 1.0;
 let evPanX = 0, evPanY = 0;
+let lbZoom = 1.0, lbPanX = 0, lbPanY = 0;
 let evPanning = false, evPanStart = null;
 let _evLastTap = 0, _evLastTapId = null;
 var _evPinchActive = false;
@@ -14218,6 +14224,7 @@ let _evActiveCardEl = null; // direct reference to the active preset card DOM el
 function evInit() {
   // Reset zoom/pan and active preset so stale effects aren't applied to a new photo
   evZoomLevel = 1; evPanX = 0; evPanY = 0;
+  lbZoom = 1.0; lbPanX = 0; lbPanY = 0;
   evActivePreset = null; activePreset = null;
   fxRemoveFrame();
   // Open directly to adjust mode — subnav always visible, no landing screen
@@ -14463,9 +14470,15 @@ function _evRenderCanvasImmediate() {
       /* Draw photo cover-scaled to fill the 16:9 canvas */
       var _lbCtx = canvas.getContext('2d', { willReadFrequently: true });
       var _phW = userImage.naturalWidth, _phH = userImage.naturalHeight;
-      var _cvS = Math.max(_lbPxW / _phW, _lbPxH / _phH);
+      var _cvS = Math.max(_lbPxW / _phW, _lbPxH / _phH) * lbZoom;
       var _drW = Math.round(_phW * _cvS), _drH = Math.round(_phH * _cvS);
-      var _drX = Math.round((_lbPxW - _drW) / 2), _drY = Math.round((_lbPxH - _drH) / 2);
+      /* Cap pan so photo never exposes gaps inside the frame */
+      var _maxPX = Math.max(0, (_drW - _lbPxW) / 2);
+      var _maxPY = Math.max(0, (_drH - _lbPxH) / 2);
+      var _clPX  = Math.max(-_maxPX, Math.min(_maxPX, lbPanX * _lbPxW));
+      var _clPY  = Math.max(-_maxPY, Math.min(_maxPY, lbPanY * _lbPxH));
+      var _drX = Math.round((_lbPxW - _drW) / 2 + _clPX);
+      var _drY = Math.round((_lbPxH - _drH) / 2 + _clPY);
       _lbCtx.drawImage(userImage, _drX, _drY, _drW, _drH);
       /* Re-apply active preset pixel adjustments over the resized photo */
       if (typeof _evCurPreset !== 'undefined' && _evCurPreset && typeof adj !== 'undefined' && adj) {
@@ -15162,13 +15175,36 @@ document.addEventListener('mouseup', function(){
   function dist(e){ var dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY; return Math.sqrt(dx*dx+dy*dy); }
   document.addEventListener('touchstart', function(e){
     var c=document.getElementById('ev-canvas'); var bov=document.getElementById('blemish-overlay-canvas'); if(!c||(e.target!==c&&e.target!==bov)) return;
-    if(e.touches.length===2){ _p0=dist(e); _z0=evZoomLevel; _evPinchActive=true; _hadGesture=true; }
-    else if(e.touches.length===1&&evZoomLevel>1){ _pan0={x:e.touches[0].clientX-evPanX,y:e.touches[0].clientY-evPanY}; }
+    var _isLBActive = (typeof fxState!=='undefined'&&fxState.frames&&fxState.frames.variant&&fxState.frames.variant.indexOf('lb-')===0);
+    if(_isLBActive){
+      if(e.touches.length===2){ _p0=dist(e); _z0=lbZoom; _evPinchActive=true; _hadGesture=true; }
+      else if(e.touches.length===1){ _pan0={x:e.touches[0].clientX,y:e.touches[0].clientY,px:lbPanX,py:lbPanY}; }
+    } else {
+      if(e.touches.length===2){ _p0=dist(e); _z0=evZoomLevel; _evPinchActive=true; _hadGesture=true; }
+      else if(e.touches.length===1&&evZoomLevel>1){ _pan0={x:e.touches[0].clientX-evPanX,y:e.touches[0].clientY-evPanY}; }
+    }
   },{passive:true});
   document.addEventListener('touchmove', function(e){
     var c=document.getElementById('ev-canvas'); var bov=document.getElementById('blemish-overlay-canvas'); if(!c||(e.target!==c&&e.target!==bov)) return;
-    if(e.touches.length===2&&_p0>0){ evZoomLevel=Math.max(0.5,Math.min(4,_z0*dist(e)/_p0)); evApplyZoom(); if(typeof _blemishSyncOverlay==='function') _blemishSyncOverlay(); }
-    else if(e.touches.length===1&&_pan0&&evZoomLevel>1){ evPanX=e.touches[0].clientX-_pan0.x; evPanY=e.touches[0].clientY-_pan0.y; evApplyZoom(); _evPinchActive=true; _hadGesture=true; }
+    var _isLBActive = (typeof fxState!=='undefined'&&fxState.frames&&fxState.frames.variant&&fxState.frames.variant.indexOf('lb-')===0);
+    if(_isLBActive){
+      if(e.touches.length===2&&_p0>0){
+        lbZoom=Math.max(1,Math.min(4,_z0*dist(e)/_p0));
+        _evPinchActive=true; _hadGesture=true;
+        if(typeof evRenderCanvas==='function') evRenderCanvas();
+      } else if(e.touches.length===1&&_pan0){
+        var _c2=document.getElementById('ev-canvas');
+        var _cw=_c2?parseFloat(_c2.style.width)||_c2.clientWidth:300;
+        var _ch=_c2?parseFloat(_c2.style.height)||_c2.clientHeight:300;
+        lbPanX=(_pan0.px||0)+(e.touches[0].clientX-_pan0.x)/_cw;
+        lbPanY=(_pan0.py||0)+(e.touches[0].clientY-_pan0.y)/_ch;
+        _evPinchActive=true; _hadGesture=true;
+        if(typeof evRenderCanvas==='function') evRenderCanvas();
+      }
+    } else {
+      if(e.touches.length===2&&_p0>0){ evZoomLevel=Math.max(0.5,Math.min(4,_z0*dist(e)/_p0)); evApplyZoom(); if(typeof _blemishSyncOverlay==='function') _blemishSyncOverlay(); }
+      else if(e.touches.length===1&&_pan0&&evZoomLevel>1){ evPanX=e.touches[0].clientX-_pan0.x; evPanY=e.touches[0].clientY-_pan0.y; evApplyZoom(); _evPinchActive=true; _hadGesture=true; }
+    }
   },{passive:true});
   document.addEventListener('touchend', function(e){
     // Clear pinch/pan tracking on every finger-up, but only reset _evPinchActive once
@@ -19333,6 +19369,7 @@ function fxRemoveFrame() {
   _fxActiveCat = 'gem';
   fxBuildVariantStrip('gem');
   fxShowLevel(2);
+  lbZoom = 1.0; lbPanX = 0; lbPanY = 0;
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 </script>

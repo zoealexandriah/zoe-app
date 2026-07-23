@@ -18577,25 +18577,36 @@ var FX_MULTI = ['glow','paper'];
 /* Variant definitions for FRAMES */
 var FX_VARIANTS = {
   frames: [
-    { id:'gem', label:'GEMS', hasDesigns: true, assetFile:'gemframepreview.png' }
+    { id:'gem',       label:'GEMS',      hasDesigns: true, assetFile:'gemframepreview.png',                    assetDir:'frames' },
+    { id:'letterbox', label:'LETTERBOX', hasDesigns: true, assetFile:'letterboxpreview.png', noControls: true, assetDir:'letterbox' }
   ],
   gem: [
-    { id:'gem10', label:'', assetFile:'gemframesbypurple10.png', thumbScale: 0.8 },
-    { id:'gem9',  label:'', assetFile:'gemframesbypurple9.png', thumbScale: 0.945 },
-    { id:'gem6',  label:'', assetFile:'gemframesbypurple6.png', thumbScale: 0.9 },
-    { id:'gem7',  label:'', assetFile:'gemframesbypurple7.png', thumbScale: 0.9 },
-    { id:'gem2',  label:'', assetFile:'gemframesbypurple2.png', thumbScale: 0.9 },
-    { id:'gem11', label:'', assetFile:'gemframesbypurple11.png', thumbScale: 0.9 },
-    { id:'gem16', label:'', assetFile:'gemframesbypurple16.png', thumbScale: 0.9 },
-    { id:'gem3',  label:'', assetFile:'gemframesbypurple.png', thumbScale: 0.9 },
-    { id:'gem14', label:'', assetFile:'gemframesbypurple14.png', thumbScale: 0.855 },
-    { id:'gem17', label:'', assetFile:'gemframesbypurple17.png', thumbScale: 0.681 },
-    { id:'gem15', label:'', assetFile:'gemframesbypurple15.png', thumbScale: 0.681 },
-    { id:'gem1',  label:'', assetFile:'gemframesbypurple1.png', thumbScale: 0.9 },
-    { id:'gem4',  label:'', assetFile:'gemframesbypurple4.png', thumbScale: 0.9 },
-    { id:'gem5',  label:'', assetFile:'gemframesbypurple5.png', thumbScale: 0.9 },
-    { id:'gem13', label:'', assetFile:'gemframesbypurple13.png', thumbScale: 0.9 },
-    { id:'gem8',  label:'', assetFile:'gemframesbypurple8.png', thumbScale: 0.8 }
+    { id:'gem10', label:'', assetFile:'gemframesbypurple10.png', thumbScale: 0.8,   assetDir:'frames' },
+    { id:'gem9',  label:'', assetFile:'gemframesbypurple9.png',  thumbScale: 0.945, assetDir:'frames' },
+    { id:'gem6',  label:'', assetFile:'gemframesbypurple6.png',  thumbScale: 0.9,   assetDir:'frames' },
+    { id:'gem7',  label:'', assetFile:'gemframesbypurple7.png',  thumbScale: 0.9,   assetDir:'frames' },
+    { id:'gem2',  label:'', assetFile:'gemframesbypurple2.png',  thumbScale: 0.9,   assetDir:'frames' },
+    { id:'gem11', label:'', assetFile:'gemframesbypurple11.png', thumbScale: 0.9,   assetDir:'frames' },
+    { id:'gem16', label:'', assetFile:'gemframesbypurple16.png', thumbScale: 0.9,   assetDir:'frames' },
+    { id:'gem3',  label:'', assetFile:'gemframesbypurple.png',   thumbScale: 0.9,   assetDir:'frames' },
+    { id:'gem14', label:'', assetFile:'gemframesbypurple14.png', thumbScale: 0.855, assetDir:'frames' },
+    { id:'gem17', label:'', assetFile:'gemframesbypurple17.png', thumbScale: 0.681, assetDir:'frames' },
+    { id:'gem15', label:'', assetFile:'gemframesbypurple15.png', thumbScale: 0.681, assetDir:'frames' },
+    { id:'gem1',  label:'', assetFile:'gemframesbypurple1.png',  thumbScale: 0.9,   assetDir:'frames' },
+    { id:'gem4',  label:'', assetFile:'gemframesbypurple4.png',  thumbScale: 0.9,   assetDir:'frames' },
+    { id:'gem5',  label:'', assetFile:'gemframesbypurple5.png',  thumbScale: 0.9,   assetDir:'frames' },
+    { id:'gem13', label:'', assetFile:'gemframesbypurple13.png', thumbScale: 0.9,   assetDir:'frames' },
+    { id:'gem8',  label:'', assetFile:'gemframesbypurple8.png',  thumbScale: 0.8,   assetDir:'frames' }
+  ],
+  letterbox: [
+    { id:'lb-vintage',   label:'VINTAGE CINEMASCOPE', assetFile:'letterboxVintageCinemascope.png',  assetDir:'letterbox', noControls: true },
+    { id:'lb-1x1',       label:'1:1 SQUARE',          assetFile:'letterbox1x1.png',                 assetDir:'letterbox', noControls: true },
+    { id:'lb-univisium', label:'UNIVISIUM',            assetFile:'letterbox2-1Univisium.png',        assetDir:'letterbox', noControls: true },
+    { id:'lb-oldtv',     label:'OLD TV',               assetFile:'letterbox4-3OldTV.png',            assetDir:'letterbox', noControls: true },
+    { id:'lb-4x5',       label:'4:5',                  assetFile:'letterbox4x5.png',                 assetDir:'letterbox', noControls: true },
+    { id:'lb-vertical',  label:'9:16 VERTICAL',        assetFile:'letterbox9-16VerticalVideo.png',   assetDir:'letterbox', noControls: true },
+    { id:'lb-academy',   label:'ACADEMY RATIO',        assetFile:'letterboxAcademyRatio.png',        assetDir:'letterbox', noControls: true },
+    { id:'lb-35mm',      label:'CLASSIC 35MM',         assetFile:'letterboxClassic35mm.png',         assetDir:'letterbox', noControls: true }
   ]
 };
 
@@ -18603,10 +18614,14 @@ var FX_VARIANTS = {
 var _fxFrameImgCache = {};
 
 function fxGetFrameAssetURL(frameId) {
-  var gemVariants = FX_VARIANTS.gem || [];
-  for (var gi = 0; gi < gemVariants.length; gi++) {
-    if (gemVariants[gi].id === frameId) {
-      return './assets/frames/' + gemVariants[gi].assetFile;
+  var allArrays = [FX_VARIANTS.gem || [], FX_VARIANTS.letterbox || []];
+  for (var a = 0; a < allArrays.length; a++) {
+    var arr = allArrays[a];
+    for (var gi = 0; gi < arr.length; gi++) {
+      if (arr[gi].id === frameId) {
+        var dir = arr[gi].assetDir || 'frames';
+        return './assets/' + dir + '/' + arr[gi].assetFile;
+      }
     }
   }
   return null;
@@ -18811,7 +18826,8 @@ function fxBuildVariantStrip(cat) {
       div.className = 'fx-gem-card fx-var-card' + (isActive ? ' active' : '');
       var imgBg = document.createElement('div');
       imgBg.className = 'fx-gem-card-img';
-      imgBg.style.backgroundImage = 'url(./assets/frames/' + v.assetFile + ')';
+      var _dir = v.assetDir || 'frames';
+      imgBg.style.backgroundImage = 'url(./assets/' + _dir + '/' + v.assetFile + ')';
       if (v.thumbScale) { imgBg.style.backgroundSize = (v.thumbScale * 100) + '%'; }
       var grad = document.createElement('div');
       grad.className = 'fx-gem-card-grad';
@@ -18875,7 +18891,7 @@ function fxSelectVariant(cat, variantId) {
     return;
   }
 
-  /* gem design variant — first tap applies, second tap opens controls */
+  /* frame design variant — first tap applies, second tap opens controls (unless noControls) */
   if (varDef && varDef.assetFile) {
     var _alreadySelected = fxState.frames.variant === variantId;
     fxState.frames.variant = variantId;
@@ -18896,8 +18912,8 @@ function fxSelectVariant(cat, variantId) {
       var th = t.querySelector('div');
       if (th) th.style.borderColor = isActive ? 'var(--accent,#c9b8d4)' : 'rgba(255,255,255,0.10)';
     });
-    if (_alreadySelected) {
-      /* second tap — open controls */
+    if (_alreadySelected && !varDef.noControls) {
+      /* second tap — open controls (gem only) */
       fxOpenGemControls();
       return;
     }

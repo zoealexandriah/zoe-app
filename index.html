@@ -3869,12 +3869,14 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
   #ev-editor-suite.open #es-panel-fx.active.fx-expanded {
     height: auto !important;
-    max-height: 200px !important;
+    max-height: none !important;
     min-height: unset !important;
-    flex: none !important;
-    overflow: hidden !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
   body:has(#es-panel-fx.active.fx-expanded) #fx-subtab-bar { display: none !important; }
+  body:has(#es-panel-fx.active.fx-expanded) #ev-adjust-subnav { flex-shrink: 0 !important; }
 
   #ev-editor-suite.open .es-tab-panel.active:not(#es-panel-blemish):not(#es-panel-tools):not(#es-panel-fx) {
     height: 170px !important;
@@ -19131,7 +19133,7 @@ function fxOpenGemControls() {
       '<div class="crop-sub-content" id="fxgc-sub-position" style="display:none;">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">X</span><span class="crop-sub-val" id="fxgcv-positionX">0</span></div>' +
         '<input type="range" class="tc-range" id="fxgcr-positionX" min="-100" max="100" value="0" oninput="fxGemSlide(\'positionX\',this.value,\'fxgcv-positionX\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
-        '<div class="crop-sub-row" style="margin-top:4px;"><span class="crop-sub-label">Y</span><span class="crop-sub-val" id="fxgcv-positionY">0</span></div>' +
+        '<div class="crop-sub-row" style="margin-top:2px;"><span class="crop-sub-label">Y</span><span class="crop-sub-val" id="fxgcv-positionY">0</span></div>' +
         '<input type="range" class="tc-range" id="fxgcr-positionY" min="-100" max="100" value="0" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-positionY\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-rotate" style="display:none;">' +

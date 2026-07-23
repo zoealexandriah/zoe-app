@@ -3133,6 +3133,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   /* Canvas: disable browser scroll/zoom interference */
   #ev-canvas, #hero-canvas { touch-action: none; }
+  #ev-canvas.lb-active { outline: 1px solid rgba(201,184,212,0.35); outline-offset: 0px; }
 
   /* Collections 2-col */
   .col-l2-grid {
@@ -14487,6 +14488,10 @@ function _evRenderCanvasImmediate() {
     }
   }
   if (canvas.style.opacity === '0') canvas.style.opacity = '';
+  /* LB border indicator */
+  var _fxFV2 = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
+  var _lbBorderOn = _fxFV2 && _fxFV2 !== 'none' && _fxFV2.indexOf('lb-') === 0;
+  canvas.classList.toggle('lb-active', !!_lbBorderOn);
 }
 
 // ── Hold-to-compare: press and hold ev-canvas to preview original ────────────
@@ -19441,6 +19446,8 @@ function fxRemoveFrame() {
   fxState.frames.lbPosX     = 0;
   fxState.frames.lbPosY     = 0;
   fxState.frames.lbScale    = 1.0;
+  var _lbCvs = document.getElementById('ev-canvas');
+  if (_lbCvs) _lbCvs.classList.remove('lb-active');
   fxUpdateCatDot('frames');
   var pv = document.getElementById('fx-gem-controls');
   if (pv) pv.style.display = 'none';

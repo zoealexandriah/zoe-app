@@ -18716,15 +18716,15 @@ var FX_VARIANTS = {
     { id:'gem8',  label:'', assetFile:'gemframesbypurple8.png',  thumbScale: 0.8,   assetDir:'frames' }
   ],
   archive: [
-    { id:'arc-2single',  label:'SLEEVE 1',  assetFile:'archivephotosleeves2single.png',  assetDir:'frames' },
-    { id:'arc-3',        label:'SLEEVE 2',  assetFile:'archivephotosleeves3.png',         assetDir:'frames' },
-    { id:'arc-4single',  label:'SLEEVE 3',  assetFile:'archivephotosleeves4single.png',  assetDir:'frames' },
-    { id:'arc-5',        label:'SLEEVE 4',  assetFile:'archivephotosleeves5.png',         assetDir:'frames' },
-    { id:'arc-6single',  label:'SLEEVE 5',  assetFile:'archivephotosleeves6single.png',  assetDir:'frames' },
-    { id:'arc-7single',  label:'SLEEVE 6',  assetFile:'archivephotosleeves7single.png',  assetDir:'frames' },
-    { id:'arc-9bsingle', label:'SLEEVE 7',  assetFile:'archivephotosleeves9bsingle.png', assetDir:'frames' },
-    { id:'arc-9single',  label:'SLEEVE 8',  assetFile:'archivephotosleeves9single.png',  assetDir:'frames' },
-    { id:'arc-10',       label:'SLEEVE 9',  assetFile:'archivephotosleeves10.png',        assetDir:'frames' }
+    { id:'arc-2single',  label:'SLEEVE 1',  assetFile:'archivephotosleeves2single.png',  assetDir:'frames', win:{ x:0.116, y:0.275, w:0.667, h:0.557 } },
+    { id:'arc-3',        label:'SLEEVE 2',  assetFile:'archivephotosleeves3.png',         assetDir:'frames', win:{ x:0.119, y:0.265, w:0.652, h:0.570 } },
+    { id:'arc-4single',  label:'SLEEVE 3',  assetFile:'archivephotosleeves4single.png',  assetDir:'frames', win:{ x:0.182, y:0.121, w:0.537, h:0.672 } },
+    { id:'arc-5',        label:'SLEEVE 4',  assetFile:'archivephotosleeves5.png',         assetDir:'frames', win:{ x:0.114, y:0.052, w:0.797, h:0.790 } },
+    { id:'arc-6single',  label:'SLEEVE 5',  assetFile:'archivephotosleeves6single.png',  assetDir:'frames', win:{ x:0.102, y:0.045, w:0.861, h:0.815 } },
+    { id:'arc-7single',  label:'SLEEVE 6',  assetFile:'archivephotosleeves7single.png',  assetDir:'frames', win:{ x:0.034, y:0.120, w:0.914, h:0.733 } },
+    { id:'arc-9bsingle', label:'SLEEVE 7',  assetFile:'archivephotosleeves9bsingle.png', assetDir:'frames', win:{ x:0.069, y:0.040, w:0.853, h:0.790 } },
+    { id:'arc-9single',  label:'SLEEVE 8',  assetFile:'archivephotosleeves9single.png',  assetDir:'frames', win:{ x:0.087, y:0.045, w:0.798, h:0.800 } },
+    { id:'arc-10',       label:'SLEEVE 9',  assetFile:'archivephotosleeves10.png',        assetDir:'frames', win:{ x:0.158, y:0.152, w:0.684, h:0.690 } }
   ],
   letterbox: [
     { id:'lb-vintage',   label:'VINTAGE CINEMASCOPE', assetFile:'letterboxVintageCinemascope.png',  assetDir:'frames' },
@@ -18756,8 +18756,6 @@ function fxGetFrameAssetURL(frameId) {
 }
 
 /* ── FRAME WINDOW DETECTION (alpha-derived) ─────────── */
-var _fxFrameMetaCache = {};
-
 function fxEnsureFrameImage(frameId, cb) {
   var url = fxGetFrameAssetURL(frameId);
   if (!url) { if (cb) cb(null); return null; }
@@ -18777,80 +18775,12 @@ function fxEnsureFrameImage(frameId, cb) {
   return null;
 }
 
-function fxGetFrameWindow(img, url) {
-  if (_fxFrameMetaCache[url] !== undefined) return _fxFrameMetaCache[url];
-  var win = null;
-  try {
-    var fw = img.naturalWidth || img.width, fh = img.naturalHeight || img.height;
-    var W, H;
-    if (fh > fw) { H = 220; W = Math.max(1, Math.round(H * fw / fh)); }
-    else         { W = 220; H = Math.max(1, Math.round(W * fh / fw)); }
-    var c = document.createElement('canvas'); c.width = W; c.height = H;
-    var cx = c.getContext('2d', { willReadFrequently: true });
-    cx.clearRect(0, 0, W, H);
-    cx.drawImage(img, 0, 0, W, H);
-    var d = cx.getImageData(0, 0, W, H).data;
-    var N = W * H, trans = new Uint8Array(N), i, x, y;
-    for (i = 0; i < N; i++) if (d[i * 4 + 3] < 24) trans[i] = 1;
-    /* flood-fill transparent pixels reachable from the border = OUTSIDE the artwork */
-    var seen = new Uint8Array(N), stack = [];
-    for (x = 0; x < W; x++) { stack.push(x); stack.push((H - 1) * W + x); }
-    for (y = 0; y < H; y++) { stack.push(y * W); stack.push(y * W + W - 1); }
-    while (stack.length) {
-      i = stack.pop();
-      if (seen[i] || !trans[i]) continue;
-      seen[i] = 1;
-      x = i % W; y = (i - x) / W;
-      if (x > 0)     stack.push(i - 1);
-      if (x < W - 1) stack.push(i + 1);
-      if (y > 0)     stack.push(i - W);
-      if (y < H - 1) stack.push(i + W);
-    }
-    /* label the transparent pixels that remain = interior windows */
-    var lab = new Int32Array(N); for (i = 0; i < N; i++) lab[i] = -1;
-    var comps = [], s, st, j, jx, jy, id, comp, nb, k, m;
-    for (s = 0; s < N; s++) {
-      if (!trans[s] || seen[s] || lab[s] !== -1) continue;
-      id = comps.length;
-      comp = { n: 0, x0: W, y0: H, x1: -1, y1: -1 };
-      st = [s]; lab[s] = id;
-      while (st.length) {
-        j = st.pop(); jx = j % W; jy = (j - jx) / W;
-        comp.n++;
-        if (jx < comp.x0) comp.x0 = jx;
-        if (jx > comp.x1) comp.x1 = jx;
-        if (jy < comp.y0) comp.y0 = jy;
-        if (jy > comp.y1) comp.y1 = jy;
-        nb = [];
-        if (jx > 0)     nb.push(j - 1);
-        if (jx < W - 1) nb.push(j + 1);
-        if (jy > 0)     nb.push(j - W);
-        if (jy < H - 1) nb.push(j + W);
-        for (k = 0; k < nb.length; k++) {
-          m = nb[k];
-          if (trans[m] && !seen[m] && lab[m] === -1) { lab[m] = id; st.push(m); }
-        }
-      }
-      comps.push(comp);
-    }
-    if (comps.length) {
-      comps.sort(function(a, b) { return b.n - a.n; });
-      var big = comps[0].n;
-      if (big > N * 0.01) {
-        var X0 = W, Y0 = H, X1 = -1, Y1 = -1;
-        for (k = 0; k < comps.length; k++) {
-          if (comps[k].n < big * 0.25) continue;
-          if (comps[k].x0 < X0) X0 = comps[k].x0;
-          if (comps[k].y0 < Y0) Y0 = comps[k].y0;
-          if (comps[k].x1 > X1) X1 = comps[k].x1;
-          if (comps[k].y1 > Y1) Y1 = comps[k].y1;
-        }
-        win = { x: X0 / W, y: Y0 / H, w: (X1 - X0 + 1) / W, h: (Y1 - Y0 + 1) / H };
-      }
-    }
-  } catch (e) { win = null; }
-  _fxFrameMetaCache[url] = win;
-  return win;
+function fxGetFrameWindow(frameId) {
+  var arr = FX_VARIANTS.archive || [];
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i].id === frameId) return arr[i].win || null;
+  }
+  return null;
 }
 
 function fxDrawIntoFrameWindow(ctx, src, cw, ch, win, st) {
@@ -18878,7 +18808,7 @@ function fxCompositeArchivePreview(canvas, frameId, adj) {
   if (!url) return false;
   var img = fxEnsureFrameImage(frameId, null);
   if (!img) return false;
-  var win = fxGetFrameWindow(img, url);
+  var win = fxGetFrameWindow(frameId);
   if (!win) return false;
   var ar = img.naturalWidth / img.naturalHeight;
   var area = document.getElementById('ev-canvas-area');
@@ -18911,7 +18841,7 @@ function fxCompositeArchiveExport(proxy, frameId, ew, eh, done) {
   var url = fxGetFrameAssetURL(frameId);
   var called = false;
   function finish(img) {
-    var win = img ? fxGetFrameWindow(img, url) : null;
+    var win = fxGetFrameWindow(frameId);
     var out = document.createElement('canvas');
     var octx;
     if (!img || !win) {

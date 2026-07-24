@@ -11025,10 +11025,14 @@ function renderLibrary() {
     empty.classList.remove('hidden');
     toolbar.classList.add('hidden');
     grid.innerHTML = '';
+    document.querySelector('.bottomnav').style.display = 'none';
+    document.querySelector('.app').style.gridTemplateRows = '0px 1fr 0px';
     return;
   }
   empty.classList.add('hidden');
   toolbar.classList.remove('hidden');
+  document.querySelector('.bottomnav').style.display = '';
+  document.querySelector('.app').style.gridTemplateRows = '';
   count.textContent = library.length + (library.length === 1 ? ' PHOTO' : ' PHOTOS');
   if (delBtn) delBtn.style.display = libSelected.length ? 'inline-flex' : 'none';
 

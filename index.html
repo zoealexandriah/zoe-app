@@ -18759,7 +18759,10 @@ function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
     var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
     /* 0.92 base gives a 4% buffer on each edge */
     var _isLetterbox = frameId && frameId.indexOf('lb-') === 0;
-    var baseScale = _isLetterbox ? Math.max(sw / iw, sh / ih) : Math.min(sw / iw, sh / ih) * 0.92 * scale;
+    var _isArchive = frameId && frameId.indexOf('arc-') === 0;
+    var baseScale = (_isLetterbox || _isArchive)
+      ? Math.max(sw / iw, sh / ih) * scale
+      : Math.min(sw / iw, sh / ih) * 0.92 * scale;
     var dw = iw * baseScale, dh = ih * baseScale;
     /* allow frame to move up to 70% off screen in any direction */
     var offsetY = (positionY / 100) * (sh * 0.7);

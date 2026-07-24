@@ -4497,6 +4497,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 @keyframes zoe-pulse { 0%,100%{opacity:.38} 50%{opacity:.78} }
 @keyframes zoe-grain { 0%{transform:translate(0,0)}10%{transform:translate(-4%,-7%)}20%{transform:translate(-9%,3%)}30%{transform:translate(5%,-9%)}40%{transform:translate(-3%,8%)}50%{transform:translate(7%,4%)}60%{transform:translate(-8%,-3%)}70%{transform:translate(3%,9%)}80%{transform:translate(8%,-5%)}90%{transform:translate(-5%,6%)}100%{transform:translate(0,0)} }
 
+.bottomnav-hidden { display: none !important; }
+body.empty-gallery .bottomnav { display: none !important; }
+body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
+
 </style>
 </head>
 <body>
@@ -11025,14 +11029,12 @@ function renderLibrary() {
     empty.classList.remove('hidden');
     toolbar.classList.add('hidden');
     grid.innerHTML = '';
-    document.querySelector('.bottomnav').style.display = 'none';
-    document.querySelector('.app').style.gridTemplateRows = '0px 1fr 0px';
+    document.body.classList.add('empty-gallery');
     return;
   }
   empty.classList.add('hidden');
   toolbar.classList.remove('hidden');
-  document.querySelector('.bottomnav').style.display = '';
-  document.querySelector('.app').style.gridTemplateRows = '';
+  document.body.classList.remove('empty-gallery');
   count.textContent = library.length + (library.length === 1 ? ' PHOTO' : ' PHOTOS');
   if (delBtn) delBtn.style.display = libSelected.length ? 'inline-flex' : 'none';
 

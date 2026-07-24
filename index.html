@@ -5044,7 +5044,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
               <svg class="ev-tb-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path stroke-linecap="butt" d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg>
               <span class="ev-tb-text">REDO</span>
             </div>
-            <div class="ctb-btn" id="ev-reset-btn" onclick="globalReset()" style="display:inline-flex;align-items:center;justify-content:center;padding:0 8px;border:none;background:none;min-width:0;flex-shrink:0;">
+            <div class="ctb-btn" id="ev-reset-btn" onclick="evResetConfirm()" style="display:inline-flex;align-items:center;justify-content:center;padding:0 8px;border:none;background:none;min-width:0;flex-shrink:0;">
               <svg class="ev-tb-svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M 12 4.5 A 7.5 7.5 0 1 0 18.5 8.25"/>
                 <path d="M 18.5 10.75 L 18.5 8.25 L 20.7 9.5"/>
@@ -5082,6 +5082,12 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
                 <span class="ev-tb-text">↑ EXPORT</span>
               </div>
             </div>
+          </div>
+          <!-- Reset confirm overlay -->
+          <div id="ev-reset-confirm-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#0d0d0e;border-bottom:0.5px solid rgba(210,210,220,0.10);padding-top:env(safe-area-inset-top);align-items:center;justify-content:space-between;padding-left:8px;padding-right:8px;padding-bottom:0;box-sizing:border-box;min-height:calc(46px + env(safe-area-inset-top));">
+            <button onclick="evResetDismiss()" style="background:none;border:none;color:rgba(255,255,255,0.45);font-size:13px;padding:6px 12px;cursor:pointer;font-family:var(--mono);letter-spacing:0.08em;">CANCEL</button>
+            <span style="font-size:9px;letter-spacing:0.14em;font-family:var(--mono);color:rgba(255,255,255,0.75);">RESET ALL EDITS?</span>
+            <button onclick="evResetConfirmed()" style="background:none;border:none;color:rgba(218,90,125,0.90);font-size:13px;padding:6px 12px;cursor:pointer;font-family:var(--mono);letter-spacing:0.08em;">RESET</button>
           </div>
           <!-- Canvas area -->
           <div id="ev-canvas-area" style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#0d0d0e;">
@@ -13529,7 +13535,8 @@ function evHistoryPush() {
     sliders:     p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
     intensity:   presetIntensity,
     _userImage:  userImage,
-    _perspState: _perspBaseURL ? { url: _perspBaseURL, v: _perspBaseV, h: _perspBaseH } : null
+    _perspState: _perspBaseURL ? { url: _perspBaseURL, v: _perspBaseV, h: _perspBaseH } : null,
+    _fxState:    (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null
   });
   if (evHistory.length > 30) evHistory.shift();
   evFuture.length = 0;
@@ -13566,6 +13573,14 @@ function _evRestoreSnap(snap) {
   // Restore userImage if the snap captured a different image (crop/flip/rotate ops)
   if (snap._userImage && snap._userImage !== userImage) {
     userImage = snap._userImage;
+  }
+  // Restore fx effects state from snap
+  if (snap._fxState && typeof fxState !== 'undefined') {
+    Object.assign(fxState, JSON.parse(JSON.stringify(snap._fxState)));
+    ['glow','glossy','scanlines','vhsbleed','paper','frames'].forEach(function(cat) {
+      if (typeof fxUpdateCatDot === 'function') fxUpdateCatDot(cat);
+    });
+    if (typeof evRenderCanvas === 'function') evRenderCanvas();
   }
   // Restore perspective re-edit state from snap (field present = snap was made with new code)
   if ('_perspState' in snap) {
@@ -13660,6 +13675,21 @@ window.globalRedo = function() {
   _evRestoreSnap(snap);
 };
 
+// ── Reset confirm ─────────────────────────────────────────────────────────
+function evResetConfirm() {
+  if (!userImage) { showToast('NOTHING TO RESET'); return; }
+  var bar = document.getElementById('ev-reset-confirm-bar');
+  if (bar) { bar.style.display = 'flex'; }
+}
+function evResetDismiss() {
+  var bar = document.getElementById('ev-reset-confirm-bar');
+  if (bar) { bar.style.display = 'none'; }
+}
+function evResetConfirmed() {
+  evResetDismiss();
+  globalReset();
+}
+
 // ── Fix 3: Global RESET ───────────────────────────────────────────────────
 function globalReset() {
   var _evViewR = document.getElementById('editor-view');
@@ -13680,6 +13710,24 @@ function globalReset() {
   blemishSpots = []; _blemishHistory = []; _blemishFuture = []; _blemishPreEdit = null;
   try { localStorage.removeItem('zoe_blemish'); } catch(e){}
   _blemishUpdateUD();
+  // Clear all fx effects
+  if (typeof fxState !== 'undefined') {
+    fxState.glow      = { glow: 0, diffusion: 0, halation: 0 };
+    fxState.glossy    = { variant: null, intensity: 0 };
+    fxState.scanlines = { variant: null, intensity: 0 };
+    fxState.vhsbleed  = { variant: null, intensity: 0 };
+    fxState.paper     = { fold: 0, texture: 0 };
+    fxState.frames    = { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0, lbPosX: 0, lbPosY: 0, lbScale: 1.0 };
+    ['glow','glossy','scanlines','vhsbleed','paper','frames'].forEach(function(cat) {
+      if (typeof fxUpdateCatDot === 'function') fxUpdateCatDot(cat);
+    });
+    var _fxGcR = document.getElementById('fx-gem-controls');
+    var _fxLcR = document.getElementById('fx-lb-controls');
+    var _fxPnR = document.getElementById('es-panel-fx');
+    if (_fxGcR) _fxGcR.style.display = 'none';
+    if (_fxLcR) _fxLcR.style.display = 'none';
+    if (_fxPnR) _fxPnR.classList.remove('fx-expanded');
+  }
   const hc = document.getElementById('hero-canvas') || document.getElementById('ev-canvas');
   // Push current state to history (reset is undoable)
   if (hc && activePreset) fix2HistoryPush(activePreset.id);

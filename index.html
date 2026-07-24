@@ -3024,6 +3024,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* Hide bottomnav + collapse its grid row — gives full-screen canvas height (only when image is loaded) */
   body:has(#editor-view.active:not(.no-image)) .bottomnav { display: none !important; }
   body:has(#editor-view.active:not(.no-image)) .app { grid-template-rows: 0px 1fr 0px !important; }
+  /* Hide bottomnav on empty gallery splash */
+  body:has(#library-empty:not(.hidden)) .bottomnav { display: none !important; }
+  body:has(#library-empty:not(.hidden)) .app { grid-template-rows: 0px 1fr 0px !important; }
   /* Preset strip — taller so names don't clip */
   #ev-preset-strip { height: 152px !important; overflow: hidden !important; }
   /* Unified subnav replaces the old 3-button main nav — never show mobile nav */

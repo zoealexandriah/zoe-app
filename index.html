@@ -2862,9 +2862,15 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   /* ── Content: hide desktop sidebar, full-width center ── */
   .content {
     grid-template-columns: 1fr;
-    padding: 6px;
+    padding: 0;
   }
   .sidebar { display: none !important; }
+  .center { border: none; border-radius: 0; }
+  .hero-win { border: none; border-radius: 0; box-shadow: none; margin: 0; }
+  .hero-body { border: none; }
+  .library-view { border: none; }
+  .library-empty { border-radius: 0; }
+  #library-empty { border-radius: 0; }
 
   /* ── Gallery: 3 columns ── */
   .library-grid {

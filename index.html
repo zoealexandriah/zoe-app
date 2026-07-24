@@ -2863,14 +2863,17 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .content {
     grid-template-columns: 1fr;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
   }
   .sidebar { display: none !important; }
-  .center { border: none; border-radius: 0; min-height: 0; height: 100%; align-self: stretch; }
-  .hero-win { flex: 1; height: 100%; border-radius: 0; border: none; box-shadow: none; margin: 0; }
+  .center { border: none; border-radius: 0; display: flex; flex-direction: column; flex: 1; min-height: 0; height: auto; }
+  .hero-win { flex: 1; min-height: 0; height: auto; border-radius: 0; border: none; box-shadow: none; margin: 0; }
   .hero-body { border: none; }
   .library-view { border: none; }
   .library-empty { border-radius: 0; }
-  #library-empty { border-radius: 0; position: absolute; inset: 0; flex: none; }
+  #library-empty { border-radius: 0; }
 
   /* ── Gallery: 3 columns ── */
   .library-grid {

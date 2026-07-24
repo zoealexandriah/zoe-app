@@ -18685,8 +18685,9 @@ var FX_MULTI = ['glow','paper'];
 /* Variant definitions for FRAMES */
 var FX_VARIANTS = {
   frames: [
-    { id:'gem',       label:'GEMS',      hasDesigns: true, assetFile:'gemframepreview.png',                    assetDir:'frames' },
-    { id:'letterbox', label:'LETTERBOX', hasDesigns: true, assetFile:'letterboxpreview.png', noControls: true, assetDir:'frames' }
+    { id:'gem',       label:'GEMS',      hasDesigns: true, assetFile:'gemframepreview.png',                 assetDir:'frames' },
+    { id:'letterbox', label:'LETTERBOX', hasDesigns: true, assetFile:'letterboxpreview.png', noControls: true, assetDir:'frames' },
+    { id:'archive',   label:'ARCHIVE',   hasDesigns: true, assetFile:'archivephotosleevespreviewcover.png', assetDir:'frames' }
   ],
   gem: [
     { id:'gem10', label:'', assetFile:'gemframesbypurple10.png', thumbScale: 0.8,   assetDir:'frames' },
@@ -18706,6 +18707,17 @@ var FX_VARIANTS = {
     { id:'gem13', label:'', assetFile:'gemframesbypurple13.png', thumbScale: 0.9,   assetDir:'frames' },
     { id:'gem8',  label:'', assetFile:'gemframesbypurple8.png',  thumbScale: 0.8,   assetDir:'frames' }
   ],
+  archive: [
+    { id:'arc-2single',  label:'SLEEVE 1',  assetFile:'archivephotosleeves2single.png',  assetDir:'frames' },
+    { id:'arc-3',        label:'SLEEVE 2',  assetFile:'archivephotosleeves3.png',         assetDir:'frames' },
+    { id:'arc-4single',  label:'SLEEVE 3',  assetFile:'archivephotosleeves4single.png',  assetDir:'frames' },
+    { id:'arc-5',        label:'SLEEVE 4',  assetFile:'archivephotosleeves5.png',         assetDir:'frames' },
+    { id:'arc-6single',  label:'SLEEVE 5',  assetFile:'archivephotosleeves6single.png',  assetDir:'frames' },
+    { id:'arc-7single',  label:'SLEEVE 6',  assetFile:'archivephotosleeves7single.png',  assetDir:'frames' },
+    { id:'arc-9bsingle', label:'SLEEVE 7',  assetFile:'archivephotosleeves9bsingle.png', assetDir:'frames' },
+    { id:'arc-9single',  label:'SLEEVE 8',  assetFile:'archivephotosleeves9single.png',  assetDir:'frames' },
+    { id:'arc-10',       label:'SLEEVE 9',  assetFile:'archivephotosleeves10.png',        assetDir:'frames' }
+  ],
   letterbox: [
     { id:'lb-vintage',   label:'VINTAGE CINEMASCOPE', assetFile:'letterboxVintageCinemascope.png',  assetDir:'frames' },
     { id:'lb-1x1',       label:'1:1 SQUARE',          assetFile:'letterbox1x1.png',                 assetDir:'frames' },
@@ -18722,7 +18734,7 @@ var FX_VARIANTS = {
 var _fxFrameImgCache = {};
 
 function fxGetFrameAssetURL(frameId) {
-  var allArrays = [FX_VARIANTS.gem || [], FX_VARIANTS.letterbox || []];
+  var allArrays = [FX_VARIANTS.gem || [], FX_VARIANTS.letterbox || [], FX_VARIANTS.archive || []];
   for (var a = 0; a < allArrays.length; a++) {
     var arr = allArrays[a];
     for (var gi = 0; gi < arr.length; gi++) {

@@ -11021,17 +11021,14 @@ function renderLibrary() {
   const count   = document.getElementById('lib-count');
   const delBtn  = document.getElementById('lib-delete-btn');
 
-  const bnav = document.querySelector('.bottomnav');
   if (!library.length) {
     empty.classList.remove('hidden');
     toolbar.classList.add('hidden');
     grid.innerHTML = '';
-    if (bnav) bnav.style.display = 'none';
     return;
   }
   empty.classList.add('hidden');
   toolbar.classList.remove('hidden');
-  if (bnav) bnav.style.display = '';
   count.textContent = library.length + (library.length === 1 ? ' PHOTO' : ' PHOTOS');
   if (delBtn) delBtn.style.display = libSelected.length ? 'inline-flex' : 'none';
 

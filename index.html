@@ -14104,6 +14104,8 @@ function _evDoSave() {
       if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
                                             applyBlemishHeal(proxy, blemishSpots, 0, 0, pw, ph);
 
+      var _isARCExport = _fxFrameVariant2 && _fxFrameVariant2.indexOf('arc-') === 0;
+      if (_isARCExport) { fxCompositeArchiveExport(proxy, _fxFrameVariant2, ew, eh, _doSaveBlob); return; }
       var _isLBExport = _fxFrameVariant2 && _fxFrameVariant2.indexOf('lb-') === 0;
       if (_isLBExport) {
         /* Letterbox export: output canvas is 16:9, photo cover-scaled into center */
@@ -14481,7 +14483,8 @@ function _evRenderCanvasImmediate() {
   var _fxFV = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant  : null;
   var _fxFO = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.intensity : 100;
   if (_fxFV && _fxFV !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
-    var _isLB = _fxFV.indexOf('lb-') === 0;
+    var _isLB  = _fxFV.indexOf('lb-')  === 0;
+    var _isARC = _fxFV.indexOf('arc-') === 0;
     if (_isLB) {
       /* Letterbox: resize canvas to 16:9, draw photo cover-scaled into center, then overlay */
       var _lbAR = 16/9;
@@ -14516,6 +14519,8 @@ function _evRenderCanvasImmediate() {
         _lbCtx.putImageData(new ImageData(_lbProc, _lbPxW, _lbPxH), 0, 0);
       }
       fxApplyFrameToCanvas(canvas, _fxFV, fxState.frames, null);
+    } else if (_isARC && fxCompositeArchivePreview(canvas, _fxFV, (typeof adj !== 'undefined') ? adj : null)) {
+      /* archive sleeve composited with window clipping — nothing further to draw */
     } else {
       fxApplyFrameToCanvas(canvas, _fxFV, fxState.frames, null);
     }
@@ -16371,6 +16376,14 @@ window.exportDownload = function() {
 
   function _finishExport() {
     const _fxFrameVariant = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
+    if (_fxFrameVariant && _fxFrameVariant.indexOf('arc-') === 0 && typeof fxCompositeArchiveExport === 'function') {
+      fxCompositeArchiveExport(off, _fxFrameVariant, off.width, off.height, function(res) {
+        off.width = res.width; off.height = res.height;
+        off.getContext('2d').drawImage(res, 0, 0);
+        _doModalDownload();
+      });
+      return;
+    }
     if (_fxFrameVariant && _fxFrameVariant !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
       fxApplyFrameToCanvas(off, _fxFrameVariant, fxState.frames, _doModalDownload);
     } else {
@@ -18665,7 +18678,7 @@ var fxState = {
   scanlines:   { variant: null, intensity: 0 },
   vhsbleed:    { variant: null, intensity: 0 },
   paper:       { fold: 0, texture: 0 },
-  frames:      { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0 }
+  frames:      { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0, lbPosX: 0, lbPosY: 0, lbScale: 1.0 }
 };
 
 var _fxActiveCat = null;
@@ -18742,6 +18755,192 @@ function fxGetFrameAssetURL(frameId) {
   return null;
 }
 
+/* ── FRAME WINDOW DETECTION (alpha-derived) ─────────── */
+var _fxFrameMetaCache = {};
+
+function fxEnsureFrameImage(frameId, cb) {
+  var url = fxGetFrameAssetURL(frameId);
+  if (!url) { if (cb) cb(null); return null; }
+  var img = _fxFrameImgCache[url];
+  if (img && img.complete && img.naturalWidth > 0) { if (cb) cb(img); return img; }
+  if (!img) {
+    img = new Image();
+    _fxFrameImgCache[url] = img;
+    img.addEventListener('load', function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); });
+    img.addEventListener('error', function() { console.warn('Frame load failed:', url); });
+    img.src = url;
+  }
+  if (cb) {
+    img.addEventListener('load',  function() { cb(img); },  { once: true });
+    img.addEventListener('error', function() { cb(null); }, { once: true });
+  }
+  return null;
+}
+
+function fxGetFrameWindow(img, url) {
+  if (_fxFrameMetaCache[url] !== undefined) return _fxFrameMetaCache[url];
+  var win = null;
+  try {
+    var fw = img.naturalWidth || img.width, fh = img.naturalHeight || img.height;
+    var W, H;
+    if (fh > fw) { H = 220; W = Math.max(1, Math.round(H * fw / fh)); }
+    else         { W = 220; H = Math.max(1, Math.round(W * fh / fw)); }
+    var c = document.createElement('canvas'); c.width = W; c.height = H;
+    var cx = c.getContext('2d', { willReadFrequently: true });
+    cx.clearRect(0, 0, W, H);
+    cx.drawImage(img, 0, 0, W, H);
+    var d = cx.getImageData(0, 0, W, H).data;
+    var N = W * H, trans = new Uint8Array(N), i, x, y;
+    for (i = 0; i < N; i++) if (d[i * 4 + 3] < 24) trans[i] = 1;
+    /* flood-fill transparent pixels reachable from the border = OUTSIDE the artwork */
+    var seen = new Uint8Array(N), stack = [];
+    for (x = 0; x < W; x++) { stack.push(x); stack.push((H - 1) * W + x); }
+    for (y = 0; y < H; y++) { stack.push(y * W); stack.push(y * W + W - 1); }
+    while (stack.length) {
+      i = stack.pop();
+      if (seen[i] || !trans[i]) continue;
+      seen[i] = 1;
+      x = i % W; y = (i - x) / W;
+      if (x > 0)     stack.push(i - 1);
+      if (x < W - 1) stack.push(i + 1);
+      if (y > 0)     stack.push(i - W);
+      if (y < H - 1) stack.push(i + W);
+    }
+    /* label the transparent pixels that remain = interior windows */
+    var lab = new Int32Array(N); for (i = 0; i < N; i++) lab[i] = -1;
+    var comps = [], s, st, j, jx, jy, id, comp, nb, k, m;
+    for (s = 0; s < N; s++) {
+      if (!trans[s] || seen[s] || lab[s] !== -1) continue;
+      id = comps.length;
+      comp = { n: 0, x0: W, y0: H, x1: -1, y1: -1 };
+      st = [s]; lab[s] = id;
+      while (st.length) {
+        j = st.pop(); jx = j % W; jy = (j - jx) / W;
+        comp.n++;
+        if (jx < comp.x0) comp.x0 = jx;
+        if (jx > comp.x1) comp.x1 = jx;
+        if (jy < comp.y0) comp.y0 = jy;
+        if (jy > comp.y1) comp.y1 = jy;
+        nb = [];
+        if (jx > 0)     nb.push(j - 1);
+        if (jx < W - 1) nb.push(j + 1);
+        if (jy > 0)     nb.push(j - W);
+        if (jy < H - 1) nb.push(j + W);
+        for (k = 0; k < nb.length; k++) {
+          m = nb[k];
+          if (trans[m] && !seen[m] && lab[m] === -1) { lab[m] = id; st.push(m); }
+        }
+      }
+      comps.push(comp);
+    }
+    if (comps.length) {
+      comps.sort(function(a, b) { return b.n - a.n; });
+      var big = comps[0].n;
+      if (big > N * 0.01) {
+        var X0 = W, Y0 = H, X1 = -1, Y1 = -1;
+        for (k = 0; k < comps.length; k++) {
+          if (comps[k].n < big * 0.25) continue;
+          if (comps[k].x0 < X0) X0 = comps[k].x0;
+          if (comps[k].y0 < Y0) Y0 = comps[k].y0;
+          if (comps[k].x1 > X1) X1 = comps[k].x1;
+          if (comps[k].y1 > Y1) Y1 = comps[k].y1;
+        }
+        win = { x: X0 / W, y: Y0 / H, w: (X1 - X0 + 1) / W, h: (Y1 - Y0 + 1) / H };
+      }
+    }
+  } catch (e) { win = null; }
+  _fxFrameMetaCache[url] = win;
+  return win;
+}
+
+function fxDrawIntoFrameWindow(ctx, src, cw, ch, win, st) {
+  var scale = (st && st.lbScale !== undefined) ? st.lbScale : 1.0;
+  var posX  = (st && st.lbPosX) ? st.lbPosX : 0;
+  var posY  = (st && st.lbPosY) ? st.lbPosY : 0;
+  var wx = Math.round(win.x * cw), wy = Math.round(win.y * ch);
+  var ww = Math.round(win.w * cw), wh = Math.round(win.h * ch);
+  var sw = src.naturalWidth  || src.width;
+  var sh = src.naturalHeight || src.height;
+  var s  = Math.max(ww / sw, wh / sh) * scale;
+  var dw = Math.round(sw * s), dh = Math.round(sh * s);
+  var dx = Math.round(wx + (ww - dw) / 2 + ww * (posX / 100) * 0.5);
+  var dy = Math.round(wy + (wh - dh) / 2 + wh * (posY / 100) * 0.5);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(wx, wy, ww, wh);
+  ctx.clip();
+  ctx.drawImage(src, dx, dy, dw, dh);
+  ctx.restore();
+}
+
+function fxCompositeArchivePreview(canvas, frameId, adj) {
+  var url = fxGetFrameAssetURL(frameId);
+  if (!url) return false;
+  var img = fxEnsureFrameImage(frameId, null);
+  if (!img) return false;
+  var win = fxGetFrameWindow(img, url);
+  if (!win) return false;
+  var ar = img.naturalWidth / img.naturalHeight;
+  var area = document.getElementById('ev-canvas-area');
+  var aw = area ? (area.clientWidth  || 500) : 500;
+  var ah = area ? (area.clientHeight || 400) : 400;
+  var cssW, cssH;
+  if (aw / ah > ar) { cssH = ah; cssW = Math.round(ah * ar); }
+  else              { cssW = aw; cssH = Math.round(aw / ar); }
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var pw = Math.round(cssW * dpr), ph = Math.round(cssH * dpr);
+  canvas.width  = pw; canvas.height = ph;
+  canvas.style.width  = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, pw, ph);
+  fxDrawIntoFrameWindow(ctx, userImage, pw, ph, win, fxState.frames);
+  if (typeof _evCurPreset !== 'undefined' && _evCurPreset && adj) {
+    var od = ctx.getImageData(0, 0, pw, ph);
+    var pd = applyPixelAdjustments(od, adj);
+    ctx.putImageData(new ImageData(pd, pw, ph), 0, 0);
+  }
+  fxApplyFrameToCanvas(canvas, frameId, { intensity: (fxState.frames && fxState.frames.intensity !== undefined) ? fxState.frames.intensity : 100 }, null);
+  return true;
+}
+
+function fxCompositeArchiveExport(proxy, frameId, ew, eh, done) {
+  var url = fxGetFrameAssetURL(frameId);
+  var called = false;
+  function finish(img) {
+    var win = img ? fxGetFrameWindow(img, url) : null;
+    var out = document.createElement('canvas');
+    var octx;
+    if (!img || !win) {
+      out.width = ew; out.height = eh;
+      octx = out.getContext('2d');
+      octx.imageSmoothingEnabled = true;
+      octx.imageSmoothingQuality = 'high';
+      octx.drawImage(proxy, 0, 0, ew, eh);
+      fxApplyFrameToCanvas(out, frameId, fxState.frames, function() { done(out); });
+      return;
+    }
+    var ar = img.naturalWidth / img.naturalHeight;
+    var maxSide = Math.max(ew, eh), ow, oh;
+    if (ar >= 1) { ow = maxSide; oh = Math.round(maxSide / ar); }
+    else         { oh = maxSide; ow = Math.round(maxSide * ar); }
+    out.width = ow; out.height = oh;
+    octx = out.getContext('2d');
+    octx.imageSmoothingEnabled = true;
+    octx.imageSmoothingQuality = 'high';
+    octx.fillStyle = '#ffffff';
+    octx.fillRect(0, 0, ow, oh);
+    fxDrawIntoFrameWindow(octx, proxy, ow, oh, win, fxState.frames);
+    fxApplyFrameToCanvas(out, frameId, { intensity: (fxState.frames && fxState.frames.intensity !== undefined) ? fxState.frames.intensity : 100 }, function() { done(out); });
+  }
+  function once(img) { if (called) return; called = true; finish(img); }
+  var cached = fxEnsureFrameImage(frameId, once);
+  if (cached) once(cached);
+}
+
 function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
   if (!frameId || frameId === 'none') { if (callback) callback(); return; }
   var url = fxGetFrameAssetURL(frameId);
@@ -18760,6 +18959,14 @@ function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
     /* 0.92 base gives a 4% buffer on each edge */
     var _isLetterbox = frameId && frameId.indexOf('lb-') === 0;
     var _isArchive = frameId && frameId.indexOf('arc-') === 0;
+    if (_isArchive) {
+      ctx.save();
+      ctx.globalAlpha = opacity;
+      ctx.drawImage(img, 0, 0, sw, sh);
+      ctx.restore();
+      if (callback) callback();
+      return;
+    }
     var baseScale = (_isLetterbox || _isArchive)
       ? Math.max(sw / iw, sh / ih) * scale
       : Math.min(sw / iw, sh / ih) * 0.92 * scale;
@@ -19042,12 +19249,11 @@ function fxSelectVariant(cat, variantId) {
       if (th) th.style.borderColor = isActive ? 'var(--accent,#c9b8d4)' : 'rgba(255,255,255,0.10)';
     });
     if (_alreadySelected && !varDef.noControls) {
-      var _isLbVariant = variantId && variantId.indexOf('lb-') === 0;
-      if (_isLbVariant) {
-        fxOpenLbControls();
-      } else {
-        fxOpenGemControls();
-      }
+      var _isLbVariant  = variantId && variantId.indexOf('lb-')  === 0;
+      var _isArcVariant = variantId && variantId.indexOf('arc-') === 0;
+      if (_isLbVariant)       { fxOpenLbControls('LETTERBOX', 'letterbox'); }
+      else if (_isArcVariant) { fxOpenLbControls('ARCHIVE',   'archive');   }
+      else                    { fxOpenGemControls(); }
       return;
     }
     /* first tap — stay in gem strip, load and render */
@@ -19254,7 +19460,9 @@ function fxDrawFrameThumb(canvas, frameId) {
   }
 }
 
-function fxOpenLbControls() {
+var _fxLbBackCat = 'letterbox';
+
+function fxOpenLbControls(label, backCat) {
   _fxGemSnapshot = JSON.parse(JSON.stringify(fxState.frames));
   var pv = document.getElementById('fx-lb-controls');
   if (!pv) {
@@ -19264,7 +19472,7 @@ function fxOpenLbControls() {
     pv.innerHTML =
       '<div class="blemish-action-bar">' +
         '<button class="blemish-act-btn" onclick="fxLbControlsDiscard()">✕</button>' +
-        '<span class="blemish-act-label">LETTERBOX</span>' +
+        '<span class="blemish-act-label" id="fxlbc-label">LETTERBOX</span>' +
         '<button class="blemish-act-btn blemish-act-confirm" onclick="fxCloseLbControls()">✓</button>' +
       '</div>' +
       '<div class="crop-sub-content">' +
@@ -19288,9 +19496,12 @@ function fxOpenLbControls() {
   if (rX) { rX.value = lbPosX;  document.getElementById('fxlbcv-posX').textContent  = Math.round(lbPosX); }
   if (rY) { rY.value = lbPosY;  document.getElementById('fxlbcv-posY').textContent  = Math.round(lbPosY); }
   if (rS) { rS.value = Math.round(lbScale * 100); document.getElementById('fxlbcv-scale').textContent = Math.round(lbScale * 100); }
-  fxLbUpdateXLock();
   pv.style.display = 'flex';
-  _fxActiveCat = 'letterbox';
+  _fxLbBackCat = backCat || 'letterbox';
+  var _lbl = document.getElementById('fxlbc-label');
+  if (_lbl) _lbl.textContent = label || 'LETTERBOX';
+  _fxActiveCat = _fxLbBackCat;
+  fxLbUpdateXLock();
   fxShowLevel(5);
 }
 
@@ -19315,7 +19526,7 @@ function fxLbUpdateXLock() {
   var xRow = document.getElementById('fxlbc-x-row');
   if (!xRow) return;
   var scale = fxState.frames.lbScale !== undefined ? fxState.frames.lbScale : 1.0;
-  var unlocked = scale > 1.01;
+  var unlocked = scale > 1.01 || _fxLbBackCat === 'archive';
   xRow.style.opacity = unlocked ? '1' : '0.3';
   xRow.style.pointerEvents = unlocked ? '' : 'none';
   if (!unlocked) {
@@ -19340,8 +19551,8 @@ function fxLbControlsDiscard() {
 function fxCloseLbControls() {
   var pv = document.getElementById('fx-lb-controls');
   if (pv) pv.style.display = 'none';
-  _fxActiveCat = 'letterbox';
-  fxBuildVariantStrip('letterbox');
+  _fxActiveCat = _fxLbBackCat || 'letterbox';
+  fxBuildVariantStrip(_fxActiveCat);
   fxShowLevel(2);
 }
 

@@ -4586,15 +4586,21 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
         <div class="hero-body" id="hero-body">
           <!-- ── LIBRARY VIEW ── -->
           <div class="library-view" id="library-view">
-            <div class="library-empty" id="library-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:0;position:relative;overflow:hidden;">
+            <div class="library-empty" id="library-empty" style="display:flex;flex-direction:column;flex:1;padding:0;position:relative;overflow:hidden;align-items:stretch;">
               <img src="./assets/ZOE_20260724_115321b.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(1.06) contrast(1.1) saturate(1.1);">
               <div style="position:absolute;inset:0;background:radial-gradient(120% 70% at 50% 50%,rgba(11,10,13,.15),rgba(11,10,13,.6) 78%),linear-gradient(180deg,rgba(11,10,13,.7),rgba(11,10,13,.1) 34%,rgba(11,10,13,.55) 68%,rgba(11,10,13,.95));z-index:1;"></div>
-              <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0 46px;width:100%;flex:1;">
+              <!-- header -->
+              <div style="position:relative;z-index:2;padding:24px 26px 0;flex-shrink:0;">
+                <span style="font-family:var(--mono),monospace;font-size:10px;letter-spacing:.24em;color:rgba(200,180,228,0.72);">0 PHOTOS</span>
+              </div>
+              <!-- center -->
+              <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0 46px;flex:1;">
                 <img src="./assets/ZOEAPP LOGO.png" alt="ZOË" style="width:72px;height:72px;object-fit:contain;opacity:1;filter:brightness(1.25) contrast(1.08) drop-shadow(0 4px 20px rgba(0,0,0,.5));margin-bottom:16px;">
                 <div style="font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:88px;letter-spacing:.03em;color:rgba(232,216,250,0.98);line-height:.85;text-shadow:0 4px 30px rgba(0,0,0,.55);margin-bottom:20px;">ZOË</div>
                 <div style="font-family:var(--font-ui),sans-serif;font-weight:400;font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:rgba(240,230,252,1);text-shadow:0 2px 14px rgba(0,0,0,.7);margin-bottom:52px;">Drop something good</div>
                 <button onclick="triggerMultiUpload()" style="padding:18px 44px;border-radius:40px;border:1px solid rgba(232,216,250,0.22);cursor:pointer;background:rgba(232,216,250,0.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:rgba(232,216,250,0.96);font-family:var(--font-ui),sans-serif;font-weight:400;font-size:15px;letter-spacing:.12em;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);-webkit-tap-highlight-color:transparent;">IMPORT YOUR PHOTOS</button>
               </div>
+              <!-- footer -->
               <div style="position:relative;z-index:2;padding:0 30px 34px;text-align:center;flex-shrink:0;">
                 <div style="font-family:var(--font-ui),sans-serif;font-weight:300;font-size:12px;letter-spacing:.1em;color:rgba(200,180,228,0.72);line-height:1.5;">Your photos stay private on your device.</div>
               </div>

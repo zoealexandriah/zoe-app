@@ -14121,12 +14121,15 @@ function _evDoSave() {
         outCtx.imageSmoothingQuality = 'high';
         /* Cover-scale the processed proxy into the 16:9 canvas */
         var _lbUserScaleEx = (fxState.frames && fxState.frames.lbScale !== undefined) ? fxState.frames.lbScale : 1.0;
-        var _lbS = Math.max(_lbEW / proxy.width, _lbEH / proxy.height) * _lbUserScaleEx;
+        var _lbCoverEx = Math.max(_lbEW / proxy.width, _lbEH / proxy.height);
+        var _lbS = _lbCoverEx * Math.max(1, _lbUserScaleEx);
         var _lbDW = Math.round(proxy.width * _lbS), _lbDH = Math.round(proxy.height * _lbS);
         var _lbOffXEx = (fxState.frames && fxState.frames.lbPosX) ? (_lbEW * (fxState.frames.lbPosX / 100) * 0.5) : 0;
         var _lbOffYEx = (fxState.frames && fxState.frames.lbPosY) ? (_lbEH * (fxState.frames.lbPosY / 100) * 0.5) : 0;
         var _lbDX = Math.round((_lbEW - _lbDW) / 2 + _lbOffXEx);
         var _lbDY = Math.round((_lbEH - _lbDH) / 2 + _lbOffYEx);
+        _lbDX = Math.min(_lbDX, 0); _lbDX = Math.max(_lbDX, _lbEW - _lbDW);
+        _lbDY = Math.min(_lbDY, 0); _lbDY = Math.max(_lbDY, _lbEH - _lbDH);
         outCtx.drawImage(proxy, _lbDX, _lbDY, _lbDW, _lbDH);
         fxApplyFrameToCanvas(out, _fxFrameVariant2, fxState.frames, function() { _doSaveBlob(out); });
       } else {
@@ -14510,12 +14513,15 @@ function _evRenderCanvasImmediate() {
       var _lbCtx = canvas.getContext('2d', { willReadFrequently: true });
       var _phW = _lbSnap.width, _phH = _lbSnap.height;
       var _lbUserScale = (fxState.frames && fxState.frames.lbScale !== undefined) ? fxState.frames.lbScale : 1.0;
-      var _cvS = Math.max(_lbPxW / _phW, _lbPxH / _phH) * _lbUserScale;
+      var _lbCover = Math.max(_lbPxW / _phW, _lbPxH / _phH);
+      var _cvS = _lbCover * Math.max(1, _lbUserScale);
       var _drW = Math.round(_phW * _cvS), _drH = Math.round(_phH * _cvS);
       var _lbOffX = (fxState.frames && fxState.frames.lbPosX) ? (_lbPxW * (fxState.frames.lbPosX / 100) * 0.5) : 0;
       var _lbOffY = (fxState.frames && fxState.frames.lbPosY) ? (_lbPxH * (fxState.frames.lbPosY / 100) * 0.5) : 0;
       var _drX = Math.round((_lbPxW - _drW) / 2 + _lbOffX);
       var _drY = Math.round((_lbPxH - _drH) / 2 + _lbOffY);
+      _drX = Math.min(_drX, 0); _drX = Math.max(_drX, _lbPxW - _drW);
+      _drY = Math.min(_drY, 0); _drY = Math.max(_drY, _lbPxH - _drH);
       _lbCtx.drawImage(_lbSnap, _drX, _drY, _drW, _drH);
       fxApplyFrameToCanvas(canvas, _fxFV, fxState.frames, null);
     } else if (_isARC && fxCompositeArchivePreview(canvas, _fxFV)) {
@@ -18722,7 +18728,7 @@ var FX_VARIANTS = {
     { id:'arc-7single',  label:'SLEEVE 5',  assetFile:'archivephotosleeves7single.png',  assetDir:'frames', win:{ x:0.034, y:0.120, w:0.914, h:0.733 } },
     { id:'arc-9bsingle', label:'SLEEVE 6',  assetFile:'archivephotosleeves9bsingle.png', assetDir:'frames', win:{ x:0.069, y:0.040, w:0.853, h:0.790 } },
     { id:'arc-9single',  label:'SLEEVE 7',  assetFile:'archivephotosleeves9single.png',  assetDir:'frames', win:{ x:0.087, y:0.045, w:0.798, h:0.800 } },
-    { id:'arc-10',       label:'SLEEVE 8',  assetFile:'archivephotosleeves10.png',        assetDir:'frames', noStretch:true, win:{ x:0.158, y:0.152, w:0.684, h:0.690 } }
+    { id:'arc-10',       label:'SLEEVE 8',  assetFile:'archivephotosleeves10.png',        assetDir:'frames', noStretch:true, winShape:'ellipse', win:{ x:0.158, y:0.152, w:0.684, h:0.690 } }
   ],
   letterbox: [
     { id:'lb-vintage',   label:'VINTAGE CINEMASCOPE', assetFile:'letterboxVintageCinemascope.png',  assetDir:'frames' },
@@ -18805,7 +18811,7 @@ function fxArchiveCanvasAR(img, win, srcW, srcH, frameId) {
   return Math.max(lo, Math.min(hi, desired));
 }
 
-function fxDrawIntoFrameWindow(ctx, src, cw, ch, win, st) {
+function fxDrawIntoFrameWindow(ctx, src, cw, ch, win, st, shape) {
   var scale = (st && st.lbScale !== undefined) ? st.lbScale : 1.0;
   var posX  = (st && st.lbPosX) ? st.lbPosX : 0;
   var posY  = (st && st.lbPosY) ? st.lbPosY : 0;
@@ -18813,13 +18819,24 @@ function fxDrawIntoFrameWindow(ctx, src, cw, ch, win, st) {
   var ww = Math.round(win.w * cw), wh = Math.round(win.h * ch);
   var sw = src.naturalWidth  || src.width;
   var sh = src.naturalHeight || src.height;
-  var s  = Math.max(ww / sw, wh / sh) * scale;
+  var cover = Math.max(ww / sw, wh / sh);
+  var s  = cover * Math.max(1, scale);
   var dw = Math.round(sw * s), dh = Math.round(sh * s);
   var dx = Math.round(wx + (ww - dw) / 2 + ww * (posX / 100) * 0.5);
   var dy = Math.round(wy + (wh - dh) / 2 + wh * (posY / 100) * 0.5);
+  /* Clamp so the photo always covers the opening */
+  dx = Math.min(dx, wx);
+  dy = Math.min(dy, wy);
+  dx = Math.max(dx, wx + ww - dw);
+  dy = Math.max(dy, wy + wh - dh);
   ctx.save();
   ctx.beginPath();
-  ctx.rect(wx, wy, ww, wh);
+  if (shape === 'ellipse') {
+    var rx = ww / 2 * 1.01, ry = wh / 2 * 1.01;
+    ctx.ellipse(wx + ww / 2, wy + wh / 2, rx, ry, 0, 0, Math.PI * 2);
+  } else {
+    ctx.rect(wx, wy, ww, wh);
+  }
   ctx.clip();
   ctx.drawImage(src, dx, dy, dw, dh);
   ctx.restore();
@@ -18832,6 +18849,7 @@ function fxCompositeArchivePreview(canvas, frameId) {
   if (!img) return false;
   var win = fxGetFrameWindow(frameId);
   if (!win) return false;
+  var _arcDef = fxGetArchiveDef(frameId);
   /* Snapshot BEFORE resizing. This canvas already holds every edit: adjustments,
      curve LUTs, glow, mist, sharpen, clarity, blurs, halation, bloom, diffusion,
      duotone, vignette, blemish heal, and any crop. Redrawing from userImage
@@ -18857,7 +18875,7 @@ function fxCompositeArchivePreview(canvas, frameId) {
   ctx.globalAlpha = 1;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, pw, ph);
-  fxDrawIntoFrameWindow(ctx, snap, pw, ph, win, fxState.frames);
+  fxDrawIntoFrameWindow(ctx, snap, pw, ph, win, fxState.frames, _arcDef && _arcDef.winShape);
   fxApplyFrameToCanvas(canvas, frameId, { intensity: (fxState.frames && fxState.frames.intensity !== undefined) ? fxState.frames.intensity : 100 }, null);
   return true;
 }
@@ -18888,7 +18906,8 @@ function fxCompositeArchiveExport(proxy, frameId, ew, eh, done) {
     octx.imageSmoothingQuality = 'high';
     octx.fillStyle = '#ffffff';
     octx.fillRect(0, 0, ow, oh);
-    fxDrawIntoFrameWindow(octx, proxy, ow, oh, win, fxState.frames);
+    var _arcDefX = fxGetArchiveDef(frameId);
+    fxDrawIntoFrameWindow(octx, proxy, ow, oh, win, fxState.frames, _arcDefX && _arcDefX.winShape);
     fxApplyFrameToCanvas(out, frameId, { intensity: (fxState.frames && fxState.frames.intensity !== undefined) ? fxState.frames.intensity : 100 }, function() { done(out); });
   }
   function once(img) { if (called) return; called = true; finish(img); }

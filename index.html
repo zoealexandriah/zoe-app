@@ -497,21 +497,21 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
    TOAST
 ══════════════════════════════════════ */
 .toast{
-  position:fixed;top:36px;left:50%;
-  transform:translateX(-50%) translateY(-6px) scale(0.97);
-  z-index:2000;display:flex;align-items:center;gap:7px;
-  padding:6px 14px;
-  background:rgba(10,10,11,0.97);
-  border:0.5px solid rgba(210,210,220,0.16);
+  position:fixed;top:28px;left:50%;
+  transform:translateX(-50%) translateY(-4px) scale(0.98);
+  z-index:2000;display:flex;align-items:center;gap:5px;
+  padding:4px 10px;
+  background:rgba(10,10,11,0.96);
+  border:0.5px solid rgba(210,210,220,0.13);
   border-radius:2px;
-  box-shadow:0 8px 28px rgba(0,0,0,0.6),0 0 20px rgba(180,140,228,0.08);
-  backdrop-filter:blur(24px);
-  opacity:0;transition:all 0.3s cubic-bezier(0.22,1,0.36,1);
-  pointer-events:none;
+  box-shadow:0 4px 18px rgba(0,0,0,0.55);
+  backdrop-filter:blur(20px);
+  opacity:0;transition:all 0.22s cubic-bezier(0.22,1,0.36,1);
+  pointer-events:none;white-space:nowrap;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
-.toast-dot{width:5px;height:5px;border-radius:50%;background:rgba(140,215,165,0.9);box-shadow:0 0 8px rgba(140,215,165,0.65);animation:dotpulse 1.8s ease-in-out infinite}
-.toast-text{font-size:13px;letter-spacing:0.2em;color:var(--text-mid);font-weight:300;font-family:var(--font-mono)}
+.toast-dot{width:4px;height:4px;border-radius:50%;background:rgba(185,155,220,0.85);flex-shrink:0;}
+.toast-text{font-size:9px;letter-spacing:0.18em;color:rgba(200,185,225,0.80);font-weight:400;font-family:var(--font-mono)}
 
 /* section panel title row */
 .panel-title-row{
@@ -935,8 +935,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 
 /* ── Toast ── */
-.toast{background:rgba(10,10,11,0.97)!important;border-color:rgba(210,210,220,0.18)!important;box-shadow:0 12px 42px rgba(0,0,0,0.72),0 0 20px rgba(0,0,0,0.30)!important;}
-.toast-text{color:rgba(210,188,245,0.85)!important}
+.toast{background:rgba(10,10,11,0.96)!important;border-color:rgba(210,210,220,0.13)!important;box-shadow:0 4px 18px rgba(0,0,0,0.55)!important;}
+.toast-text{color:rgba(200,185,225,0.80)!important}
 
 /* ── Look card names ── */
 .lc-name{font-size:9px!important;text-shadow:0 0 14px rgba(195,152,238,0.65),0 0 35px rgba(165,112,225,0.32)!important;}
@@ -1092,7 +1092,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .status-dot { background:rgba(218,108,138,0.88) !important; box-shadow:0 0 6px rgba(192,64,90,0.60),0 0 16px rgba(138,26,46,0.28) !important }
 @keyframes dot-pulse { 0%,100%{ box-shadow:0 0 5px rgba(192,64,90,0.50),0 0 12px rgba(138,26,46,0.20) } 50%{ box-shadow:0 0 9px rgba(218,90,118,0.80),0 0 22px rgba(160,40,60,0.36) } }
 .tb-live { color:rgba(218,108,138,0.62) !important }
-.toast-dot { background:rgba(218,108,138,0.90) !important; box-shadow:0 0 7px rgba(192,64,90,0.65) !important }
+.toast-dot { background:rgba(185,155,220,0.85) !important; box-shadow:none !important }
 
 /* ── LOOK CARDS ── */
 .look-card.selected::after { background:linear-gradient(to right,transparent,rgba(192,64,90,0.72),rgba(138,26,46,0.58),rgba(192,64,90,0.68),transparent) !important }
@@ -19187,6 +19187,7 @@ function fxSelectVariant(cat, variantId) {
       fxState.frames.lbScale   = 1.0;
     }
     fxUpdateCatDot('frames');
+    if (typeof evHistoryPush === 'function') evHistoryPush();
     /* highlight active card in strip */
     document.querySelectorAll('.fx-var-card').forEach(function(t) {
       var isActive = t.dataset && t.dataset.vid === variantId;
@@ -19290,7 +19291,8 @@ function fxPaperSlide(key, val) {
   var hasVal = fxState.paper.fold > 0 || fxState.paper.texture > 0;
   var btn = document.querySelector('.fx-cat-btn[data-cat="paper"]');
   if (btn) btn.classList.toggle('has-value', hasVal);
-  /* TODO: wire into render pipeline */
+  if (typeof evHistoryPush === 'function') evHistoryPush();
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
 function fxMultiSlide(cat, key, val) {
@@ -19300,7 +19302,8 @@ function fxMultiSlide(cat, key, val) {
   var hasVal = fxState[cat].glow > 0 || fxState[cat].diffusion > 0 || fxState[cat].halation > 0;
   var btn = document.querySelector('.fx-cat-btn[data-cat="' + cat + '"]');
   if (btn) btn.classList.toggle('has-value', hasVal);
-  /* TODO: wire into render pipeline */
+  if (typeof evHistoryPush === 'function') evHistoryPush();
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
 function fxDrawFrameThumb(canvas, frameId) {
@@ -19423,12 +19426,12 @@ function fxOpenLbControls(label, backCat) {
       '</div>' +
       '<div class="crop-sub-content">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Y</span><span class="crop-sub-val" id="fxlbcv-posY">0</span></div>' +
-        '<input type="range" class="tc-range" id="fxlbcr-posY" min="-100" max="100" value="0" oninput="fxLbSlide(\'lbPosY\',this.value,\'fxlbcv-posY\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+        '<input type="range" class="tc-range" id="fxlbcr-posY" min="-100" max="100" value="0" oninput="fxLbSlide(\'lbPosY\',this.value,\'fxlbcv-posY\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">SCALE</span><span class="crop-sub-val" id="fxlbcv-scale">100</span></div>' +
-        '<input type="range" class="tc-range" id="fxlbcr-scale" min="100" max="300" value="100" oninput="fxLbSlide(\'lbScale\',this.value,\'fxlbcv-scale\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+        '<input type="range" class="tc-range" id="fxlbcr-scale" min="100" max="300" value="100" oninput="fxLbSlide(\'lbScale\',this.value,\'fxlbcv-scale\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
         '<div id="fxlbc-x-row" style="opacity:0.3;pointer-events:none;">' +
           '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">X</span><span class="crop-sub-val" id="fxlbcv-posX">0</span></div>' +
-          '<input type="range" class="tc-range" id="fxlbcr-posX" min="-100" max="100" value="0" oninput="fxLbSlide(\'lbPosX\',this.value,\'fxlbcv-posX\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+          '<input type="range" class="tc-range" id="fxlbcr-posX" min="-100" max="100" value="0" oninput="fxLbSlide(\'lbPosX\',this.value,\'fxlbcv-posX\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
         '</div>' +
       '</div>';
     document.getElementById('es-panel-fx').appendChild(pv);
@@ -19524,21 +19527,21 @@ function fxOpenGemControls() {
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-opacity">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">OPACITY</span><span class="crop-sub-val" id="fxgcv-opacity">100</span></div>' +
-        '<input type="range" class="tc-range" id="fxgcr-opacity" min="0" max="100" value="100" oninput="fxGemSlide(\'intensity\',this.value,\'fxgcv-opacity\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+        '<input type="range" class="tc-range" id="fxgcr-opacity" min="0" max="100" value="100" oninput="fxGemSlide(\'intensity\',this.value,\'fxgcv-opacity\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-scale" style="display:none;">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">SCALE</span><span class="crop-sub-val" id="fxgcv-scale">100</span></div>' +
-        '<input type="range" class="tc-range" id="fxgcr-scale" min="50" max="200" value="100" oninput="fxGemSlide(\'scale\',this.value,\'fxgcv-scale\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+        '<input type="range" class="tc-range" id="fxgcr-scale" min="50" max="200" value="100" oninput="fxGemSlide(\'scale\',this.value,\'fxgcv-scale\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-position" style="display:none;">' +
         '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;">' +
           '<span class="crop-sub-label" style="flex-shrink:0;width:14px;">X</span>' +
-          '<input type="range" class="tc-range" id="fxgcr-positionX" min="-100" max="100" value="0" style="flex:1;margin:0;" oninput="fxGemSlide(\'positionX\',this.value,\'fxgcv-positionX\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+          '<input type="range" class="tc-range" id="fxgcr-positionX" min="-100" max="100" value="0" style="flex:1;margin:0;" oninput="fxGemSlide(\'positionX\',this.value,\'fxgcv-positionX\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
           '<span class="crop-sub-val" id="fxgcv-positionX" style="flex-shrink:0;width:20px;text-align:right;">0</span>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:8px;margin-top:8px;">' +
           '<span class="crop-sub-label" style="flex-shrink:0;width:14px;">Y</span>' +
-          '<input type="range" class="tc-range" id="fxgcr-positionY" min="-100" max="100" value="0" style="flex:1;margin:0;" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-positionY\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+          '<input type="range" class="tc-range" id="fxgcr-positionY" min="-100" max="100" value="0" style="flex:1;margin:0;" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-positionY\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
           '<span class="crop-sub-val" id="fxgcv-positionY" style="flex-shrink:0;width:20px;text-align:right;">0</span>' +
         '</div>' +
       '</div>' +

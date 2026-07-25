@@ -10975,6 +10975,7 @@ async function loadImageToCanvas(canvas, img) {
 const library   = [];
 let libSelected = [];
 let editingIdx  = -1;
+let _libLoadComplete = false;
 
 function triggerMultiUpload() {
   document.getElementById('multi-upload-input').click();
@@ -11008,6 +11009,7 @@ function renderLibrary() {
   const delBtn  = document.getElementById('lib-delete-btn');
 
   if (!library.length) {
+    if (!_libLoadComplete) return;
     empty.classList.remove('hidden');
     toolbar.classList.add('hidden');
     grid.innerHTML = '';
@@ -11919,14 +11921,14 @@ function libLoadFromStorage() {
     const req = tx.objectStore(_GALLERY_STORE).getAll();
     req.onsuccess = () => {
       const items = (req.result || []).sort((a, b) => a.order - b.order);
-      if (!items.length) return;
+      if (!items.length) { _libLoadComplete = true; renderLibrary(); return; }
       let loaded = 0;
       items.forEach(saved => {
         const img = new Image();
         img.onload = () => {
           library.push({ id: saved.id, img, name: saved.name, dataURL: saved.dataURL, editState: saved.editState || null });
           loaded++;
-          if (loaded === items.length) renderLibrary();
+          if (loaded === items.length) { _libLoadComplete = true; renderLibrary(); }
         };
         img.src = saved.dataURL;
       });

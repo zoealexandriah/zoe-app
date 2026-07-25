@@ -14488,7 +14488,11 @@ function _evRenderCanvasImmediate() {
     var _isLB  = _fxFV.indexOf('lb-')  === 0;
     var _isARC = _fxFV.indexOf('arc-') === 0;
     if (_isLB) {
-      /* Letterbox: resize canvas to 16:9, draw photo cover-scaled into center, then overlay */
+      /* Letterbox: snapshot edited canvas, resize to 16:9, draw snapshot cover-scaled, then overlay */
+      var _lbSnap = document.createElement('canvas');
+      _lbSnap.width  = canvas.width;
+      _lbSnap.height = canvas.height;
+      _lbSnap.getContext('2d').drawImage(canvas, 0, 0);
       var _lbAR = 16/9;
       var _lbCssW, _lbCssH;
       var _area2 = document.getElementById('ev-canvas-area');
@@ -14503,9 +14507,8 @@ function _evRenderCanvasImmediate() {
       canvas.height = _lbPxH;
       canvas.style.width  = _lbCssW + 'px';
       canvas.style.height = _lbCssH + 'px';
-      /* Draw photo cover-scaled to fill the 16:9 canvas */
       var _lbCtx = canvas.getContext('2d', { willReadFrequently: true });
-      var _phW = userImage.naturalWidth, _phH = userImage.naturalHeight;
+      var _phW = _lbSnap.width, _phH = _lbSnap.height;
       var _lbUserScale = (fxState.frames && fxState.frames.lbScale !== undefined) ? fxState.frames.lbScale : 1.0;
       var _cvS = Math.max(_lbPxW / _phW, _lbPxH / _phH) * _lbUserScale;
       var _drW = Math.round(_phW * _cvS), _drH = Math.round(_phH * _cvS);
@@ -14513,15 +14516,9 @@ function _evRenderCanvasImmediate() {
       var _lbOffY = (fxState.frames && fxState.frames.lbPosY) ? (_lbPxH * (fxState.frames.lbPosY / 100) * 0.5) : 0;
       var _drX = Math.round((_lbPxW - _drW) / 2 + _lbOffX);
       var _drY = Math.round((_lbPxH - _drH) / 2 + _lbOffY);
-      _lbCtx.drawImage(userImage, _drX, _drY, _drW, _drH);
-      /* Re-apply active preset pixel adjustments over the resized photo */
-      if (typeof _evCurPreset !== 'undefined' && _evCurPreset && typeof adj !== 'undefined' && adj) {
-        var _lbOrig = _lbCtx.getImageData(0, 0, _lbPxW, _lbPxH);
-        var _lbProc = applyPixelAdjustments(_lbOrig, adj);
-        _lbCtx.putImageData(new ImageData(_lbProc, _lbPxW, _lbPxH), 0, 0);
-      }
+      _lbCtx.drawImage(_lbSnap, _drX, _drY, _drW, _drH);
       fxApplyFrameToCanvas(canvas, _fxFV, fxState.frames, null);
-    } else if (_isARC && fxCompositeArchivePreview(canvas, _fxFV, (typeof adj !== 'undefined') ? adj : null)) {
+    } else if (_isARC && fxCompositeArchivePreview(canvas, _fxFV)) {
       /* archive sleeve composited with window clipping — nothing further to draw */
     } else {
       fxApplyFrameToCanvas(canvas, _fxFV, fxState.frames, null);
@@ -18819,14 +18816,22 @@ function fxDrawIntoFrameWindow(ctx, src, cw, ch, win, st) {
   ctx.restore();
 }
 
-function fxCompositeArchivePreview(canvas, frameId, adj) {
+function fxCompositeArchivePreview(canvas, frameId) {
   var url = fxGetFrameAssetURL(frameId);
   if (!url) return false;
   var img = fxEnsureFrameImage(frameId, null);
   if (!img) return false;
   var win = fxGetFrameWindow(frameId);
   if (!win) return false;
-  var ar = fxArchiveCanvasAR(img, win, userImage.naturalWidth, userImage.naturalHeight);
+  /* Snapshot BEFORE resizing. This canvas already holds every edit: adjustments,
+     curve LUTs, glow, mist, sharpen, clarity, blurs, halation, bloom, diffusion,
+     duotone, vignette, blemish heal, and any crop. Redrawing from userImage
+     discards all of it. */
+  var snap = document.createElement('canvas');
+  snap.width  = canvas.width;
+  snap.height = canvas.height;
+  snap.getContext('2d').drawImage(canvas, 0, 0);
+  var ar = fxArchiveCanvasAR(img, win, snap.width, snap.height);
   var area = document.getElementById('ev-canvas-area');
   var aw = area ? (area.clientWidth  || 500) : 500;
   var ah = area ? (area.clientHeight || 400) : 400;
@@ -18843,12 +18848,7 @@ function fxCompositeArchivePreview(canvas, frameId, adj) {
   ctx.globalAlpha = 1;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, pw, ph);
-  fxDrawIntoFrameWindow(ctx, userImage, pw, ph, win, fxState.frames);
-  if (typeof _evCurPreset !== 'undefined' && _evCurPreset && adj) {
-    var od = ctx.getImageData(0, 0, pw, ph);
-    var pd = applyPixelAdjustments(od, adj);
-    ctx.putImageData(new ImageData(pd, pw, ph), 0, 0);
-  }
+  fxDrawIntoFrameWindow(ctx, snap, pw, ph, win, fxState.frames);
   fxApplyFrameToCanvas(canvas, frameId, { intensity: (fxState.frames && fxState.frames.intensity !== undefined) ? fxState.frames.intensity : 100 }, null);
   return true;
 }

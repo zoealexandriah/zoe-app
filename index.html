@@ -18715,15 +18715,14 @@ var FX_VARIANTS = {
     { id:'gem8',  label:'', assetFile:'gemframesbypurple8.png',  thumbScale: 0.8,   assetDir:'frames' }
   ],
   archive: [
-    { id:'arc-2single',  label:'SLEEVE 1',  assetFile:'archivephotosleeves2single.png',  assetDir:'frames', win:{ x:0.116, y:0.275, w:0.667, h:0.557 } },
-    { id:'arc-3',        label:'SLEEVE 2',  assetFile:'archivephotosleeves3.png',         assetDir:'frames', win:{ x:0.119, y:0.265, w:0.652, h:0.570 } },
-    { id:'arc-4single',  label:'SLEEVE 3',  assetFile:'archivephotosleeves4single.png',  assetDir:'frames', win:{ x:0.182, y:0.121, w:0.537, h:0.672 } },
-    { id:'arc-5',        label:'SLEEVE 4',  assetFile:'archivephotosleeves5.png',         assetDir:'frames', win:{ x:0.114, y:0.052, w:0.797, h:0.790 } },
-    { id:'arc-6single',  label:'SLEEVE 5',  assetFile:'archivephotosleeves6single.png',  assetDir:'frames', win:{ x:0.102, y:0.045, w:0.861, h:0.815 } },
-    { id:'arc-7single',  label:'SLEEVE 6',  assetFile:'archivephotosleeves7single.png',  assetDir:'frames', win:{ x:0.034, y:0.120, w:0.914, h:0.733 } },
-    { id:'arc-9bsingle', label:'SLEEVE 7',  assetFile:'archivephotosleeves9bsingle.png', assetDir:'frames', win:{ x:0.069, y:0.040, w:0.853, h:0.790 } },
-    { id:'arc-9single',  label:'SLEEVE 8',  assetFile:'archivephotosleeves9single.png',  assetDir:'frames', win:{ x:0.087, y:0.045, w:0.798, h:0.800 } },
-    { id:'arc-10',       label:'SLEEVE 9',  assetFile:'archivephotosleeves10.png',        assetDir:'frames', win:{ x:0.158, y:0.152, w:0.684, h:0.690 } }
+    { id:'arc-3',        label:'SLEEVE 1',  assetFile:'archivephotosleeves3.png',         assetDir:'frames', win:{ x:0.119, y:0.265, w:0.652, h:0.570 } },
+    { id:'arc-4single',  label:'SLEEVE 2',  assetFile:'archivephotosleeves4single.png',  assetDir:'frames', win:{ x:0.182, y:0.121, w:0.537, h:0.672 } },
+    { id:'arc-5',        label:'SLEEVE 3',  assetFile:'archivephotosleeves5.png',         assetDir:'frames', win:{ x:0.114, y:0.052, w:0.797, h:0.790 } },
+    { id:'arc-6single',  label:'SLEEVE 4',  assetFile:'archivephotosleeves6single.png',  assetDir:'frames', win:{ x:0.102, y:0.045, w:0.861, h:0.815 } },
+    { id:'arc-7single',  label:'SLEEVE 5',  assetFile:'archivephotosleeves7single.png',  assetDir:'frames', win:{ x:0.034, y:0.120, w:0.914, h:0.733 } },
+    { id:'arc-9bsingle', label:'SLEEVE 6',  assetFile:'archivephotosleeves9bsingle.png', assetDir:'frames', win:{ x:0.069, y:0.040, w:0.853, h:0.790 } },
+    { id:'arc-9single',  label:'SLEEVE 7',  assetFile:'archivephotosleeves9single.png',  assetDir:'frames', win:{ x:0.087, y:0.045, w:0.798, h:0.800 } },
+    { id:'arc-10',       label:'SLEEVE 8',  assetFile:'archivephotosleeves10.png',        assetDir:'frames', noStretch:true, win:{ x:0.158, y:0.152, w:0.684, h:0.690 } }
   ],
   letterbox: [
     { id:'lb-vintage',   label:'VINTAGE CINEMASCOPE', assetFile:'letterboxVintageCinemascope.png',  assetDir:'frames' },
@@ -18774,12 +18773,17 @@ function fxEnsureFrameImage(frameId, cb) {
   return null;
 }
 
-function fxGetFrameWindow(frameId) {
+function fxGetArchiveDef(frameId) {
   var arr = FX_VARIANTS.archive || [];
   for (var i = 0; i < arr.length; i++) {
-    if (arr[i].id === frameId) return arr[i].win || null;
+    if (arr[i].id === frameId) return arr[i];
   }
   return null;
+}
+
+function fxGetFrameWindow(frameId) {
+  var def = fxGetArchiveDef(frameId);
+  return (def && def.win) ? def.win : null;
 }
 
 /* Sleeve is stretched to match the photo so the opening lands on the photo's
@@ -18787,9 +18791,14 @@ function fxGetFrameWindow(frameId) {
    photo cover-crops instead. */
 var FX_ARCHIVE_STRETCH_CAP = 0.18;
 
-function fxArchiveCanvasAR(img, win, srcW, srcH) {
+function fxArchiveCanvasAR(img, win, srcW, srcH, frameId) {
   var native = (img.naturalWidth || img.width) / (img.naturalHeight || img.height);
   if (!srcW || !srcH || !win || !win.w || !win.h) return native;
+  var def = fxGetArchiveDef(frameId);
+  /* Shape-critical openings cannot be stretched. An 18% squeeze is invisible on
+     a dot pattern but turns a circle into an obvious ellipse, so these keep
+     their native aspect and the photo cover-crops into the opening instead. */
+  if (def && def.noStretch) return native;
   var desired = (srcW / srcH) * (win.h / win.w);
   var lo = native / (1 + FX_ARCHIVE_STRETCH_CAP);
   var hi = native * (1 + FX_ARCHIVE_STRETCH_CAP);
@@ -18831,7 +18840,7 @@ function fxCompositeArchivePreview(canvas, frameId) {
   snap.width  = canvas.width;
   snap.height = canvas.height;
   snap.getContext('2d').drawImage(canvas, 0, 0);
-  var ar = fxArchiveCanvasAR(img, win, snap.width, snap.height);
+  var ar = fxArchiveCanvasAR(img, win, snap.width, snap.height, frameId);
   var area = document.getElementById('ev-canvas-area');
   var aw = area ? (area.clientWidth  || 500) : 500;
   var ah = area ? (area.clientHeight || 400) : 400;
@@ -18869,7 +18878,7 @@ function fxCompositeArchiveExport(proxy, frameId, ew, eh, done) {
       fxApplyFrameToCanvas(out, frameId, fxState.frames, function() { done(out); });
       return;
     }
-    var ar = fxArchiveCanvasAR(img, win, proxy.width, proxy.height);
+    var ar = fxArchiveCanvasAR(img, win, proxy.width, proxy.height, frameId);
     var maxSide = Math.max(ew, eh), ow, oh;
     if (ar >= 1) { ow = maxSide; oh = Math.round(maxSide / ar); }
     else         { oh = maxSide; ow = Math.round(maxSide * ar); }

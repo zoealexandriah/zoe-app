@@ -18785,6 +18785,20 @@ function fxGetFrameWindow(frameId) {
   return null;
 }
 
+/* Sleeve is stretched to match the photo so the opening lands on the photo's
+   edges exactly. Capped so the sleeve never visibly warps; past the cap the
+   photo cover-crops instead. */
+var FX_ARCHIVE_STRETCH_CAP = 0.18;
+
+function fxArchiveCanvasAR(img, win, srcW, srcH) {
+  var native = (img.naturalWidth || img.width) / (img.naturalHeight || img.height);
+  if (!srcW || !srcH || !win || !win.w || !win.h) return native;
+  var desired = (srcW / srcH) * (win.h / win.w);
+  var lo = native / (1 + FX_ARCHIVE_STRETCH_CAP);
+  var hi = native * (1 + FX_ARCHIVE_STRETCH_CAP);
+  return Math.max(lo, Math.min(hi, desired));
+}
+
 function fxDrawIntoFrameWindow(ctx, src, cw, ch, win, st) {
   var scale = (st && st.lbScale !== undefined) ? st.lbScale : 1.0;
   var posX  = (st && st.lbPosX) ? st.lbPosX : 0;
@@ -18812,7 +18826,7 @@ function fxCompositeArchivePreview(canvas, frameId, adj) {
   if (!img) return false;
   var win = fxGetFrameWindow(frameId);
   if (!win) return false;
-  var ar = img.naturalWidth / img.naturalHeight;
+  var ar = fxArchiveCanvasAR(img, win, userImage.naturalWidth, userImage.naturalHeight);
   var area = document.getElementById('ev-canvas-area');
   var aw = area ? (area.clientWidth  || 500) : 500;
   var ah = area ? (area.clientHeight || 400) : 400;
@@ -18855,7 +18869,7 @@ function fxCompositeArchiveExport(proxy, frameId, ew, eh, done) {
       fxApplyFrameToCanvas(out, frameId, fxState.frames, function() { done(out); });
       return;
     }
-    var ar = img.naturalWidth / img.naturalHeight;
+    var ar = fxArchiveCanvasAR(img, win, proxy.width, proxy.height);
     var maxSide = Math.max(ew, eh), ow, oh;
     if (ar >= 1) { ow = maxSide; oh = Math.round(maxSide / ar); }
     else         { oh = maxSide; ow = Math.round(maxSide * ar); }

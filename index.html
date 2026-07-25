@@ -17973,6 +17973,12 @@ function _etApplyAdjCanvas(c) {
   if ((adj.vignette || 0) > 0.01) applyVignette(c, adj.vignette, 0, 0, c.width, c.height);
 }
 
+function _etApplyFxOverlay(c) {
+  var _fv = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
+  if (!_fv || _fv === 'none' || typeof fxApplyFrameToCanvas !== 'function') return;
+  fxApplyFrameToCanvas(c, _fv, fxState.frames, null);
+}
+
 function etPerspUpdate() {
   var slV = document.getElementById('crop-persp-v-slider');
   var slH = document.getElementById('crop-persp-h-slider');
@@ -18056,6 +18062,7 @@ function etPerspUpdate() {
     sc.getContext('2d', { willReadFrequently: true }).clearRect(0, 0, _origNW, _origNH);
     sc.getContext('2d', { willReadFrequently: true }).drawImage(_etPerspOrigImg, 0, 0, _origNW, _origNH);
     _etApplyAdjCanvas(sc);
+    _etApplyFxOverlay(sc);
     sc.style.width  = _zDispW + 'px';
     sc.style.height = _zDispH + 'px';
     sc.style.left   = Math.round((_arW - _zDispW) / 2) + 'px';
@@ -18091,6 +18098,7 @@ function etPerspUpdate() {
     ac.getContext('2d', { willReadFrequently: true }).clearRect(0, 0, ac.width, ac.height);
     ac.getContext('2d', { willReadFrequently: true }).drawImage(_pvTmp, 0, 0, ac.width, ac.height);
     _etApplyAdjCanvas(ac);
+    _etApplyFxOverlay(ac);
     ac.style.opacity = '1';
     sc.style.opacity = '0';
   }

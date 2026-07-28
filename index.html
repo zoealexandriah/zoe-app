@@ -3423,14 +3423,24 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   background: linear-gradient(to right, transparent, rgba(215,182,255,0.72), rgba(182,218,255,0.60), rgba(255,182,215,0.56), transparent);
   z-index: 5;
 }
+.fx-gem-card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(5,3,14,0.95);
+  pointer-events: none;
+  z-index: 0;
+}
 .fx-gem-card-img {
   position: absolute;
   inset: 0;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  background-color: rgba(5,3,14,0.95);
+  background-color: transparent;
   pointer-events: none;
+  z-index: 1;
 }
 .fx-gem-card-grad {
   position: absolute;
@@ -19140,6 +19150,12 @@ function fxBuildVariantStrip(cat) {
     if (v.assetFile) {
       /* gem-style preset card */
       div.className = 'fx-gem-card fx-var-card' + (isActive ? ' active' : '');
+      var cardBg = document.createElement('div');
+      cardBg.className = 'fx-gem-card-bg';
+      if (typeof IMG !== 'undefined' && IMG.strip_halo) {
+        cardBg.style.backgroundImage = 'url(' + IMG.strip_halo + ')';
+        cardBg.style.opacity = (cat === 'gem') ? '0.38' : '0.92';
+      }
       var imgBg = document.createElement('div');
       imgBg.className = 'fx-gem-card-img';
       var _dir = v.assetDir || 'frames';
@@ -19150,6 +19166,7 @@ function fxBuildVariantStrip(cat) {
       var adj = document.createElement('div');
       adj.className = 'fx-gem-card-adjust';
       adj.innerHTML = '<div style="position:relative;width:22px;height:6px;"><div style="position:absolute;top:50%;left:0;right:0;height:1.5px;background:#e8d0f0;transform:translateY(-50%);border-radius:1px;"></div><div style="position:absolute;top:50%;left:50%;width:6px;height:6px;background:#e8d0f0;border-radius:50%;transform:translate(-50%,-50%);"></div></div>';
+      div.appendChild(cardBg);
       div.appendChild(imgBg);
       div.appendChild(grad);
       div.appendChild(adj);

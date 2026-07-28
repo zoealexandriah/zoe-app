@@ -19183,13 +19183,7 @@ function fxMakeVariantCard(cat, v, current, isChild) {
     if (v.id === _fxExpandedFolder) div.className += ' fx-folder-open';
     var cardBg = document.createElement('div');
     cardBg.className = 'fx-gem-card-bg';
-    var _isGemArt = (cat === 'gem') || (v.id === 'gem');
-    if (_isGemArt) {
-      div.className += ' fx-card-glass';
-    } else if (typeof IMG !== 'undefined' && IMG.strip_halo) {
-      cardBg.style.backgroundImage = 'url(' + IMG.strip_halo + ')';
-      cardBg.style.opacity = '0.92';
-    }
+    div.className += ' fx-card-glass';
     var imgBg = document.createElement('div');
     imgBg.className = 'fx-gem-card-img';
     var _dir = v.assetDir || 'frames';

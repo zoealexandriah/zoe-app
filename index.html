@@ -3423,6 +3423,30 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   background: linear-gradient(to right, transparent, rgba(215,182,255,0.72), rgba(182,218,255,0.60), rgba(255,182,215,0.56), transparent);
   z-index: 5;
 }
+.fx-gem-card.fx-card-glass {
+  box-sizing: border-box;
+  background: linear-gradient(158deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.028) 45%, rgba(255,255,255,0.065) 100%);
+  border: 0.5px solid rgba(232,222,246,0.22);
+  -webkit-backdrop-filter: blur(14px) saturate(1.35);
+  backdrop-filter: blur(14px) saturate(1.35);
+}
+.fx-gem-card.fx-card-glass::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 38%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.13), transparent);
+  border-radius: 7px 7px 0 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.fx-gem-card.fx-card-glass .fx-gem-card-bg {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+.fx-gem-card.fx-card-glass .fx-gem-card-grad {
+  background: none;
+}
 .fx-gem-card-bg {
   position: absolute;
   inset: 0;
@@ -19159,9 +19183,12 @@ function fxMakeVariantCard(cat, v, current, isChild) {
     if (v.id === _fxExpandedFolder) div.className += ' fx-folder-open';
     var cardBg = document.createElement('div');
     cardBg.className = 'fx-gem-card-bg';
-    if (typeof IMG !== 'undefined' && IMG.strip_halo) {
+    var _isGemArt = (cat === 'gem') || (v.id === 'gem');
+    if (_isGemArt) {
+      div.className += ' fx-card-glass';
+    } else if (typeof IMG !== 'undefined' && IMG.strip_halo) {
       cardBg.style.backgroundImage = 'url(' + IMG.strip_halo + ')';
-      cardBg.style.opacity = (cat === 'gem') ? '0.38' : '0.92';
+      cardBg.style.opacity = '0.92';
     }
     var imgBg = document.createElement('div');
     imgBg.className = 'fx-gem-card-img';

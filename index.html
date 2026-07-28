@@ -19130,63 +19130,92 @@ function fxOpenCat(cat) {
   }
 }
 
-function fxBuildVariantStrip(cat) {
+var _fxExpandedFolder = null;
+var _fxExpandedParent = null;
+
+if (!document.getElementById('fx-expand-style')) {
+  var _fxes = document.createElement('style');
+  _fxes.id = 'fx-expand-style';
+  _fxes.textContent =
+    '.fx-folder-open{outline:1.5px solid var(--accent,#c9b8d4);outline-offset:-1.5px;}' +
+    '.fx-child-gap{flex-shrink:0;width:10px;}';
+  document.head.appendChild(_fxes);
+}
+
+function fxMakeVariantCard(cat, v, current, isChild) {
+  var isActive = v.id === current;
+  var div = document.createElement('div');
+  div.dataset.vid = v.id;
+  var _touchStartX = 0, _touchStartY = 0;
+  var _handler = (function(vid){ return function(e) {
+    var dx = Math.abs((e.changedTouches ? e.changedTouches[0].clientX : 0) - _touchStartX);
+    var dy = Math.abs((e.changedTouches ? e.changedTouches[0].clientY : 0) - _touchStartY);
+    if (dx > 8 || dy > 8) return;
+    e.preventDefault(); e.stopPropagation(); fxSelectVariant(cat, vid);
+  }; })(v.id);
+  div.addEventListener('touchstart', function(e) { if (e.touches) { _touchStartX = e.touches[0].clientX; _touchStartY = e.touches[0].clientY; } }, { passive: true });
+  if (v.assetFile) {
+    div.className = 'fx-gem-card fx-var-card' + (isActive ? ' active' : '') + (isChild ? ' fx-var-child' : '');
+    if (v.id === _fxExpandedFolder) div.className += ' fx-folder-open';
+    var cardBg = document.createElement('div');
+    cardBg.className = 'fx-gem-card-bg';
+    if (typeof IMG !== 'undefined' && IMG.strip_halo) {
+      cardBg.style.backgroundImage = 'url(' + IMG.strip_halo + ')';
+      cardBg.style.opacity = (cat === 'gem') ? '0.38' : '0.92';
+    }
+    var imgBg = document.createElement('div');
+    imgBg.className = 'fx-gem-card-img';
+    var _dir = v.assetDir || 'frames';
+    imgBg.style.backgroundImage = 'url(./assets/' + _dir + '/' + v.assetFile + ')';
+    if (v.thumbScale) { imgBg.style.backgroundSize = (v.thumbScale * 100) + '%'; }
+    var grad = document.createElement('div');
+    grad.className = 'fx-gem-card-grad';
+    var adj = document.createElement('div');
+    adj.className = 'fx-gem-card-adjust';
+    adj.innerHTML = '<div style="position:relative;width:22px;height:6px;"><div style="position:absolute;top:50%;left:0;right:0;height:1.5px;background:#e8d0f0;transform:translateY(-50%);border-radius:1px;"></div><div style="position:absolute;top:50%;left:50%;width:6px;height:6px;background:#e8d0f0;border-radius:50%;transform:translate(-50%,-50%);"></div></div>';
+    div.appendChild(cardBg);
+    div.appendChild(imgBg);
+    div.appendChild(grad);
+    div.appendChild(adj);
+    if (v.label) {
+      var lbl = document.createElement('div');
+      lbl.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.88),transparent);pointer-events:none;z-index:3;';
+      lbl.innerHTML = '<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,0.80);font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+v.label+'</div>';
+      div.appendChild(lbl);
+    }
+  } else {
+    div.className = 'fx-var-card' + (isActive ? ' active' : '');
+    div.style.cssText = 'flex-shrink:0;width:80px;height:80px;cursor:pointer;position:relative;border-radius:10px;border:1.5px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;-webkit-touch-callout:none;user-select:none;touch-action:manipulation;';
+    var slash = document.createElement('div');
+    slash.style.cssText = 'width:1px;height:50px;background:rgba(255,255,255,0.2);transform:rotate(45deg);pointer-events:none;';
+    div.appendChild(slash);
+  }
+  div.addEventListener('touchend', _handler, { passive: false });
+  div.addEventListener('click', _handler);
+  return div;
+}
+
+function fxBuildVariantStrip(cat, expandId) {
+  _fxExpandedFolder = expandId || null;
+  _fxExpandedParent = expandId ? cat : null;
   var strip = document.getElementById('fx-variant-strip');
   strip.innerHTML = '';
   var variants = FX_VARIANTS[cat] || [];
   var current = fxState.frames ? fxState.frames.variant : null;
   variants.forEach(function(v) {
-    var isActive = v.id === current;
-    var div = document.createElement('div');
-    div.dataset.vid = v.id;
-    var _touchStartX = 0, _touchStartY = 0;
-    var _handler = (function(vid){ return function(e) {
-      var dx = Math.abs((e.changedTouches ? e.changedTouches[0].clientX : 0) - _touchStartX);
-      var dy = Math.abs((e.changedTouches ? e.changedTouches[0].clientY : 0) - _touchStartY);
-      if (dx > 8 || dy > 8) return; // scroll gesture — ignore
-      e.preventDefault(); e.stopPropagation(); fxSelectVariant(cat, vid);
-    }; })(v.id);
-    div.addEventListener('touchstart', function(e) { if (e.touches) { _touchStartX = e.touches[0].clientX; _touchStartY = e.touches[0].clientY; } }, { passive: true });
-    if (v.assetFile) {
-      /* gem-style preset card */
-      div.className = 'fx-gem-card fx-var-card' + (isActive ? ' active' : '');
-      var cardBg = document.createElement('div');
-      cardBg.className = 'fx-gem-card-bg';
-      if (typeof IMG !== 'undefined' && IMG.strip_halo) {
-        cardBg.style.backgroundImage = 'url(' + IMG.strip_halo + ')';
-        cardBg.style.opacity = (cat === 'gem') ? '0.38' : '0.92';
-      }
-      var imgBg = document.createElement('div');
-      imgBg.className = 'fx-gem-card-img';
-      var _dir = v.assetDir || 'frames';
-      imgBg.style.backgroundImage = 'url(./assets/' + _dir + '/' + v.assetFile + ')';
-      if (v.thumbScale) { imgBg.style.backgroundSize = (v.thumbScale * 100) + '%'; }
-      var grad = document.createElement('div');
-      grad.className = 'fx-gem-card-grad';
-      var adj = document.createElement('div');
-      adj.className = 'fx-gem-card-adjust';
-      adj.innerHTML = '<div style="position:relative;width:22px;height:6px;"><div style="position:absolute;top:50%;left:0;right:0;height:1.5px;background:#e8d0f0;transform:translateY(-50%);border-radius:1px;"></div><div style="position:absolute;top:50%;left:50%;width:6px;height:6px;background:#e8d0f0;border-radius:50%;transform:translate(-50%,-50%);"></div></div>';
-      div.appendChild(cardBg);
-      div.appendChild(imgBg);
-      div.appendChild(grad);
-      div.appendChild(adj);
-      if (v.label) {
-        var lbl = document.createElement('div');
-        lbl.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.88),transparent);pointer-events:none;z-index:3;';
-        lbl.innerHTML = '<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,0.80);font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+v.label+'</div>';
-        div.appendChild(lbl);
-      }
-    } else {
-      /* none card */
-      div.className = 'fx-var-card' + (isActive ? ' active' : '');
-      div.style.cssText = 'flex-shrink:0;width:80px;height:80px;cursor:pointer;position:relative;border-radius:10px;border:1.5px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;-webkit-touch-callout:none;user-select:none;touch-action:manipulation;';
-      var slash = document.createElement('div');
-      slash.style.cssText = 'width:1px;height:50px;background:rgba(255,255,255,0.2);transform:rotate(45deg);pointer-events:none;';
-      div.appendChild(slash);
+    strip.appendChild(fxMakeVariantCard(cat, v, current, false));
+    if (v.hasDesigns && v.id === expandId && FX_VARIANTS[v.id]) {
+      var gap = document.createElement('div');
+      gap.className = 'fx-child-gap';
+      strip.appendChild(gap);
+      var childCurrent = current;
+      FX_VARIANTS[v.id].forEach(function(cv) {
+        strip.appendChild(fxMakeVariantCard(v.id, cv, childCurrent, true));
+      });
+      var gap2 = document.createElement('div');
+      gap2.className = 'fx-child-gap';
+      strip.appendChild(gap2);
     }
-    div.addEventListener('touchend', _handler, { passive: false });
-    div.addEventListener('click', _handler);
-    strip.appendChild(div);
   });
 }
 
@@ -19219,10 +19248,15 @@ function fxSelectVariant(cat, variantId) {
   var varDef = null;
   for (var i = 0; i < variants.length; i++) { if (variants[i].id === variantId) { varDef = variants[i]; break; } }
   if (varDef && varDef.hasDesigns && FX_VARIANTS[variantId]) {
-    /* open design strip */
-    _fxActiveCat = variantId;
-    fxBuildVariantStrip(variantId);
-    fxShowLevel(2);
+    if (_fxExpandedFolder === variantId) {
+      _fxExpandedFolder = null;
+      _fxExpandedParent = null;
+      fxBuildVariantStrip(cat);
+    } else {
+      fxBuildVariantStrip(cat, variantId);
+      var el = document.querySelector('[data-vid="' + variantId + '"]');
+      if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
     return;
   }
 
@@ -19556,8 +19590,8 @@ function fxLbControlsDiscard() {
 function fxCloseLbControls() {
   var pv = document.getElementById('fx-lb-controls');
   if (pv) pv.style.display = 'none';
-  _fxActiveCat = _fxLbBackCat || 'letterbox';
-  fxBuildVariantStrip(_fxActiveCat);
+  _fxActiveCat = 'frames';
+  fxBuildVariantStrip('frames', _fxLbBackCat || null);
   fxShowLevel(2);
 }
 

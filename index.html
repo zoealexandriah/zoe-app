@@ -3403,6 +3403,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   --fx-card-w: 62px;
   --fx-card-h: 76px;
   --fx-card-r: 6px;
+  --glass-tint: 232,216,250;
 }
 .fx-gem-card {
   flex-shrink: 0;
@@ -3430,17 +3431,17 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .fx-gem-card.fx-card-glass {
   box-sizing: border-box;
-  background: linear-gradient(158deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.028) 45%, rgba(255,255,255,0.065) 100%);
-  border: 0.5px solid rgba(232,222,246,0.22);
-  -webkit-backdrop-filter: blur(14px) saturate(1.35);
-  backdrop-filter: blur(14px) saturate(1.35);
+  background: linear-gradient(158deg, rgba(var(--glass-tint),0.10) 0%, rgba(var(--glass-tint),0.028) 45%, rgba(var(--glass-tint),0.065) 100%);
+  border: 1px solid rgba(var(--glass-tint),0.22);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 .fx-gem-card.fx-card-glass::before {
   content: '';
   position: absolute;
   left: 0; right: 0; top: 0;
   height: 38%;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.13), transparent);
+  background: linear-gradient(to bottom, rgba(var(--glass-tint),0.13), transparent);
   border-radius: var(--fx-card-r) var(--fx-card-r) 0 0;
   pointer-events: none;
   z-index: 1;
@@ -19211,9 +19212,9 @@ function fxMakeVariantCard(cat, v, current, isChild) {
     }
   } else {
     div.className = 'fx-var-card' + (isActive ? ' active' : '');
-    div.style.cssText = 'flex-shrink:0;width:var(--fx-card-w);height:var(--fx-card-h);cursor:pointer;position:relative;border-radius:var(--fx-card-r);border:1.5px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;-webkit-touch-callout:none;user-select:none;touch-action:manipulation;';
+    div.style.cssText = 'flex-shrink:0;width:var(--fx-card-w);height:var(--fx-card-h);cursor:pointer;position:relative;border-radius:var(--fx-card-r);border:1px solid rgba(var(--glass-tint),0.22);background:linear-gradient(158deg, rgba(var(--glass-tint),0.10) 0%, rgba(var(--glass-tint),0.028) 45%, rgba(var(--glass-tint),0.065) 100%);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;-webkit-touch-callout:none;user-select:none;touch-action:manipulation;';
     var slash = document.createElement('div');
-    slash.style.cssText = 'width:1px;height:38px;background:rgba(255,255,255,0.2);transform:rotate(45deg);pointer-events:none;';
+    slash.style.cssText = 'width:1px;height:38px;background:rgba(var(--glass-tint),0.28);transform:rotate(45deg);pointer-events:none;';
     div.appendChild(slash);
   }
   div.addEventListener('touchend', _handler, { passive: false });

@@ -3446,6 +3446,28 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   pointer-events: none;
   z-index: 1;
 }
+.fx-gem-card.fx-glyph-card {
+  background: none;
+  border: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: rgba(var(--glass-tint),0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fx-gem-card.fx-glyph-card::before { display: none; }
+.fx-gem-card.fx-glyph-card.active {
+  box-shadow: none;
+  color: rgba(240,228,255,1);
+}
+.fx-glyph-wrap {
+  width: 46px;
+  margin-bottom: 12px;
+  pointer-events: none;
+  z-index: 1;
+}
+.fx-glyph-wrap svg { width: 100%; height: auto; display: block; }
 .fx-gem-card.fx-card-glass .fx-gem-card-bg {
   background-image: none !important;
   background-color: transparent !important;
@@ -18747,6 +18769,9 @@ var FX_DIRECT = ['glossy','scanlines','vhsbleed'];
 var FX_MULTI = ['glow','paper'];
 
 /* Variant definitions for FRAMES */
+var FX_GLYPHS = {
+  'letterbox': '<svg viewBox="0 0 48 20" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><rect x="0.8" y="0.8" width="46.4" height="18.4" rx="2.5"/><rect x="7" y="3.4" width="34" height="13.2" rx="1.6"/><rect x="3" y="3.6" width="2.6" height="3.2" rx="1.1"/><rect x="3" y="8.4" width="2.6" height="3.2" rx="1.1"/><rect x="3" y="13.2" width="2.6" height="3.2" rx="1.1"/><rect x="42.4" y="3.6" width="2.6" height="3.2" rx="1.1"/><rect x="42.4" y="8.4" width="2.6" height="3.2" rx="1.1"/><rect x="42.4" y="13.2" width="2.6" height="3.2" rx="1.1"/></svg>'
+};
 var FX_VARIANTS = {
   frames: [
     { id:'gem',       label:'GEMS',      hasDesigns: true, assetFile:'gemframepreview.png',                 assetDir:'frames' },
@@ -19183,7 +19208,20 @@ function fxMakeVariantCard(cat, v, current, isChild) {
     e.preventDefault(); e.stopPropagation(); fxSelectVariant(cat, vid);
   }; })(v.id);
   div.addEventListener('touchstart', function(e) { if (e.touches) { _touchStartX = e.touches[0].clientX; _touchStartY = e.touches[0].clientY; } }, { passive: true });
-  if (v.assetFile) {
+  if (FX_GLYPHS[v.id]) {
+    div.className = 'fx-gem-card fx-glyph-card' + (isActive ? ' active' : '');
+    if (v.id === _fxExpandedFolder) div.className += ' fx-folder-open';
+    var gw = document.createElement('div');
+    gw.className = 'fx-glyph-wrap';
+    gw.innerHTML = FX_GLYPHS[v.id];
+    div.appendChild(gw);
+    if (v.label) {
+      var glbl = document.createElement('div');
+      glbl.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:0 3px 5px;pointer-events:none;z-index:3;';
+      glbl.innerHTML = '<div style="font-size:7px;letter-spacing:0.10em;color:currentColor;font-family:var(--mono);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;">'+v.label+'</div>';
+      div.appendChild(glbl);
+    }
+  } else if (v.assetFile) {
     div.className = 'fx-gem-card fx-var-card' + (isActive ? ' active' : '') + (isChild ? ' fx-var-child' : '');
     if (v.id === _fxExpandedFolder) div.className += ' fx-folder-open';
     var cardBg = document.createElement('div');

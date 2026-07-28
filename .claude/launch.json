@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ZOE App",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-Command",
+        "$l=[Net.HttpListener]::new();$l.Prefixes.Add('http://localhost:3000/');$l.Start();Write-Host 'Serving at http://localhost:3000';while($l.IsListening){$c=$l.GetContext();$b=[IO.File]::ReadAllBytes('C:/Users/zoeal/zoe-app/index.html');$c.Response.ContentLength64=$b.Length;$c.Response.OutputStream.Write($b,0,$b.Length);$c.Response.Close()}"
+      ],
+      "port": 3000
+    }
+  ]
+}

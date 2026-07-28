@@ -14314,6 +14314,9 @@ function _evResizeCanvas() {
   var canvas = document.getElementById('ev-canvas');
   var area   = document.getElementById('ev-canvas-area');
   if (!canvas || !area || !userImage || canvas.width === 0) return;
+  // Letterbox and archive frames manage canvas sizing themselves — let evRenderCanvas handle it
+  var _rFV = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
+  if (_rFV && (_rFV.indexOf('lb-') === 0 || _rFV.indexOf('arc-') === 0)) return;
   var aw = area.clientWidth || 500, ah = area.clientHeight || 400;
   var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
   var baseScale = Math.min(aw / iw, ah / ih, 1);

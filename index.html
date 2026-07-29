@@ -18116,13 +18116,23 @@ function etPerspUpdate() {
   ac.style.opacity = '0';
 
   if (amtV === 0 && amtH === 0) {
-    // Show pre-warp original via sc overlay at its natural aspect ratio.
-    // ac may have been baked to warp+autocrop dimensions (different AR), so stretching into it distorts.
     var _origNW = _etPerspOrigImg.naturalWidth || sc.width;
     var _origNH = _etPerspOrigImg.naturalHeight || sc.height;
     var _zScale = Math.min(_acW / _origNW, _acH / _origNH);
     var _zDispW = Math.round(_origNW * _zScale);
     var _zDispH = Math.round(_origNH * _zScale);
+    // Draw pre-warp original into ac directly so any external render reset
+    // (e.g. _evRenderCanvasImmediate resetting opacity via line 14594) still
+    // shows the correct image. Also render into sc as the z-index:4 overlay.
+    ac.width = _origNW; ac.height = _origNH;
+    ac.style.width  = _zDispW + 'px';
+    ac.style.height = _zDispH + 'px';
+    ac.style.position = ''; ac.style.left = ''; ac.style.top = '';
+    var _acCtx0 = ac.getContext('2d', { willReadFrequently: true });
+    _acCtx0.clearRect(0, 0, _origNW, _origNH);
+    _acCtx0.drawImage(_etPerspOrigImg, 0, 0, _origNW, _origNH);
+    _etApplyAdjCanvas(ac);
+    _etApplyFxOverlay(ac);
     sc.width = _origNW; sc.height = _origNH;
     sc.getContext('2d', { willReadFrequently: true }).clearRect(0, 0, _origNW, _origNH);
     sc.getContext('2d', { willReadFrequently: true }).drawImage(_etPerspOrigImg, 0, 0, _origNW, _origNH);
@@ -18133,7 +18143,7 @@ function etPerspUpdate() {
     sc.style.left   = Math.round((_arW - _zDispW) / 2) + 'px';
     sc.style.top    = Math.round((_arH - _zDispH) / 2) + 'px';
     sc.style.opacity = '1';
-    // ac stays at opacity:0 (set above)
+    ac.style.opacity = '1';
   } else {
     // Quadratic curve so low slider values are subtle; max slider still reaches full effect
     var _warpV = (amtV >= 0 ? 1 : -1) * Math.pow(Math.abs(amtV) / 100, 2);

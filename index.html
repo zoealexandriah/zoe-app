@@ -15400,6 +15400,9 @@ function galleryOpenInEditor(idx) {
         } else if (sliderState[_evNoLookPreset.id] && Object.keys(sliderState[_evNoLookPreset.id]).length > 0) {
           buildEditorSliders(_evNoLookPreset);
         }
+        if (es.fxState && typeof fxState !== 'undefined') {
+          Object.assign(fxState, JSON.parse(JSON.stringify(es.fxState)));
+        }
         if (typeof evRenderCanvas === 'function') evRenderCanvas();
         if (_perspBaseURL) {
           var _preWarpImg = new Image();
@@ -15722,7 +15725,8 @@ function autoSaveEdit() {
         _psH = _pshSlider ? (parseFloat(_pshSlider.value) || 0) : 0;
       }
       return { baseURL: _perspBaseURL, v: _psV, h: _psH, version: 2 };
-    })()
+    })(),
+    fxState: (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null
   };
   libSaveToStorage();
 }

@@ -18784,7 +18784,16 @@ var FX_MULTI = ['glow','paper'];
 var FX_GLYPHS = {
   'letterbox': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><defs><clipPath id="lbwin"><rect x="9" y="4" width="28" height="38" rx="2.5"/></clipPath></defs><g clip-path="url(#lbwin)"><rect x="9" y="4" width="28" height="9" fill="currentColor" fill-opacity="0.55" stroke="none"/><rect x="9" y="33" width="28" height="9" fill="currentColor" fill-opacity="0.55" stroke="none"/></g><rect x="9" y="4" width="28" height="38" rx="2.5"/></svg>',
   'gem': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><rect x="9" y="4" width="28" height="38" rx="2.5"/><g stroke-width="0.95"><rect x="7.6" y="3.6" width="7.2" height="7.2" transform="rotate(45 11.2 7.2)"/><rect x="9.8" y="5.8" width="2.8" height="2.8" transform="rotate(45 11.2 7.2)"/><rect x="15" y="2.5" width="5" height="5" transform="rotate(45 17.5 5)"/><rect x="6.6" y="10.5" width="5" height="5" transform="rotate(45 9.1 13)"/></g><g stroke-width="0.85"><rect x="21.7" y="3.2" width="2.6" height="2.6" transform="rotate(45 23 4.5)"/><rect x="7.8" y="17.8" width="2.6" height="2.6" transform="rotate(45 9.1 19.1)"/><rect x="34.6" y="37.6" width="3" height="3" transform="rotate(45 36.1 39.1)"/></g></svg>',
-  'archive': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><rect x="9" y="4" width="28" height="38" rx="2.5"/><g stroke-width="0.95"><path d="M9 9.4 H37"/><rect x="14" y="15" width="18" height="18" rx="1"/><path d="M34.5 17 V21" stroke-linecap="round"/><path d="M34.5 28 V32" stroke-linecap="round"/></g></svg>'
+  'archive': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><rect x="9" y="4" width="28" height="38" rx="2.5"/><g stroke-width="0.95"><path d="M9 9.4 H37"/><rect x="14" y="15" width="18" height="18" rx="1"/><path d="M34.5 17 V21" stroke-linecap="round"/><path d="M34.5 28 V32" stroke-linecap="round"/></g></svg>',
+  'lb-extreme': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-linejoin="round"><rect x="6.5" y="4.5" width="33" height="33" rx="2" stroke-width="0.9" opacity="0.25"/><rect x="9" y="16.34" width="28" height="9.33" rx="1" stroke-width="1.1"/></svg>',
+  'lb-vintage': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-linejoin="round"><rect x="6.5" y="4.5" width="33" height="33" rx="2" stroke-width="0.9" opacity="0.25"/><rect x="9" y="15.04" width="28" height="11.91" rx="1" stroke-width="1.1"/></svg>',
+  'lb-univisium': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-linejoin="round"><rect x="6.5" y="4.5" width="33" height="33" rx="2" stroke-width="0.9" opacity="0.25"/><rect x="9" y="14" width="28" height="14" rx="1" stroke-width="1.1"/></svg>',
+  'lb-35mm': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-linejoin="round"><rect x="6.5" y="4.5" width="33" height="33" rx="2" stroke-width="0.9" opacity="0.25"/><rect x="9" y="13.43" width="28" height="15.14" rx="1" stroke-width="1.1"/></svg>',
+  'lb-academy': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-linejoin="round"><rect x="6.5" y="4.5" width="33" height="33" rx="2" stroke-width="0.9" opacity="0.25"/><rect x="9" y="10.82" width="28" height="20.36" rx="1" stroke-width="1.1"/></svg>',
+  'lb-oldtv': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-linejoin="round"><rect x="6.5" y="4.5" width="33" height="33" rx="2" stroke-width="0.9" opacity="0.25"/><rect x="9" y="10.5" width="28" height="21" rx="1" stroke-width="1.1"/></svg>',
+  'lb-1x1': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-linejoin="round"><rect x="6.5" y="4.5" width="33" height="33" rx="2" stroke-width="0.9" opacity="0.25"/><rect x="9" y="7" width="28" height="28" rx="1" stroke-width="1.1"/></svg>',
+  'lb-4x5': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-linejoin="round"><rect x="6.5" y="4.5" width="33" height="33" rx="2" stroke-width="0.9" opacity="0.25"/><rect x="11.8" y="7" width="22.4" height="28" rx="1" stroke-width="1.1"/></svg>',
+  'lb-vertical': '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-linejoin="round"><rect x="6.5" y="4.5" width="33" height="33" rx="2" stroke-width="0.9" opacity="0.25"/><rect x="15.13" y="7" width="15.75" height="28" rx="1" stroke-width="1.1"/></svg>'
 };
 var FX_VARIANTS = {
   frames: [
@@ -18820,15 +18829,15 @@ var FX_VARIANTS = {
     { id:'arc-10',       label:'SLEEVE 8',  assetFile:'archivephotosleeves10.png',        assetDir:'frames', noStretch:true, winShape:'ellipse', win:{ x:0.103, y:0.100, w:0.793, h:0.795 } }
   ],
   letterbox: [
-    { id:'lb-vintage',   label:'VINTAGE CINEMASCOPE', assetFile:'letterboxVintageCinemascope.png',  assetDir:'frames' },
+    { id:'lb-vintage',   label:'2.35 CINEMASCOPE', assetFile:'letterboxVintageCinemascope.png',  assetDir:'frames' },
     { id:'lb-extreme',   label:'3:1 EXTREME SCOPE',   assetFile:'letterbox3-1ExtremeScope.png',     assetDir:'frames' },
     { id:'lb-1x1',       label:'1:1 SQUARE',          assetFile:'letterbox1x1.png',                 assetDir:'frames' },
-    { id:'lb-univisium', label:'UNIVISIUM',            assetFile:'letterbox2-1Univisium.png',        assetDir:'frames' },
-    { id:'lb-oldtv',     label:'OLD TV',               assetFile:'letterbox4-3OldTV.png',            assetDir:'frames' },
+    { id:'lb-univisium', label:'2:1 UNIVISIUM',            assetFile:'letterbox2-1Univisium.png',        assetDir:'frames' },
+    { id:'lb-oldtv',     label:'4:3 OLD TV',               assetFile:'letterbox4-3OldTV.png',            assetDir:'frames' },
     { id:'lb-4x5',       label:'4:5',                  assetFile:'letterbox4x5.png',                 assetDir:'frames' },
     { id:'lb-vertical',  label:'9:16 VERTICAL',        assetFile:'letterbox9-16VerticalVideo.png',   assetDir:'frames' },
-    { id:'lb-academy',   label:'ACADEMY RATIO',        assetFile:'letterboxAcademyRatio.png',        assetDir:'frames' },
-    { id:'lb-35mm',      label:'CLASSIC 35MM',         assetFile:'letterboxClassic35mm.png',         assetDir:'frames' }
+    { id:'lb-academy',   label:'1.375 ACADEMY',        assetFile:'letterboxAcademyRatio.png',        assetDir:'frames' },
+    { id:'lb-35mm',      label:'1.85 CLASSIC 35MM',         assetFile:'letterboxClassic35mm.png',         assetDir:'frames' }
   ]
 };
 

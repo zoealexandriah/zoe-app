@@ -327,7 +327,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .look-card:last-child{border-right:none}
 .look-card:hover{flex:1.22}
-.look-card canvas{width:100%;height:130px;display:block;transition:transform 0.7s cubic-bezier(0.22,1,0.36,1)}
+.look-card canvas{width:100%;height:117px;display:block;transition:transform 0.7s cubic-bezier(0.22,1,0.36,1)}
 .look-card:hover canvas{transform:scale(1.06)}
 
 /* card overlays */
@@ -806,7 +806,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 /* Bottom preset strip */
 .edit-view .looks-win { flex-shrink:0; border-top:0.5px solid var(--border); }
 /* Fixed-width cards so strip scrolls horizontally */
-.edit-view .look-card { width:96px; flex-shrink:0; }
+.edit-view .look-card { width:86px; flex-shrink:0; }
 
 
 /* ═══════════════════════════════════════════════════
@@ -2326,7 +2326,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .pv-series-sub-row.visible { display: flex; }
 .pv-series-sub-row::-webkit-scrollbar { display: none; }
-#ev-preset-strip:has(.series-sub-row.visible) { height: 180px !important; }
+#ev-preset-strip:has(.series-sub-row.visible) { height: 162px !important; }
 #ev-preset-strip ::-webkit-scrollbar { display: none; }
 .ev-suite-tab {
   flex: 1; text-align: center; padding: 7px 0 6px;
@@ -3028,7 +3028,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   body:has(#library-empty:not(.hidden)) .bottomnav { display: none !important; }
   body:has(#library-empty:not(.hidden)) .app { grid-template-rows: 0px 1fr 0px !important; }
   /* Preset strip — taller so names don't clip */
-  #ev-preset-strip { height: 152px !important; overflow: hidden !important; }
+  #ev-preset-strip { height: 137px !important; overflow: hidden !important; }
   /* Unified subnav replaces the old 3-button main nav — never show mobile nav */
   #ev-mobile-nav { display: none !important; }
   /* Subnav always visible when image is loaded (JS sets inline flex; CSS mirrors it) */
@@ -5257,7 +5257,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
             </div>
           </div>
           <!-- Bottom preset strip -->
-          <div id="ev-preset-strip" style="height:152px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow-x:hidden;overflow-y:visible;">
+          <div id="ev-preset-strip" style="height:137px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow-x:hidden;overflow-y:visible;">
             <!-- Category filter row -->
             <div style="position:relative;flex-shrink:0;display:flex;align-items:center;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow:hidden;">
               <div id="ev-cats" style="flex:1;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:44px;">

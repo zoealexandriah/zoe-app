@@ -13627,8 +13627,8 @@ function _evRestoreSnap(snap) {
     ['glow','glossy','scanlines','vhsbleed','paper','frames'].forEach(function(cat) {
       if (typeof fxUpdateCatDot === 'function') fxUpdateCatDot(cat);
     });
-    if (typeof evRenderCanvas === 'function') evRenderCanvas();
   }
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
   // Restore perspective re-edit state from snap (field present = snap was made with new code)
   if ('_perspState' in snap) {
     if (snap._perspState) {
@@ -15422,13 +15422,14 @@ function galleryOpenInEditor(idx) {
               sliders:     JSON.parse(JSON.stringify(es.sliders || {})),
               intensity:   typeof es.intensity === 'number' ? es.intensity : 1.0,
               _userImage:  _preWarpImg,
-              _perspState: null
+              _perspState: null,
+              _fxState:    (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null
             });
             if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
           };
           _preWarpImg.src = _perspBaseURL;
         } else {
-          evHistory.push({ presetId: es.presetId || null, sliders: JSON.parse(JSON.stringify(es.sliders || {})), intensity: typeof es.intensity === 'number' ? es.intensity : 1.0, _perspState: null });
+          evHistory.push({ presetId: es.presetId || null, sliders: JSON.parse(JSON.stringify(es.sliders || {})), intensity: typeof es.intensity === 'number' ? es.intensity : 1.0, _perspState: null, _fxState: (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null });
           if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
         }
         setTimeout(function() { evRenderPresets(); }, 60);
@@ -15436,7 +15437,7 @@ function galleryOpenInEditor(idx) {
       origImg.src = _origSrc;
     } else {
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
-      evHistory.push({ presetId: null, sliders: {}, intensity: 1.0, _perspState: null });
+      evHistory.push({ presetId: null, sliders: {}, intensity: 1.0, _perspState: null, _fxState: (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null });
       if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
       setTimeout(function() { evRenderPresets(); }, 60);
     }

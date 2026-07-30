@@ -15788,7 +15788,8 @@ function editorBackToGallery() {
   // Show gallery immediately with current thumbnails
   renderLibrary();
   // Render updated thumbnail in background, then refresh
-  if (_exitEntry && _exitEntry.editState && (_exitEntry.editState.presetId || Object.keys(_exitEntry.editState.sliders || {}).length)) {
+  var _exitFxV = _exitEntry && _exitEntry.editState && _exitEntry.editState.fxState && _exitEntry.editState.fxState.frames && _exitEntry.editState.fxState.frames.variant;
+  if (_exitEntry && _exitEntry.editState && (_exitEntry.editState.presetId || Object.keys(_exitEntry.editState.sliders || {}).length || (_exitFxV && _exitFxV !== 'none'))) {
     _renderBatchThumbnail(_exitEntry, _exitEntry.editState.presetId, _exitEntry.editState.sliders || {}, _exitEntry.editState.intensity || 1.0, function() {
       if (typeof libSaveToStorage === 'function') libSaveToStorage();
       renderLibrary();
@@ -15933,11 +15934,43 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
     }
-    // No preset: srcURL already has crop/straighten baked in — draw as-is
-    entry.dataURL = off.toDataURL('image/jpeg', 0.90);
-    const img = new Image();
-    img.onload = () => { entry.img = img; onDone && onDone(); };
-    img.src = entry.dataURL;
+    // Apply FX frame/letterbox from saved fxState
+    var _savedFxSt = entry.editState && entry.editState.fxState;
+    var _fxFV = _savedFxSt && _savedFxSt.frames ? _savedFxSt.frames.variant : null;
+    function _finalizeThumbnail() {
+      entry.dataURL = off.toDataURL('image/jpeg', 0.90);
+      const img = new Image();
+      img.onload = () => { entry.img = img; onDone && onDone(); };
+      img.src = entry.dataURL;
+    }
+    if (_fxFV && _fxFV !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
+      var _isLB = _fxFV.indexOf('lb-') === 0;
+      if (_isLB) {
+        var _lbSnap = document.createElement('canvas');
+        _lbSnap.width = w; _lbSnap.height = h;
+        _lbSnap.getContext('2d').drawImage(off, 0, 0);
+        var _lbAR = 16/9;
+        var _lbH = h, _lbW = Math.round(h * _lbAR);
+        if (_lbW > w) { _lbW = w; _lbH = Math.round(w / _lbAR); }
+        off.width = _lbW; off.height = _lbH;
+        var _lbCtx = off.getContext('2d', { willReadFrequently: true });
+        var _lbCover = Math.max(_lbW / w, _lbH / h);
+        var _lbSc = _lbCover * Math.max(1, (_savedFxSt.frames.lbScale || 1.0));
+        var _drW = Math.round(w * _lbSc), _drH = Math.round(h * _lbSc);
+        var _lbOffX = _savedFxSt.frames.lbPosX ? (_lbW * (_savedFxSt.frames.lbPosX / 100) * 0.5) : 0;
+        var _lbOffY = _savedFxSt.frames.lbPosY ? (_lbH * (_savedFxSt.frames.lbPosY / 100) * 0.5) : 0;
+        var _drX = Math.round((_lbW - _drW) / 2 + _lbOffX);
+        var _drY = Math.round((_lbH - _drH) / 2 + _lbOffY);
+        _drX = Math.min(_drX, 0); _drX = Math.max(_drX, _lbW - _drW);
+        _drY = Math.min(_drY, 0); _drY = Math.max(_drY, _lbH - _drH);
+        _lbCtx.drawImage(_lbSnap, _drX, _drY, _drW, _drH);
+        fxApplyFrameToCanvas(off, _fxFV, _savedFxSt.frames, function() { _finalizeThumbnail(); });
+      } else {
+        fxApplyFrameToCanvas(off, _fxFV, _savedFxSt.frames, function() { _finalizeThumbnail(); });
+      }
+    } else {
+      _finalizeThumbnail();
+    }
   };
   src.onerror = () => { onDone && onDone(); };
   src.src = srcURL;
@@ -16299,7 +16332,8 @@ window.backToLibrary = function() {
   if (_origBackToLibrary) _origBackToLibrary.call(this);
   setTimeout(function() {
     var _blEntry = (_blIdx >= 0) ? library[_blIdx] : null;
-    if (_blEntry && _blEntry.editState && (_blEntry.editState.presetId || Object.keys(_blEntry.editState.sliders || {}).length)) {
+    var _blFxV = _blEntry && _blEntry.editState && _blEntry.editState.fxState && _blEntry.editState.fxState.frames && _blEntry.editState.fxState.frames.variant;
+    if (_blEntry && _blEntry.editState && (_blEntry.editState.presetId || Object.keys(_blEntry.editState.sliders || {}).length || (_blFxV && _blFxV !== 'none'))) {
       _renderBatchThumbnail(_blEntry, _blEntry.editState.presetId, _blEntry.editState.sliders, _blEntry.editState.intensity, function() {
         libSaveToStorage();
         renderLibrary();
@@ -16320,7 +16354,8 @@ window.switchToTab = function(label) {
     // Re-render gallery thumbnail so the preview updates immediately on return
     if (label === 'GALLERY' && _stIdx >= 0) {
       var _stEntry = library[_stIdx];
-      if (_stEntry && _stEntry.editState && (_stEntry.editState.presetId || Object.keys(_stEntry.editState.sliders || {}).length)) {
+      var _stFxV = _stEntry && _stEntry.editState && _stEntry.editState.fxState && _stEntry.editState.fxState.frames && _stEntry.editState.fxState.frames.variant;
+      if (_stEntry && _stEntry.editState && (_stEntry.editState.presetId || Object.keys(_stEntry.editState.sliders || {}).length || (_stFxV && _stFxV !== 'none'))) {
         setTimeout(function() {
           _renderBatchThumbnail(_stEntry, _stEntry.editState.presetId, _stEntry.editState.sliders || {}, _stEntry.editState.intensity || 1.0, function() {
             libSaveToStorage();

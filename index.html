@@ -15264,12 +15264,12 @@ function evApplyZoom() {
 document.addEventListener('mousedown', function(e){
   var c=document.getElementById('ev-canvas');
   if(!c||e.target!==c||evZoomLevel<=1) return;
-  evPanning=true; evPanStart={x:e.clientX-evPanX,y:e.clientY-evPanY};
+  evPanning=true; evPanStart={x:e.clientX-evPanX*evZoomLevel,y:e.clientY-evPanY*evZoomLevel};
   c.style.cursor='grabbing';
 });
 document.addEventListener('mousemove', function(e){
   if(!evPanning||!evPanStart) return;
-  evPanX=e.clientX-evPanStart.x; evPanY=e.clientY-evPanStart.y;
+  evPanX=(e.clientX-evPanStart.x)/evZoomLevel; evPanY=(e.clientY-evPanStart.y)/evZoomLevel;
   evApplyZoom();
 });
 document.addEventListener('mouseup', function(){
@@ -15286,12 +15286,12 @@ document.addEventListener('mouseup', function(){
   document.addEventListener('touchstart', function(e){
     var c=document.getElementById('ev-canvas'); var bov=document.getElementById('blemish-overlay-canvas'); if(!c||(e.target!==c&&e.target!==bov)) return;
     if(e.touches.length===2){ _p0=dist(e); _z0=evZoomLevel; _evPinchActive=true; _hadGesture=true; }
-    else if(e.touches.length===1&&evZoomLevel>1){ _pan0={x:e.touches[0].clientX-evPanX,y:e.touches[0].clientY-evPanY}; }
+    else if(e.touches.length===1&&evZoomLevel>1){ _pan0={x:e.touches[0].clientX-evPanX*evZoomLevel,y:e.touches[0].clientY-evPanY*evZoomLevel}; }
   },{passive:true});
   document.addEventListener('touchmove', function(e){
     var c=document.getElementById('ev-canvas'); var bov=document.getElementById('blemish-overlay-canvas'); if(!c||(e.target!==c&&e.target!==bov)) return;
     if(e.touches.length===2&&_p0>0){ evZoomLevel=Math.max(0.5,Math.min(4,_z0*dist(e)/_p0)); evApplyZoom(); if(typeof _blemishSyncOverlay==='function') _blemishSyncOverlay(); }
-    else if(e.touches.length===1&&_pan0&&evZoomLevel>1){ evPanX=e.touches[0].clientX-_pan0.x; evPanY=e.touches[0].clientY-_pan0.y; evApplyZoom(); _evPinchActive=true; _hadGesture=true; }
+    else if(e.touches.length===1&&_pan0&&evZoomLevel>1){ evPanX=(e.touches[0].clientX-_pan0.x)/evZoomLevel; evPanY=(e.touches[0].clientY-_pan0.y)/evZoomLevel; evApplyZoom(); _evPinchActive=true; _hadGesture=true; }
   },{passive:true});
   document.addEventListener('touchend', function(e){
     // Clear pinch/pan tracking on every finger-up, but only reset _evPinchActive once

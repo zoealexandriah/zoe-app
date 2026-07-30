@@ -5402,10 +5402,6 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
               <button class="blemish-act-btn blemish-act-confirm" onclick="blemishConfirm()">✓</button>
             </div>
             <div id="ev-blemish-ui">
-<div class="blemish-size-row">
-                <span class="blemish-size-label">SIZE</span>
-                <input type="range" class="blemish-size-slider" id="blemish-size-input" min="1" max="10" value="3" oninput="blemishSizeInput(this.value)">
-              </div>
               <button class="blemish-clear-btn" onclick="blemishClearAll()">CLEAR ALL</button>
             </div>
           </div>
@@ -10519,7 +10515,7 @@ function applyBlemishHeal(canvas, spots, offX, offY, imgW, imgH) {
     var cx = spot.cx * imgW;
     var cy = spot.cy * imgH;
     var r  = spot.r  * Math.min(imgW, imgH);
-    var outerR = r * 1.6;
+    var outerR = r * 1.25;
     var x0 = Math.max(0, Math.floor(cx - outerR));
     var x1 = Math.min(imgW - 1, Math.ceil(cx + outerR));
     var y0 = Math.max(0, Math.floor(cy - outerR));

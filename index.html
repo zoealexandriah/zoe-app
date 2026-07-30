@@ -14603,10 +14603,18 @@ function _evRenderCanvasImmediate() {
 
   function showBefore() {
     if (!userImage) return;
-    var canvas = document.getElementById('ev-canvas');
-    if (!canvas) return;
     _showingBefore = true;
-    canvas.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0, canvas.width, canvas.height);
+    var _savedFx = (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null;
+    if (typeof fxState !== 'undefined') {
+      fxState.glow      = { glow:0, diffusion:0, halation:0 };
+      fxState.glossy    = { variant:null, intensity:0 };
+      fxState.scanlines = { variant:null, intensity:0 };
+      fxState.vhsbleed  = { variant:null, intensity:0 };
+      fxState.paper     = { fold:0, texture:0 };
+      fxState.frames    = { variant:'none', intensity:100, scale:1.0, rotation:0, mirror:false, flipV:false, positionY:0, positionX:0, lbPosX:0, lbPosY:0, lbScale:1.0 };
+    }
+    if (typeof _evRenderCanvasImmediate === 'function') _evRenderCanvasImmediate();
+    if (_savedFx && typeof fxState !== 'undefined') Object.assign(fxState, _savedFx);
   }
 
   function restoreAfter() {
@@ -19367,7 +19375,7 @@ function fxSelectVariant(cat, variantId) {
     }
     fxUpdateCatDot('frames');
     /* highlight active card in strip */
-    document.querySelectorAll('.fx-var-card').forEach(function(t) {
+    document.querySelectorAll('.fx-var-card, .fx-glyph-card').forEach(function(t) {
       var isActive = t.dataset && t.dataset.vid === variantId;
       t.classList.toggle('active', isActive);
       var th = t.querySelector('div');

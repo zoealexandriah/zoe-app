@@ -19351,6 +19351,7 @@ function fxSelectVariant(cat, variantId) {
   /* frame design variant — first tap applies, second tap opens controls (unless noControls) */
   if (varDef && varDef.assetFile) {
     var _alreadySelected = fxState.frames.variant === variantId;
+    if (!_alreadySelected && typeof evHistoryPush === 'function') evHistoryPush();
     fxState.frames.variant = variantId;
     if (!_alreadySelected) {
       /* new frame selected — reset all transform settings */
@@ -19365,7 +19366,6 @@ function fxSelectVariant(cat, variantId) {
       fxState.frames.lbScale   = 1.0;
     }
     fxUpdateCatDot('frames');
-    if (typeof evHistoryPush === 'function') evHistoryPush();
     /* highlight active card in strip */
     document.querySelectorAll('.fx-var-card').forEach(function(t) {
       var isActive = t.dataset && t.dataset.vid === variantId;

@@ -19604,12 +19604,12 @@ function fxOpenLbControls(label, backCat) {
       '</div>' +
       '<div class="crop-sub-content">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Y</span><span class="crop-sub-val" id="fxlbcv-posY">0</span></div>' +
-        '<input type="range" class="tc-range" id="fxlbcr-posY" min="-100" max="100" value="0" oninput="fxLbSlide(\'lbPosY\',this.value,\'fxlbcv-posY\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+        '<input type="range" class="tc-range" id="fxlbcr-posY" min="-100" max="100" value="0" onmousedown="if(typeof evHistoryPush===\'function\')evHistoryPush();" ontouchstart="if(typeof evHistoryPush===\'function\')evHistoryPush();" oninput="fxLbSlide(\'lbPosY\',this.value,\'fxlbcv-posY\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">SCALE</span><span class="crop-sub-val" id="fxlbcv-scale">100</span></div>' +
-        '<input type="range" class="tc-range" id="fxlbcr-scale" min="100" max="300" value="100" oninput="fxLbSlide(\'lbScale\',this.value,\'fxlbcv-scale\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+        '<input type="range" class="tc-range" id="fxlbcr-scale" min="100" max="300" value="100" onmousedown="if(typeof evHistoryPush===\'function\')evHistoryPush();" ontouchstart="if(typeof evHistoryPush===\'function\')evHistoryPush();" oninput="fxLbSlide(\'lbScale\',this.value,\'fxlbcv-scale\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
         '<div id="fxlbc-x-row" style="opacity:0.3;pointer-events:none;">' +
           '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">X</span><span class="crop-sub-val" id="fxlbcv-posX">0</span></div>' +
-          '<input type="range" class="tc-range" id="fxlbcr-posX" min="-100" max="100" value="0" oninput="fxLbSlide(\'lbPosX\',this.value,\'fxlbcv-posX\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+          '<input type="range" class="tc-range" id="fxlbcr-posX" min="-100" max="100" value="0" onmousedown="if(typeof evHistoryPush===\'function\')evHistoryPush();" ontouchstart="if(typeof evHistoryPush===\'function\')evHistoryPush();" oninput="fxLbSlide(\'lbPosX\',this.value,\'fxlbcv-posX\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
         '</div>' +
       '</div>';
     document.getElementById('es-panel-fx').appendChild(pv);
@@ -19705,21 +19705,21 @@ function fxOpenGemControls() {
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-opacity">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">OPACITY</span><span class="crop-sub-val" id="fxgcv-opacity">100</span></div>' +
-        '<input type="range" class="tc-range" id="fxgcr-opacity" min="0" max="100" value="100" oninput="fxGemSlide(\'intensity\',this.value,\'fxgcv-opacity\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+        '<input type="range" class="tc-range" id="fxgcr-opacity" min="0" max="100" value="100" onmousedown="if(typeof evHistoryPush===\'function\')evHistoryPush();" ontouchstart="if(typeof evHistoryPush===\'function\')evHistoryPush();" oninput="fxGemSlide(\'intensity\',this.value,\'fxgcv-opacity\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-scale" style="display:none;">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">SCALE</span><span class="crop-sub-val" id="fxgcv-scale">100</span></div>' +
-        '<input type="range" class="tc-range" id="fxgcr-scale" min="50" max="200" value="100" oninput="fxGemSlide(\'scale\',this.value,\'fxgcv-scale\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+        '<input type="range" class="tc-range" id="fxgcr-scale" min="50" max="200" value="100" onmousedown="if(typeof evHistoryPush===\'function\')evHistoryPush();" ontouchstart="if(typeof evHistoryPush===\'function\')evHistoryPush();" oninput="fxGemSlide(\'scale\',this.value,\'fxgcv-scale\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-position" style="display:none;">' +
         '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;">' +
           '<span class="crop-sub-label" style="flex-shrink:0;width:14px;">X</span>' +
-          '<input type="range" class="tc-range" id="fxgcr-positionX" min="-100" max="100" value="0" style="flex:1;margin:0;" oninput="fxGemSlide(\'positionX\',this.value,\'fxgcv-positionX\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+          '<input type="range" class="tc-range" id="fxgcr-positionX" min="-100" max="100" value="0" style="flex:1;margin:0;" onmousedown="if(typeof evHistoryPush===\'function\')evHistoryPush();" ontouchstart="if(typeof evHistoryPush===\'function\')evHistoryPush();" oninput="fxGemSlide(\'positionX\',this.value,\'fxgcv-positionX\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
           '<span class="crop-sub-val" id="fxgcv-positionX" style="flex-shrink:0;width:20px;text-align:right;">0</span>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:8px;margin-top:8px;">' +
           '<span class="crop-sub-label" style="flex-shrink:0;width:14px;">Y</span>' +
-          '<input type="range" class="tc-range" id="fxgcr-positionY" min="-100" max="100" value="0" style="flex:1;margin:0;" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-positionY\')" onchange="window._slDragging=false;if(typeof evHistoryPush===\'function\')evHistoryPush();if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
+          '<input type="range" class="tc-range" id="fxgcr-positionY" min="-100" max="100" value="0" style="flex:1;margin:0;" onmousedown="if(typeof evHistoryPush===\'function\')evHistoryPush();" ontouchstart="if(typeof evHistoryPush===\'function\')evHistoryPush();" oninput="fxGemSlide(\'positionY\',this.value,\'fxgcv-positionY\')" onchange="window._slDragging=false;if(typeof evRenderCanvas===\'function\')evRenderCanvas();">' +
           '<span class="crop-sub-val" id="fxgcv-positionY" style="flex-shrink:0;width:20px;text-align:right;">0</span>' +
         '</div>' +
       '</div>' +

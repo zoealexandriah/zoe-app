@@ -14410,6 +14410,21 @@ function _evRenderCanvasImmediate() {
   // 780px canvas) can't render at 2× DPR, so CSS has to stretch it → blurry.
   // We let it render up to baseScale*dpr (matching the physical display) or MAX_SIDE.
   var renderScale = Math.min(baseScale * zoomFactor * dpr, MAX_SIDE/iw, MAX_SIDE/ih);
+  // If letterbox is active, ensure the pre-snap canvas is large enough to cover-fill
+  // the letterbox pixel dimensions without upscaling (upscaling is what causes blur).
+  var _lbChkFx = typeof fxState !== 'undefined' && fxState.frames && fxState.frames.variant;
+  if (_lbChkFx && fxState.frames.variant.indexOf('lb-') === 0) {
+    var _lbChkArea = document.getElementById('ev-canvas-area');
+    if (_lbChkArea) {
+      var _lbChkAw = _lbChkArea.clientWidth || 500, _lbChkAh = _lbChkArea.clientHeight || 400;
+      var _lbChkAR = 16/9;
+      var _lbChkCssW = (_lbChkAw / _lbChkAh > _lbChkAR) ? Math.round(_lbChkAh * _lbChkAR) : _lbChkAw;
+      var _lbChkCssH = (_lbChkAw / _lbChkAh > _lbChkAR) ? _lbChkAh : Math.round(_lbChkAw / _lbChkAR);
+      var _lbChkPxW = Math.round(_lbChkCssW * dpr), _lbChkPxH = Math.round(_lbChkCssH * dpr);
+      var _lbMinScale = Math.max(_lbChkPxW / iw, _lbChkPxH / ih);
+      renderScale = Math.max(renderScale, _lbMinScale);
+    }
+  }
   canvas.width  = Math.round(iw * renderScale);
   canvas.height = Math.round(ih * renderScale);
   canvas.style.width  = cssW + 'px';

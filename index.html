@@ -19360,10 +19360,8 @@ function fxClearFrameInFolder(cat, folderId) {
 }
 
 function fxMakeNoneCard(cat, folderId) {
-  var _cur = fxState.frames ? fxState.frames.variant : null;
-  var _isNone = (!_cur || _cur === 'none');
   var div = document.createElement('div');
-  div.className = 'fx-gem-card fx-glyph-card fx-none-card' + (_isNone ? ' active' : '');
+  div.className = 'fx-gem-card fx-glyph-card fx-none-card';
   div.dataset.vid = 'none-' + folderId;
   var gw = document.createElement('div');
   gw.className = 'fx-glyph-wrap';

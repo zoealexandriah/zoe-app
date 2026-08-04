@@ -19338,6 +19338,55 @@ function fxMakeVariantCard(cat, v, current, isChild) {
   return div;
 }
 
+function fxClearFrameInFolder(cat, folderId) {
+  if (typeof evHistoryPush === 'function') evHistoryPush();
+  fxState.frames.variant   = 'none';
+  fxState.frames.intensity = 0;
+  fxState.frames.scale     = 1.0;
+  fxState.frames.rotation  = 0;
+  fxState.frames.mirror    = false;
+  fxState.frames.flipV     = false;
+  fxState.frames.positionY = 0;
+  fxState.frames.positionX = 0;
+  fxState.frames.lbPosX    = 0;
+  fxState.frames.lbPosY    = 0;
+  fxState.frames.lbScale   = 1.0;
+  fxUpdateCatDot('frames');
+  var gc = document.getElementById('fx-gem-controls'); if (gc) gc.style.display = 'none';
+  var lc = document.getElementById('fx-lb-controls');  if (lc) lc.style.display = 'none';
+  if (typeof _fxPanel !== 'undefined' && _fxPanel) _fxPanel.classList.remove('fx-expanded');
+  fxBuildVariantStrip(cat, folderId);
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+}
+
+function fxMakeNoneCard(cat, folderId) {
+  var _cur = fxState.frames ? fxState.frames.variant : null;
+  var _isNone = (!_cur || _cur === 'none');
+  var div = document.createElement('div');
+  div.className = 'fx-gem-card fx-glyph-card fx-none-card' + (_isNone ? ' active' : '');
+  div.dataset.vid = 'none-' + folderId;
+  var gw = document.createElement('div');
+  gw.className = 'fx-glyph-wrap';
+  gw.innerHTML = '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><rect x="9" y="4" width="28" height="38" rx="2.5"/><path d="M12.5 39 L33.5 7" stroke-width="1" stroke-linecap="round" opacity="0.75"/></svg>';
+  div.appendChild(gw);
+  var lbl = document.createElement('div');
+  lbl.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:0 3px 5px;pointer-events:none;z-index:3;';
+  lbl.innerHTML = '<div style="font-size:7px;letter-spacing:0.10em;color:currentColor;font-family:var(--mono);font-weight:500;white-space:nowrap;text-align:center;">NONE</div>';
+  div.appendChild(lbl);
+  var _sx = 0, _sy = 0;
+  var _h = function(e) {
+    var dx = Math.abs((e.changedTouches ? e.changedTouches[0].clientX : 0) - _sx);
+    var dy = Math.abs((e.changedTouches ? e.changedTouches[0].clientY : 0) - _sy);
+    if (dx > 8 || dy > 8) return;
+    e.preventDefault(); e.stopPropagation();
+    fxClearFrameInFolder(cat, folderId);
+  };
+  div.addEventListener('touchstart', function(e) { if (e.touches) { _sx = e.touches[0].clientX; _sy = e.touches[0].clientY; } }, { passive: true });
+  div.addEventListener('touchend', _h, { passive: false });
+  div.addEventListener('click', _h);
+  return div;
+}
+
 function fxMakeDoneCard(cat, folderId) {
   var div = document.createElement('div');
   div.className = 'fx-gem-card fx-glyph-card fx-done-card';
@@ -19378,6 +19427,7 @@ function fxBuildVariantStrip(cat, expandId) {
   variants.forEach(function(v) {
     if (v.hasDesigns && v.id === expandId && FX_VARIANTS[v.id]) {
       strip.appendChild(fxMakeDoneCard(cat, v.id));
+      strip.appendChild(fxMakeNoneCard(cat, v.id));
       var gap = document.createElement('div');
       gap.className = 'fx-child-gap';
       strip.appendChild(gap);

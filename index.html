@@ -19280,8 +19280,8 @@ function fxApplyFrameToCanvas(canvas, frameId, opts, callback) {
     var img = new Image();
     _fxFrameImgCache[url] = img;
     img.onload  = function() {
+      drawIt(img);
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
-      else drawIt(img);
     };
     img.onerror = function() { if (callback) callback(); };
     img.src = url;

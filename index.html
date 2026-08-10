@@ -4648,7 +4648,6 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
       <!-- Nav -->
       <div class="sidebar-nav">
         <div class="nav-section-title"></div>
-        <div class="nav-item" data-tab="HOME" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="irc1"><circle cx="10" cy="13.3" r="2.3"/></clipPath></defs><path stroke-linejoin="round" d="M10 1Q10 4.5 12 4.5Q10 4.5 10 8Q10 4.5 8 4.5Q10 4.5 10 1Z"/><path stroke-linejoin="round" d="M1.5 14.5Q10 6.5 18.5 14.5Q10 22 1.5 14.5Z"/><circle cx="10" cy="13.3" r="2.3"/><g clip-path="url(#irc1)"><line x1="10" y1="9" x2="10" y2="17.6"/><line x1="6" y1="11" x2="14" y2="15.6"/><line x1="14" y1="11" x2="6" y2="15.6"/></g></svg></span></div>
         <div class="nav-item active" onclick="navClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="nav-label">GALLERY</span></div>
         
       </div>
@@ -5682,7 +5681,6 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
 
   <!-- BOTTOM NAV -->
   <div class="bottomnav">
-    <div class="bn-item" data-tab="HOME" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="irc2"><circle cx="10" cy="13.3" r="2.3"/></clipPath></defs><path stroke-linejoin="round" d="M10 1Q10 4.5 12 4.5Q10 4.5 10 8Q10 4.5 8 4.5Q10 4.5 10 1Z"/><path stroke-linejoin="round" d="M1.5 14.5Q10 6.5 18.5 14.5Q10 22 1.5 14.5Z"/><circle cx="10" cy="13.3" r="2.3"/><g clip-path="url(#irc2)"><line x1="10" y1="9" x2="10" y2="17.6"/><line x1="6" y1="11" x2="14" y2="15.6"/><line x1="14" y1="11" x2="6" y2="15.6"/></g></svg></span></div>
     <div class="bn-item active" data-tab="GALLERY" onclick="bnClick(this)"><span class="zicon"><svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="2.5" rx="0.5"/><rect x="4" y="9" width="12" height="8" rx="1"/><line x1="7.5" y1="12" x2="12.5" y2="12"/></svg></span><span class="bn-label">GALLERY</span></div>
 
 <div class="bn-right">
@@ -8997,6 +8995,7 @@ function zCloseAll() {
 // ── /ZOë screen navigation ──
 
 function switchToTab(label) {
+  if (typeof zCloseAll === 'function') zCloseAll();
   const heroWin  = document.querySelector('.hero-win');
   const colView  = document.getElementById('collections-view');
   const presView = document.getElementById('presets-view');

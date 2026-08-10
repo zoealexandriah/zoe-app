@@ -4137,6 +4137,51 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 #home-view.active { display: flex; }
 
+/* ── ZOë account-area screen shell ── */
+.z-screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  background: #080508;
+  z-index: 80;
+  overflow: hidden;
+}
+.z-screen.z-active { display: flex; }
+.z-screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+.z-back-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  width: 32px;
+  opacity: 0.75;
+}
+.z-back-btn:active { opacity: 0.4; }
+.z-screen-title {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  color: #fff;
+  font-weight: 500;
+}
+.z-screen-hdr-right { width: 32px; }
+.z-screen-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+/* ── /ZOë account-area screen shell ── */
+
 /* Hero */
 .hv-hero {
   position: relative;
@@ -4943,6 +4988,84 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
 
         <div class="hv-bottom-pad"></div>
       </div><!-- /home-view -->
+
+      <!-- ── ZOë Account-area screens ── -->
+      <div id="z-account-view"   class="z-screen" style="display:none;">
+        <div class="z-screen-header">
+          <button class="z-back-btn" onclick="zBack()">‹</button>
+          <span class="z-screen-title" style="font-family:var(--mono);">ACCOUNT</span>
+          <span class="z-screen-hdr-right"></span>
+        </div>
+        <div class="z-screen-body"></div>
+      </div>
+
+      <div id="z-subscription-view" class="z-screen" style="display:none;">
+        <div class="z-screen-header">
+          <button class="z-back-btn" onclick="zBack()">‹</button>
+          <span class="z-screen-title" style="font-family:var(--mono);">SUBSCRIPTION</span>
+          <span class="z-screen-hdr-right"></span>
+        </div>
+        <div class="z-screen-body"></div>
+      </div>
+
+      <div id="z-settings-view"  class="z-screen" style="display:none;">
+        <div class="z-screen-header">
+          <button class="z-back-btn" onclick="zBack()">‹</button>
+          <span class="z-screen-title" style="font-family:var(--mono);">SETTINGS</span>
+          <span class="z-screen-hdr-right"></span>
+        </div>
+        <div class="z-screen-body"></div>
+      </div>
+
+      <div id="z-support-view"   class="z-screen" style="display:none;">
+        <div class="z-screen-header">
+          <button class="z-back-btn" onclick="zBack()">‹</button>
+          <span class="z-screen-title" style="font-family:var(--mono);">SUPPORT</span>
+          <span class="z-screen-hdr-right"></span>
+        </div>
+        <div class="z-screen-body"></div>
+      </div>
+
+      <div id="z-about-view"     class="z-screen" style="display:none;">
+        <div class="z-screen-header">
+          <button class="z-back-btn" onclick="zBack()">‹</button>
+          <span class="z-screen-title" style="font-family:var(--mono);">ABOUT</span>
+          <span class="z-screen-hdr-right"></span>
+        </div>
+        <div class="z-screen-body"></div>
+      </div>
+
+      <div id="z-paywall-view"   class="z-screen" style="display:none;">
+        <div class="z-screen-header">
+          <button class="z-back-btn" onclick="zBack()">‹</button>
+          <span class="z-screen-title" style="font-family:var(--mono);">ZOë PRO</span>
+          <span class="z-screen-hdr-right"></span>
+        </div>
+        <div class="z-screen-body"></div>
+      </div>
+
+      <div id="z-legal-privacy-view" class="z-screen" style="display:none;">
+        <div class="z-screen-header">
+          <button class="z-back-btn" onclick="zBack()">‹</button>
+          <span class="z-screen-title" style="font-family:var(--mono);">PRIVACY POLICY</span>
+          <span class="z-screen-hdr-right"></span>
+        </div>
+        <div class="z-screen-body"></div>
+      </div>
+
+      <div id="z-legal-terms-view" class="z-screen" style="display:none;">
+        <div class="z-screen-header">
+          <button class="z-back-btn" onclick="zBack()">‹</button>
+          <span class="z-screen-title" style="font-family:var(--mono);">TERMS OF USE</span>
+          <span class="z-screen-hdr-right"></span>
+        </div>
+        <div class="z-screen-body"></div>
+      </div>
+
+      <div id="z-onboarding-view" class="z-screen" style="display:none;">
+        <div class="z-screen-body"></div>
+      </div>
+      <!-- ── /ZOë Account-area screens ── -->
 
       <!-- Collections lightbox -->
       <div id="col-lightbox">
@@ -8832,6 +8955,46 @@ function bnClick(el) {
   const label = el.dataset.tab || (el.querySelector('.bn-label') || {}).textContent || '';
   switchToTab(label.trim());
 }
+
+// ── ZOë screen navigation ──
+var _zScreenStack = [];
+var _zCurrentScreen = null;
+
+function zNav(screenId) {
+  var el = document.getElementById(screenId);
+  if (!el) return;
+  if (_zCurrentScreen && _zCurrentScreen !== screenId) {
+    _zScreenStack.push(_zCurrentScreen);
+    if (_zScreenStack.length > 10) _zScreenStack.shift();
+    var prev = document.getElementById(_zCurrentScreen);
+    if (prev) { prev.style.display = 'none'; prev.classList.remove('z-active'); }
+  }
+  _zCurrentScreen = screenId;
+  el.style.display = 'flex';
+  el.classList.add('z-active');
+}
+
+function zBack() {
+  if (_zCurrentScreen) {
+    var cur = document.getElementById(_zCurrentScreen);
+    if (cur) { cur.style.display = 'none'; cur.classList.remove('z-active'); }
+  }
+  _zCurrentScreen = _zScreenStack.pop() || null;
+  if (_zCurrentScreen) {
+    var prev = document.getElementById(_zCurrentScreen);
+    if (prev) { prev.style.display = 'flex'; prev.classList.add('z-active'); }
+  }
+}
+
+function zCloseAll() {
+  document.querySelectorAll('.z-screen').forEach(function(el) {
+    el.style.display = 'none';
+    el.classList.remove('z-active');
+  });
+  _zScreenStack = [];
+  _zCurrentScreen = null;
+}
+// ── /ZOë screen navigation ──
 
 function switchToTab(label) {
   const heroWin  = document.querySelector('.hero-win');

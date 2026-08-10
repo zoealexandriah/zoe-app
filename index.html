@@ -17470,6 +17470,45 @@ function _cropExitMode() {
     var _subnav = document.getElementById('ev-adjust-subnav');
     if (_subnav) _subnav.style.display = 'flex';
   }
+  _zFrameRestore();
+}
+
+var _zSuspendedFrame = null;
+var _zSuspendedDims  = null;
+
+function _zFrameSuspend() {
+  if (typeof fxState === 'undefined' || !fxState.frames) return;
+  var v = fxState.frames.variant;
+  if (!v || v === 'none') { _zSuspendedFrame = null; return; }
+  _zSuspendedFrame = v;
+  _zSuspendedDims  = (typeof userImage !== 'undefined' && userImage)
+    ? { w: userImage.naturalWidth || userImage.width, h: userImage.naturalHeight || userImage.height }
+    : null;
+  fxState.frames.variant = 'none';
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
+}
+
+function _zFrameRestore() {
+  if (!_zSuspendedFrame) return;
+  if (typeof fxState === 'undefined' || !fxState.frames) { _zSuspendedFrame = null; return; }
+  fxState.frames.variant = _zSuspendedFrame;
+  var nowDims = (typeof userImage !== 'undefined' && userImage)
+    ? { w: userImage.naturalWidth || userImage.width, h: userImage.naturalHeight || userImage.height }
+    : null;
+  var changed = (!_zSuspendedDims || !nowDims ||
+                 _zSuspendedDims.w !== nowDims.w || _zSuspendedDims.h !== nowDims.h);
+  if (changed) {
+    fxState.frames.scale     = 1.0;
+    fxState.frames.positionX = 0;
+    fxState.frames.positionY = 0;
+    fxState.frames.rotation  = 0;
+    fxState.frames.lbPosX    = 0;
+    fxState.frames.lbPosY    = 0;
+    fxState.frames.lbScale   = 1.0;
+  }
+  _zSuspendedFrame = null;
+  _zSuspendedDims  = null;
+  if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
 // ── New Crop sub-tab helpers ──────────────────────────────────────────────
@@ -18920,6 +18959,8 @@ function importSheetChoice(type) {
   /* ── Wrap evAdjustSubTab ── */
   var _origSub = window.evAdjustSubTab;
   window.evAdjustSubTab = function(name) {
+    if (name === 'crop') { if (typeof _zFrameSuspend === 'function') _zFrameSuspend(); }
+    else { if (typeof _zFrameRestore === 'function') _zFrameRestore(); }
     _curSection = name;
     _origSub && _origSub.call(this, name);
     _updateSectionNav(name);

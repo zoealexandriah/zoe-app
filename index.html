@@ -16117,30 +16117,78 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       img.onload = () => { entry.img = img; onDone && onDone(); };
       img.src = entry.dataURL;
     }
-    if (_fxFV && _fxFV !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
-      var _isLB = _fxFV.indexOf('lb-') === 0;
-      if (_isLB) {
+    function _applyFrameAndFinalize(frameImg) {
+      if (!frameImg) { _finalizeThumbnail(); return; }
+      var _isLBf = _fxFV.indexOf('lb-') === 0;
+      var _isARCf = _fxFV.indexOf('arc-') === 0;
+      // Letterbox: resize canvas to 16:9 and cover-fill the photo
+      if (_isLBf) {
         var _lbSnap = document.createElement('canvas');
         _lbSnap.width = w; _lbSnap.height = h;
         _lbSnap.getContext('2d').drawImage(off, 0, 0);
-        var _lbAR = 16/9;
-        var _lbH = h, _lbW = Math.round(h * _lbAR);
-        if (_lbW > w) { _lbW = w; _lbH = Math.round(w / _lbAR); }
+        var _lbAR = 16 / 9;
+        var _lbW, _lbH;
+        if (h * _lbAR <= w) { _lbW = Math.round(h * _lbAR); _lbH = h; }
+        else { _lbW = w; _lbH = Math.round(w / _lbAR); }
         off.width = _lbW; off.height = _lbH;
-        var _lbCtx = off.getContext('2d', { willReadFrequently: true });
+        var _lbCtx2 = off.getContext('2d');
         var _lbCover = Math.max(_lbW / w, _lbH / h);
         var _lbSc = _lbCover * Math.max(1, (_savedFxSt.frames.lbScale || 1.0));
         var _drW = Math.round(w * _lbSc), _drH = Math.round(h * _lbSc);
-        var _lbOffX = _savedFxSt.frames.lbPosX ? (_lbW * (_savedFxSt.frames.lbPosX / 100) * 0.5) : 0;
-        var _lbOffY = _savedFxSt.frames.lbPosY ? (_lbH * (_savedFxSt.frames.lbPosY / 100) * 0.5) : 0;
+        var _lbOffX = (_savedFxSt.frames.lbPosX || 0) !== 0 ? (_lbW * (_savedFxSt.frames.lbPosX / 100) * 0.5) : 0;
+        var _lbOffY = (_savedFxSt.frames.lbPosY || 0) !== 0 ? (_lbH * (_savedFxSt.frames.lbPosY / 100) * 0.5) : 0;
         var _drX = Math.round((_lbW - _drW) / 2 + _lbOffX);
         var _drY = Math.round((_lbH - _drH) / 2 + _lbOffY);
         _drX = Math.min(_drX, 0); _drX = Math.max(_drX, _lbW - _drW);
         _drY = Math.min(_drY, 0); _drY = Math.max(_drY, _lbH - _drH);
-        _lbCtx.drawImage(_lbSnap, _drX, _drY, _drW, _drH);
-        fxApplyFrameToCanvas(off, _fxFV, _savedFxSt.frames, function() { _finalizeThumbnail(); });
+        _lbCtx2.drawImage(_lbSnap, _drX, _drY, _drW, _drH);
+      }
+      // Draw frame PNG overlay directly (bypass fxApplyFrameToCanvas to avoid side-effects)
+      var _fCtx = off.getContext('2d');
+      var _fsw = off.width, _fsh = off.height;
+      var _fiw = frameImg.naturalWidth || frameImg.width;
+      var _fih = frameImg.naturalHeight || frameImg.height;
+      var _fopts = _savedFxSt.frames;
+      var _fOpacity = (_fopts && _fopts.intensity !== undefined) ? _fopts.intensity / 100 : 1.0;
+      var _fScale = (_fopts && _fopts.scale !== undefined) ? _fopts.scale : 1.0;
+      var _fBase = _isARCf
+        ? 1.0  // archive: stretch to canvas
+        : (_isLBf
+          ? Math.max(_fsw / _fiw, _fsh / _fih) * _fScale  // letterbox: cover
+          : Math.min(_fsw / _fiw, _fsh / _fih) * 0.92 * _fScale);  // gem: fit+margin
+      var _fdw = _isARCf ? _fsw : _fiw * _fBase;
+      var _fdh = _isARCf ? _fsh : _fih * _fBase;
+      var _fOffX = ((_fopts && _fopts.positionX) || 0) / 100 * (_fsw * 0.7);
+      var _fOffY = ((_fopts && _fopts.positionY) || 0) / 100 * (_fsh * 0.7);
+      _fCtx.save();
+      _fCtx.globalAlpha = _fOpacity;
+      if (_isARCf) {
+        _fCtx.drawImage(frameImg, 0, 0, _fsw, _fsh);
       } else {
-        fxApplyFrameToCanvas(off, _fxFV, _savedFxSt.frames, function() { _finalizeThumbnail(); });
+        _fCtx.translate(_fsw / 2 + _fOffX, _fsh / 2 + _fOffY);
+        if (_fopts && _fopts.rotation) _fCtx.rotate(_fopts.rotation * Math.PI / 180);
+        if (_fopts && _fopts.mirror) _fCtx.scale(-1, 1);
+        if (_fopts && _fopts.flipV) _fCtx.scale(1, -1);
+        _fCtx.drawImage(frameImg, -_fdw / 2, -_fdh / 2, _fdw, _fdh);
+      }
+      _fCtx.restore();
+      _finalizeThumbnail();
+    }
+    if (_fxFV && _fxFV !== 'none' && typeof fxGetFrameAssetURL === 'function') {
+      var _fxThumbURL = fxGetFrameAssetURL(_fxFV);
+      if (_fxThumbURL) {
+        var _fxCached = _fxFrameImgCache && _fxFrameImgCache[_fxThumbURL];
+        if (_fxCached && _fxCached.complete && _fxCached.naturalWidth > 0) {
+          _applyFrameAndFinalize(_fxCached);
+        } else {
+          var _fxLoadImg = new Image();
+          if (_fxFrameImgCache) _fxFrameImgCache[_fxThumbURL] = _fxLoadImg;
+          _fxLoadImg.onload = function() { _applyFrameAndFinalize(_fxLoadImg); };
+          _fxLoadImg.onerror = function() { _finalizeThumbnail(); };
+          _fxLoadImg.src = _fxThumbURL;
+        }
+      } else {
+        _finalizeThumbnail();
       }
     } else {
       _finalizeThumbnail();

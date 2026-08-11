@@ -11189,6 +11189,98 @@ async function loadImageToCanvas(canvas, img) {
 }
 
 // ══════════════════════════════════════════════════════
+// ACCESS STATE + PREMIUM GATE  (Phase 2)
+// ══════════════════════════════════════════════════════
+
+var ZAccess = (function() {
+  var _state     = 'free';
+  var _listeners = [];
+  var _CACHE_KEY = 'zoe_access_state';
+
+  function _notify() {
+    try { localStorage.setItem(_CACHE_KEY, _state); } catch(e) {}
+    for (var i = 0; i < _listeners.length; i++) { try { _listeners[i](_state); } catch(e) {} }
+  }
+
+  return {
+    get state() { return _state; },
+
+    isPremium: function() {
+      if (window.ZDEV_PREMIUM === true) return true;
+      return _state === 'premium';
+    },
+
+    refresh: function() {
+      var next = 'free';
+      if (typeof ZSubscription !== 'undefined' && ZSubscription && ZSubscription.isActive) {
+        try { next = ZSubscription.isActive() ? 'premium' : 'free'; } catch(e) {}
+      }
+      if (next !== _state) { _state = next; _notify(); }
+    },
+
+    onChange: function(fn) {
+      if (typeof fn === 'function') _listeners.push(fn);
+    }
+  };
+}());
+
+// Prime from cache so first render doesn't flash locked state on cold start.
+// This is only a hint — ZAccess.refresh() is the source of truth.
+(function() {
+  try {
+    var cached = localStorage.getItem('zoe_access_state');
+    if (cached === 'premium' || cached === 'free') {
+      ZAccess.refresh(); // will confirm or override the cache
+    }
+  } catch(e) {}
+}());
+
+// Dev override: window.ZDEV_PREMIUM = true → isPremium() returns true.
+// Log once so it's visible in DevTools but not noisy on every call.
+if (window.ZDEV_PREMIUM === true) {
+  console.warn('[ZOE DEV] ZDEV_PREMIUM is active — all premium gates are bypassed.');
+}
+
+// ── Premium gate ──────────────────────────────────────
+// ZGate(featureName, callback)
+//   • If premium: runs callback immediately.
+//   • If free:    stores { featureName, callback } on ZGate.pending and opens the paywall.
+// ZGate.resolve() — runs pending callback then clears pending (call after upgrade confirmed).
+// ZGate.clear()   — discards pending without running it (call on paywall dismiss).
+//
+// The gate never touches the editor, canvas, fxState, evAdjState, or the loaded photo.
+var ZGate = (function() {
+  var _pending = null;
+
+  function gate(featureName, callback) {
+    if (ZAccess.isPremium()) {
+      callback();
+      return;
+    }
+    _pending = { featureName: featureName, callback: callback };
+    if (typeof zNav === 'function') zNav('z-paywall-view');
+  }
+
+  gate.pending  = null; // exposed reference — reflects _pending
+  gate.resolve  = function() {
+    if (_pending && typeof _pending.callback === 'function') { _pending.callback(); }
+    _pending = null; gate.pending = null;
+  };
+  gate.clear    = function() { _pending = null; gate.pending = null; };
+
+  // Keep gate.pending in sync whenever _pending changes
+  var _origGate = gate;
+  var ZGateProxy = function(featureName, callback) {
+    _origGate(featureName, callback);
+    ZGateProxy.pending = _pending;
+  };
+  ZGateProxy.resolve = function() { _origGate.resolve(); ZGateProxy.pending = _pending; };
+  ZGateProxy.clear   = function() { _origGate.clear();   ZGateProxy.pending = _pending; };
+
+  return ZGateProxy;
+}());
+
+// ══════════════════════════════════════════════════════
 // PHOTO LIBRARY SYSTEM
 // ══════════════════════════════════════════════════════
 const library   = [];

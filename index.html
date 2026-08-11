@@ -17913,11 +17913,6 @@ function cropStraightenPreview(val) {
     var cosR = Math.cos(absR), sinR = Math.sin(absR);
     var cw = sc.width, ch = sc.height;
     var iw = ac.width, ih = ac.height;
-    // Scale so the inscribed rectangle of the rotated image exactly fills the canvas.
-    // inscribed_w = s*(iw*cosR - ih*sinR)/cos2R => s = cw*cos2R/(iw*cosR-ih*sinR)
-    // inscribed_h = s*(ih*cosR - iw*sinR)/cos2R => s = ch*cos2R/(ih*cosR-iw*sinR)
-    // Take max(s1,s2) so both canvas dims are covered; canvas clips the excess.
-    // This makes the preview show EXACTLY what will remain after apply (no black corners).
     var cos2R = Math.cos(2 * absR);
     var s1 = cw * cos2R / Math.max(0.001, iw * cosR - ih * sinR);
     var s2 = ch * cos2R / Math.max(0.001, ih * cosR - iw * sinR);
@@ -17926,7 +17921,9 @@ function cropStraightenPreview(val) {
     ctx.save();
     ctx.translate(cw / 2, ch / 2);
     ctx.rotate(rad);
-    ctx.drawImage(ac, -dw/2, -dh/2, dw, dh);
+    // Draw from full-resolution original so zoomed-in angles stay sharp
+    var _drawSrc = (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig) ? _cropStraightenOrig : ac;
+    ctx.drawImage(_drawSrc, -dw/2, -dh/2, dw, dh);
     // Rule-of-thirds overlay
     ctx.strokeStyle = 'rgba(201,184,212,0.35)'; ctx.lineWidth = 0.8;
     for (var i = 1; i < 3; i++) {

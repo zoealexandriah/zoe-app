@@ -11211,11 +11211,18 @@ var ZAccess = (function() {
     },
 
     refresh: function() {
-      var next = 'free';
-      if (typeof ZSubscription !== 'undefined' && ZSubscription && ZSubscription.isActive) {
-        try { next = ZSubscription.isActive() ? 'premium' : 'free'; } catch(e) {}
+      var self = this;
+      if (typeof ZSubscription === 'undefined' || !ZSubscription || typeof ZSubscription.getStatus !== 'function') {
+        if (_state !== 'free') { _state = 'free'; _notify(); }
+        return Promise.resolve('free');
       }
-      if (next !== _state) { _state = next; _notify(); }
+      return Promise.resolve(ZSubscription.getStatus()).then(function(st) {
+        var next = (st && st.active) ? 'premium' : 'free';
+        if (next !== _state) { _state = next; _notify(); }
+        return next;
+      }).catch(function() {
+        return _state;
+      });
     },
 
     onChange: function(fn) {
@@ -11253,31 +11260,24 @@ var ZGate = (function() {
   var _pending = null;
 
   function gate(featureName, callback) {
-    if (ZAccess.isPremium()) {
-      callback();
-      return;
-    }
+    if (ZAccess.isPremium()) { callback(); return; }
     _pending = { featureName: featureName, callback: callback };
     if (typeof zNav === 'function') zNav('z-paywall-view');
   }
 
-  gate.pending  = null; // exposed reference — reflects _pending
-  gate.resolve  = function() {
-    if (_pending && typeof _pending.callback === 'function') { _pending.callback(); }
-    _pending = null; gate.pending = null;
-  };
-  gate.clear    = function() { _pending = null; gate.pending = null; };
+  Object.defineProperty(gate, 'pending', {
+    get: function() { return _pending; }
+  });
 
-  // Keep gate.pending in sync whenever _pending changes
-  var _origGate = gate;
-  var ZGateProxy = function(featureName, callback) {
-    _origGate(featureName, callback);
-    ZGateProxy.pending = _pending;
+  gate.resolve = function() {
+    var p = _pending;
+    _pending = null;
+    if (p && typeof p.callback === 'function') { try { p.callback(); } catch(e) { console.error('[ZGate] callback failed', e); } }
   };
-  ZGateProxy.resolve = function() { _origGate.resolve(); ZGateProxy.pending = _pending; };
-  ZGateProxy.clear   = function() { _origGate.clear();   ZGateProxy.pending = _pending; };
 
-  return ZGateProxy;
+  gate.clear = function() { _pending = null; };
+
+  return gate;
 }());
 
 // ══════════════════════════════════════════════════════

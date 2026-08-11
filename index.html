@@ -12915,6 +12915,9 @@ function toolsFlipApply(dir) {
       if (typeof captureOriginal === 'function') captureOriginal(ac, newImg);
       if (typeof scheduleRender === 'function') scheduleRender((activePreset || evActivePreset || {}).id);
     }
+    // Re-expand ROTATE bar if user is in the transform sub-tab
+    var _ftBtn = document.querySelector('.crop-subtab[onclick*="transform"]');
+    if (_ftBtn && _ftBtn.classList.contains('active') && typeof cropSubTabExpand === 'function') cropSubTabExpand('ROTATE');
     showToast('FLIPPED');
   };
   newImg.src = tmp.toDataURL();
@@ -17918,6 +17921,8 @@ function cropStraightenPreview(val) {
     var s2 = ch * cos2R / Math.max(0.001, ih * cosR - iw * sinR);
     var s  = Math.max(s1, s2, Math.max(cw / iw, ch / ih));
     var dw = iw * s, dh = ih * s;
+    // Hide ev-canvas so it doesn't show through when layout shifts (e.g. entering RATIO)
+    ac.style.opacity = '0';
     ctx.save();
     ctx.translate(cw / 2, ch / 2);
     ctx.rotate(rad);
@@ -18053,6 +18058,8 @@ function cropRotate90(dir) {
           if (typeof window.etSelectTool === 'function') {
             _etCropDefaultTab = 'transform';
             window.etSelectTool('crop');
+            // Re-expand ROTATE bar — _etCropDefaultTab is reset by etCropHTML before evAdjustSubTab reads it
+            setTimeout(function() { if (typeof cropSubTabExpand === 'function') cropSubTabExpand('ROTATE'); }, 20);
           }
         }, 60);
       } else { loadImageToCanvas(hc, newImg); }

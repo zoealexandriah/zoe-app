@@ -17469,7 +17469,7 @@ function _cropExitMode() {
   _ratioPreCropUserImage = null;
   // Auto-commit any pending straighten before removing the work canvas
   var _sw = document.getElementById('crop-straighten-work');
-  if (_sw && typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig &&
+  if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig &&
       typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
     // Save state so returning to crop can restore the adjustable pre-rotation base
     if (typeof _savedStraightenOrig !== 'undefined') { _savedStraightenOrig = _cropStraightenOrig; _savedStraightenAngle = _cropStraightenVal; }
@@ -17741,9 +17741,11 @@ function cropSelectSubTab(btn, tab) {
     if (_swHide) _swHide.remove();
     var _acHide = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
     if (_acHide) _acHide.style.opacity = '';
-  } else if (typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
-    if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
-    setTimeout(function() { if (typeof cropStraightenPreview === 'function') cropStraightenPreview(_cropStraightenVal); }, 50);
+  } else if (!cropRect && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
+    setTimeout(function() {
+      if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
+      if (typeof cropStraightenPreview === 'function') cropStraightenPreview(_cropStraightenVal);
+    }, 100);
   }
   // Clean up perspective work canvas when leaving transform; reset sliders
   if (typeof _cropPerspFlush === 'function') _cropPerspFlush(); var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }

@@ -12907,7 +12907,7 @@ function toolsFlipApply(dir) {
   newImg.onload = function() {
     userImage = newImg;
     _origPixels = null;
-    if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig) _cropStraightenOrig = newImg;
+      if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig) _cropStraightenOrig = newImg;
     var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
     var ev = document.getElementById('editor-view');
     if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') {
@@ -12921,6 +12921,7 @@ function toolsFlipApply(dir) {
     if (_ftBtn && _ftBtn.classList.contains('active') && typeof cropSubTabExpand === 'function') cropSubTabExpand('ROTATE');
     showToast('FLIPPED');
   };
+  if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig) _cropStraightenOrig = tmp;
   newImg.src = tmp.toDataURL();
 }
 
@@ -17637,27 +17638,6 @@ function cropSubTabCollapse(confirm) {
       _cropRatioConfirm();
     } else if (activeTab === 'OPTICAL') {
       if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
-    } else if (activeTab === 'STRAIGHTEN') {
-      // Redraw work canvas without the rule-of-thirds grid
-      var _scWC = document.getElementById('crop-straighten-work');
-      var _scAC = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
-      if (_scWC && _scAC && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
-        var _scCtx = _scWC.getContext('2d', { willReadFrequently: true });
-        var _scW = _scWC.width, _scH = _scWC.height;
-        var _scRad = _cropStraightenVal * Math.PI / 180;
-        var _scAbsR = Math.abs(_scRad), _scCosR = Math.cos(_scAbsR), _scSinR = Math.sin(_scAbsR);
-        var _scCos2R = Math.cos(2 * _scAbsR);
-        var _scS1 = _scW * _scCos2R / Math.max(0.001, _scW * _scCosR - _scH * _scSinR);
-        var _scS2 = _scH * _scCos2R / Math.max(0.001, _scH * _scCosR - _scW * _scSinR);
-        var _scS  = Math.max(_scS1, _scS2, Math.max(_scW / _scAC.width, _scH / _scAC.height));
-        var _scDw = _scAC.width * _scS, _scDh = _scAC.height * _scS;
-        _scCtx.clearRect(0, 0, _scW, _scH);
-        _scCtx.save();
-        _scCtx.translate(_scW / 2, _scH / 2);
-        _scCtx.rotate(_scRad);
-        _scCtx.drawImage(_scAC, -_scDw / 2, -_scDh / 2, _scDw, _scDh);
-        _scCtx.restore();
-      }
     }
     _cropRotateEntryImg = null;
     _cropOpticalEntryState = null;
@@ -17762,6 +17742,7 @@ function cropSelectSubTab(btn, tab) {
     var _acHide = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
     if (_acHide) _acHide.style.opacity = '';
   } else if (typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
+    if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
     setTimeout(function() { if (typeof cropStraightenPreview === 'function') cropStraightenPreview(_cropStraightenVal); }, 50);
   }
   // Clean up perspective work canvas when leaving transform; reset sliders
@@ -17938,11 +17919,13 @@ function cropStraightenPreview(val) {
     // Draw from full-resolution original so zoomed-in angles stay sharp
     var _drawSrc = (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig) ? _cropStraightenOrig : ac;
     ctx.drawImage(_drawSrc, -dw/2, -dh/2, dw, dh);
-    // Rule-of-thirds overlay
+    ctx.restore();
+    // Rule-of-thirds grid in canvas space (fixed — does not rotate with image)
+    ctx.save();
     ctx.strokeStyle = 'rgba(201,184,212,0.35)'; ctx.lineWidth = 0.8;
     for (var i = 1; i < 3; i++) {
-      ctx.beginPath(); ctx.moveTo(-dw/2 + dw*i/3, -dh/2); ctx.lineTo(-dw/2 + dw*i/3, dh/2); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(-dw/2, -dh/2 + dh*i/3); ctx.lineTo(dw/2,  -dh/2 + dh*i/3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(Math.round(cw*i/3), 0); ctx.lineTo(Math.round(cw*i/3), ch); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, Math.round(ch*i/3)); ctx.lineTo(cw, Math.round(ch*i/3)); ctx.stroke();
     }
     ctx.restore();
   });

@@ -17505,7 +17505,10 @@ function _cropExitMode() {
     cancelAnimationFrame(_cropStraightenRafId); _cropStraightenRafId = null;
   }
   if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = 0;
-  // Restore hero-canvas visibility in case straighten/perspective hid it
+  // Restore canvas visibility — cropStraightenPreview hides getActiveCanvas() (ev-canvas in editor view),
+  // so restore both it and hero-canvas to cover all layouts
+  var _acExit = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+  if (_acExit) _acExit.style.opacity = '';
   var _hcExit = document.getElementById('hero-canvas');
   if (_hcExit) _hcExit.style.opacity = '';
   // Always remove crop overlay canvas so it doesn't persist across sessions

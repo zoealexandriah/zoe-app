@@ -17449,7 +17449,31 @@ function _cropApplyRatioInPlace(keepStraighten) {
 
 function _cropExitMode() {
   _ratioPreCropUserImage = null;
-  var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
+  // Auto-commit any pending straighten before removing the work canvas
+  var _sw = document.getElementById('crop-straighten-work');
+  if (_sw && typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig &&
+      typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
+    var _ceIw = _cropStraightenOrig.naturalWidth, _ceIh = _cropStraightenOrig.naturalHeight;
+    var _ceCC = document.createElement('canvas');
+    _ceCC.width = _ceIw; _ceCC.height = _ceIh;
+    var _ceRad = _cropStraightenVal * Math.PI / 180;
+    var _ceAbsR = Math.abs(_ceRad);
+    var _ceCosR = Math.cos(_ceAbsR), _ceSinR = Math.sin(_ceAbsR);
+    var _ceCos2R = Math.cos(2 * _ceAbsR);
+    var _ceS1 = _ceIw * _ceCos2R / Math.max(0.001, _ceIw * _ceCosR - _ceIh * _ceSinR);
+    var _ceS2 = _ceIh * _ceCos2R / Math.max(0.001, _ceIh * _ceCosR - _ceIw * _ceSinR);
+    var _ceS  = Math.max(_ceS1, _ceS2, 1);
+    var _ceCCtx = _ceCC.getContext('2d', { willReadFrequently: true });
+    _ceCCtx.save();
+    _ceCCtx.translate(_ceIw / 2, _ceIh / 2);
+    _ceCCtx.rotate(_ceRad);
+    _ceCCtx.drawImage(_cropStraightenOrig, -_ceIw * _ceS / 2, -_ceIh * _ceS / 2, _ceIw * _ceS, _ceIh * _ceS);
+    _ceCCtx.restore();
+    var _ceSI = new Image();
+    _ceSI.onload = function() { userImage = _ceSI; _origPixels = null; if (typeof evRenderCanvas === 'function') evRenderCanvas(); };
+    _ceSI.src = _ceCC.toDataURL('image/jpeg', 0.95);
+  }
+  if (_sw) _sw.remove();
   if (typeof _cropPerspFlush === 'function') _cropPerspFlush(); var _pw = document.getElementById('crop-perspective-work'); if (_pw) _pw.remove();
   if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
   if (typeof _cropStraightenRafId !== 'undefined' && _cropStraightenRafId) {
@@ -17594,6 +17618,27 @@ function cropSubTabCollapse(confirm) {
       _cropRatioConfirm();
     } else if (activeTab === 'OPTICAL') {
       if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
+    } else if (activeTab === 'STRAIGHTEN') {
+      // Redraw work canvas without the rule-of-thirds grid
+      var _scWC = document.getElementById('crop-straighten-work');
+      var _scAC = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+      if (_scWC && _scAC && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
+        var _scCtx = _scWC.getContext('2d', { willReadFrequently: true });
+        var _scW = _scWC.width, _scH = _scWC.height;
+        var _scRad = _cropStraightenVal * Math.PI / 180;
+        var _scAbsR = Math.abs(_scRad), _scCosR = Math.cos(_scAbsR), _scSinR = Math.sin(_scAbsR);
+        var _scCos2R = Math.cos(2 * _scAbsR);
+        var _scS1 = _scW * _scCos2R / Math.max(0.001, _scW * _scCosR - _scH * _scSinR);
+        var _scS2 = _scH * _scCos2R / Math.max(0.001, _scH * _scCosR - _scW * _scSinR);
+        var _scS  = Math.max(_scS1, _scS2, Math.max(_scW / _scAC.width, _scH / _scAC.height));
+        var _scDw = _scAC.width * _scS, _scDh = _scAC.height * _scS;
+        _scCtx.clearRect(0, 0, _scW, _scH);
+        _scCtx.save();
+        _scCtx.translate(_scW / 2, _scH / 2);
+        _scCtx.rotate(_scRad);
+        _scCtx.drawImage(_scAC, -_scDw / 2, -_scDh / 2, _scDw, _scDh);
+        _scCtx.restore();
+      }
     }
     _cropRotateEntryImg = null;
     _cropOpticalEntryState = null;

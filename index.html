@@ -17644,6 +17644,13 @@ function cropSubTabCollapse(confirm) {
     _cropOpticalEntryState = null;
     var _stBtnC = bar.querySelector('.crop-subtab[onclick*="straighten"]');
     if (_stBtnC && typeof cropSelectSubTab === 'function') cropSelectSubTab(_stBtnC, 'straighten');
+    // Restore slider to current angle — cropSelectSubTab may reset it to 0
+    if (typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
+      var _reSl = document.getElementById('crop-straighten-slider');
+      if (_reSl) _reSl.value = _cropStraightenVal;
+      var _reValEl = document.getElementById('crop-straighten-val');
+      if (_reValEl) _reValEl.textContent = _cropStraightenVal.toFixed(2);
+    }
   } else {
     if (activeTab === 'STRAIGHTEN') {
       var sl = document.getElementById('crop-straighten-slider');

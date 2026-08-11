@@ -17258,9 +17258,11 @@ window.toolsCropApply = function() {
   // Use work canvas as pixel source if present and valid; otherwise fall back to ev-canvas
   var sc = document.getElementById('crop-straighten-work');
   var src = hc;
-  if (sc && sc.width > 0 && sc.height > 0) {
+  if ((sc && sc.width > 0 && sc.height > 0) || (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001)) {
     // Rebuild a clean source from _cropStraightenOrig at FULL resolution — without the
     // rule-of-thirds grid overlay that was drawn on the work canvas for UX purposes.
+    // Condition extended to handle the case where the work canvas was removed (user
+    // left STRAIGHTEN tab before applying) so rotation is still baked correctly.
     if (_cropStraightenOrig && Math.abs(_cropStraightenVal) > 0.001) {
       var _iw = _cropStraightenOrig.naturalWidth, _ih = _cropStraightenOrig.naturalHeight;
       var _cleanC = document.createElement('canvas');
@@ -17338,6 +17340,9 @@ window.toolsCropApply = function() {
   } else {
     // Ratio was already baked in-place by _cropApplyRatioInPlace — userImage is correct, just exit
   }
+  // If rotation was incorporated into src above, clear the pending straighten state
+  // so _cropExitMode does not start a second async commit that would race with _finish's onload.
+  if (src !== hc) { if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = 0; if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null; }
   _cropExitMode();
   if (typeof _cropReAdjSaved !== 'undefined') { _cropReAdjSaved = null; _cropReAdjOrigState = null; }
   if (typeof _savedStraightenOrig !== 'undefined') { _savedStraightenOrig = null; _savedStraightenAngle = 0; }

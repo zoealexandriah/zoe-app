@@ -17757,14 +17757,24 @@ function cropSelectSubTab(btn, tab) {
     if (_swHide) _swHide.remove();
     var _acHide = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
     if (_acHide) _acHide.style.opacity = '';
-  } else if (!cropRect && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
-    setTimeout(function() {
-      if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
-      if (typeof cropStraightenPreview === 'function') cropStraightenPreview(_cropStraightenVal);
-    }, 100);
   }
-  // Clean up perspective work canvas when leaving transform; reset sliders
-  if (typeof _cropPerspFlush === 'function') _cropPerspFlush(); var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
+  // When entering STRAIGHTEN with a saved angle, rebuild the work canvas after all pending
+  // async ops (perspective bake, flip onload) settle. We pass _doStRebuild as the onFlush
+  // callback to _cropPerspFlush so it fires AFTER the full-res bake completes — not after a
+  // fixed delay that may fire before the bake (causing a stale-image stretch glitch).
+  var _stNeedsRebuild = (tab === 'straighten') && !cropRect && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001;
+  function _doStRebuild() {
+    if (!_stNeedsRebuild) return;
+    requestAnimationFrame(function() {
+      // Set origin only if not already maintained (flip/ratio ops keep it current)
+      if (typeof _cropStraightenOrig !== 'undefined' && !_cropStraightenOrig) _cropStraightenOrig = userImage;
+      if (typeof cropStraightenPreview === 'function') cropStraightenPreview(_cropStraightenVal);
+    });
+  }
+  // Clean up perspective work canvas when leaving transform; pass rebuild callback so
+  // OPTICAL→STRAIGHTEN rebuilds after the bake, not before.
+  if (typeof _cropPerspFlush === 'function') _cropPerspFlush(_doStRebuild); else _doStRebuild();
+  var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
   _etPerspOrig = null; _etPerspOrigDataURL = null; _etPerspOrigImg = null;
   _etPerspVVal = 0; _etPerspHVal = 0; _etPerspActiveAxis = null;
   var _pvs = document.getElementById('crop-persp-v-slider'); if (_pvs) _pvs.value = 0;
@@ -18175,6 +18185,8 @@ function _cropPerspFlush(onFlush) {
     var _flushImg = new Image();
     _flushImg.onload = function() {
       userImage = _flushImg;
+      // Keep straighten origin in sync so STRAIGHTEN tab preview draws from post-optical image
+      if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig) _cropStraightenOrig = _flushImg;
       if (onFlush) { onFlush(); } else {
         if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
         if (typeof evRenderCanvas === 'function') evRenderCanvas();

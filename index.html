@@ -13913,6 +13913,7 @@ function globalReset() {
     Object.keys(sliderState).some(function(k){ return Object.keys(sliderState[k]).length > 0; }) ||
     !!_preCropState || Math.abs(toolsStraightenVal) > 0.01 || Math.abs(_etPerspVVal) > 0.01 || Math.abs(_etPerspHVal) > 0.01 ||
     Math.abs(typeof _cropStraightenVal !== 'undefined' ? _cropStraightenVal : 0) > 0.01 ||
+    !!(typeof _savedStraightenOrig !== 'undefined' && _savedStraightenOrig) ||
     !!document.getElementById('crop-straighten-work') || !!_perspBaseURL ||
     blemishSpots.length > 0;
   if (!_hasAnyEdits) { showToast('NOTHING TO RESET'); return; }
@@ -13978,8 +13979,13 @@ function globalReset() {
   if (_rstSc) _rstSc.remove();
   var _rstPw = document.getElementById('crop-perspective-work');
   if (_rstPw) _rstPw.remove();
+  // Restore both hero-canvas and ev-canvas (active canvas) opacity — cropStraightenPreview hides ev-canvas
   var _rstAc = document.getElementById('hero-canvas');
   if (_rstAc) _rstAc.style.opacity = '1';
+  var _rstEvAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+  if (_rstEvAc) _rstEvAc.style.opacity = '1';
+  // Clear saved-straighten state so re-entering crop after reset doesn't restore stale pre-rotation base
+  if (typeof _savedStraightenOrig !== 'undefined') { _savedStraightenOrig = null; _savedStraightenAngle = 0; }
   _etPerspVVal = 0; _etPerspHVal = 0; _etPerspActiveAxis = null;
   // Restore pre-crop image if crop was applied
   if (_preCropState) {

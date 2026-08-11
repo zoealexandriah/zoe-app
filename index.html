@@ -18964,14 +18964,10 @@ function importSheetChoice(type) {
     if (name === 'crop') {
       /* Entering crop: suspend FX frame so ev-canvas shows clean photo */
       if (typeof _zFrameSuspend === 'function') _zFrameSuspend();
-    } else {
-      /* Leaving crop: run _cropExitMode here, before _origSub, because atmosphere
-         (and possibly others) early-return in _origSub before reaching _cropExitMode */
-      var _edVW = document.getElementById('editor-view');
-      if (_edVW && _edVW.classList.contains('crop-mode')) {
-        if (typeof _cropExitMode === 'function') _cropExitMode();
-      }
     }
+    /* For non-crop tabs: _origSub already calls _cropExitMode (which calls _zFrameRestore)
+       at line 8293 for non-atmosphere tabs. Atmosphere early-returns intentionally to preserve
+       crop state (pending straighten, ratio, etc.) — do not add cleanup here. */
     _origSub && _origSub.call(this, name);
     _updateSectionNav(name);
     /* Reset color panel subtabs when navigating to color from subnav */

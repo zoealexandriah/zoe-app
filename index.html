@@ -17596,7 +17596,8 @@ function _cropExitMode() {
     _ceCCtx.drawImage(_cropStraightenOrig, -_ceIw * _ceS / 2, -_ceIh * _ceS / 2, _ceIw * _ceS, _ceIh * _ceS);
     _ceCCtx.restore();
     var _ceSI = new Image();
-    var _ceGen = ++(_cropExitGen = (_cropExitGen || 0) + 1);
+    _cropExitGen = (_cropExitGen || 0) + 1;
+    var _ceGen = _cropExitGen;
     _ceSI.onload = function() {
       if (_cropExitGen !== _ceGen) return; // new crop session started before encode finished
       userImage = _ceSI; _origPixels = null; if (typeof evRenderCanvas === 'function') evRenderCanvas();

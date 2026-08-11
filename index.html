@@ -18960,11 +18960,16 @@ function importSheetChoice(type) {
   var _origSub = window.evAdjustSubTab;
   window.evAdjustSubTab = function(name) {
     _curSection = name;
-    /* Suspend/restore FX frame when entering or leaving crop mode */
     if (name === 'crop') {
+      /* Entering crop: suspend FX frame so ev-canvas shows clean photo */
       if (typeof _zFrameSuspend === 'function') _zFrameSuspend();
     } else {
-      if (typeof _zFrameRestore === 'function') _zFrameRestore();
+      /* Leaving crop: run _cropExitMode here, before _origSub, because atmosphere
+         (and possibly others) early-return in _origSub before reaching _cropExitMode */
+      var _edVW = document.getElementById('editor-view');
+      if (_edVW && _edVW.classList.contains('crop-mode')) {
+        if (typeof _cropExitMode === 'function') _cropExitMode();
+      }
     }
     _origSub && _origSub.call(this, name);
     _updateSectionNav(name);

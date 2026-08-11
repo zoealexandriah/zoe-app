@@ -17073,6 +17073,18 @@ window.galleryCopyEdits = function(imageId) {
     // calls _cropExitMode and nulls _cropStraightenOrig, so assigning before the call
     // would get overwritten and break re-straighten after a previous straighten+apply.
     if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
+    // If returning after a tab-switch commit, restore the pre-rotation base so the user can re-adjust
+    if (typeof _savedStraightenOrig !== 'undefined' && _savedStraightenOrig && Math.abs(_savedStraightenAngle) > 0.001) {
+      userImage = _savedStraightenOrig;
+      _cropStraightenOrig = _savedStraightenOrig;
+      var _restAngle = _savedStraightenAngle;
+      _savedStraightenOrig = null; _savedStraightenAngle = 0;
+      setTimeout(function() {
+        if (typeof cropStraightenPreview === 'function') cropStraightenPreview(_restAngle);
+        var _rsl = document.getElementById('crop-straighten-slider'); if (_rsl) _rsl.value = _restAngle;
+        if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = _restAngle;
+      }, 200);
+    }
     setTimeout(function() {
       var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
       if (!ac || !userImage) return;
@@ -17323,6 +17335,7 @@ window.toolsCropApply = function() {
   }
   _cropExitMode();
   if (typeof _cropReAdjSaved !== 'undefined') { _cropReAdjSaved = null; _cropReAdjOrigState = null; }
+  if (typeof _savedStraightenOrig !== 'undefined') { _savedStraightenOrig = null; _savedStraightenAngle = 0; }
   toolsCropCancel();
 };
 
@@ -17453,6 +17466,8 @@ function _cropExitMode() {
   var _sw = document.getElementById('crop-straighten-work');
   if (_sw && typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig &&
       typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
+    // Save state so returning to crop can restore the adjustable pre-rotation base
+    if (typeof _savedStraightenOrig !== 'undefined') { _savedStraightenOrig = _cropStraightenOrig; _savedStraightenAngle = _cropStraightenVal; }
     var _ceIw = _cropStraightenOrig.naturalWidth, _ceIh = _cropStraightenOrig.naturalHeight;
     var _ceCC = document.createElement('canvas');
     _ceCC.width = _ceIw; _ceCC.height = _ceIh;
@@ -17844,6 +17859,8 @@ var _cropStraightenOrig = null;
 var _cropStraightenRafId = null;
 var _cropStraightenVal = 0;
 var _cropStraightenPending = null;
+var _savedStraightenOrig = null;
+var _savedStraightenAngle = 0;
 function cropStraightenPreview(val) {
   val = parseFloat(val);
   // Snap to zero within ±0.3°

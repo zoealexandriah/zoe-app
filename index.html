@@ -17078,6 +17078,7 @@ window.galleryCopyEdits = function(imageId) {
     // Clear any stale cropRect before running the chain — prevents old rect from
     // flashing briefly on screen before the setTimeout below resets it
     cropRect = null; cropDragging = null;
+    _cropExitGen = (_cropExitGen || 0) + 1; // invalidate any pending _cropExitMode async commit
     // Re-adjust mode activates only when the RATIO sub-tab is opened (see cropSelectSubTab)
     var _oldFlash = document.getElementById('crop-overlay-canvas');
     if (_oldFlash) _oldFlash.remove();
@@ -17503,7 +17504,11 @@ function _cropExitMode() {
     _ceCCtx.drawImage(_cropStraightenOrig, -_ceIw * _ceS / 2, -_ceIh * _ceS / 2, _ceIw * _ceS, _ceIh * _ceS);
     _ceCCtx.restore();
     var _ceSI = new Image();
-    _ceSI.onload = function() { userImage = _ceSI; _origPixels = null; if (typeof evRenderCanvas === 'function') evRenderCanvas(); };
+    var _ceGen = ++(_cropExitGen = (_cropExitGen || 0) + 1);
+    _ceSI.onload = function() {
+      if (_cropExitGen !== _ceGen) return; // new crop session started before encode finished
+      userImage = _ceSI; _origPixels = null; if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    };
     _ceSI.src = _ceCC.toDataURL('image/jpeg', 0.95);
   }
   if (_sw) _sw.remove();
@@ -17617,6 +17622,15 @@ function _cropRatioConfirm() {
     if (typeof evHistory !== 'undefined') { if (evHistory.length >= 30) evHistory.shift(); evHistory.push(_snap); evFuture.length = 0; }
     if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
     userImage = newImg;
+    // Keep straighten origin in sync so STRAIGHTEN preview draws from the ratio-cropped image
+    if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = newImg;
+    // If STRAIGHTEN tab is active with a pending angle, refresh the work canvas now that origin is correct
+    if (typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
+      var _rcStBtn = document.querySelector('.crop-subtab[onclick*="straighten"]');
+      if (_rcStBtn && _rcStBtn.classList.contains('active') && typeof cropStraightenPreview === 'function') {
+        cropStraightenPreview(_cropStraightenVal);
+      }
+    }
     showToast('CROP APPLIED');
     var _ev = document.getElementById('editor-view');
     if (_ev && _ev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();

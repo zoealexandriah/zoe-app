@@ -11189,6 +11189,133 @@ async function loadImageToCanvas(canvas, img) {
 }
 
 // ══════════════════════════════════════════════════════
+// SUBSCRIPTION SERVICE  (Phase 3)
+// ══════════════════════════════════════════════════════
+
+// ── Mock adapter ──────────────────────────────────────
+// MOCK ADAPTER — REPLACE WITH REVENUECAT BEFORE APP STORE SUBMISSION
+var ZSubAdapterMock = (function() {
+  var MOCK_KEY = 'zoe_sub_mock';
+
+  function _read() {
+    try { return JSON.parse(localStorage.getItem(MOCK_KEY)) || null; } catch(e) { return null; }
+  }
+  function _write(obj) {
+    try { localStorage.setItem(MOCK_KEY, JSON.stringify(obj)); } catch(e) {}
+  }
+  function _delay(ms) {
+    return new Promise(function(resolve) { setTimeout(resolve, ms); });
+  }
+
+  return {
+    getStatus: function() {
+      var rec = _read();
+      return Promise.resolve(rec && rec.active
+        ? { active: true,  plan: rec.plan || null, expiresAt: rec.expiresAt || null, source: 'mock' }
+        : { active: false, plan: null, expiresAt: null, source: 'mock' });
+    },
+
+    purchase: function(planId) {
+      return _delay(600).then(function() {
+        var fail = window.ZDEV_SUB_FAIL;
+        if (fail === 'cancel') return { ok: false, cancelled: true,  error: null };
+        if (fail === 'error')  return { ok: false, cancelled: false, error: 'Simulated purchase error' };
+        var expiresAt = new Date(Date.now() + (planId === 'yearly' ? 365 : 30) * 86400000).toISOString();
+        _write({ active: true, plan: planId, expiresAt: expiresAt, source: 'mock' });
+        return { ok: true, cancelled: false, error: null };
+      });
+    },
+
+    restorePurchases: function() {
+      return _delay(600).then(function() {
+        var rec = _read();
+        var isActive = !!(rec && rec.active);
+        return { ok: true, restored: isActive, error: null };
+      });
+    },
+
+    openManageSubscription: function() {
+      console.log('[ZSubAdapterMock] openManageSubscription — no-op on web');
+    },
+
+    _read: _read // exposed for ZSubscription.onStatusChange polling
+  };
+}());
+
+// ── RevenueCat adapter stub ───────────────────────────
+var ZSubAdapterRevenueCat = {
+  // TODO: install @revenuecat/purchases-capacitor (Capacitor plugin)
+  // TODO: set your RevenueCat public SDK key (Purchases.configure({ apiKey: '...' }))
+  // TODO: set your entitlement identifier (e.g. 'pro')
+  // TODO: set product identifiers: yearly → 'zoe_yearly', monthly → 'zoe_monthly'
+
+  getStatus: function() {
+    return Promise.reject(new Error('[ZSubAdapterRevenueCat] RevenueCat is not configured'));
+  },
+  purchase: function(planId) {
+    return Promise.reject(new Error('[ZSubAdapterRevenueCat] RevenueCat is not configured'));
+  },
+  restorePurchases: function() {
+    return Promise.reject(new Error('[ZSubAdapterRevenueCat] RevenueCat is not configured'));
+  },
+  openManageSubscription: function() {
+    throw new Error('[ZSubAdapterRevenueCat] RevenueCat is not configured');
+  }
+};
+
+// ── ZSubscription ─────────────────────────────────────
+// All call sites delegate here. Swap ZSubscription.adapter to switch providers.
+var ZSubscription = (function() {
+  var _adapter   = ZSubAdapterMock;
+  var _listeners = [];
+
+  function _notify(status) {
+    for (var i = 0; i < _listeners.length; i++) {
+      try { _listeners[i](status); } catch(e) {}
+    }
+    // Keep ZAccess in sync — ZSubscription owns truth, ZAccess derives from it
+    if (typeof ZAccess !== 'undefined' && typeof ZAccess.refresh === 'function') {
+      ZAccess.refresh();
+    }
+  }
+
+  return {
+    get adapter() { return _adapter; },
+    set adapter(a) { _adapter = a; },
+
+    getStatus: function() {
+      return _adapter.getStatus();
+    },
+
+    purchase: function(planId) {
+      return _adapter.purchase(planId).then(function(result) {
+        if (result && result.ok) {
+          _adapter.getStatus().then(function(status) { _notify(status); });
+        }
+        return result;
+      });
+    },
+
+    restorePurchases: function() {
+      return _adapter.restorePurchases().then(function(result) {
+        if (result && result.ok && result.restored) {
+          _adapter.getStatus().then(function(status) { _notify(status); });
+        }
+        return result;
+      });
+    },
+
+    openManageSubscription: function() {
+      return _adapter.openManageSubscription();
+    },
+
+    onStatusChange: function(fn) {
+      if (typeof fn === 'function') _listeners.push(fn);
+    }
+  };
+}());
+
+// ══════════════════════════════════════════════════════
 // ACCESS STATE + PREMIUM GATE  (Phase 2)
 // ══════════════════════════════════════════════════════
 

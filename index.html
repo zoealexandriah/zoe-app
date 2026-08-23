@@ -11424,6 +11424,80 @@ function applyDuotone(canvas, colorA, colorB, strength, offX, offY, imgW, imgH) 
   ctx.putImageData(orig, offX, offY);
 }
 
+/* ── FILM GRAIN — coherent emulsion grain at OUTPUT resolution ──────────
+   Must run after any upscale. Grain is high-frequency by definition, so
+   synthesising it on the 800px proxy and then bicubically upscaling to
+   2400px low-passes it into soft mottling. Deliberately NOT called from
+   applyPixelAdjustments — that function is stringified into a Web Worker
+   and cannot reference these helpers. */
+var ZGRAIN = {
+  amount:      46,    // amplitude in 0-255 units at adj.grain = 1.0
+  cellRef:     820,   // output long-edge that maps to a 1px grain cell
+  chroma:      0.42,  // R/B decorrelation (0 = monochrome grain)
+  shadowFloor: 0.30   // grain kept in shadows — film keeps it, sensor noise doesn't
+};
+
+function _zgHash(x, y, seed) {
+  var n = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(seed, 1274126177)) | 0;
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return ((n ^ (n >>> 16)) >>> 0) / 2147483647.5 - 1;
+}
+
+function _zgField(gw, gh, seed) {
+  var f = new Float32Array(gw * gh);
+  for (var y = 0; y < gh; y++) {
+    for (var x = 0; x < gw; x++) f[y * gw + x] = _zgHash(x, y, seed);
+  }
+  return f;
+}
+
+function _zgSample(f, gw, fx, fy) {
+  var x0 = fx | 0, y0 = fy | 0;
+  var tx = fx - x0, ty = fy - y0;
+  tx = tx * tx * (3 - 2 * tx);
+  ty = ty * ty * (3 - 2 * ty);
+  var i00 = y0 * gw + x0, i10 = i00 + 1, i01 = i00 + gw, i11 = i01 + 1;
+  var top = f[i00] + (f[i10] - f[i00]) * tx;
+  var bot = f[i01] + (f[i11] - f[i01]) * tx;
+  return top + (bot - top) * ty;
+}
+
+function applyFilmGrain(canvas, amount, grainSize) {
+  if (!canvas || !amount || amount < 0.005) return;
+  var w = canvas.width, h = canvas.height;
+  if (!w || !h) return;
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  var img;
+  try { img = ctx.getImageData(0, 0, w, h); } catch (e) { return; }
+  var d = img.data;                       // Uint8ClampedArray — clamps on assign
+  var cell = Math.max(1, (Math.max(w, h) / ZGRAIN.cellRef) * (grainSize || 1));
+  var gw = Math.ceil(w / cell) + 2, gh = Math.ceil(h / cell) + 2;
+  var seed = 20260823;                    // fixed — grain is fixed in the negative,
+  var fB = _zgField(gw, gh, seed);        // it must not crawl between renders
+  var fC = _zgField(gw, gh, seed + 7919);
+  var wLUT = new Float32Array(256);       // luminance weight LUT (avoids per-pixel pow)
+  for (var L = 0; L < 256; L++) {
+    var v = 1 - Math.pow(Math.abs(L - 118) / 160, 1.4);
+    wLUT[L] = v < ZGRAIN.shadowFloor ? ZGRAIN.shadowFloor : v;
+  }
+  var strength = amount * ZGRAIN.amount;
+  var i = 0;
+  for (var y = 0; y < h; y++) {
+    var fy = y / cell;
+    for (var x = 0; x < w; x++, i += 4) {
+      var r = d[i], g = d[i + 1], b = d[i + 2];
+      var amp  = strength * wLUT[(0.299 * r + 0.587 * g + 0.114 * b) | 0];
+      var fx   = x / cell;
+      var base = _zgSample(fB, gw, fx, fy) * amp;
+      var chr  = _zgSample(fC, gw, fx, fy) * amp * ZGRAIN.chroma;
+      d[i]     = r + base + chr;
+      d[i + 1] = g + base;
+      d[i + 2] = b + base - chr;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
 function applyVignette(canvas, amount, offX, offY, imgW, imgH) {
   if (amount < 0.01) return;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -14808,6 +14882,9 @@ function _evDoSave() {
     if (p.highlightTint)             adj.highlight_tint = p.highlightTint;
     if (p.halationHue !== undefined) adj.halation_hue   = p.halationHue;
     if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+    // Grain is applied post-upscale at export resolution, not on the 800px proxy.
+    var _exportGrain = adj.grain || 0;
+    adj.grain = 0;
 
     var origData;
     try { origData = pCtx.getImageData(0, 0, pw, ph); } catch(e) { origData = null; }
@@ -14842,6 +14919,22 @@ function _evDoSave() {
       if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
                                             applyBlemishHeal(proxy, blemishSpots, 0, 0, pw, ph);
 
+      // Upscale to export resolution FIRST, then grain, then hand the grained
+      // full-res canvas to whichever export branch runs. All three branches read
+      // `proxy` (ARC and letterbox via proxy.width/proxy.height), so reassigning
+      // it here needs no per-branch changes. pw/ph are not read past this point.
+      if (_exportGrain > 0.005) {
+        var _gUp = document.createElement('canvas');
+        _gUp.width = ew; _gUp.height = eh;
+        var _gUpCtx = _gUp.getContext('2d');
+        if (_gUpCtx) {
+          _gUpCtx.imageSmoothingEnabled = true;
+          _gUpCtx.imageSmoothingQuality = 'high';
+          _gUpCtx.drawImage(proxy, 0, 0, ew, eh);
+          applyFilmGrain(_gUp, _exportGrain * intensity, (p.grainSize || 1));
+          proxy = _gUp;
+        }
+      }
       var _isARCExport = _fxFrameVariant2 && _fxFrameVariant2.indexOf('arc-') === 0;
       if (_isARCExport) { fxCompositeArchiveExport(proxy, _fxFrameVariant2, ew, eh, _doSaveBlob); return; }
       var _isLBExport = _fxFrameVariant2 && _fxFrameVariant2.indexOf('lb-') === 0;
@@ -15176,6 +15269,8 @@ function _evRenderCanvasImmediate() {
       if (activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
     }
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var _evGrain = adj.grain || 0;
+    adj.grain = 0;   // applied below at canvas resolution, matching export
     var processed = applyPixelAdjustments(origData, adj);
     // Blend with original based on presetIntensity (0 = original, 1 = full effect)
     var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
@@ -15235,6 +15330,10 @@ function _evRenderCanvasImmediate() {
       if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, canvas.width, canvas.height);
     }
     if ((adj.vignette || 0) > 0.01) applyVignette(canvas, adj.vignette, 0, 0, canvas.width, canvas.height);
+  }
+  // Grain last, before FX frames, so it lands on the photo and not the frame.
+  if (typeof _evGrain !== 'undefined' && _evGrain > 0.005) {
+    applyFilmGrain(canvas, _evGrain, ((_evCurPreset && _evCurPreset.grainSize) || 1));
   }
   if (blemishSpots && blemishSpots.length > 0) applyBlemishHeal(canvas, blemishSpots, 0, 0, canvas.width, canvas.height);
   if (typeof _blemishSyncOverlay === 'function') _blemishSyncOverlay();

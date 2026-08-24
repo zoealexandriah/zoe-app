@@ -5766,6 +5766,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
               <div class="ev-cat-btn" onclick="fxOpenCat('scanlines')" data-fxstrip="scanlines">SCAN LINES</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('vhsbleed')" data-fxstrip="vhsbleed">VHS BLEED</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('paper')" data-fxstrip="paper">PAPER</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('bleeds')" data-fxstrip="bleeds">BLEEDS</div>
             </div>
 
 
@@ -10315,6 +10316,7 @@ function doRender(presetId) {
   if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
   if (p.filmCrossover) adj.filmCrossover = p.filmCrossover;
   if (p.vhsBleed) adj.vhsBleed = p.vhsBleed;
+  if (p.bleeds) adj.bleeds = p.bleeds;
 
   // Update hero canvas if user has image loaded
   if (userImage && activePreset && activePreset.id === presetId) {
@@ -12921,6 +12923,7 @@ function renderWithAdjustments(canvas, adj) {
   if ((adj.mist || 0) > 0.01) applyMist(canvas, adj.mist, _origOffX, _origOffY, _origW, _origH);
   if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, _origOffX, _origOffY, _origW, _origH);
   if (adj.halationBloom) applyHalationBloom(canvas, adj.halationBloom, _origOffX, _origOffY, _origW, _origH);
+  if (adj.bleeds) applyBleeds(canvas, adj.bleeds, _origOffX, _origOffY, _origW, _origH);
   if (adj.matteFade) applyMatteFade(canvas, adj.matteFade, _origOffX, _origOffY, _origW, _origH);
   if (adj.scanLines) applyScanLines(canvas, adj.scanLines, _origOffX, _origOffY, _origW, _origH);
   if (adj.chromaticAberration) applyChromaticAberration(canvas, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, _origOffX, _origOffY, _origW, _origH);
@@ -13305,6 +13308,78 @@ function applyFilmGrain(canvas, amount, grainSize) {
     }
   }
   ctx.putImageData(img, 0, 0);
+}
+
+/* ── BLEEDS — photobooth light leak ─────────────────────────────────────
+   Composites a warm gradient in screen mode, then lifts blacks locally so
+   the leak sits IN the image rather than on top of it. That local lift is
+   what separates a real leak from an overlay. */
+function applyBleeds(canvas, params, offX, offY, imgW, imgH) {
+  if (!params || !params.intensity || params.intensity < 0.01) return;
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  var variant   = params.variant   || 'slot';
+  var intensity = params.intensity;                 // 0..1
+  var col       = params.color     || [255, 236, 196];
+  var edge      = params.edge      || 'left';       // left|right|top|bottom
+  var size      = params.size      || 0.45;         // 0..1 reach into frame
+  var soft      = params.softness  || 0.6;          // 0..1
+  var lift      = params.lift !== undefined ? params.lift : 0.5;
+
+  var mask = document.createElement('canvas');
+  mask.width = imgW; mask.height = imgH;
+  var mctx = mask.getContext('2d');
+  var g;
+  var horiz = (edge === 'left' || edge === 'right');
+  var x0 = edge === 'right' ? imgW : 0;
+  var y0 = edge === 'bottom' ? imgH : 0;
+
+  if (variant === 'seal') {
+    var cx = (edge === 'right') ? imgW : 0;
+    var cy = (edge === 'bottom') ? imgH : 0;
+    g = mctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(imgW, imgH) * size * 1.4);
+  } else if (variant === 'splice') {
+    g = horiz
+      ? mctx.createLinearGradient(x0, 0, horiz && edge === 'right' ? imgW * (1 - size) : imgW * size, 0)
+      : mctx.createLinearGradient(0, y0, 0, edge === 'bottom' ? imgH * (1 - size) : imgH * size);
+  } else if (variant === 'scratch') {
+    g = mctx.createLinearGradient(0, 0, imgW, imgH);
+  } else {
+    g = horiz
+      ? mctx.createLinearGradient(x0, 0, edge === 'right' ? imgW * (1 - size) : imgW * size, 0)
+      : mctx.createLinearGradient(0, y0, 0, edge === 'bottom' ? imgH * (1 - size) : imgH * size);
+  }
+
+  var mid = 0.25 + soft * 0.45;
+  g.addColorStop(0,   'rgba(255,255,255,1)');
+  g.addColorStop(mid, 'rgba(255,255,255,' + (0.35 * (1 - soft * 0.4)).toFixed(3) + ')');
+  g.addColorStop(1,   'rgba(255,255,255,0)');
+  mctx.fillStyle = g;
+
+  if (variant === 'scratch') {
+    mctx.save();
+    mctx.translate(imgW * 0.5, imgH * 0.5);
+    mctx.rotate(-0.35);
+    mctx.fillRect(-imgW, -imgH * 0.04 * (0.5 + size), imgW * 2, imgH * 0.08 * (0.5 + size));
+    mctx.restore();
+  } else {
+    mctx.fillRect(0, 0, imgW, imgH);
+  }
+
+  var md = mctx.getImageData(0, 0, imgW, imgH).data;
+  var img = ctx.getImageData(offX, offY, imgW, imgH);
+  var d = img.data;
+  var cr = col[0], cg = col[1], cb = col[2];
+  for (var i = 0, j = 3; i < d.length; i += 4, j += 4) {
+    var a = md[j] / 255;
+    if (a < 0.002) continue;
+    var w = a * intensity;
+    var lf = w * lift * 60;
+    var r = d[i] + lf, gg = d[i + 1] + lf * 0.94, b = d[i + 2] + lf * 0.82;
+    d[i]     = 255 - (255 - r)  * (255 - cr * w) / 255;
+    d[i + 1] = 255 - (255 - gg) * (255 - cg * w) / 255;
+    d[i + 2] = 255 - (255 - b)  * (255 - cb * w) / 255;
+  }
+  ctx.putImageData(img, offX, offY);
 }
 
 function applyVignette(canvas, amount, offX, offY, imgW, imgH) {
@@ -16721,6 +16796,7 @@ function _evDoSave() {
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       if ((adj.halation    || 0) > 0.01)   applyHalation(proxy, adj.halation, adj.halation_hue||0, 0, 0, pw, ph);
       if (p.halationBloom)                  applyHalationBloom(proxy, p.halationBloom, 0, 0, pw, ph);
+      if (adj.bleeds)                       applyBleeds(proxy, adj.bleeds, 0, 0, pw, ph);
       if ((adj.diffusion   || 0) > 0.01)   applyDiffusion(proxy, adj.diffusion, 0, 0, pw, ph);
       if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01)
                                             applyDuotone(proxy, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, pw, ph);
@@ -18446,6 +18522,7 @@ function evSaveAndReturn() {
       if ((adj.mist     || 0) > 0.01) applyMist(off,  adj.mist,      0, 0, iw, ih);
       if ((adj.halation || 0) > 0.01) applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
       if (adj.halationBloom)           applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
+      if (adj.bleeds)                  applyBleeds(off, adj.bleeds, 0, 0, iw, ih);
       if (adj.matteFade)               applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
       if (adj.scanLines)               applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
       if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
@@ -18528,6 +18605,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if ((adj.mist     || 0) > 0.01)   applyMist(off,     adj.mist,      0, 0, w, h);
       if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, w, h);
       if (adj.halationBloom)             applyHalationBloom(off, adj.halationBloom, 0, 0, w, h);
+      if (adj.bleeds)                    applyBleeds(off, adj.bleeds, 0, 0, w, h);
       if (adj.matteFade)                 applyMatteFade(off, adj.matteFade, 0, 0, w, h);
       if (adj.scanLines)                 applyScanLines(off, adj.scanLines, 0, 0, w, h);
       if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, w, h);
@@ -18711,6 +18789,7 @@ function _exportEntry(entry, onDone) {
       if ((adj.mist     || 0) > 0.01)         applyMist(off,     adj.mist,      0, 0, iw, ih);
       if ((adj.halation || 0) > 0.01)         applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
       if (adj.halationBloom)                  applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
+      if (adj.bleeds)                         applyBleeds(off, adj.bleeds, 0, 0, iw, ih);
       if (adj.matteFade)                      applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
       if (adj.scanLines)                      applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
       if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
@@ -19108,6 +19187,7 @@ window.exportDownload = function() {
     if (p.duotone) { adjObj.duotone_a = p.duotone.a; adjObj.duotone_b = p.duotone.b; adjObj.duotone_strength = p.duotone.strength || 0.7; }
     if ((adjObj.halation  || 0) > 0.01)   applyHalation(off, adjObj.halation, adjObj.halation_hue || 0, 0, 0, iw, ih);
     if (p.halationBloom)                   applyHalationBloom(off, p.halationBloom, 0, 0, iw, ih);
+    if (p.bleeds)                          applyBleeds(off, p.bleeds, 0, 0, iw, ih);
     if ((adjObj.diffusion || 0) > 0.01)   applyDiffusion(off, adjObj.diffusion, 0, 0, iw, ih);
     if (adjObj.duotone_a && adjObj.duotone_b && (adjObj.duotone_strength || 0) > 0.01)
       applyDuotone(off, adjObj.duotone_a, adjObj.duotone_b, adjObj.duotone_strength, 0, 0, iw, ih);
@@ -21609,6 +21689,7 @@ var fxState = {
   scanlines:   { variant: null, intensity: 0 },
   vhsbleed:    { variant: null, intensity: 0 },
   paper:       { fold: 0, texture: 0 },
+  bleeds:      { variant: null, intensity: 0, edge: 'left', color: null },
   stickers:    { variant: null },
   frames:      { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0, lbPosX: 0, lbPosY: 0, lbScale: 1.0 }
 };

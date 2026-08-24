@@ -7728,6 +7728,57 @@ const presets = [
       HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
     }
   },
+  {
+    id:'carmine2', num:'46', name:'Carmine 2.0', series:'FILM', seriesGroup:'FILM',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#c04040', warm:true,
+    halationHue: 16,
+    skinLift: 0.11,
+    colorGlow: 0.06,
+    grainSize: 1.15,
+    hueTempZones: [{ center: 24, halfWidth: 22, warm: 0.10 }],
+    halationBloom: { threshold: 0.68, radius: 20, hue: 14, intensity: 0.13 },
+    shadowTint:    { r: 0.20, g: 0.10, b: 0.06, strength: 0.07 },
+    highlightTint: { r: 0.24, g: 0.19, b: 0.13, strength: 0.03 },
+    matteFade:     { lift: 0.035, rolloff: 0.18 },
+    chromaticAberration: { amount: 0.14, falloff: 0.90 },
+    filmCrossover: {
+      toe:      { r: -0.06, g: +0.04, b: -0.08, strength: 0.62 },
+      shoulder: { r: +0.09, g: +0.03, b: -0.06, strength: 0.50 }
+    },
+    splitTone:{
+      shadows:    {r:92,  g:60,  b:44,  a:0.10},
+      midtones:   {r:198, g:174, b:154, a:0.03},
+      highlights: {r:255, g:239, b:217, a:0.09}
+    },
+    curve:{
+      master: [[0,0],[28,22],[64,60],[128,131],[196,201],[232,233],[255,250]],
+      r:      [[0,0],[48,44],[128,131],[210,215],[255,253]],
+      g:      [[0,0],[128,128],[210,210],[255,250]],
+      b:      [[0,0],[128,127],[210,203],[255,238]]
+    },
+    defaults:{
+      EXPOSURE:0.500, CONTRAST:0.542, HIGHLIGHTS:0.468, SHADOWS:0.532,
+      WHITES:0.496, BLACKS:0.514, TEMPERATURE:0.508, TINT:0.508,
+      VIBRANCE:0.528, SATURATION:0.500,
+      GLOW:0.03, GRAIN:0.35, SHARPEN:0.0, CLARITY:0.05, BLUR:0.0, FADE:0.04,
+      TEXTURE:0.13, DIFFUSION:0.04,
+      SAT_REDS:0.566, SAT_ORANGES:0.512, SAT_YELLOWS:0.508,
+      SAT_GREENS:0.478, SAT_BLUES:0.488, SAT_PURPLES:0.500, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
+      HUE_GREENS:0.500, HUE_BLUES:0.500, HUE_PURPLES:0.500,
+      LUM_REDS:0.506, LUM_ORANGES:0.510, LUM_YELLOWS:0.500,
+      LUM_GREENS:0.492, LUM_BLUES:0.492, LUM_PURPLES:0.500,
+      VIGNETTE:0.11, HALATION:0.16,
+      MATTE_LIFT:0.00, DEHAZE:0.50
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'+0.00',PUSH_PULL:'+0.00',CONTRAST:'+0.08',HIGHLIGHTS:'-0.06',SHADOWS:'+0.06',WHITES:'-0.01',BLACKS:'+0.03',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
+      COLOR:{TEMPERATURE:'+0.02',TINT:'+0.02',VIBRANCE:'+0.06',SATURATION:'+0.00'},
+      EFFECTS:{GLOW:'+0.03',GRAIN:'+0.35',SHARPEN:'+0.00',CLARITY:'+0.05',BLUR:'+0.00',FADE:'+0.04',TEXTURE:'+0.13',DIFFUSION:'+0.04',HALATION:'+0.16',VIGNETTE:'+0.11'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.13',SAT_ORANGES:'+0.02',SAT_YELLOWS:'+0.02',SAT_GREENS:'-0.04',SAT_BLUES:'-0.02',SAT_PURPLES:'+0.00',LUM_REDS:'+0.01',LUM_ORANGES:'+0.02',LUM_GREENS:'-0.02',LUM_BLUES:'-0.02'}
+    }
+  },
 ];
 
 // ══════════════════════════════════════

@@ -9885,6 +9885,22 @@ function applyPixelAdjustments(srcData, adj, resScale) {
     }
   }
 
+  // Hoist channelList + hasPerChannel — all values come from adj, which never
+  // mutates during the loop. Avoids ~27 M object/array allocations per export.
+  var channelList = [
+    { center: 0,   width: 58,  sat: adj.sat_reds,    hue: adj.hue_reds,    lum: adj.lum_reds    },
+    { center: 30,  width: 52,  sat: adj.sat_oranges, hue: adj.hue_oranges, lum: adj.lum_oranges },
+    { center: 60,  width: 58,  sat: adj.sat_yellows, hue: adj.hue_yellows, lum: adj.lum_yellows },
+    { center: 120, width: 90,  sat: adj.sat_greens,  hue: adj.hue_greens,  lum: adj.lum_greens  },
+    { center: 210, width: 90,  sat: adj.sat_blues,   hue: adj.hue_blues,   lum: adj.lum_blues   },
+    { center: 285, width: 75,  sat: adj.sat_purples, hue: adj.hue_purples, lum: adj.lum_purples },
+  ];
+  var hasPerChannel = channelList.some(function(c) {
+    return (c.sat && Math.abs(c.sat) > 0.005) ||
+           (c.hue && Math.abs(c.hue) > 0.1)  ||
+           (c.lum && Math.abs(c.lum) > 0.005);
+  });
+
   for (let i = 0; i < src.length; i += 4) {
     let r = src[i], g = src[i+1], b = src[i+2];
 
@@ -10258,19 +10274,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
     // ── PER-CHANNEL HSL (sat + hue + luminance) with smooth overlap ─────
     // Wider ranges + softer Gaussian avoids patchiness at hue boundaries
     // while still giving each channel distinct control.
-    const channelList = [
-      { center: 0,   width: 58,  sat: adj.sat_reds,    hue: adj.hue_reds,    lum: adj.lum_reds    },
-      { center: 30,  width: 52,  sat: adj.sat_oranges, hue: adj.hue_oranges, lum: adj.lum_oranges },
-      { center: 60,  width: 58,  sat: adj.sat_yellows, hue: adj.hue_yellows, lum: adj.lum_yellows },
-      { center: 120, width: 90,  sat: adj.sat_greens,  hue: adj.hue_greens,  lum: adj.lum_greens  },
-      { center: 210, width: 90,  sat: adj.sat_blues,   hue: adj.hue_blues,   lum: adj.lum_blues   },
-      { center: 285, width: 75,  sat: adj.sat_purples, hue: adj.hue_purples, lum: adj.lum_purples },
-    ];
-    const hasPerChannel = channelList.some(c =>
-      (c.sat && Math.abs(c.sat) > 0.005) ||
-      (c.hue && Math.abs(c.hue) > 0.1)  ||
-      (c.lum && Math.abs(c.lum) > 0.005)
-    );
+    // (channelList and hasPerChannel are hoisted before the loop)
     if (hasPerChannel) {
       const rn2 = r/255, gn2 = g/255, bn2 = b/255;
       const cmx = Math.max(rn2,gn2,bn2), cmn = Math.min(rn2,gn2,bn2), dlt = cmx-cmn;

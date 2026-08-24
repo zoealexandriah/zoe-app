@@ -8121,6 +8121,104 @@ const presets = [
       HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
     }
   },
+  {
+    id:'lastlight', num:'54', name:'Last Light', series:'FILM', seriesGroup:'FILM',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#d99a6c', warm:true,
+    halationHue: 28,
+    skinLift: 0.06,
+    colorGlow: 0.07,
+    grainSize: 1.05,
+    hueTempZones: [{ center: 26, halfWidth: 24, warm: 0.09 }],
+    halationBloom: { threshold: 0.66, radius: 20, hue: 26, intensity: 0.15 },
+    shadowTint:    { r: 0.14, g: 0.10, b: 0.12, strength: 0.06 },
+    highlightTint: { r: 0.28, g: 0.20, b: 0.10, strength: 0.05 },
+    chromaticAberration: { amount: 0.12, falloff: 0.90 },
+    filmCrossover: {
+      toe:      { r: +0.02, g: -0.06, b: +0.02, strength: 0.50 },
+      shoulder: { r: +0.12, g: +0.02, b: -0.14, strength: 0.55 }
+    },
+    splitTone:{
+      shadows:    {r:78,  g:64,  b:70,  a:0.09},
+      midtones:   {r:186, g:150, b:126, a:0.03},
+      highlights: {r:255, g:224, b:180, a:0.10}
+    },
+    curve:{
+      r: [[0,5],[16,13],[32,31],[48,49],[64,65],[96,102],[128,134],[160,160],[192,200],[224,239],[255,249]],
+      g: [[0,5],[16,8],[32,21],[48,37],[64,52],[96,82],[128,109],[160,134],[192,163],[224,193],[255,216]],
+      b: [[0,5],[16,12],[32,26],[48,42],[64,56],[96,81],[128,101],[160,117],[192,142],[224,164],[255,181]]
+    },
+    defaults:{
+      EXPOSURE:0.500, CONTRAST:0.500, HIGHLIGHTS:0.500, SHADOWS:0.500,
+      WHITES:0.500, BLACKS:0.500, TEMPERATURE:0.500, TINT:0.500,
+      VIBRANCE:0.502, SATURATION:0.502,
+      GLOW:0.04, GRAIN:0.27, SHARPEN:0.0, CLARITY:0.04, BLUR:0.0, FADE:0.0,
+      TEXTURE:0.10, DIFFUSION:0.04,
+      SAT_REDS:0.500, SAT_ORANGES:0.500, SAT_YELLOWS:0.500,
+      SAT_GREENS:0.500, SAT_BLUES:0.500, SAT_PURPLES:0.500, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
+      HUE_GREENS:0.500, HUE_BLUES:0.500, HUE_PURPLES:0.500,
+      LUM_REDS:0.500, LUM_ORANGES:0.500, LUM_YELLOWS:0.500,
+      LUM_GREENS:0.500, LUM_BLUES:0.500, LUM_PURPLES:0.500,
+      VIGNETTE:0.13, HALATION:0.16,
+      MATTE_LIFT:0.00, DEHAZE:0.50
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'+0.00',PUSH_PULL:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.00',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.00',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
+      COLOR:{TEMPERATURE:'+0.00',TINT:'+0.00',VIBRANCE:'+0.00',SATURATION:'+0.00'},
+      EFFECTS:{GLOW:'+0.04',GRAIN:'+0.27',SHARPEN:'+0.00',CLARITY:'+0.04',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.10',DIFFUSION:'+0.04',HALATION:'+0.16',VIGNETTE:'+0.13'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
+    }
+  },
+  {
+    id:'quietroom', num:'55', name:'Quiet Room', series:'MINIMAL', seriesGroup:'MINIMAL',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#9a9a95', warm:false,
+    halationHue: 30,
+    skinLift: 0.10,
+    colorGlow: 0.03,
+    grainSize: 0.90,
+    halationBloom: { threshold: 0.80, radius: 14, hue: 30, intensity: 0.06 },
+    shadowTint:    { r: 0.17, g: 0.18, b: 0.17, strength: 0.05 },
+    highlightTint: { r: 0.20, g: 0.20, b: 0.19, strength: 0.02 },
+    matteFade:     { lift: 0.03, rolloff: 0.20 },
+    chromaticAberration: { amount: 0.08, falloff: 0.93 },
+    filmCrossover: {
+      toe:      { r: -0.02, g: +0.03, b: +0.01, strength: 0.35 },
+      shoulder: { r: +0.02, g: +0.02, b: -0.02, strength: 0.30 }
+    },
+    splitTone:{
+      shadows:    {r:92,  g:94,  b:92,  a:0.07},
+      midtones:   {r:150, g:152, b:150, a:0.02},
+      highlights: {r:248, g:248, b:244, a:0.05}
+    },
+    curve:{
+      r: [[0,15],[16,19],[32,25],[48,33],[64,42],[96,60],[128,80],[160,106],[192,147],[224,205],[255,247]],
+      g: [[0,17],[16,23],[32,29],[48,38],[64,46],[96,64],[128,85],[160,109],[192,149],[224,210],[255,247]],
+      b: [[0,16],[16,21],[32,28],[48,37],[64,46],[96,64],[128,84],[160,106],[192,148],[224,198],[255,245]]
+    },
+    defaults:{
+      EXPOSURE:0.500, CONTRAST:0.500, HIGHLIGHTS:0.500, SHADOWS:0.500,
+      WHITES:0.500, BLACKS:0.500, TEMPERATURE:0.500, TINT:0.500,
+      VIBRANCE:0.490, SATURATION:0.494,
+      GLOW:0.02, GRAIN:0.23, SHARPEN:0.0, CLARITY:0.03, BLUR:0.0, FADE:0.0,
+      TEXTURE:0.08, DIFFUSION:0.03,
+      SAT_REDS:0.500, SAT_ORANGES:0.500, SAT_YELLOWS:0.500,
+      SAT_GREENS:0.500, SAT_BLUES:0.500, SAT_PURPLES:0.500, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
+      HUE_GREENS:0.500, HUE_BLUES:0.500, HUE_PURPLES:0.500,
+      LUM_REDS:0.500, LUM_ORANGES:0.500, LUM_YELLOWS:0.500,
+      LUM_GREENS:0.500, LUM_BLUES:0.500, LUM_PURPLES:0.500,
+      VIGNETTE:0.08, HALATION:0.06,
+      MATTE_LIFT:0.00, DEHAZE:0.50
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'+0.00',PUSH_PULL:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.00',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.00',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
+      COLOR:{TEMPERATURE:'+0.00',TINT:'+0.00',VIBRANCE:'-0.02',SATURATION:'-0.01'},
+      EFFECTS:{GLOW:'+0.02',GRAIN:'+0.23',SHARPEN:'+0.00',CLARITY:'+0.03',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.08',DIFFUSION:'+0.03',HALATION:'+0.06',VIGNETTE:'+0.08'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
+    }
+  },
 ];
 
 // ══════════════════════════════════════

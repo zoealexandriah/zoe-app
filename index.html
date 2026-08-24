@@ -11431,10 +11431,12 @@ function applyDuotone(canvas, colorA, colorB, strength, offX, offY, imgW, imgH) 
    applyPixelAdjustments — that function is stringified into a Web Worker
    and cannot reference these helpers. */
 var ZGRAIN = {
-  amount:      46,    // amplitude in 0-255 units at adj.grain = 1.0
+  amount:      90,    // amplitude in 0-255 units at adj.grain = 1.0
   cellRef:     820,   // output long-edge that maps to a 1px grain cell
   chroma:      0.42,  // R/B decorrelation (0 = monochrome grain)
-  shadowFloor: 0.30   // grain kept in shadows — film keeps it, sensor noise doesn't
+  shadowFloor: 0.30,  // grain kept in shadows — film keeps it, sensor noise doesn't
+  fine:        3.5,   // 2nd octave cell divisor — higher = finer speckle
+  fineWeight:  0.50   // 0 = single octave (soft clumps), 0.5 = crisp grit
 };
 
 function _zgHash(x, y, seed) {
@@ -11475,6 +11477,15 @@ function applyFilmGrain(canvas, amount, grainSize) {
   var seed = 20260823;                    // fixed — grain is fixed in the negative,
   var fB = _zgField(gw, gh, seed);        // it must not crawl between renders
   var fC = _zgField(gw, gh, seed + 7919);
+  // Second, finer octave. A single octave is ~78% low-frequency energy, which
+  // reads as haze when amplitude is raised. The fine octave puts energy near
+  // Nyquist so more grain reads as grit instead of softness.
+  var fw    = ZGRAIN.fineWeight || 0;
+  var cell2 = Math.max(1, cell / (ZGRAIN.fine || 3.5));
+  var gw2   = Math.ceil(w / cell2) + 2, gh2 = Math.ceil(h / cell2) + 2;
+  var fB2   = fw > 0 ? _zgField(gw2, gh2, seed + 4177) : null;
+  var fC2   = fw > 0 ? _zgField(gw2, gh2, seed + 9311) : null;
+  var wCo   = Math.sqrt(1 - fw * fw);   // keeps total RMS constant as fw changes
   var wLUT = new Float32Array(256);       // luminance weight LUT (avoids per-pixel pow)
   for (var L = 0; L < 256; L++) {
     var v = 1 - Math.pow(Math.abs(L - 118) / 160, 1.4);
@@ -11488,8 +11499,15 @@ function applyFilmGrain(canvas, amount, grainSize) {
       var r = d[i], g = d[i + 1], b = d[i + 2];
       var amp  = strength * wLUT[(0.299 * r + 0.587 * g + 0.114 * b) | 0];
       var fx   = x / cell;
-      var base = _zgSample(fB, gw, fx, fy) * amp;
-      var chr  = _zgSample(fC, gw, fx, fy) * amp * ZGRAIN.chroma;
+      var base = _zgSample(fB, gw, fx, fy) * wCo;
+      var chr  = _zgSample(fC, gw, fx, fy) * wCo;
+      if (fB2) {
+        var fx2 = x / cell2, fy2 = y / cell2;
+        base += _zgSample(fB2, gw2, fx2, fy2) * fw;
+        chr  += _zgSample(fC2, gw2, fx2, fy2) * fw;
+      }
+      base *= amp;
+      chr  *= amp * ZGRAIN.chroma;
       d[i]     = r + base + chr;
       d[i + 1] = g + base;
       d[i + 2] = b + base - chr;

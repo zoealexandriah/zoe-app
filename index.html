@@ -9776,6 +9776,115 @@ function applyPixelAdjustments(srcData, adj, resScale) {
   // Using pseudo-random seeded by pixel index for organic feel
   const grainStrength = grain * 70 * (resScale || 1);  // scale with resolution so grain size matches preview
 
+  // ── Pre-loop invariants and LUTs ─────────────────────────────────────────
+
+  // Part 1a + Part 2: push/pull — hoist gamma + ppCont; build 256-entry LUT
+  var _ppLUT = null, _ppCont = 1;
+  if (pushPull !== 0) {
+    var _pp = Math.max(-0.35, Math.min(0.23, pushPull));
+    var _gamma = _pp > 0 ? 1 / (1 + _pp * 1.6) : 1 + Math.abs(_pp) * 1.6;
+    _ppCont = 1 + Math.abs(_pp) * 0.12;
+    _ppLUT = new Float32Array(256);
+    for (var _k = 0; _k < 256; _k++) _ppLUT[_k] = Math.pow(_k / 255, _gamma) * 255;
+  }
+
+  // Part 1b: exposure — hoist ev
+  var _ev = exp !== 0 ? Math.pow(2, exposureEV) : 1;
+
+  // Part 3: LUT for texture txW — f(lum_tx, 0..255)
+  var _txW_LUT = null;
+  if (texture > 0.005) {
+    _txW_LUT = new Float32Array(1024);
+    for (var _k = 0; _k < 1024; _k++) {
+      var _lt = _k / 1023 * 255;
+      _txW_LUT[_k] = Math.pow(Math.max(0, 1 - Math.abs(_lt - 128) / 128), 0.7);
+    }
+  }
+
+  // Part 3: LUT for HSL channel Gaussian weight — f(norm, 0..8)
+  var _weight_LUT = null;
+  var _hasHSL = !!(adj.sat_reds || adj.sat_oranges || adj.sat_yellows || adj.sat_greens || adj.sat_blues || adj.sat_purples ||
+                   adj.hue_reds || adj.hue_oranges || adj.hue_yellows || adj.hue_greens || adj.hue_blues || adj.hue_purples ||
+                   adj.lum_reds || adj.lum_oranges || adj.lum_yellows || adj.lum_greens || adj.lum_blues || adj.lum_purples ||
+                   ((adj.colorGlow || 0) > 0.001));
+  if (_hasHSL) {
+    _weight_LUT = new Float32Array(1024);
+    for (var _k = 0; _k < 1024; _k++) {
+      var _n = _k / 1023 * 8;
+      _weight_LUT[_k] = Math.exp(-_n * _n * 0.18);
+    }
+  }
+
+  // Part 3: LUT for colorGlow glowBell — f(ll2, 0..1)
+  var _glowBell_LUT = null;
+  if ((adj.colorGlow || 0) > 0.001) {
+    _glowBell_LUT = new Float32Array(1024);
+    for (var _k = 0; _k < 1024; _k++) {
+      var _ll2 = _k / 1023;
+      _glowBell_LUT[_k] = Math.exp(-Math.pow((_ll2 - 0.62) / 0.16, 2));
+    }
+  }
+
+  // Part 3: LUT for skinLift lumW_sl — f(ll_sl, 0..1)
+  var _lumW_sl_LUT = null;
+  if ((adj.skinLift || 0) > 0.001) {
+    _lumW_sl_LUT = new Float32Array(1024);
+    for (var _k = 0; _k < 1024; _k++) {
+      var _ll = _k / 1023;
+      _lumW_sl_LUT[_k] = Math.exp(-Math.pow((_ll - 0.55) / 0.18, 2));
+    }
+  }
+
+  // Part 3: LUT for skin_tone lumW_st — f(ll_st, 0..1)
+  var _lumW_st_LUT = null;
+  if (Math.abs(adj.skin_tone || 0) > 0.001) {
+    _lumW_st_LUT = new Float32Array(1024);
+    for (var _k = 0; _k < 1024; _k++) {
+      var _ll = _k / 1023;
+      _lumW_st_LUT[_k] = Math.exp(-Math.pow((_ll - 0.49) / 0.24, 2));
+    }
+  }
+
+  // Part 3: LUT for split-tone shadows sw — f(lumN, 0..1)
+  var _sw_LUT = null;
+  if (adj.split_tone && adj.split_tone.shadows && adj.split_tone.shadows.a > 0) {
+    _sw_LUT = new Float32Array(1024);
+    for (var _k = 0; _k < 1024; _k++) {
+      var _lN = _k / 1023, _b = (0.45 - _lN) / 0.45;
+      _sw_LUT[_k] = _b <= 0 ? 0 : Math.pow(_b, 0.75);
+    }
+  }
+
+  // Part 3: LUT for split-tone highlights hw — f(lumN, 0..1)
+  var _hw_LUT = null;
+  if (adj.split_tone && adj.split_tone.highlights && adj.split_tone.highlights.a > 0) {
+    _hw_LUT = new Float32Array(1024);
+    for (var _k = 0; _k < 1024; _k++) {
+      var _lN = _k / 1023, _b = (_lN - 0.70) / 0.30;
+      _hw_LUT[_k] = _b <= 0 ? 0 : Math.pow(Math.min(1, _b), 1.4);
+    }
+  }
+
+  // Part 3: LUT for filmCrossover toeW — f(lumFC, 0..1)
+  var _toeW_LUT = null;
+  if (adj.filmCrossover && adj.filmCrossover.toe) {
+    _toeW_LUT = new Float32Array(1024);
+    for (var _k = 0; _k < 1024; _k++) {
+      var _lFC = _k / 1023, _b = (0.18 - _lFC) / 0.18;
+      _toeW_LUT[_k] = _b <= 0 ? 0 : Math.pow(_b, 1.2);
+    }
+  }
+
+  // Part 3: LUT for filmCrossover shoulderW — f(lumFC, 0..1)
+  var _shoulderW_LUT = null;
+  if (adj.filmCrossover && adj.filmCrossover.shoulder) {
+    _shoulderW_LUT = new Float32Array(1024);
+    for (var _k = 0; _k < 1024; _k++) {
+      var _lFC = _k / 1023, _b = (_lFC - 0.82) / 0.18;
+      _shoulderW_LUT[_k] = _b <= 0 ? 0 : Math.pow(_b, 1.2);
+    }
+  }
+
   for (let i = 0; i < src.length; i += 4) {
     let r = src[i], g = src[i+1], b = src[i+2];
 
@@ -9783,17 +9892,12 @@ function applyPixelAdjustments(srcData, adj, resScale) {
     // Gamma-curve tonal shift: push lifts shadows+midtones (highlights roll off),
     // pull crushes shadows while preserving highlights.
     if (pushPull !== 0) {
-      const pp = Math.max(-0.35, Math.min(0.23, pushPull));
-      const gamma = pp > 0
-        ? 1 / (1 + pp * 1.6)
-        : 1 + Math.abs(pp) * 1.6;
-      r = Math.pow(Math.max(0, r) / 255, gamma) * 255;
-      g = Math.pow(Math.max(0, g) / 255, gamma) * 255;
-      b = Math.pow(Math.max(0, b) / 255, gamma) * 255;
-      const ppCont = 1 + Math.abs(pp) * 0.12;
-      r = (r / 255 - 0.5) * ppCont * 255 + 128;
-      g = (g / 255 - 0.5) * ppCont * 255 + 128;
-      b = (b / 255 - 0.5) * ppCont * 255 + 128;
+      r = _ppLUT[r | 0];
+      g = _ppLUT[g | 0];
+      b = _ppLUT[b | 0];
+      r = (r / 255 - 0.5) * _ppCont * 255 + 128;
+      g = (g / 255 - 0.5) * _ppCont * 255 + 128;
+      b = (b / 255 - 0.5) * _ppCont * 255 + 128;
       r = Math.min(255, Math.max(0, r));
       g = Math.min(255, Math.max(0, g));
       b = Math.min(255, Math.max(0, b));
@@ -9802,8 +9906,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
     // ── EXPOSURE ─────────────────────────────────────────────────────────
     // pixel *= 2^EV
     if (exp !== 0) {
-      const ev = Math.pow(2, exposureEV);
-      r *= ev; g *= ev; b *= ev;
+      r *= _ev; g *= _ev; b *= _ev;
     }
 
     // ── BRIGHTNESS ───────────────────────────────────────────────────────
@@ -10043,7 +10146,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
     // ── TEXTURE ───────────────────────────────────────────────────────────
     if (texture > 0.005) {
       const lum_tx = 0.299*r + 0.587*g + 0.114*b;
-      const txW = Math.pow(Math.max(0, 1 - Math.abs(lum_tx - 128) / 128), 0.7);
+      const txW = _txW_LUT[Math.min(1023, (lum_tx / 255 * 1023 + 0.5) | 0)];
       const txBoost = texture * txW;
       r = Math.min(255, Math.max(0, lum_tx + (r - lum_tx) * (1 + txBoost * 0.8)));
       g = Math.min(255, Math.max(0, lum_tx + (g - lum_tx) * (1 + txBoost * 0.8)));
@@ -10190,14 +10293,14 @@ function applyPixelAdjustments(srcData, adj, resScale) {
           const norm = dist / (ch.width / 2);
           // Very soft Gaussian (0.18) for smooth hue transitions — lum
           // changes are especially sensitive so we need a wide, gradual falloff.
-          const weight = Math.exp(-norm * norm * 0.18);
+          const weight = _weight_LUT[Math.min(1023, (norm / 8 * 1023 + 0.5) | 0)];
           if (weight < 0.002) continue;
           if (ch.sat && Math.abs(ch.sat) > 0.005) {
             let satContrib = ch.sat * weight * 0.62;
             // colorGlow: concentrate positive saturation boost in upper midtones (lum ~0.62)
             // creates wet/bronzed glow on bright skin — shadows stay rich, highlights pop
             if (colorGlow > 0.001 && ch.sat > 0) {
-              const glowBell = Math.exp(-Math.pow((ll2 - 0.62) / 0.16, 2));
+              const glowBell = _glowBell_LUT[Math.min(1023, (ll2 * 1023 + 0.5) | 0)];
               satContrib *= (1 - colorGlow) + colorGlow * glowBell * 2.5;
             }
             totalSatAdj += satContrib;
@@ -10242,7 +10345,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
         if (hd_sl < 42) {
           const ll_sl=(cmx_sl+cmn_sl)/2;
           // Only midtones: bell peaking at lum 0.55
-          const lumW_sl=Math.exp(-Math.pow((ll_sl-0.55)/0.18,2));
+          const lumW_sl=_lumW_sl_LUT[Math.min(1023, (ll_sl * 1023 + 0.5) | 0)];
           // Only if in midtone band (0.35–0.75)
           if (ll_sl > 0.32 && ll_sl < 0.78) {
             const hueW_sl=Math.max(0,1-hd_sl/42);
@@ -10288,7 +10391,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
         let hd_st=Math.abs(ph_st-23); if(hd_st>180) hd_st=360-hd_st;
         if (hd_st < 35 && ll_st > 0.20 && ll_st < 0.82 && ss_st > 0.06) {
           const hueW_st=Math.max(0,1-hd_st/35);
-          const lumW_st=Math.exp(-Math.pow((ll_st-0.49)/0.24,2));
+          const lumW_st=_lumW_st_LUT[Math.min(1023, (ll_st * 1023 + 0.5) | 0)];
           const satW_st=Math.min(1,(ss_st-0.06)/0.12);
           const str=skinTone*hueW_st*lumW_st*satW_st;
           if (Math.abs(str) > 0.001) {
@@ -10313,7 +10416,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
 
       // Shadows: full strength at pure black, zero at lum 0.45
       if (st.shadows && st.shadows.a > 0 && lumN < 0.45) {
-        const sw = Math.pow((0.45 - lumN) / 0.45, 0.75);
+        const sw = _sw_LUT[Math.min(1023, (lumN * 1023 + 0.5) | 0)];
         const str = st.shadows.a * sw;
         r = Math.min(255, Math.max(0, r + (st.shadows.r - r) * str));
         g = Math.min(255, Math.max(0, g + (st.shadows.g - g) * str));
@@ -10334,7 +10437,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
       // Highlights: starts at lum 0.70, full strength at lum 0.95+
       // Power curve so it ramps steeply in the brightest zone
       if (st.highlights && st.highlights.a > 0 && lumN > 0.70) {
-        const hw = Math.pow((lumN - 0.70) / 0.30, 1.4);
+        const hw = _hw_LUT[Math.min(1023, (lumN * 1023 + 0.5) | 0)];
         const str = st.highlights.a * Math.min(1, hw);
         r = Math.min(255, Math.max(0, r + (st.highlights.r - r) * str));
         g = Math.min(255, Math.max(0, g + (st.highlights.g - g) * str));
@@ -10363,7 +10466,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
 
       // Toe: fires in deep shadows (lum 0 to 0.18), peaks at pure black
       if (fc.toe && lumFC < 0.18) {
-        const toeW = Math.pow((0.18 - lumFC) / 0.18, 1.2);
+        const toeW = _toeW_LUT[Math.min(1023, (lumFC * 1023 + 0.5) | 0)];
         const toeStr = (fc.toe.strength || 0.5) * toeW * 40;
         r = Math.min(255, Math.max(0, r + (fc.toe.r || 0) * toeStr));
         g = Math.min(255, Math.max(0, g + (fc.toe.g || 0) * toeStr));
@@ -10372,7 +10475,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
 
       // Shoulder: fires in bright highlights (lum 0.82 to 1.0), peaks at white
       if (fc.shoulder && lumFC > 0.82) {
-        const shoulderW = Math.pow((lumFC - 0.82) / 0.18, 1.2);
+        const shoulderW = _shoulderW_LUT[Math.min(1023, (lumFC * 1023 + 0.5) | 0)];
         const shoulderStr = (fc.shoulder.strength || 0.5) * shoulderW * 40;
         r = Math.min(255, Math.max(0, r + (fc.shoulder.r || 0) * shoulderStr));
         g = Math.min(255, Math.max(0, g + (fc.shoulder.g || 0) * shoulderStr));

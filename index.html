@@ -11432,11 +11432,14 @@ function applyDuotone(canvas, colorA, colorB, strength, offX, offY, imgW, imgH) 
    and cannot reference these helpers. */
 var ZGRAIN = {
   amount:      90,    // amplitude in 0-255 units at adj.grain = 1.0
-  cellRef:     820,   // output long-edge that maps to a 1px grain cell
+  cellRef:     1600,  // output long-edge that maps to a 1px grain cell
   chroma:      0.42,  // R/B decorrelation (0 = monochrome grain)
   shadowFloor: 0.30,  // grain kept in shadows — film keeps it, sensor noise doesn't
-  fine:        3.5,   // 2nd octave cell divisor — higher = finer speckle
-  fineWeight:  0.50   // 0 = single octave (soft clumps), 0.5 = crisp grit
+  fine:        3.5,   // 2nd octave divisor. NOTE: cell2 = max(1, cell/fine)
+                      // clamps to 1px whenever cell < 3.5, which makes the
+                      // octave pure per-pixel noise rather than fine grain.
+                      // Left disabled via fineWeight until that is reworked.
+  fineWeight:  0.00   // 0 = single octave (soft clumps), 0.5 = crisp grit
 };
 
 function _zgHash(x, y, seed) {

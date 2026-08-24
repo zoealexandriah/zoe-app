@@ -14839,7 +14839,7 @@ function _evDoSave() {
   // PROXY: run the entire effect pipeline on an 800px working canvas,
   // then GPU-upscale to 2400px for the final save. This is how every
   // real photo app works — effects run fast, output stays full resolution.
-  var PROXY = 800;
+  var PROXY = 2400;
   var EXPORT = 2400;
   var proxyScale = Math.min(1, PROXY / Math.max(nw, nh));
   var pw = Math.round(nw * proxyScale), ph = Math.round(nh * proxyScale);

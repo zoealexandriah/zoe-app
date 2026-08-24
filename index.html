@@ -7827,6 +7827,154 @@ const presets = [
       HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
     }
   },
+  {
+    id:'goldleaf', num:'48', name:'Goldleaf', series:'FILM', seriesGroup:'FILM',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#c9a05a', warm:true,
+    halationHue: 34,
+    skinLift: 0.07,
+    colorGlow: 0.05,
+    grainSize: 1.05,
+    hueTempZones: [{ center: 30, halfWidth: 26, warm: 0.08 }],
+    halationBloom: { threshold: 0.72, radius: 18, hue: 32, intensity: 0.11 },
+    shadowTint:    { r: 0.14, g: 0.12, b: 0.10, strength: 0.05 },
+    highlightTint: { r: 0.26, g: 0.21, b: 0.12, strength: 0.04 },
+    matteFade:     { lift: 0.02, rolloff: 0.16 },
+    chromaticAberration: { amount: 0.11, falloff: 0.91 },
+    filmCrossover: {
+      toe:      { r: +0.03, g: -0.01, b: +0.02, strength: 0.40 },
+      shoulder: { r: +0.10, g: +0.04, b: -0.12, strength: 0.52 }
+    },
+    splitTone:{
+      shadows:    {r:88,  g:78,  b:70,  a:0.07},
+      midtones:   {r:190, g:165, b:130, a:0.03},
+      highlights: {r:255, g:238, b:200, a:0.09}
+    },
+    curve:{
+      r: [[0,17],[16,21],[32,30],[48,43],[64,58],[96,93],[128,130],[160,164],[192,207],[224,236],[255,255]],
+      g: [[0,16],[16,21],[32,27],[48,35],[64,45],[96,69],[128,96],[160,127],[192,179],[224,237],[255,255]],
+      b: [[0,15],[16,20],[32,28],[48,40],[64,49],[96,70],[128,96],[160,113],[192,146],[224,204],[255,255]]
+    },
+    defaults:{
+      EXPOSURE:0.500, CONTRAST:0.500, HIGHLIGHTS:0.500, SHADOWS:0.500,
+      WHITES:0.500, BLACKS:0.500, TEMPERATURE:0.500, TINT:0.500,
+      VIBRANCE:0.502, SATURATION:0.502,
+      GLOW:0.03, GRAIN:0.27, SHARPEN:0.0, CLARITY:0.05, BLUR:0.0, FADE:0.0,
+      TEXTURE:0.11, DIFFUSION:0.03,
+      SAT_REDS:0.500, SAT_ORANGES:0.500, SAT_YELLOWS:0.500,
+      SAT_GREENS:0.500, SAT_BLUES:0.500, SAT_PURPLES:0.500, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
+      HUE_GREENS:0.500, HUE_BLUES:0.500, HUE_PURPLES:0.500,
+      LUM_REDS:0.500, LUM_ORANGES:0.500, LUM_YELLOWS:0.500,
+      LUM_GREENS:0.500, LUM_BLUES:0.500, LUM_PURPLES:0.500,
+      VIGNETTE:0.10, HALATION:0.13,
+      MATTE_LIFT:0.00, DEHAZE:0.50
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'+0.00',PUSH_PULL:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.00',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.00',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
+      COLOR:{TEMPERATURE:'+0.00',TINT:'+0.00',VIBRANCE:'+0.00',SATURATION:'+0.00'},
+      EFFECTS:{GLOW:'+0.03',GRAIN:'+0.27',SHARPEN:'+0.00',CLARITY:'+0.05',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.11',DIFFUSION:'+0.03',HALATION:'+0.13',VIGNETTE:'+0.10'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
+    }
+  },
+  {
+    id:'scarletfield', num:'49', name:'Scarlet Field', series:'DARK', seriesGroup:'DARK',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#c02a1e', warm:true,
+    halationHue: 8,
+    skinLift: 0.03,
+    colorGlow: 0.07,
+    grainSize: 1.20,
+    halationBloom: { threshold: 0.66, radius: 22, hue: 10, intensity: 0.16 },
+    shadowTint:    { r: 0.24, g: 0.06, b: 0.05, strength: 0.07 },
+    highlightTint: { r: 0.26, g: 0.22, b: 0.12, strength: 0.04 },
+    matteFade:     { lift: 0.02, rolloff: 0.22 },
+    chromaticAberration: { amount: 0.17, falloff: 0.88 },
+    filmCrossover: {
+      toe:      { r: +0.12, g: -0.08, b: -0.06, strength: 0.60 },
+      shoulder: { r: +0.05, g: +0.04, b: -0.14, strength: 0.50 }
+    },
+    splitTone:{
+      shadows:    {r:110, g:34,  b:30,  a:0.10},
+      midtones:   {r:200, g:80,  b:70,  a:0.04},
+      highlights: {r:255, g:236, b:190, a:0.08}
+    },
+    curve:{
+      r: [[0,10],[16,21],[32,36],[48,57],[64,79],[96,128],[128,173],[160,194],[192,220],[224,231],[255,241]],
+      g: [[0,8],[16,15],[32,23],[48,29],[64,35],[96,44],[128,49],[160,75],[192,112],[224,169],[255,222]],
+      b: [[0,7],[16,15],[32,23],[48,30],[64,36],[96,48],[128,60],[160,72],[192,87],[224,106],[255,171]]
+    },
+    defaults:{
+      EXPOSURE:0.500, CONTRAST:0.500, HIGHLIGHTS:0.500, SHADOWS:0.500,
+      WHITES:0.500, BLACKS:0.500, TEMPERATURE:0.500, TINT:0.500,
+      VIBRANCE:0.498, SATURATION:0.498,
+      GLOW:0.04, GRAIN:0.30, SHARPEN:0.0, CLARITY:0.04, BLUR:0.0, FADE:0.0,
+      TEXTURE:0.12, DIFFUSION:0.04,
+      SAT_REDS:0.500, SAT_ORANGES:0.500, SAT_YELLOWS:0.500,
+      SAT_GREENS:0.500, SAT_BLUES:0.500, SAT_PURPLES:0.500, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
+      HUE_GREENS:0.500, HUE_BLUES:0.500, HUE_PURPLES:0.500,
+      LUM_REDS:0.500, LUM_ORANGES:0.500, LUM_YELLOWS:0.500,
+      LUM_GREENS:0.500, LUM_BLUES:0.500, LUM_PURPLES:0.500,
+      VIGNETTE:0.16, HALATION:0.18,
+      MATTE_LIFT:0.00, DEHAZE:0.50
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'+0.00',PUSH_PULL:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.00',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.00',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
+      COLOR:{TEMPERATURE:'+0.00',TINT:'+0.00',VIBRANCE:'+0.00',SATURATION:'+0.00'},
+      EFFECTS:{GLOW:'+0.04',GRAIN:'+0.30',SHARPEN:'+0.00',CLARITY:'+0.04',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.12',DIFFUSION:'+0.04',HALATION:'+0.18',VIGNETTE:'+0.16'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
+    }
+  },
+  {
+    id:'lowtide', num:'50', name:'Low Tide', series:'DARK', seriesGroup:'DARK',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#6a6a66', warm:false,
+    halationHue: 30,
+    skinLift: 0.08,
+    colorGlow: 0.03,
+    grainSize: 0.90,
+    halationBloom: { threshold: 0.78, radius: 14, hue: 28, intensity: 0.07 },
+    shadowTint:    { r: 0.16, g: 0.12, b: 0.16, strength: 0.05 },
+    highlightTint: { r: 0.20, g: 0.19, b: 0.18, strength: 0.03 },
+    matteFade:     { lift: 0.02, rolloff: 0.24 },
+    chromaticAberration: { amount: 0.09, falloff: 0.93 },
+    filmCrossover: {
+      toe:      { r: +0.04, g: -0.05, b: +0.03, strength: 0.45 },
+      shoulder: { r: +0.03, g: +0.01, b: -0.02, strength: 0.35 }
+    },
+    splitTone:{
+      shadows:    {r:86,  g:76,  b:84,  a:0.08},
+      midtones:   {r:150, g:145, b:145, a:0.03},
+      highlights: {r:214, g:208, b:200, a:0.07}
+    },
+    curve:{
+      r: [[0,17],[16,23],[32,32],[48,43],[64,52],[96,72],[128,98],[160,119],[192,150],[224,186],[255,203]],
+      g: [[0,12],[16,15],[32,22],[48,30],[64,38],[96,55],[128,77],[160,106],[192,143],[224,177],[255,194]],
+      b: [[0,16],[16,22],[32,31],[48,41],[64,51],[96,66],[128,89],[160,112],[192,142],[224,171],[255,192]]
+    },
+    defaults:{
+      EXPOSURE:0.500, CONTRAST:0.500, HIGHLIGHTS:0.500, SHADOWS:0.500,
+      WHITES:0.500, BLACKS:0.500, TEMPERATURE:0.500, TINT:0.500,
+      VIBRANCE:0.488, SATURATION:0.492,
+      GLOW:0.02, GRAIN:0.24, SHARPEN:0.0, CLARITY:0.03, BLUR:0.0, FADE:0.0,
+      TEXTURE:0.08, DIFFUSION:0.03,
+      SAT_REDS:0.500, SAT_ORANGES:0.500, SAT_YELLOWS:0.500,
+      SAT_GREENS:0.500, SAT_BLUES:0.500, SAT_PURPLES:0.500, HUE_SHIFT:0.500,
+      HUE_REDS:0.500, HUE_ORANGES:0.500, HUE_YELLOWS:0.500,
+      HUE_GREENS:0.500, HUE_BLUES:0.500, HUE_PURPLES:0.500,
+      LUM_REDS:0.500, LUM_ORANGES:0.500, LUM_YELLOWS:0.500,
+      LUM_GREENS:0.500, LUM_BLUES:0.500, LUM_PURPLES:0.500,
+      VIGNETTE:0.12, HALATION:0.08,
+      MATTE_LIFT:0.00, DEHAZE:0.50
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'+0.00',PUSH_PULL:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.00',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.00',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
+      COLOR:{TEMPERATURE:'+0.00',TINT:'+0.00',VIBRANCE:'-0.02',SATURATION:'-0.02'},
+      EFFECTS:{GLOW:'+0.02',GRAIN:'+0.24',SHARPEN:'+0.00',CLARITY:'+0.03',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.08',DIFFUSION:'+0.03',HALATION:'+0.08',VIGNETTE:'+0.12'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.00',SAT_ORANGES:'+0.00',SAT_YELLOWS:'+0.00',SAT_GREENS:'+0.00',SAT_BLUES:'+0.00',SAT_PURPLES:'+0.00'}
+    }
+  },
 ];
 
 // ══════════════════════════════════════

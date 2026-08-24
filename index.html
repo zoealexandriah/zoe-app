@@ -16845,7 +16845,7 @@ function _evDoSave() {
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       if ((adj.halation    || 0) > 0.01)   applyHalation(proxy, adj.halation, adj.halation_hue||0, 0, 0, pw, ph);
       if (p.halationBloom)                  applyHalationBloom(proxy, p.halationBloom, 0, 0, pw, ph);
-      if (adj.bleeds)                       applyBleeds(proxy, adj.bleeds, 0, 0, pw, ph);
+      if (p.bleeds)                         applyBleeds(proxy, p.bleeds, 0, 0, pw, ph);
       if ((adj.diffusion   || 0) > 0.01)   applyDiffusion(proxy, adj.diffusion, 0, 0, pw, ph);
       if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01)
                                             applyDuotone(proxy, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, pw, ph);
@@ -18571,7 +18571,7 @@ function evSaveAndReturn() {
       if ((adj.mist     || 0) > 0.01) applyMist(off,  adj.mist,      0, 0, iw, ih);
       if ((adj.halation || 0) > 0.01) applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
       if (adj.halationBloom)           applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
-      if (adj.bleeds)                  applyBleeds(off, adj.bleeds, 0, 0, iw, ih);
+      if (p.bleeds)                    applyBleeds(off, p.bleeds, 0, 0, iw, ih);
       if (adj.matteFade)               applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
       if (adj.scanLines)               applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
       if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
@@ -18654,7 +18654,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if ((adj.mist     || 0) > 0.01)   applyMist(off,     adj.mist,      0, 0, w, h);
       if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, w, h);
       if (adj.halationBloom)             applyHalationBloom(off, adj.halationBloom, 0, 0, w, h);
-      if (adj.bleeds)                    applyBleeds(off, adj.bleeds, 0, 0, w, h);
+      if (p.bleeds)                      applyBleeds(off, p.bleeds, 0, 0, w, h);
       if (adj.matteFade)                 applyMatteFade(off, adj.matteFade, 0, 0, w, h);
       if (adj.scanLines)                 applyScanLines(off, adj.scanLines, 0, 0, w, h);
       if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, w, h);
@@ -18838,7 +18838,7 @@ function _exportEntry(entry, onDone) {
       if ((adj.mist     || 0) > 0.01)         applyMist(off,     adj.mist,      0, 0, iw, ih);
       if ((adj.halation || 0) > 0.01)         applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
       if (adj.halationBloom)                  applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
-      if (adj.bleeds)                         applyBleeds(off, adj.bleeds, 0, 0, iw, ih);
+      if (p.bleeds)                           applyBleeds(off, p.bleeds, 0, 0, iw, ih);
       if (adj.matteFade)                      applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
       if (adj.scanLines)                      applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
       if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);

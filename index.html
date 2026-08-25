@@ -16815,6 +16815,8 @@ function _evDoSave() {
     if (p.highlightTint)             adj.highlight_tint = p.highlightTint;
     if (p.halationHue !== undefined) adj.halation_hue   = p.halationHue;
     if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+    if (p.filmCrossover)       adj.filmCrossover       = p.filmCrossover;
+    if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
     // Grain is applied post-upscale at export resolution, not on the 800px proxy.
     var _exportGrain = adj.grain || 0;
     adj.grain = 0;
@@ -16846,6 +16848,7 @@ function _evDoSave() {
       if ((adj.halation    || 0) > 0.01)   applyHalation(proxy, adj.halation, adj.halation_hue||0, 0, 0, pw, ph);
       if (p.halationBloom)                  applyHalationBloom(proxy, p.halationBloom, 0, 0, pw, ph);
       if (p.bleeds)                         applyBleeds(proxy, p.bleeds, 0, 0, pw, ph);
+      if (adj.chromaticAberration)          applyChromaticAberration(proxy, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, pw, ph);
       if ((adj.diffusion   || 0) > 0.01)   applyDiffusion(proxy, adj.diffusion, 0, 0, pw, ph);
       if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01)
                                             applyDuotone(proxy, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, pw, ph);
@@ -17201,6 +17204,8 @@ function _evRenderCanvasImmediate() {
       if (activePreset.shadowTint) adj.shadow_tint = activePreset.shadowTint;
       if (activePreset.highlightTint) adj.highlight_tint = activePreset.highlightTint;
       if (activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
+      if (activePreset.filmCrossover)       adj.filmCrossover       = activePreset.filmCrossover;
+      if (activePreset.chromaticAberration) adj.chromaticAberration = activePreset.chromaticAberration;
     }
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var _evGrain = adj.grain || 0;
@@ -17259,6 +17264,10 @@ function _evRenderCanvasImmediate() {
         _hbCtx2.restore();
       }
     }
+    if (activePreset && activePreset.bleeds)
+      applyBleeds(canvas, activePreset.bleeds, 0, 0, canvas.width, canvas.height);
+    if (adj.chromaticAberration)
+      applyChromaticAberration(canvas, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, canvas.width, canvas.height);
     if ((adj.diffusion || 0) > 0.01) applyDiffusion(canvas, adj.diffusion, 0, 0, canvas.width, canvas.height);
     if (!_dragging) {
       if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, canvas.width, canvas.height);

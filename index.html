@@ -10360,7 +10360,6 @@ function doRender(presetId) {
   if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
   adj.curve = p.curve || null;
   adj.halationBloom = p.halationBloom || null;
-  if (p.matteFade) adj.matteFade = p.matteFade;
   if (p.scanLines) adj.scanLines = p.scanLines;
   if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
   if (p.filmCrossover) adj.filmCrossover = p.filmCrossover;
@@ -12973,7 +12972,6 @@ function renderWithAdjustments(canvas, adj) {
   if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, _origOffX, _origOffY, _origW, _origH);
   if (adj.halationBloom) applyHalationBloom(canvas, adj.halationBloom, _origOffX, _origOffY, _origW, _origH);
   if (adj.bleeds) applyBleeds(canvas, adj.bleeds, _origOffX, _origOffY, _origW, _origH);
-  if (adj.matteFade) applyMatteFade(canvas, adj.matteFade, _origOffX, _origOffY, _origW, _origH);
   if (adj.scanLines) applyScanLines(canvas, adj.scanLines, _origOffX, _origOffY, _origW, _origH);
   if (adj.chromaticAberration) applyChromaticAberration(canvas, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, _origOffX, _origOffY, _origW, _origH);
   if (adj.vhsBleed) applyVHSBleed(canvas, adj.vhsBleed.intensity || 8, _origOffX, _origOffY, _origW, _origH);
@@ -13192,25 +13190,6 @@ function applyScanLines(canvas, params, offX, offY, imgW, imgH) {
     ctx.fillRect(offX, y, imgW, spacing);
   }
   ctx.restore();
-}
-
-// ── MATTE FADE: organic highlight rolloff ─────────────────────────────────
-function applyMatteFade(canvas, params, offX, offY, imgW, imgH) {
-  if (!params || !params.lift || params.lift < 0.001) return;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  const orig = ctx.getImageData(offX, offY, imgW, imgH);
-  const od = orig.data;
-  const lift = params.lift || 0.08;       // shadow floor lift (0–0.3)
-  const rolloff = params.rolloff || 0.85; // highlight ceiling (0.7–1.0)
-  const blackFloor = lift * 255;
-  const whiteCeil  = rolloff * 255;
-  const range = whiteCeil - blackFloor;
-  for (let i = 0; i < od.length; i += 4) {
-    od[i]   = blackFloor + (od[i]   / 255) * range;
-    od[i+1] = blackFloor + (od[i+1] / 255) * range;
-    od[i+2] = blackFloor + (od[i+2] / 255) * range;
-  }
-  ctx.putImageData(orig, offX, offY);
 }
 
 function applyDiffusion(canvas, amount, offX, offY, imgW, imgH, resScale) {
@@ -18591,7 +18570,6 @@ function evSaveAndReturn() {
       if ((adj.halation || 0) > 0.01) applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
       if (adj.halationBloom)           applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
       if (p.bleeds)                    applyBleeds(off, p.bleeds, 0, 0, iw, ih);
-      if (adj.matteFade)               applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
       if (adj.scanLines)               applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
       if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
@@ -18674,7 +18652,6 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, w, h);
       if (adj.halationBloom)             applyHalationBloom(off, adj.halationBloom, 0, 0, w, h);
       if (p.bleeds)                      applyBleeds(off, p.bleeds, 0, 0, w, h);
-      if (adj.matteFade)                 applyMatteFade(off, adj.matteFade, 0, 0, w, h);
       if (adj.scanLines)                 applyScanLines(off, adj.scanLines, 0, 0, w, h);
       if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, w, h);
       if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
@@ -18858,7 +18835,6 @@ function _exportEntry(entry, onDone) {
       if ((adj.halation || 0) > 0.01)         applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
       if (adj.halationBloom)                  applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
       if (p.bleeds)                           applyBleeds(off, p.bleeds, 0, 0, iw, ih);
-      if (adj.matteFade)                      applyMatteFade(off, adj.matteFade, 0, 0, iw, ih);
       if (adj.scanLines)                      applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
       if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                       applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);

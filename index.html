@@ -10089,6 +10089,49 @@ const presets = [
       EFFECTS:{GLOW:'+0.02',GRAIN:'+0.12',SHARPEN:'+0.00',CLARITY:'+0.03',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.08',DIFFUSION:'+0.00',HALATION:'+0.04',VIGNETTE:'+0.05'},
       HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.05',SAT_ORANGES:'+0.05',SAT_YELLOWS:'+0.05',SAT_GREENS:'+0.00',SAT_BLUES:'+0.10',SAT_PURPLES:'+0.04'}
     }
+  },
+  {
+    id:'cabana', num:'100', name:'Cabana', series:'EDITORIAL', seriesGroup:'EDITORIAL',
+    imgKey:'strip_after', heroKey:'strip_after',
+    tint:'none', orbs:[], acc:'#1f7fb8', warm:true,
+    halationHue: 30,
+    skinLift: 0.03,
+    colorGlow: 0.03,
+    grainSize: 0.80,
+    halationBloom: { threshold: 0.78, radius: 12, hue: 32, intensity: 0.05 },
+    shadowTint:    { r: 0.14, g: 0.17, b: 0.21, strength: 0.04 },
+    highlightTint: { r: 0.24, g: 0.23, b: 0.20, strength: 0.05 },
+    splitTone:{
+      shadows:    {r:64,  g:78,  b:96,  a:0.05},
+      midtones:   {r:188, g:166, b:136, a:0.03},
+      highlights: {r:248, g:242, b:228, a:0.05}
+    },
+    curve:{
+      r: [[0,12],[16,28],[32,45],[48,61],[64,77],[96,109],[128,137],[160,163],[192,189],[224,216],[255,244]],
+      g: [[0,12],[16,26],[32,41],[48,55],[64,69],[96,99],[128,128],[160,157],[192,186],[224,215],[255,244]],
+      b: [[0,12],[16,25],[32,39],[48,52],[64,65],[96,94],[128,124],[160,155],[192,185],[224,215],[255,244]]
+    },
+    defaults:{
+      EXPOSURE:0.500, CONTRAST:0.500, HIGHLIGHTS:0.500, SHADOWS:0.500,
+      WHITES:0.500, BLACKS:0.500, TEMPERATURE:0.500, TINT:0.500,
+      VIBRANCE:0.530, SATURATION:0.500,
+      GLOW:0.03, GRAIN:0.12, SHARPEN:0.0, CLARITY:0.05, BLUR:0.0, FADE:0.0,
+      TEXTURE:0.09, DIFFUSION:0.0,
+      SAT_REDS:0.570, SAT_ORANGES:0.565, SAT_YELLOWS:0.570,
+      SAT_GREENS:0.520, SAT_BLUES:0.580, SAT_PURPLES:0.500, HUE_SHIFT:0.500,
+      HUE_REDS:0.617, HUE_ORANGES:0.600, HUE_YELLOWS:0.542,
+      HUE_GREENS:0.500, HUE_BLUES:0.333, HUE_PURPLES:0.500,
+      LUM_REDS:0.500, LUM_ORANGES:0.500, LUM_YELLOWS:0.500,
+      LUM_GREENS:0.500, LUM_BLUES:0.500, LUM_PURPLES:0.500,
+      VIGNETTE:0.08, HALATION:0.05,
+      MATTE_LIFT:0.00, DEHAZE:0.50
+    },
+    sliders:{
+      LIGHT:{EXPOSURE:'+0.00',PUSH_PULL:'+0.00',CONTRAST:'+0.00',HIGHLIGHTS:'+0.00',SHADOWS:'+0.00',WHITES:'+0.00',BLACKS:'+0.00',MATTE_LIFT:'+0.00',DEHAZE:'+0.00'},
+      COLOR:{TEMPERATURE:'+0.00',TINT:'+0.00',VIBRANCE:'+0.06',SATURATION:'+0.00'},
+      EFFECTS:{GLOW:'+0.03',GRAIN:'+0.12',SHARPEN:'+0.00',CLARITY:'+0.05',BLUR:'+0.00',FADE:'+0.00',TEXTURE:'+0.09',DIFFUSION:'+0.00',HALATION:'+0.05',VIGNETTE:'+0.08'},
+      HSL:{HUE_SHIFT:'0°',SAT_REDS:'+0.14',SAT_ORANGES:'+0.13',SAT_YELLOWS:'+0.14',SAT_GREENS:'+0.04',SAT_BLUES:'+0.16',SAT_PURPLES:'+0.00'}
+    }
   }
 ];
 

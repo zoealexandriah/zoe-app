@@ -11083,6 +11083,7 @@ function doRender(presetId) {
   if (p.filmCrossover) adj.filmCrossover = p.filmCrossover;
   if (p.vhsBleed) adj.vhsBleed = p.vhsBleed;
   if (p.bleeds) adj.bleeds = p.bleeds;
+  if (p.border) adj.border = p.border;
 
   // Update hero canvas if user has image loaded
   if (userImage && activePreset && activePreset.id === presetId) {
@@ -13699,6 +13700,7 @@ function renderWithAdjustments(canvas, adj) {
   if ((adj.vignette || 0) > 0.01) {
     applyVignette(canvas, adj.vignette, _origOffX, _origOffY, _origW, _origH);
   }
+  if (adj.border) applyBorder(canvas, adj.border, _origOffX, _origOffY, _origW, _origH);
 }
 
 // ── CHROMATIC ABERRATION: RGB channel shift ───────────────────────────────
@@ -14138,6 +14140,21 @@ function applyVignette(canvas, amount, offX, offY, imgW, imgH) {
   vig.addColorStop(1, `rgba(0,0,0,${Math.min(0.85, amount * 0.75)})`);
   ctx.fillStyle = vig;
   ctx.fillRect(offX, offY, imgW, imgH);
+}
+
+function applyBorder(canvas, params, offX, offY, imgW, imgH) {
+  if (!params || !params.width || params.width < 0.001) return;
+  const ctx = canvas.getContext('2d');
+  const c = params.color || '236,232,226';
+  const w = Math.round(Math.min(imgW, imgH) * params.width);
+  if (w < 1) return;
+  ctx.save();
+  ctx.fillStyle = `rgba(${c},${params.opacity != null ? params.opacity : 1})`;
+  ctx.fillRect(offX, offY, imgW, w);
+  ctx.fillRect(offX, offY + imgH - w, imgW, w);
+  ctx.fillRect(offX, offY, w, imgH);
+  ctx.fillRect(offX + imgW - w, offY, w, imgH);
+  ctx.restore();
 }
 
 // ── Load new image: capture original, render clean ────────────────────────
@@ -17516,6 +17533,7 @@ function _evDoSave() {
     if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
     if (p.scanLines) adj.scanLines = p.scanLines;
     if (p.vhsBleed)  adj.vhsBleed  = p.vhsBleed;
+    if (p.border)    adj.border    = p.border;
     // Grain is applied post-upscale at export resolution, not on the 800px proxy.
     var _exportGrain = adj.grain || 0;
     adj.grain = 0;
@@ -17573,6 +17591,7 @@ function _evDoSave() {
           proxy = _gUp;
         }
       }
+      if (adj.border) applyBorder(proxy, adj.border, 0, 0, proxy.width, proxy.height);
       var _isARCExport = _fxFrameVariant2 && _fxFrameVariant2.indexOf('arc-') === 0;
       if (_isARCExport) { fxCompositeArchiveExport(proxy, _fxFrameVariant2, ew, eh, _doSaveBlob); return; }
       var _isLBExport = _fxFrameVariant2 && _fxFrameVariant2.indexOf('lb-') === 0;
@@ -17909,6 +17928,7 @@ function _evRenderCanvasImmediate() {
       if (activePreset.chromaticAberration) adj.chromaticAberration = activePreset.chromaticAberration;
       if (activePreset.scanLines) adj.scanLines = activePreset.scanLines;
       if (activePreset.vhsBleed)  adj.vhsBleed  = activePreset.vhsBleed;
+      if (activePreset.border)    adj.border    = activePreset.border;
     }
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var _evGrain = adj.grain || 0;
@@ -17985,6 +18005,7 @@ function _evRenderCanvasImmediate() {
   if (typeof _evGrain !== 'undefined' && _evGrain > 0.005) {
     applyFilmGrain(canvas, _evGrain, ((_evCurPreset && _evCurPreset.grainSize) || 1));
   }
+  if (adj.border) applyBorder(canvas, adj.border, 0, 0, canvas.width, canvas.height);
   if (blemishSpots && blemishSpots.length > 0) applyBlemishHeal(canvas, blemishSpots, 0, 0, canvas.width, canvas.height);
   if (typeof _blemishSyncOverlay === 'function') _blemishSyncOverlay();
   /* FX frame overlay — drawn on top of everything */
@@ -19293,6 +19314,7 @@ function evSaveAndReturn() {
       if (adj.vhsBleed)                applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
     }
+    if (adj.border) applyBorder(off, adj.border, 0, 0, iw, ih);
     var dataURL = off.toDataURL('image/jpeg', 0.93);
     var img = new Image();
     img.onload = function() {
@@ -19375,6 +19397,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
     }
+    if (adj.border) applyBorder(off, adj.border, 0, 0, w, h);
     // Apply FX frame/letterbox from saved fxState
     var _savedFxSt = entry.editState && entry.editState.fxState;
     var _fxFV = _savedFxSt && _savedFxSt.frames ? _savedFxSt.frames.variant : null;
@@ -19558,6 +19581,7 @@ function _exportEntry(entry, onDone) {
       if (adj.vhsBleed)                       applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01)         applyVignette(off, adj.vignette, 0, 0, iw, ih);
     }
+    if (adj.border) applyBorder(off, adj.border, 0, 0, iw, ih);
     const a = document.createElement('a');
     a.download = name + '.jpg';
     a.href = off.toDataURL('image/jpeg', 0.95);
@@ -19954,6 +19978,7 @@ window.exportDownload = function() {
     if (adjObj.duotone_a && adjObj.duotone_b && (adjObj.duotone_strength || 0) > 0.01)
       applyDuotone(off, adjObj.duotone_a, adjObj.duotone_b, adjObj.duotone_strength, 0, 0, iw, ih);
     if ((adjObj.vignette  || 0) > 0.01)   applyVignette(off, adjObj.vignette, 0, 0, iw, ih);
+    if (adjObj.border)                    applyBorder(off, adjObj.border, 0, 0, iw, ih);
   }
 
   function _doModalDownload() {
@@ -21714,6 +21739,7 @@ function _etApplyAdjCanvas(c) {
   if ((adj.glow || 0) > 0.01) applyGlow(c, adj.glow, 0, 0, c.width, c.height);
   if ((adj.mist || 0) > 0.01) applyMist(c, adj.mist, 0, 0, c.width, c.height);
   if ((adj.vignette || 0) > 0.01) applyVignette(c, adj.vignette, 0, 0, c.width, c.height);
+  if (adj.border) applyBorder(c, adj.border, 0, 0, c.width, c.height);
 }
 
 function _etApplyFxOverlay(c) {

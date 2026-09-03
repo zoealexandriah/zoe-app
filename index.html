@@ -16760,10 +16760,10 @@ function etCropHTML() {
     <div class="crop-sub-content" id="crop-sub-straighten"${_st!=='straighten'?' style="display:none"':''}>
       <div class="crop-sub-row" style="margin-top:10px">
         <span class="crop-sub-label">Amount</span>
-        <span class="crop-sub-val" id="crop-straighten-val">0.00</span>
+        <span class="crop-sub-val" id="crop-straighten-val">${(typeof _cropStraightenVal !== 'undefined' && _cropStraightenVal) ? parseFloat(_cropStraightenVal).toFixed(2) : '0.00'}</span>
       </div>
       <input type="range" class="tc-range" id="crop-straighten-slider"
-             min="-45" max="45" step="0.1" value="0"
+             min="-45" max="45" step="0.1" value="${(typeof _cropStraightenVal !== 'undefined' && _cropStraightenVal) ? _cropStraightenVal : 0}"
              oninput="cropStraightenPreview(this.value);cropSubTabExpandStraighten()">
     </div>
     <div class="crop-sub-content" id="crop-sub-ratio" style="display:${_st==='ratio'?'block':'none'};padding-left:4px;padding-right:4px">
@@ -20734,6 +20734,7 @@ function _cropExitMode() {
   // Always remove crop overlay canvas so it doesn't persist across sessions
   var _covExit = document.getElementById('crop-overlay-canvas');
   if (_covExit) _covExit.remove();
+  if (typeof _etCropDefaultTab !== 'undefined') _etCropDefaultTab = 'straighten';
   var edV = document.getElementById('editor-view');
   if (edV) {
     edV.classList.remove('crop-mode');
@@ -20956,6 +20957,7 @@ function cropSelectSubTab(btn, tab) {
   if (_csBar) _csBar.classList.remove('crop-expanded');
   document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
+  if (typeof _etCropDefaultTab !== 'undefined') _etCropDefaultTab = tab;
   // Snapshot entry state so X can fully revert this tab's session
   if (tab === 'transform') {
     _cropRotateEntryImg = userImage;
@@ -20965,6 +20967,10 @@ function cropSelectSubTab(btn, tab) {
       v:   (typeof _perspBaseV   !== 'undefined') ? _perspBaseV   : 0,
       h:   (typeof _perspBaseH   !== 'undefined') ? _perspBaseH   : 0
     };
+    // Preload warp origin so first slider move renders instantly without async flicker
+    if (typeof _perspBaseURL !== 'undefined' && _perspBaseURL && typeof _etPerspOrigImg !== 'undefined' && !_etPerspOrigImg) {
+      var _preImg = new Image(); _preImg.onload = function() { _etPerspOrigImg = _preImg; }; _preImg.src = _perspBaseURL;
+    }
   }
   var ov = document.getElementById('crop-overlay-canvas');
   if (tab !== 'ratio' && cropRect && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM') {
@@ -21322,7 +21328,6 @@ function _cropPerspFlush(onFlush) {
   if (!sc || !sc.width) { if (onFlush) onFlush(); return; }
   var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
   if (!ac) { sc.remove(); return; }
-  ac.style.opacity = '1';
   // Autocrop: analytically compute inscribed rectangle from slider values.
   // Alpha-scanning fails for keystone because the wide edge spans full canvas width,
   // making the bounding box always equal to the full canvas.

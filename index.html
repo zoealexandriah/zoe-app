@@ -19443,8 +19443,8 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, w, h);
       if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
+      if (adj.border)                    applyBorder(off, adj.border, 0, 0, w, h);
     }
-    if (adj.border) applyBorder(off, adj.border, 0, 0, w, h);
     // Apply FX frame/letterbox from saved fxState
     var _savedFxSt = entry.editState && entry.editState.fxState;
     var _fxFV = _savedFxSt && _savedFxSt.frames ? _savedFxSt.frames.variant : null;

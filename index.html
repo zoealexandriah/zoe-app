@@ -10998,6 +10998,7 @@ function doRender(presetId) {
   if (p.filmCrossover) adj.filmCrossover = p.filmCrossover;
   if (p.vhsBleed) adj.vhsBleed = p.vhsBleed;
   if (p.bleeds) adj.bleeds = p.bleeds;
+  if (p.textureOverlay) adj.textureOverlay = p.textureOverlay;
   if (p.border) adj.border = p.border;
 
   // Update hero canvas if user has image loaded
@@ -13615,6 +13616,7 @@ function renderWithAdjustments(canvas, adj) {
   if ((adj.vignette || 0) > 0.01) {
     applyVignette(canvas, adj.vignette, _origOffX, _origOffY, _origW, _origH);
   }
+  if (adj.textureOverlay) applyTextureOverlay(canvas, adj.textureOverlay, _origOffX, _origOffY, _origW, _origH);
   if (adj.border) applyBorder(canvas, adj.border, _origOffX, _origOffY, _origW, _origH);
 }
 
@@ -14055,6 +14057,33 @@ function applyVignette(canvas, amount, offX, offY, imgW, imgH) {
   vig.addColorStop(1, `rgba(0,0,0,${Math.min(0.85, amount * 0.75)})`);
   ctx.fillStyle = vig;
   ctx.fillRect(offX, offY, imgW, imgH);
+}
+
+const _texCache = {};
+function loadTexture(file) {
+  if (_texCache[file]) return _texCache[file];
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = 'assets/textures/' + file;
+  _texCache[file] = img;
+  return img;
+}
+function applyTextureOverlay(canvas, params, offX, offY, imgW, imgH) {
+  if (!params || !params.file || !(params.opacity > 0.005)) return;
+  const img = loadTexture(params.file);
+  if (!img.complete || !img.naturalWidth) return;
+  const ctx = canvas.getContext('2d');
+  const s = Math.max(imgW / img.naturalWidth, imgH / img.naturalHeight);
+  const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
+  const dx = offX + (imgW - dw) / 2, dy = offY + (imgH - dh) / 2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(offX, offY, imgW, imgH);
+  ctx.clip();
+  ctx.globalCompositeOperation = params.blend || 'screen';
+  ctx.globalAlpha = params.opacity;
+  ctx.drawImage(img, dx, dy, dw, dh);
+  ctx.restore();
 }
 
 function applyBorder(canvas, params, offX, offY, imgW, imgH) {
@@ -17412,6 +17441,16 @@ function evSaveWithAnimation() {
 
 function _evDoSave() {
   if (!userImage) return;
+  // If the active preset has a texture overlay that hasn't decoded yet, wait for it first
+  // so the exported image includes the texture rather than silently skipping it.
+  var _p = activePreset;
+  if (_p && _p.textureOverlay && _p.textureOverlay.file) {
+    var _tx = loadTexture(_p.textureOverlay.file);
+    if (!_tx.complete || !_tx.naturalWidth) {
+      _tx.onload = _evDoSave;
+      return;
+    }
+  }
   var nw = userImage.naturalWidth, nh = userImage.naturalHeight;
 
   // PROXY: run the entire effect pipeline on an 800px working canvas,
@@ -17464,6 +17503,7 @@ function _evDoSave() {
     if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
     if (p.scanLines) adj.scanLines = p.scanLines;
     if (p.vhsBleed)  adj.vhsBleed  = p.vhsBleed;
+    if (p.textureOverlay) adj.textureOverlay = p.textureOverlay;
     if (p.border)       adj.border       = p.border;
     // Grain is applied post-upscale at export resolution, not on the 800px proxy.
     var _exportGrain = adj.grain || 0;
@@ -17522,6 +17562,7 @@ function _evDoSave() {
           proxy = _gUp;
         }
       }
+      if (adj.textureOverlay) applyTextureOverlay(proxy, adj.textureOverlay, 0, 0, proxy.width, proxy.height);
       if (adj.border) applyBorder(proxy, adj.border, 0, 0, proxy.width, proxy.height);
       var _isARCExport = _fxFrameVariant2 && _fxFrameVariant2.indexOf('arc-') === 0;
       if (_isARCExport) { fxCompositeArchiveExport(proxy, _fxFrameVariant2, ew, eh, _doSaveBlob); return; }
@@ -17859,6 +17900,7 @@ function _evRenderCanvasImmediate() {
       if (activePreset.chromaticAberration) adj.chromaticAberration = activePreset.chromaticAberration;
       if (activePreset.scanLines) adj.scanLines = activePreset.scanLines;
       if (activePreset.vhsBleed)  adj.vhsBleed  = activePreset.vhsBleed;
+      if (activePreset.textureOverlay) adj.textureOverlay = activePreset.textureOverlay;
       if (activePreset.border)       adj.border       = activePreset.border;
     }
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -17936,6 +17978,7 @@ function _evRenderCanvasImmediate() {
   if (typeof _evGrain !== 'undefined' && _evGrain > 0.005) {
     applyFilmGrain(canvas, _evGrain, ((_evCurPreset && _evCurPreset.grainSize) || 1));
   }
+  if (adj.textureOverlay) applyTextureOverlay(canvas, adj.textureOverlay, 0, 0, canvas.width, canvas.height);
   if (adj.border) applyBorder(canvas, adj.border, 0, 0, canvas.width, canvas.height);
   if (blemishSpots && blemishSpots.length > 0) applyBlemishHeal(canvas, blemishSpots, 0, 0, canvas.width, canvas.height);
   if (typeof _blemishSyncOverlay === 'function') _blemishSyncOverlay();
@@ -18272,6 +18315,12 @@ function evRenderPresets() {
       if (thumbEl) { thumbEl.width=36; thumbEl.height=46; renderPhoto(thumbEl, p.imgKey, p.tint, p.orbs||[], p.acc, p.warm, 'thumb'); }
       // Rebuild editor suite sliders for the new preset
       buildEditorSliders(p);
+      if (p.textureOverlay && p.textureOverlay.file) {
+        const _t = loadTexture(p.textureOverlay.file);
+        if (!_t.complete) _t.onload = function() {
+          if (typeof _evRenderCanvasImmediate === 'function') _evRenderCanvasImmediate();
+        };
+      }
       evRenderCanvas();
     };
     // Use live state checks so hover doesn't get confused after preset changes without a re-render
@@ -19248,6 +19297,7 @@ function evSaveAndReturn() {
       if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
+      if (adj.textureOverlay)          applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
       if (adj.border)                  applyBorder(off, adj.border, 0, 0, iw, ih);
     }
     var dataURL = off.toDataURL('image/jpeg', 0.93);
@@ -19331,6 +19381,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, w, h);
       if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
+      if (adj.textureOverlay)            applyTextureOverlay(off, adj.textureOverlay, 0, 0, w, h);
       if (adj.border)                    applyBorder(off, adj.border, 0, 0, w, h);
     }
     // Apply FX frame/letterbox from saved fxState
@@ -19515,6 +19566,7 @@ function _exportEntry(entry, onDone) {
       if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                       applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01)         applyVignette(off, adj.vignette, 0, 0, iw, ih);
+      if (adj.textureOverlay)                  applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
       if (adj.border)                          applyBorder(off, adj.border, 0, 0, iw, ih);
     }
     const a = document.createElement('a');
@@ -19913,6 +19965,7 @@ window.exportDownload = function() {
     if (adjObj.duotone_a && adjObj.duotone_b && (adjObj.duotone_strength || 0) > 0.01)
       applyDuotone(off, adjObj.duotone_a, adjObj.duotone_b, adjObj.duotone_strength, 0, 0, iw, ih);
     if ((adjObj.vignette  || 0) > 0.01)   applyVignette(off, adjObj.vignette, 0, 0, iw, ih);
+    if (adjObj.textureOverlay)            applyTextureOverlay(off, adjObj.textureOverlay, 0, 0, iw, ih);
     if (adjObj.border)                    applyBorder(off, adjObj.border, 0, 0, iw, ih);
   }
 
@@ -21679,6 +21732,7 @@ function _etApplyAdjCanvas(c) {
   if ((adj.glow || 0) > 0.01) applyGlow(c, adj.glow, 0, 0, c.width, c.height);
   if ((adj.mist || 0) > 0.01) applyMist(c, adj.mist, 0, 0, c.width, c.height);
   if ((adj.vignette || 0) > 0.01) applyVignette(c, adj.vignette, 0, 0, c.width, c.height);
+  if (adj.textureOverlay) applyTextureOverlay(c, adj.textureOverlay, 0, 0, c.width, c.height);
   if (adj.border) applyBorder(c, adj.border, 0, 0, c.width, c.height);
 }
 

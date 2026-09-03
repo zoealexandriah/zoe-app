@@ -5766,6 +5766,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
               <div class="ev-cat-btn" onclick="fxOpenCat('scanlines')" data-fxstrip="scanlines">SCAN LINES</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('vhsbleed')" data-fxstrip="vhsbleed">VHS BLEED</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('paper')" data-fxstrip="paper">PAPER</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('texture')" data-fxstrip="texture">TEXTURE</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('bleeds')" data-fxstrip="bleeds">BLEEDS</div>
             </div>
 
@@ -11047,6 +11048,10 @@ function doRender(presetId) {
   if (p.vhsBleed) adj.vhsBleed = p.vhsBleed;
   if (p.bleeds) adj.bleeds = p.bleeds;
   if (p.textureOverlay) adj.textureOverlay = p.textureOverlay;
+  if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
+    var _fxTv = null; if (FX_VARIANTS.texture) { for (var _ti=0;_ti<FX_VARIANTS.texture.length;_ti++) { if (FX_VARIANTS.texture[_ti].id===fxState.texture.variant) { _fxTv=FX_VARIANTS.texture[_ti]; break; } } }
+    if (_fxTv) adj.textureOverlay = { file: _fxTv.assetFile, blend: 'multiply', opacity: (fxState.texture.intensity||35)/100 };
+  }
   if (p.border) adj.border = p.border;
 
   // Update hero canvas if user has image loaded
@@ -17165,7 +17170,8 @@ function globalReset() {
     fxState.paper     = { fold: 0, texture: 0 };
     fxState.stickers  = { variant: null };
     fxState.frames    = { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0, lbPosX: 0, lbPosY: 0, lbScale: 1.0 };
-    ['glow','glossy','scanlines','vhsbleed','paper','stickers','frames'].forEach(function(cat) {
+    fxState.texture   = { variant: null, intensity: 35 };
+    ['glow','glossy','scanlines','vhsbleed','paper','stickers','frames','texture'].forEach(function(cat) {
       if (typeof fxUpdateCatDot === 'function') fxUpdateCatDot(cat);
     });
     var _fxGcR = document.getElementById('fx-gem-controls');
@@ -17552,6 +17558,10 @@ function _evDoSave() {
     if (p.scanLines) adj.scanLines = p.scanLines;
     if (p.vhsBleed)  adj.vhsBleed  = p.vhsBleed;
     if (p.textureOverlay) adj.textureOverlay = p.textureOverlay;
+    if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
+      var _fxTv2 = null; if (FX_VARIANTS.texture) { for (var _ti2=0;_ti2<FX_VARIANTS.texture.length;_ti2++) { if (FX_VARIANTS.texture[_ti2].id===fxState.texture.variant) { _fxTv2=FX_VARIANTS.texture[_ti2]; break; } } }
+      if (_fxTv2) adj.textureOverlay = { file: _fxTv2.assetFile, blend: 'multiply', opacity: (fxState.texture.intensity||35)/100 };
+    }
     if (p.border)       adj.border       = p.border;
     // Grain is applied post-upscale at export resolution, not on the 800px proxy.
     var _exportGrain = adj.grain || 0;
@@ -17949,6 +17959,10 @@ function _evRenderCanvasImmediate() {
       if (activePreset.scanLines) adj.scanLines = activePreset.scanLines;
       if (activePreset.vhsBleed)  adj.vhsBleed  = activePreset.vhsBleed;
       if (activePreset.textureOverlay) adj.textureOverlay = activePreset.textureOverlay;
+      if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
+        var _fxTv3 = null; if (FX_VARIANTS.texture) { for (var _ti3=0;_ti3<FX_VARIANTS.texture.length;_ti3++) { if (FX_VARIANTS.texture[_ti3].id===fxState.texture.variant) { _fxTv3=FX_VARIANTS.texture[_ti3]; break; } } }
+        if (_fxTv3) adj.textureOverlay = { file: _fxTv3.assetFile, blend: 'multiply', opacity: (fxState.texture.intensity||35)/100 };
+      }
       if (activePreset.border)       adj.border       = activePreset.border;
     }
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -22584,6 +22598,18 @@ var FX_GLYPHS = {
 };
 var FX_VARIANTS = {
   stickers: [],
+  texture: [
+    { id:'tex01', label:'GRAIN',     assetFile:'photobooth_texture01.webp', assetDir:'textures' },
+    { id:'tex02', label:'MATTE',     assetFile:'photobooth_texture02.webp', assetDir:'textures' },
+    { id:'tex03', label:'LINEN',     assetFile:'photobooth_texture03.webp', assetDir:'textures' },
+    { id:'tex04', label:'PAPER',     assetFile:'photobooth_texture04.webp', assetDir:'textures' },
+    { id:'tex05', label:'CANVAS',    assetFile:'photobooth_texture05.webp', assetDir:'textures' },
+    { id:'tex06', label:'HALIDE',    assetFile:'photobooth_texture06.webp', assetDir:'textures' },
+    { id:'tex07', label:'SALT',      assetFile:'photobooth_texture07.webp', assetDir:'textures' },
+    { id:'tex08', label:'SILVER',    assetFile:'photobooth_texture08.webp', assetDir:'textures' },
+    { id:'tex09', label:'GELATIN',   assetFile:'photobooth_texture09.webp', assetDir:'textures' },
+    { id:'tex10', label:'DARKROOM',  assetFile:'photobooth_texture10.webp', assetDir:'textures' }
+  ],
   frames: [
     { id:'gem',       label:'GEMS',      hasDesigns: true, assetFile:'gemframepreview.png',                 assetDir:'frames' },
     { id:'letterbox', label:'LETTERBOX', hasDesigns: true, assetFile:'letterboxpreview.png', noControls: true, assetDir:'frames' },
@@ -23155,7 +23181,7 @@ function fxBuildVariantStrip(cat, expandId) {
   var strip = document.getElementById('fx-variant-strip');
   strip.innerHTML = '';
   var variants = FX_VARIANTS[cat] || [];
-  var current = fxState.frames ? fxState.frames.variant : null;
+  var current = (fxState[cat] && typeof fxState[cat].variant !== 'undefined') ? fxState[cat].variant : (fxState.frames ? fxState.frames.variant : null);
   variants.forEach(function(v) {
     if (v.hasDesigns && v.id === expandId && FX_VARIANTS[v.id]) {
       strip.appendChild(fxMakeDoneCard(cat, v.id));
@@ -23214,6 +23240,34 @@ function fxSelectVariant(cat, variantId) {
       var el = document.querySelector('[data-vid="done-' + variantId + '"]');
       if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
     }
+    return;
+  }
+
+  /* texture overlay variant — select, preload, show intensity slider */
+  if (varDef && varDef.assetFile && cat === 'texture') {
+    if (typeof evHistoryPush === 'function') evHistoryPush();
+    fxState.texture.variant = variantId;
+    fxUpdateCatDot('texture');
+    document.querySelectorAll('.fx-var-card, .fx-glyph-card').forEach(function(t) {
+      var isActive = t.dataset && t.dataset.vid === variantId;
+      t.classList.toggle('active', isActive);
+      var th = t.querySelector('div');
+      if (th) th.style.borderColor = isActive ? 'var(--accent,#c9b8d4)' : 'rgba(255,255,255,0.10)';
+    });
+    var _tImg = loadTexture(varDef.assetFile);
+    if (_tImg.complete && _tImg.naturalWidth) {
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    } else {
+      _tImg.onload = function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); };
+    }
+    _fxPendingIntensity = fxState.texture.intensity || 35;
+    var _tLabel = varDef.label || variantId.toUpperCase();
+    document.getElementById('fx-intensity-title').textContent = _tLabel;
+    document.getElementById('fx-intensity-name').textContent  = _tLabel;
+    document.getElementById('fx-intensity-val').textContent   = _fxPendingIntensity;
+    var _tSlider = document.getElementById('fx-intensity-slider');
+    if (_tSlider) { _tSlider.min = 0; _tSlider.max = 100; _tSlider.value = _fxPendingIntensity; }
+    fxShowLevel(3);
     return;
   }
 

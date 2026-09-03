@@ -20284,7 +20284,7 @@ window.galleryCopyEdits = function(imageId) {
     // Clear any stale cropRect before running the chain — prevents old rect from
     // flashing briefly on screen before the setTimeout below resets it
     cropRect = null; cropDragging = null;
-    _cropExitGen = (_cropExitGen || 0) + 1; // invalidate any pending _cropExitMode async commit
+    _cropExitGen = (typeof _cropExitGen !== 'undefined' ? _cropExitGen : 0) + 1; // invalidate any pending _cropExitMode async commit
     // Re-adjust mode activates only when the RATIO sub-tab is opened (see cropSelectSubTab)
     var _oldFlash = document.getElementById('crop-overlay-canvas');
     if (_oldFlash) _oldFlash.remove();
@@ -20710,7 +20710,7 @@ function _cropExitMode() {
     _ceCCtx.drawImage(_cropStraightenOrig, -_ceIw * _ceS / 2, -_ceIh * _ceS / 2, _ceIw * _ceS, _ceIh * _ceS);
     _ceCCtx.restore();
     var _ceSI = new Image();
-    _cropExitGen = (_cropExitGen || 0) + 1;
+    _cropExitGen = (typeof _cropExitGen !== 'undefined' ? _cropExitGen : 0) + 1;
     var _ceGen = _cropExitGen;
     _ceSI.onload = function() {
       if (_cropExitGen !== _ceGen) return; // new crop session started before encode finished

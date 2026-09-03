@@ -16676,9 +16676,25 @@ function etSelectTool(name) {
   document.querySelectorAll('.et-tool-row').forEach(r => r.classList.remove('active'));
   const row = document.getElementById('et-' + name);
   if (row) row.classList.add('active');
-  const ctrl = document.getElementById('et-tool-controls');
-  if (!ctrl) return;
+  let ctrl = document.getElementById('et-tool-controls');
+  if (!ctrl) {
+    // Rebuild tools section into ev-tools if it was cleared
+    buildEditorToolsSection();
+    const _src = document.getElementById('editor-tools-section');
+    const _tc  = document.getElementById('ev-tools');
+    if (_src && _tc) _tc.innerHTML = _src.innerHTML;
+    ctrl = document.getElementById('et-tool-controls');
+    if (!ctrl) return;
+  }
   ctrl.style.display = 'block';
+  // Ensure the tools panel is visible
+  const _toolsPanel = document.getElementById('es-panel-tools');
+  if (_toolsPanel && !_toolsPanel.classList.contains('active')) {
+    document.querySelectorAll('.es-tab-panel').forEach(p => p.classList.remove('active'));
+    _toolsPanel.classList.add('active');
+  }
+  const _suite = document.getElementById('ev-editor-suite');
+  if (_suite) _suite.classList.add('open');
   if (name === 'crop')       { ctrl.innerHTML = etCropHTML();       requestAnimationFrame(() => { if (userImage) toolsCropDraw(); }); }
   if (name === 'straighten') { ctrl.innerHTML = etStraightenHTML(); _straightenOrigImage = userImage; }
   if (name === 'flip')       { ctrl.innerHTML = etFlipHTML(); }
@@ -18589,6 +18605,10 @@ function evBuildSliders() {
     buildEditorToolsSection();
     var src3 = document.getElementById('editor-tools-section');
     if (src3) tc.innerHTML = src3.innerHTML;
+  }
+  // If crop was active when sliders were rebuilt, restore the crop UI
+  if (typeof etActiveTool !== 'undefined' && etActiveTool === 'crop') {
+    if (typeof etSelectTool === 'function') etSelectTool('crop');
   }
 }
 

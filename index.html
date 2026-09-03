@@ -22304,6 +22304,34 @@ function importSheetChoice(type) {
     if (suite) suite.classList.toggle('ev-atm-active', name === 'atmosphere');
     /* Auto-open first slider after panel renders */
     setTimeout(_openFirstSlider, 90);
+    /* Crop fallback: if UI was wiped by any async path, restore it at 300ms (after all other timers) */
+    if (name === 'crop') {
+      setTimeout(function() {
+        if (_curSection !== 'crop') return;
+        var _ctrl = document.getElementById('et-tool-controls');
+        var _hasUI = _ctrl && _ctrl.querySelector('.crop-ui');
+        if (!_hasUI) {
+          if (!_ctrl) {
+            if (typeof buildEditorToolsSection === 'function') buildEditorToolsSection();
+            var _evT = document.getElementById('ev-tools');
+            var _src = document.getElementById('editor-tools-section');
+            if (_evT && _src) _evT.innerHTML = _src.innerHTML;
+            _ctrl = document.getElementById('et-tool-controls');
+          }
+          if (_ctrl && typeof etCropHTML === 'function') {
+            _ctrl.innerHTML = etCropHTML();
+          }
+        }
+        if (_ctrl) _ctrl.style.display = 'block';
+        var _suite = document.getElementById('ev-editor-suite');
+        if (_suite) _suite.classList.add('open');
+        var _tp = document.getElementById('es-panel-tools');
+        if (_tp && !_tp.classList.contains('active')) {
+          document.querySelectorAll('.es-tab-panel').forEach(function(p){ p.classList.remove('active'); });
+          _tp.classList.add('active');
+        }
+      }, 300);
+    }
   };
 
   function _updateSectionNav(current) {

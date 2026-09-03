@@ -10628,6 +10628,7 @@ function buildSectionHTML(p, section, rows, state) {
 // ── Slider drag: global delegation — document listeners registered ONCE ──
 var _slDragTrack = null, _slDragPreset = null;
 var _slTouchStartX = 0, _slTouchStartY = 0, _slTouchLocked = null; // 'h'=horiz drag, 'v'=vert scroll
+var _slDragStartX = 0, _slDragStartVal = 0;
 
 function _slApplyDrag(e) {
   if (!_slDragTrack) return;
@@ -10636,7 +10637,10 @@ function _slApplyDrag(e) {
   if (!document.contains(_slDragTrack)) { _slDragTrack = null; return; }
   var clientX = e.touches ? e.touches[0].clientX : e.clientX;
   var rect  = _slDragTrack.getBoundingClientRect();
-  var t     = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  var speed = 1.0;
+  if (e.touches && e.touches[0].clientY - _slTouchStartY > 60) speed = 0.25;
+  var t     = Math.max(0, Math.min(1,
+    _slDragStartVal + ((clientX - _slDragStartX) / rect.width) * speed));
   var param = _slDragTrack.dataset.param;
   var cfg   = sliderConfig[param];
   if (cfg && cfg[3] !== false && Math.abs(t - 0.5) < 0.04) t = 0.5;
@@ -10687,16 +10691,21 @@ function attachSliderListeners(p) {
     track._slAttached = true;
     track.addEventListener('mousedown', function(e) {
       evHistoryPush();
+      _slDragStartX = e.clientX;
+      _slDragStartVal = (sliderState[track.dataset.preset] || {})[track.dataset.param];
+      if (_slDragStartVal == null) _slDragStartVal = 0.5;
       _slDragTrack = track; _slDragPreset = track.dataset.preset;
       window._slDragging = true;
       track.classList.add('dragging');
-      _slApplyDrag(e);
       e.preventDefault();
     });
     track.addEventListener('touchstart', function(e) {
       // Record start position — don't drag yet; wait to confirm horizontal intent
       _slTouchStartX = e.touches[0].clientX;
       _slTouchStartY = e.touches[0].clientY;
+      _slDragStartX = e.touches[0].clientX;
+      _slDragStartVal = (sliderState[track.dataset.preset] || {})[track.dataset.param];
+      if (_slDragStartVal == null) _slDragStartVal = 0.5;
       _slTouchLocked = null;
       _slDragTrack = track; _slDragPreset = track.dataset.preset;
     }, {passive: true});

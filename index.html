@@ -21780,6 +21780,8 @@ function etPerspUpdate() {
     sc.style.opacity = '1';
     ac.style.opacity = '1';
   } else {
+    // Reset inline dimensions set by the zero-slider path so ac fills its container
+    ac.style.width = ''; ac.style.height = ''; ac.style.position = ''; ac.style.left = ''; ac.style.top = '';
     // Quadratic curve so low slider values are subtle; max slider still reaches full effect
     var _warpV = (amtV >= 0 ? 1 : -1) * Math.pow(Math.abs(amtV) / 100, 2);
     var _warpH = (amtH >= 0 ? 1 : -1) * Math.pow(Math.abs(amtH) / 100, 2);
@@ -21804,6 +21806,9 @@ function etPerspUpdate() {
     _pvTmp.width = _pvCropW; _pvTmp.height = _pvCropH;
     _pvTmp.getContext('2d', { willReadFrequently: true }).drawImage(sc, _pvMinX, _pvMinY, _pvCropW, _pvCropH, 0, 0, _pvCropW, _pvCropH);
     // Always draw back to ac (stretched to fill) so transparent corners never show.
+    // Reset ac intrinsic size to match display size (zero-slider path may have set it to full-res).
+    var _pvAcDispW = Math.round(ac.clientWidth) || _acW; var _pvAcDispH = Math.round(ac.clientHeight) || _acH;
+    if (ac.width !== _pvAcDispW || ac.height !== _pvAcDispH) { ac.width = _pvAcDispW; ac.height = _pvAcDispH; }
     // Leave sc untouched so _cropPerspFlush can read the clean trapezoid from it.
     ac.getContext('2d', { willReadFrequently: true }).clearRect(0, 0, ac.width, ac.height);
     ac.getContext('2d', { willReadFrequently: true }).drawImage(_pvTmp, 0, 0, ac.width, ac.height);

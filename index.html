@@ -23197,6 +23197,27 @@ function fxBuildVariantStrip(cat, expandId) {
   strip.innerHTML = '';
   var variants = FX_VARIANTS[cat] || [];
   var current = (fxState[cat] && typeof fxState[cat].variant !== 'undefined') ? fxState[cat].variant : (fxState.frames ? fxState.frames.variant : null);
+  if (cat === 'texture') {
+    var _texNone = document.createElement('div');
+    _texNone.className = 'fx-gem-card fx-glyph-card fx-none-card' + (!current ? ' active' : '');
+    _texNone.dataset.vid = 'none';
+    var _texNoneGw = document.createElement('div'); _texNoneGw.className = 'fx-glyph-wrap';
+    _texNoneGw.innerHTML = '<svg viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"><rect x="9" y="4" width="28" height="38" rx="2.5"/><path d="M12.5 39 L33.5 7" stroke-width="1" stroke-linecap="round" opacity="0.75"/></svg>';
+    _texNone.appendChild(_texNoneGw);
+    var _texNoneLbl = document.createElement('div'); _texNoneLbl.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:0 3px 5px;pointer-events:none;z-index:3;';
+    _texNoneLbl.innerHTML = '<div style="font-size:7px;letter-spacing:0.10em;color:currentColor;font-family:var(--mono);font-weight:500;white-space:nowrap;text-align:center;">NONE</div>';
+    _texNone.appendChild(_texNoneLbl);
+    _texNone.addEventListener('click', function() {
+      if (typeof evHistoryPush === 'function') evHistoryPush();
+      fxState.texture.variant = null;
+      fxUpdateCatDot('texture');
+      document.querySelectorAll('.fx-var-card, .fx-glyph-card').forEach(function(t) { t.classList.remove('active'); var _th = t.querySelector('div'); if (_th) _th.style.borderColor = 'rgba(255,255,255,0.10)'; });
+      _texNone.classList.add('active');
+      fxShowLevel(2);
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    });
+    strip.appendChild(_texNone);
+  }
   variants.forEach(function(v) {
     if (v.hasDesigns && v.id === expandId && FX_VARIANTS[v.id]) {
       strip.appendChild(fxMakeDoneCard(cat, v.id));

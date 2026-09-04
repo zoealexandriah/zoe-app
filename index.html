@@ -18849,6 +18849,7 @@ function galleryOpenInEditor(idx) {
   evFuture.length  = 0;
   Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
   evActivePreset = null; activePreset = null;
+  if (typeof fxState !== 'undefined') { fxState.texture = { variant: null, intensity: 35 }; if (typeof fxUpdateCatDot === 'function') fxUpdateCatDot('texture'); }
   // Temporarily set userImage = entry.img so evInit shows the canvas (not the import screen).
   // It will be nulled before evInit's rAF fires to prevent stacking effects on the thumbnail.
   userImage = entry.img;

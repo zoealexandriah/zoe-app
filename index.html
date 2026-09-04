@@ -23023,7 +23023,7 @@ function fxOpenCat(cat) {
     /* go straight to intensity */
     _fxActiveVariant = cat;
     _fxPendingIntensity = fxState[cat].intensity;
-    document.getElementById('fx-intensity-title').textContent = label;
+    var _fit1 = document.getElementById('fx-intensity-title'); if (_fit1) _fit1.textContent = label;
     document.getElementById('fx-intensity-name').textContent  = label;
     document.getElementById('fx-intensity-val').textContent   = _fxPendingIntensity;
     document.getElementById('fx-intensity-slider').value      = _fxPendingIntensity;
@@ -23359,7 +23359,7 @@ function fxSelectVariant(cat, variantId) {
   /* all other frame variants — go to intensity slider */
   _fxPendingIntensity = fxState.frames ? (fxState.frames.intensity || 100) : 100;
   var label = varDef && varDef.label ? varDef.label : variantId.toUpperCase();
-  document.getElementById('fx-intensity-title').textContent = label;
+  var _fit2 = document.getElementById('fx-intensity-title'); if (_fit2) _fit2.textContent = label;
   document.getElementById('fx-intensity-name').textContent  = label;
   document.getElementById('fx-intensity-val').textContent   = _fxPendingIntensity;
   document.getElementById('fx-intensity-slider').value      = _fxPendingIntensity;

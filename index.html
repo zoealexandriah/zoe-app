@@ -5752,9 +5752,9 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
 
             <!-- Permanent FX subtab bar -->
             <div id="fx-subtab-bar" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:0.5px solid var(--border);">
-              <div class="ev-cat-btn" onclick="fxOpenCat('texture')" data-fxstrip="texture">TEXTURE</div>
+              <div class="ev-cat-btn active" onclick="fxOpenCat('texture')" data-fxstrip="texture">TEXTURE</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('stickers')" data-fxstrip="stickers">STICKERS</div>
-              <div class="ev-cat-btn active" onclick="fxOpenCat('frames')" data-fxstrip="frames">FRAMES</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('frames')" data-fxstrip="frames">FRAMES</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('glow')" data-fxstrip="glow">GLOW</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('glossy')" data-fxstrip="glossy">GLOSSY</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('scanlines')" data-fxstrip="scanlines">SCAN LINES</div>
@@ -10885,7 +10885,7 @@ function evAdjustSubTab(name) {
     document.querySelectorAll('.es-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.es-tab-panel').forEach(p => p.classList.remove('active'));
     if (fxPanel) fxPanel.classList.add('active');
-    if (typeof fxOpenCat === 'function') fxOpenCat('frames');
+    if (typeof fxOpenCat === 'function') { var _firstFxBtn = document.querySelector('#fx-subtab-bar [data-fxstrip]'); fxOpenCat(_firstFxBtn ? _firstFxBtn.dataset.fxstrip : 'texture'); }
     return;
   }
   var panelTab = panelMap[name];

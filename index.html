@@ -23085,7 +23085,8 @@ function fxMakeVariantCard(cat, v, current, isChild) {
     imgBg.className = 'fx-gem-card-img';
     var _dir = v.assetDir || 'frames';
     imgBg.style.backgroundImage = 'url(./assets/' + _dir + '/' + v.assetFile + ')';
-    if (v.thumbScale) { imgBg.style.backgroundSize = (v.thumbScale * 100) + '%'; }
+    if (cat === 'texture') { imgBg.style.backgroundSize = 'cover'; imgBg.style.backgroundRepeat = 'no-repeat'; }
+    else if (v.thumbScale) { imgBg.style.backgroundSize = (v.thumbScale * 100) + '%'; }
     var grad = document.createElement('div');
     grad.className = 'fx-gem-card-grad';
     var adj = document.createElement('div');

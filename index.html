@@ -18435,7 +18435,7 @@ function evShowIntensityOverlay(p) {
   var initVal = Math.round(presetIntensity * 100);
   var activeEffects = _evIntEffectDefs.filter(function(d){
     var v = p && p.defaults && p.defaults[d.key] !== undefined ? p.defaults[d.key] : d.neutral;
-    return Math.abs(v - d.neutral) > 0.005;
+    return Math.abs(v - d.neutral) > 0.30;
   });
   var tabsHtml = '<button id="ev-int-tab-filter" onclick="evIntSelectTool(\'filter\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 12px;color:rgba(228,217,211,0.90);font-size:7.5px;letter-spacing:0.12em;font-family:var(--mono);font-weight:500;">FILTER</button>';
   activeEffects.forEach(function(d){

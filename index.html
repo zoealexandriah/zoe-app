@@ -3706,7 +3706,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   flex-direction: row;
   align-items: center;
   flex-shrink: 0;
-  padding: 8px 4px 14px;
+  padding: 8px 4px 18px;
   gap: 0;
   border-top: 0.5px solid rgba(255,255,255,0.08);
 }
@@ -3744,6 +3744,24 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   accent-color: var(--accent, #c9b8d4);
   height: 2px;
   cursor: pointer;
+}
+#fx-intensity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent, #c9b8d4);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+#fx-intensity-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent, #c9b8d4);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
 }
 /* dissolve actions container so buttons become direct flex children of the row */
 #fx-intensity-actions {
@@ -3938,9 +3956,9 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     padding-bottom: 0 !important;
   }
   #ev-editor-suite.open #es-panel-fx.active:has(#fx-intensity-view.active) {
-    height: 172px !important;
-    max-height: 172px !important;
-    min-height: 172px !important;
+    height: 176px !important;
+    max-height: 176px !important;
+    min-height: 176px !important;
   }
   #ev-editor-suite.open #es-panel-fx.active.fx-expanded {
     height: auto !important;

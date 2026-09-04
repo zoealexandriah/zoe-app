@@ -17959,11 +17959,11 @@ function _evRenderCanvasImmediate() {
       if (activePreset.scanLines) adj.scanLines = activePreset.scanLines;
       if (activePreset.vhsBleed)  adj.vhsBleed  = activePreset.vhsBleed;
       if (activePreset.textureOverlay) adj.textureOverlay = activePreset.textureOverlay;
-      if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
-        var _fxTv3 = null; if (FX_VARIANTS.texture) { for (var _ti3=0;_ti3<FX_VARIANTS.texture.length;_ti3++) { if (FX_VARIANTS.texture[_ti3].id===fxState.texture.variant) { _fxTv3=FX_VARIANTS.texture[_ti3]; break; } } }
-        if (_fxTv3) adj.textureOverlay = { file: _fxTv3.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||35)/100 };
-      }
       if (activePreset.border)       adj.border       = activePreset.border;
+    }
+    if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
+      var _fxTv3 = null; if (FX_VARIANTS.texture) { for (var _ti3=0;_ti3<FX_VARIANTS.texture.length;_ti3++) { if (FX_VARIANTS.texture[_ti3].id===fxState.texture.variant) { _fxTv3=FX_VARIANTS.texture[_ti3]; break; } } }
+      if (_fxTv3) adj.textureOverlay = { file: _fxTv3.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||35)/100 };
     }
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var _evGrain = adj.grain || 0;

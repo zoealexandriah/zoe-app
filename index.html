@@ -21129,6 +21129,14 @@ function cropSubTabExpandStraighten() {
   }
 }
 function cropSelectSubTab(btn, tab) {
+  // If there's a pending straighten angle and we're leaving STRAIGHTEN, bake it first so all
+  // subsequent tabs (ratio crop, rotate, optical) operate on the already-straightened image.
+  if (tab !== 'straighten'
+      && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal || 0) > 0.01
+      && typeof cropStraightenAutoApply === 'function') {
+    cropStraightenAutoApply(function() { cropSelectSubTab(btn, tab); });
+    return;
+  }
   var _csBar = document.getElementById('crop-subtabs-bar');
   if (_csBar) _csBar.classList.remove('crop-expanded');
   document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
@@ -21362,10 +21370,10 @@ function cropStraightenPreview(val) {
   });
 }
 
-function cropStraightenAutoApply() {
-  if (!_cropStraightenVal || Math.abs(_cropStraightenVal) < 0.01) return;
+function cropStraightenAutoApply(onDone) {
+  if (!_cropStraightenVal || Math.abs(_cropStraightenVal) < 0.01) { if (onDone) onDone(); return; }
   var sc = document.getElementById('crop-straighten-work');
-  if (!sc) return;
+  if (!sc) { if (onDone) onDone(); return; }
   var tmp = document.createElement('canvas');
   tmp.width = sc.width; tmp.height = sc.height;
   tmp.getContext('2d', { willReadFrequently: true }).drawImage(sc, 0, 0);
@@ -21404,6 +21412,7 @@ function cropStraightenAutoApply() {
     var ev = document.getElementById('editor-view');
     if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
     else if (ac && typeof loadImageToCanvas === 'function') loadImageToCanvas(ac, newImg);
+    if (onDone) onDone();
   };
   newImg.src = tmp.toDataURL();
 }
@@ -21984,7 +21993,7 @@ function etPerspUpdate() {
     _pvTmp.getContext('2d', { willReadFrequently: true }).drawImage(sc, _pvMinX, _pvMinY, _pvCropW, _pvCropH, 0, 0, _pvCropW, _pvCropH);
     // Always draw back to ac (stretched to fill) so transparent corners never show.
     // Reset ac intrinsic size to match display size (zero-slider path may have set it to full-res).
-    var _pvAcDispW = Math.round(ac.clientWidth) || _acW; var _pvAcDispH = Math.round(ac.clientHeight) || _acH;
+    var _pvAcDispW = _acW || Math.round(ac.clientWidth); var _pvAcDispH = _acH || Math.round(ac.clientHeight);
     if (ac.width !== _pvAcDispW || ac.height !== _pvAcDispH) { ac.width = _pvAcDispW; ac.height = _pvAcDispH; }
     // Leave sc untouched so _cropPerspFlush can read the clean trapezoid from it.
     ac.getContext('2d', { willReadFrequently: true }).clearRect(0, 0, ac.width, ac.height);

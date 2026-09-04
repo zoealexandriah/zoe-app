@@ -3937,6 +3937,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     padding-top: 0 !important;
     padding-bottom: 0 !important;
   }
+  #ev-editor-suite.open #es-panel-fx.active:has(#fx-intensity-view.active) {
+    height: 196px !important;
+    max-height: 196px !important;
+    min-height: 196px !important;
+  }
   #ev-editor-suite.open #es-panel-fx.active.fx-expanded {
     height: auto !important;
     max-height: none !important;
@@ -22956,7 +22961,7 @@ function fxShowLevel(level) {
     if (i) i.classList.add('active');
     /* for variant cats keep the strip visible above the intensity bar */
     var _isDirect = typeof FX_DIRECT !== 'undefined' && FX_DIRECT.indexOf(_fxActiveCat) !== -1;
-    if (!_isDirect && v) { v.classList.add('active'); v.style.display = 'flex'; v.style.flex = '0 0 auto'; }
+    if (!_isDirect && v) { v.classList.add('active'); v.style.display = 'flex'; v.style.flex = '1'; v.style.overflow = 'hidden'; }
   } else if (level === 4) {
     if (_fxActiveCat === 'glow'  && m)  m.classList.add('active');
     if (_fxActiveCat === 'paper' && p)  { p.classList.add('active'); p.style.display = 'flex'; }

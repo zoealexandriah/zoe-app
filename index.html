@@ -18410,6 +18410,8 @@ var _evIntActiveTool = 'filter';
 
 function evShowIntensityOverlay(p) {
   _evIntPrevIntensity = presetIntensity;
+  _evIntPrevSliders = {};
+  if (p && sliderState[p.id]) { Object.keys(sliderState[p.id]).forEach(function(k){ _evIntPrevSliders[k] = sliderState[p.id][k]; }); }
   _evIntActivePreset = p;
   _evIntActiveTool = 'filter';
   var existing = document.getElementById('ev-intensity-overlay');
@@ -18418,12 +18420,19 @@ function evShowIntensityOverlay(p) {
   overlay.id = 'ev-intensity-overlay';
   overlay.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:500;padding:22px 24px calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,#0f0e0d 0%,rgba(15,14,13,0.97) 60%,transparent 100%);display:none;';
   var initVal = Math.round(presetIntensity * 100);
+  var _tools = ['filter','grain','blur','mist','glow'];
   overlay.innerHTML =
     '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">'
-      +'<span style="font-size:13px;font-weight:500;color:rgba(228,217,211,0.90);letter-spacing:0.06em;font-family:var(--mono);">INTENSITY</span>'
+      +'<span id="ev-int-tool-label" style="font-size:13px;font-weight:500;color:rgba(228,217,211,0.90);letter-spacing:0.06em;font-family:var(--mono);">FILTER</span>'
       +'<span id="ev-int-val" style="font-size:13px;font-weight:600;color:rgba(228,217,211,0.90);font-family:var(--mono);">'+initVal+'</span>'
     +'</div>'
     +'<input id="ev-int-slider" type="range" min="0" max="100" value="'+initVal+'" oninput="evIntUpdate(this.value)" style="display:block;width:100%;margin-bottom:18px;">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
+      +_tools.map(function(t){
+        var active = t === 'filter';
+        return '<button id="ev-int-tab-'+t+'" onclick="evIntSelectTool(\''+t+'\')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 0;color:'+(active?'rgba(228,217,211,0.90)':'rgba(228,217,211,0.32)')+';"><span style="font-size:7.5px;letter-spacing:0.12em;font-family:var(--mono);font-weight:500;">'+t.toUpperCase()+'</span></button>';
+      }).join('')
+    +'</div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between;">'
       +'<button onclick="evIntCancel()" style="width:40px;height:50px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(228,217,211,0.45);font-size:17px;cursor:pointer;-webkit-tap-highlight-color:transparent;">✕</button>'
       +'<button onclick="evIntConfirm()" style="width:40px;height:50px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(228,217,211,0.45);font-size:17px;cursor:pointer;-webkit-tap-highlight-color:transparent;">✓</button>'
@@ -18466,9 +18475,22 @@ function evIntUpdate(val) {
   var num = parseInt(val, 10);
   var valEl = document.getElementById('ev-int-val');
   if (valEl) valEl.textContent = num;
-  presetIntensity = num / 100;
-  document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = num; });
-  document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = num + '%'; });
+  if (_evIntActiveTool === 'filter' || !_evIntActiveTool) {
+    presetIntensity = num / 100;
+    document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = num; });
+    document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = num + '%'; });
+  } else {
+    var p = _evIntActivePreset;
+    var _tmap = {texture:{key:'TEXTURE',bipolar:false},blur:{key:'BLUR',bipolar:false},grain:{key:'GRAIN',bipolar:false},mist:{key:'DIFFUSION',bipolar:false},glow:{key:'GLOW',bipolar:false}};
+    var def = _tmap[_evIntActiveTool];
+    if (def && p) {
+      var neutral = def.bipolar ? 0.5 : 0;
+      var base = (p.defaults && p.defaults[def.key] !== undefined) ? p.defaults[def.key] : neutral;
+      var uVal = neutral + (num / 100 - base);
+      if (!sliderState[p.id]) sliderState[p.id] = {};
+      sliderState[p.id][def.key] = uVal;
+    }
+  }
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 function evIntConfirm() {
@@ -18485,6 +18507,11 @@ function evIntCancel() {
   var pct = Math.round(_evIntPrevIntensity * 100);
   document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = pct; });
   document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = pct + '%'; });
+  var p = _evIntActivePreset;
+  if (p) {
+    sliderState[p.id] = {};
+    Object.keys(_evIntPrevSliders).forEach(function(k){ sliderState[p.id][k] = _evIntPrevSliders[k]; });
+  }
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
   evIntConfirm();
 }

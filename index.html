@@ -1445,6 +1445,27 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .sl-row:hover .sl-name { color:rgba(226,199,179,0.70) !important }
 
+/* ── DIAL + RULER SLIDER SYSTEM ── */
+.ev-dial-panel{display:flex;flex-direction:column;width:100%;padding:8px 0 4px;gap:10px}
+.ev-dial-strip{display:flex;flex-direction:row;gap:8px;overflow-x:auto;padding:4px 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start}
+.ev-dial-strip::-webkit-scrollbar{display:none}
+.ev-dial{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;user-select:none}
+.ev-dial-ring{width:50px;height:50px;border-radius:50%;border:1.5px solid rgba(201,184,212,0.13);background:rgba(255,255,255,0.025);display:flex;align-items:center;justify-content:center;position:relative;transition:border-color 0.14s,background 0.14s}
+.ev-dial.active .ev-dial-ring{border-color:var(--accent,#c9b8d4);background:rgba(201,184,212,0.07)}
+.ev-dial-icon{display:flex;align-items:center;justify-content:center;color:rgba(228,217,211,0.42);transition:opacity 0.12s}
+.ev-dial-icon .sl-icon-wrap{display:flex;align-items:center;justify-content:center}
+.ev-dial-icon .sl-icon-wrap svg{width:18px;height:18px}
+.ev-dial.active .ev-dial-icon{opacity:0;pointer-events:none}
+.ev-dial-val{position:absolute;font-size:11px;font-weight:600;letter-spacing:-0.01em;color:rgba(228,217,211,0.92);opacity:0;transition:opacity 0.12s;font-family:var(--mono,'monospace');pointer-events:none;white-space:nowrap}
+.ev-dial.active .ev-dial-val{opacity:1}
+.ev-dial-label{font-size:6px;letter-spacing:0.11em;color:rgba(228,217,211,0.28);font-weight:500;text-align:center;font-family:var(--mono,'monospace');text-transform:uppercase;transition:color 0.14s;max-width:52px;white-space:nowrap;overflow:hidden}
+.ev-dial.active .ev-dial-label{color:rgba(228,217,211,0.8)}
+.ev-dial-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:0 14px 0;width:100%}
+.ev-dial-section-nm{font-size:7px;letter-spacing:0.13em;color:rgba(228,217,211,0.22);font-family:var(--mono,'monospace');font-weight:500}
+.ev-ruler-wrap{width:100%;height:34px;position:relative;overflow:hidden;touch-action:none;cursor:ew-resize}
+.ev-ruler-canvas{position:absolute;top:0;height:100%}
+.ev-ruler-center{position:absolute;left:50%;top:8%;bottom:8%;width:1.5px;background:var(--accent,#c9b8d4);transform:translateX(-50%);pointer-events:none;opacity:0.85}
+
 /* ── QUICK ACTIONS LABELS — 11px ── */
 .qa-label {
   font-size: 11px !important;
@@ -10556,6 +10577,7 @@ function buildEditorSliders(p) {
   if (det2Container) det2Container.innerHTML = det2Html;
   if (blurContainer) blurContainer.innerHTML = blurHtml;
   attachSliderListeners(p);
+  attachDialListeners(p);
 }
 
 function buildOpticalPanel() {
@@ -10669,25 +10691,32 @@ function buildSectionHTML(p, section, rows, state) {
     return html;
   }
 
-  // Standard section
-  let html = `<div class="slider-section-title">${section}<span class="sl-reset-btn" data-section="${section}" onclick="resetSection('${p.id}','${section}')">RESET</span></div>`;
-  Object.entries(rows).forEach(([name]) => {
-    const _cfg2 = sliderConfig[name];
-    const _isUnipolar = _cfg2 && _cfg2[3] === false;
-    const t = state[name] ?? (_isUnipolar ? 0 : 0.5);
-    const pct = Math.round(t * 100);
-    const disp = getSliderDisplay(name, t);
-    const changed = _isUnipolar ? (t > 0.01) : (Math.abs(t - 0.5) > 0.01);
-    const _slLabel = {TEMPERATURE:'TEMP', VIGNETTE_BLUR:'VIGNETTE', MOTION_BLUR:'MOTION', RADIAL_BLUR:'RADIAL', SKIN_TONE:'SKIN TONE'}[name] || name;
-    html += `<div class="sl-row${changed?' changed':''}">
-      <div class="sl-header">${_sliderIcon(name)}<span class="sl-name">${_slLabel}</span><span class="sl-val" id="slv-${p.id}-${name}" data-preset="${p.id}" data-param="${name}">${disp}</span></div>
-      <div class="sl-track" data-preset="${p.id}" data-param="${name}"${_isUnipolar?' data-unipolar="true"':''}>
-        <div class="sl-fill" style="width:${pct}%"></div>
-        <div class="sl-thumb" style="left:${pct}%"></div>
-      </div>
-    </div>`;
+  // Standard section — dial + ruler UI
+  var _dShortLbl = {BRIGHTNESS:'BRIGHT',EXPOSURE:'EXPOSE',PUSH_PULL:'BRILL',CONTRAST:'CONTRAST',HIGHLIGHTS:'HIGH',SHADOWS:'SHADOW',WHITES:'WHITES',BLACKS:'BLACKS',DEHAZE:'DEHAZE',TEMPERATURE:'TEMP',TINT:'TINT',VIBRANCE:'VIBRANCE',SATURATION:'SAT',SKIN_TONE:'SKIN',SHARPEN:'SHARPEN',CLARITY:'CLARITY',GRAIN:'GRAIN',FADE:'FADE',MATTE_LIFT:'MATTE',BLUR:'BLUR',MOTION_BLUR:'MOTION',RADIAL_BLUR:'RADIAL',GLOW:'GLOW',MIST:'MIST',DIFFUSION:'MIST',VIGNETTE_BLUR:'VIGNETTE'};
+  var dialsHtml = '', firstParam = null;
+  Object.entries(rows).forEach(function([name], idx) {
+    var _cfg2 = sliderConfig[name];
+    var bipolar = !_cfg2 || _cfg2[3] !== false;
+    var t = state[name] !== undefined ? state[name] : (bipolar ? 0.5 : 0);
+    var dv = bipolar ? Math.round((t - 0.5) * 200) : Math.round(t * 100);
+    var sign = dv > 0 ? '+' : '';
+    var lbl = _dShortLbl[name] || name;
+    var isFirst = idx === 0;
+    if (isFirst) firstParam = name;
+    dialsHtml += '<div class="ev-dial' + (isFirst ? ' active' : '') + '" data-param="' + name + '" onclick="evDialSelect(this)">' +
+      '<div class="ev-dial-ring">' +
+        '<div class="ev-dial-icon">' + _sliderIcon(name) + '</div>' +
+        '<span class="ev-dial-val">' + sign + dv + '</span>' +
+      '</div>' +
+      '<span class="ev-dial-label">' + lbl + '</span>' +
+      '</div>';
   });
-  return html;
+  return '<div class="ev-dial-panel" data-pid="' + p.id + '" data-fparam="' + (firstParam||'') + '">' +
+    '<div class="ev-dial-panel-hdr"><span class="ev-dial-section-nm">' + section + '</span>' +
+    '<span class="sl-reset-btn" data-section="' + section + '" onclick="resetSection(\'' + p.id + '\',\'' + section + '\')">RESET</span></div>' +
+    '<div class="ev-dial-strip">' + dialsHtml + '</div>' +
+    '<div class="ev-ruler-wrap"><canvas class="ev-ruler-canvas"></canvas><div class="ev-ruler-center"></div></div>' +
+    '</div>';
 }
 
 // ── Slider drag: global delegation — document listeners registered ONCE ──
@@ -10747,6 +10776,150 @@ function _slEndDrag() {
 document.addEventListener('mousemove', _slApplyDrag);
 document.addEventListener('touchmove', _slApplyDrag, {passive:true}); // touch-action:none on tracks handles scroll prevention
 document.addEventListener('mouseup',  _slEndDrag);
+
+// ── DIAL + RULER SYSTEM ──
+var _evDialPid = null, _evDialParam = null;
+
+function evDialSelect(el) {
+  var panel = el.closest('.ev-dial-panel');
+  if (!panel) return;
+  var pid = panel.dataset.pid;
+  panel.querySelectorAll('.ev-dial').forEach(function(d){ d.classList.remove('active'); });
+  el.classList.add('active');
+  _evDialPid = pid;
+  _evDialParam = el.dataset.param;
+  _evRulerUpdate(pid, _evDialParam);
+}
+
+function _evDialDelta(pid, param) {
+  var cfg = sliderConfig[param];
+  var bipolar = !cfg || cfg[3] !== false;
+  var t = (sliderState[pid] && sliderState[pid][param] !== undefined) ? sliderState[pid][param] : (bipolar ? 0.5 : 0);
+  return bipolar ? Math.round((t - 0.5) * 200) : Math.round(t * 100);
+}
+
+function _evRulerDraw(canvas, bipolar) {
+  var PX = 4;
+  var minV = bipolar ? -100 : 0, maxV = 100;
+  var totalU = maxV - minV;
+  var h = canvas.parentElement ? (canvas.parentElement.clientHeight || 34) : 34;
+  canvas.width = totalU * PX + 1;
+  canvas.height = h;
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, h);
+  for (var u = minV; u <= maxV; u++) {
+    var x = (u - minV) * PX;
+    var isN = (u === 0), isM = (u % 10 === 0);
+    var tH = isN ? h * 0.65 : isM ? h * 0.42 : h * 0.22;
+    ctx.fillStyle = isN ? 'rgba(201,184,212,0.9)' : isM ? 'rgba(228,217,211,0.45)' : 'rgba(228,217,211,0.16)';
+    var tW = isN ? 1.5 : isM ? 1 : 0.75;
+    ctx.fillRect(x - tW / 2, (h - tH) / 2, tW, tH);
+  }
+}
+
+function _evRulerUpdate(pid, param) {
+  var panel = document.querySelector('.ev-dial-panel[data-pid="' + pid + '"]');
+  if (!panel) return;
+  var canvas = panel.querySelector('.ev-ruler-canvas');
+  var wrap = panel.querySelector('.ev-ruler-wrap');
+  if (!canvas || !wrap) return;
+  var cfg = sliderConfig[param];
+  var bipolar = !cfg || cfg[3] !== false;
+  if (!canvas._rDrawn || canvas._rBipolar !== bipolar) {
+    _evRulerDraw(canvas, bipolar);
+    canvas._rDrawn = true; canvas._rBipolar = bipolar;
+  }
+  var dv = _evDialDelta(pid, param);
+  var minV = bipolar ? -100 : 0;
+  var PX = 4;
+  var cw = wrap.clientWidth;
+  canvas.style.left = (cw / 2 - (dv - minV) * PX) + 'px';
+  // update active dial val
+  var activeDial = panel.querySelector('.ev-dial.active');
+  if (activeDial && activeDial.dataset.param === param) {
+    var valEl = activeDial.querySelector('.ev-dial-val');
+    if (valEl) valEl.textContent = (dv > 0 ? '+' : '') + dv;
+  }
+}
+
+function attachDialListeners(p) {
+  var panels = document.querySelectorAll('.ev-dial-panel[data-pid="' + p.id + '"]');
+  panels.forEach(function(panel) {
+    // init ruler for first (active) param
+    var fp = panel.dataset.fparam;
+    if (fp) { _evDialPid = p.id; _evDialParam = fp; setTimeout(function(){ _evRulerUpdate(p.id, fp); }, 0); }
+
+    var wrap = panel.querySelector('.ev-ruler-wrap');
+    if (!wrap || wrap._dialBound) return;
+    wrap._dialBound = true;
+
+    var _rStartX, _rStartVal, _rParam, _rBipolar;
+
+    wrap.addEventListener('touchstart', function(e) {
+      _rParam = _evDialParam;
+      if (!_rParam || _evDialPid !== p.id) return;
+      var cfg = sliderConfig[_rParam];
+      _rBipolar = !cfg || cfg[3] !== false;
+      _rStartX = e.touches[0].clientX;
+      _rStartVal = (sliderState[p.id] && sliderState[p.id][_rParam] !== undefined) ? sliderState[p.id][_rParam] : (_rBipolar ? 0.5 : 0);
+      e.preventDefault();
+    }, {passive: false});
+
+    wrap.addEventListener('touchmove', function(e) {
+      if (!_rParam || _evDialPid !== p.id) return;
+      var dX = e.touches[0].clientX - _rStartX;
+      var PX = 4;
+      if (_rBipolar) {
+        var startD = (_rStartVal - 0.5) * 200;
+        var newD = Math.max(-100, Math.min(100, startD + dX / PX));
+        if (!sliderState[p.id]) sliderState[p.id] = {};
+        sliderState[p.id][_rParam] = 0.5 + newD / 200;
+      } else {
+        var startD2 = _rStartVal * 100;
+        var newD2 = Math.max(0, Math.min(100, startD2 + dX / PX));
+        if (!sliderState[p.id]) sliderState[p.id] = {};
+        sliderState[p.id][_rParam] = newD2 / 100;
+      }
+      _evRulerUpdate(p.id, _rParam);
+      scheduleRender(p.id);
+      e.preventDefault();
+    }, {passive: false});
+
+    wrap.addEventListener('touchend', function() { _rParam = null; });
+
+    // mouse support for desktop testing
+    var _mDown = false, _mStartX, _mStartVal, _mParam, _mBipolar;
+    wrap.addEventListener('mousedown', function(e) {
+      _mParam = _evDialParam;
+      if (!_mParam || _evDialPid !== p.id) return;
+      var cfg = sliderConfig[_mParam];
+      _mBipolar = !cfg || cfg[3] !== false;
+      _mStartX = e.clientX;
+      _mStartVal = (sliderState[p.id] && sliderState[p.id][_mParam] !== undefined) ? sliderState[p.id][_mParam] : (_mBipolar ? 0.5 : 0);
+      _mDown = true;
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (!_mDown || !_mParam || _evDialPid !== p.id) return;
+      var dX = e.clientX - _mStartX;
+      var PX = 4;
+      if (_mBipolar) {
+        var sd = (_mStartVal - 0.5) * 200;
+        var nd = Math.max(-100, Math.min(100, sd + dX / PX));
+        if (!sliderState[p.id]) sliderState[p.id] = {};
+        sliderState[p.id][_mParam] = 0.5 + nd / 200;
+      } else {
+        var sd2 = _mStartVal * 100;
+        var nd2 = Math.max(0, Math.min(100, sd2 + dX / PX));
+        if (!sliderState[p.id]) sliderState[p.id] = {};
+        sliderState[p.id][_mParam] = nd2 / 100;
+      }
+      _evRulerUpdate(p.id, _mParam);
+      scheduleRender(p.id);
+    });
+    document.addEventListener('mouseup', function() { _mDown = false; _mParam = null; });
+  });
+}
 document.addEventListener('touchend', _slEndDrag);
 
 function attachSliderListeners(p) {

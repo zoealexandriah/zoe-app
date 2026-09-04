@@ -19303,7 +19303,8 @@ function editorBackToGallery() {
   renderLibrary();
   // Render updated thumbnail in background, then refresh
   var _exitFxV = _exitEntry && _exitEntry.editState && _exitEntry.editState.fxState && _exitEntry.editState.fxState.frames && _exitEntry.editState.fxState.frames.variant;
-  if (_exitEntry && _exitEntry.editState && (_exitEntry.editState.presetId || Object.keys(_exitEntry.editState.sliders || {}).length || (_exitFxV && _exitFxV !== 'none'))) {
+  var _exitFxTex = _exitEntry && _exitEntry.editState && _exitEntry.editState.fxState && _exitEntry.editState.fxState.texture && _exitEntry.editState.fxState.texture.variant;
+  if (_exitEntry && _exitEntry.editState && (_exitEntry.editState.presetId || Object.keys(_exitEntry.editState.sliders || {}).length || (_exitFxV && _exitFxV !== 'none') || _exitFxTex)) {
     _renderBatchThumbnail(_exitEntry, _exitEntry.editState.presetId, _exitEntry.editState.sliders || {}, _exitEntry.editState.intensity || 1.0, function() {
       if (typeof libSaveToStorage === 'function') libSaveToStorage();
       renderLibrary();
@@ -19365,6 +19366,7 @@ function evSaveAndReturn() {
       if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
+      if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvSR=null; if (FX_VARIANTS.texture){for(var _tiSR=0;_tiSR<FX_VARIANTS.texture.length;_tiSR++){if(FX_VARIANTS.texture[_tiSR].id===fxState.texture.variant){_fxTvSR=FX_VARIANTS.texture[_tiSR];break;}}} if(_fxTvSR) adj.textureOverlay={file:_fxTvSR.assetFile,blend:'screen',opacity:(fxState.texture.intensity||35)/100}; }
       if (adj.textureOverlay)          applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
       if (adj.border)                  applyBorder(off, adj.border, 0, 0, iw, ih);
     }
@@ -19449,6 +19451,8 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, w, h);
       if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
+      var _savedFxTexBT = entry.editState && entry.editState.fxState && entry.editState.fxState.texture && entry.editState.fxState.texture.variant;
+      if (_savedFxTexBT && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { for(var _tiBT=0;_tiBT<FX_VARIANTS.texture.length;_tiBT++){if(FX_VARIANTS.texture[_tiBT].id===_savedFxTexBT){adj.textureOverlay={file:FX_VARIANTS.texture[_tiBT].assetFile,blend:'screen',opacity:(entry.editState.fxState.texture.intensity||35)/100};break;}} }
       if (adj.textureOverlay)            applyTextureOverlay(off, adj.textureOverlay, 0, 0, w, h);
       if (adj.border)                    applyBorder(off, adj.border, 0, 0, w, h);
     }

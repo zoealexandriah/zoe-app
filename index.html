@@ -14805,6 +14805,7 @@ function openEditor(idx) {
     const c = document.getElementById('hero-canvas');
     if (!c) return;
     loadImageToCanvas(c, entry.img);
+    if (typeof evRenderCanvas === 'function') evRenderCanvas();
   });
 }
 

@@ -17499,8 +17499,20 @@ function _evDoSave() {
   // If the active preset has a texture overlay that hasn't decoded yet, wait for it first
   // so the exported image includes the texture rather than silently skipping it.
   var _p = activePreset;
-  if (_p && _p.textureOverlay && _p.textureOverlay.file) {
-    var _tx = loadTexture(_p.textureOverlay.file);
+  var _texFile = null;
+  if (activePreset && activePreset.textureOverlay && activePreset.textureOverlay.file) {
+    _texFile = activePreset.textureOverlay.file;
+  }
+  if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant && FX_VARIANTS.texture) {
+    for (var _tg = 0; _tg < FX_VARIANTS.texture.length; _tg++) {
+      if (FX_VARIANTS.texture[_tg].id === fxState.texture.variant) {
+        _texFile = FX_VARIANTS.texture[_tg].assetFile;
+        break;
+      }
+    }
+  }
+  if (_texFile) {
+    var _tx = loadTexture(_texFile);
     if (!_tx.complete || !_tx.naturalWidth) {
       _tx.onload = _evDoSave;
       return;

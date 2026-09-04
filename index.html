@@ -14117,6 +14117,7 @@ function loadTexture(file) {
   if (_texCache[file]) return _texCache[file];
   const img = new Image();
   img.crossOrigin = 'anonymous';
+  img.onload = function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); };
   img.src = 'assets/textures/' + file;
   _texCache[file] = img;
   return img;

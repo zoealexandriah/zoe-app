@@ -18408,6 +18408,19 @@ var _evIntPrevSliders = {};
 var _evIntActivePreset = null;
 var _evIntActiveTool = 'filter';
 
+var _evIntEffectDefs = [
+  {key:'GRAIN',label:'GRAIN',neutral:0},
+  {key:'GLOW',label:'GLOW',neutral:0},
+  {key:'BLUR',label:'BLUR',neutral:0},
+  {key:'DIFFUSION',label:'MIST',neutral:0},
+  {key:'HALATION',label:'HALATION',neutral:0},
+  {key:'VIGNETTE',label:'VIGNETTE',neutral:0},
+  {key:'FADE',label:'FADE',neutral:0},
+  {key:'TEXTURE',label:'TEXTURE',neutral:0},
+  {key:'SHARPEN',label:'SHARPEN',neutral:0},
+  {key:'CLARITY',label:'CLARITY',neutral:0},
+  {key:'DEHAZE',label:'DEHAZE',neutral:0.5},
+];
 function evShowIntensityOverlay(p) {
   _evIntPrevIntensity = presetIntensity;
   _evIntPrevSliders = {};
@@ -18420,19 +18433,21 @@ function evShowIntensityOverlay(p) {
   overlay.id = 'ev-intensity-overlay';
   overlay.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:500;padding:22px 24px calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,#0f0e0d 0%,rgba(15,14,13,0.97) 60%,transparent 100%);display:none;';
   var initVal = Math.round(presetIntensity * 100);
-  var _tools = ['filter','grain','blur','mist','glow'];
+  var activeEffects = _evIntEffectDefs.filter(function(d){
+    var v = p && p.defaults && p.defaults[d.key] !== undefined ? p.defaults[d.key] : d.neutral;
+    return Math.abs(v - d.neutral) > 0.005;
+  });
+  var tabsHtml = '<button id="ev-int-tab-filter" onclick="evIntSelectTool(\'filter\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 12px;color:rgba(228,217,211,0.90);font-size:7.5px;letter-spacing:0.12em;font-family:var(--mono);font-weight:500;">FILTER</button>';
+  activeEffects.forEach(function(d){
+    tabsHtml += '<button id="ev-int-tab-'+d.key+'" onclick="evIntSelectTool(\''+d.key+'\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 12px;color:rgba(228,217,211,0.32);font-size:7.5px;letter-spacing:0.12em;font-family:var(--mono);font-weight:500;">'+d.label+'</button>';
+  });
   overlay.innerHTML =
     '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">'
       +'<span id="ev-int-tool-label" style="font-size:13px;font-weight:500;color:rgba(228,217,211,0.90);letter-spacing:0.06em;font-family:var(--mono);">FILTER</span>'
       +'<span id="ev-int-val" style="font-size:13px;font-weight:600;color:rgba(228,217,211,0.90);font-family:var(--mono);">'+initVal+'</span>'
     +'</div>'
     +'<input id="ev-int-slider" type="range" min="0" max="100" value="'+initVal+'" oninput="evIntUpdate(this.value)" style="display:block;width:100%;margin-bottom:18px;">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
-      +_tools.map(function(t){
-        var active = t === 'filter';
-        return '<button id="ev-int-tab-'+t+'" onclick="evIntSelectTool(\''+t+'\')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 0;color:'+(active?'rgba(228,217,211,0.90)':'rgba(228,217,211,0.32)')+';"><span style="font-size:7.5px;letter-spacing:0.12em;font-family:var(--mono);font-weight:500;">'+t.toUpperCase()+'</span></button>';
-      }).join('')
-    +'</div>'
+    +'<div style="display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -24px 16px;padding:0 24px;">'+tabsHtml+'</div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between;">'
       +'<button onclick="evIntCancel()" style="width:40px;height:50px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(228,217,211,0.45);font-size:17px;cursor:pointer;-webkit-tap-highlight-color:transparent;">✕</button>'
       +'<button onclick="evIntConfirm()" style="width:40px;height:50px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(228,217,211,0.45);font-size:17px;cursor:pointer;-webkit-tap-highlight-color:transparent;">✓</button>'
@@ -18447,28 +18462,25 @@ function evShowIntensityOverlay(p) {
 function evIntSelectTool(toolId) {
   _evIntActiveTool = toolId;
   var p = _evIntActivePreset;
-  var _map = {filter:{key:null,bipolar:false}, texture:{key:'TEXTURE',bipolar:false}, blur:{key:'BLUR',bipolar:false}, grain:{key:'GRAIN',bipolar:false}, mist:{key:'DIFFUSION',bipolar:false}, glow:{key:'GLOW',bipolar:false}};
-  var def = _map[toolId] || {key:null,bipolar:false};
-  var key = def.key;
   var val;
-  if (key === null) {
+  if (toolId === 'filter') {
     val = Math.round(presetIntensity * 100);
   } else {
-    var neutral = def.bipolar ? 0.5 : 0;
-    var base = (p && p.defaults && p.defaults[key] !== undefined) ? p.defaults[key] : neutral;
-    var uVal = (p && sliderState[p.id] && sliderState[p.id][key] !== undefined) ? sliderState[p.id][key] : neutral;
-    var total = Math.max(0, Math.min(1, base + (uVal - neutral)));
-    val = def.bipolar ? Math.round(Math.max(0, total - 0.5) * 200) : Math.round(total * 100);
+    var def = _evIntEffectDefs.find(function(d){ return d.key === toolId; }) || {neutral:0};
+    var base = (p && p.defaults && p.defaults[toolId] !== undefined) ? p.defaults[toolId] : def.neutral;
+    var delta = (p && sliderState[p.id] && sliderState[p.id][toolId] !== undefined) ? sliderState[p.id][toolId] : 0;
+    val = Math.round(Math.max(0, Math.min(1, base + delta)) * 100);
   }
+  var def2 = _evIntEffectDefs.find(function(d){ return d.key === toolId; });
+  var label = toolId === 'filter' ? 'FILTER' : (def2 ? def2.label : toolId);
   var labelEl = document.getElementById('ev-int-tool-label');
   var slider = document.getElementById('ev-int-slider');
   var valEl = document.getElementById('ev-int-val');
-  if (labelEl) labelEl.textContent = toolId.toUpperCase();
+  if (labelEl) labelEl.textContent = label;
   if (slider) slider.value = val;
   if (valEl) valEl.textContent = val;
-  ['filter','texture','blur','grain','mist','glow'].forEach(function(id) {
-    var tab = document.getElementById('ev-int-tab-'+id);
-    if (tab) tab.style.color = id === toolId ? 'rgba(228,217,211,0.90)' : 'rgba(228,217,211,0.35)';
+  document.querySelectorAll('[id^="ev-int-tab-"]').forEach(function(tab){
+    tab.style.color = tab.id === 'ev-int-tab-'+toolId ? 'rgba(228,217,211,0.90)' : 'rgba(228,217,211,0.32)';
   });
 }
 function evIntUpdate(val) {
@@ -18481,14 +18493,11 @@ function evIntUpdate(val) {
     document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = num + '%'; });
   } else {
     var p = _evIntActivePreset;
-    var _tmap = {texture:{key:'TEXTURE',bipolar:false},blur:{key:'BLUR',bipolar:false},grain:{key:'GRAIN',bipolar:false},mist:{key:'DIFFUSION',bipolar:false},glow:{key:'GLOW',bipolar:false}};
-    var def = _tmap[_evIntActiveTool];
-    if (def && p) {
-      var neutral = def.bipolar ? 0.5 : 0;
-      var base = (p.defaults && p.defaults[def.key] !== undefined) ? p.defaults[def.key] : neutral;
-      var uVal = neutral + (num / 100 - base);
+    if (p) {
+      var def = _evIntEffectDefs.find(function(d){ return d.key === _evIntActiveTool; }) || {neutral:0};
+      var base = (p.defaults && p.defaults[_evIntActiveTool] !== undefined) ? p.defaults[_evIntActiveTool] : def.neutral;
       if (!sliderState[p.id]) sliderState[p.id] = {};
-      sliderState[p.id][def.key] = uVal;
+      sliderState[p.id][_evIntActiveTool] = (num / 100) - base;
     }
   }
   if (typeof evRenderCanvas === 'function') evRenderCanvas();

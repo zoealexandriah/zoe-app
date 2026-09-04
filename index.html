@@ -3700,43 +3700,26 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 
 /* Level 3: intensity slider */
+/* compact intensity bar — sits below the variant strip */
 #fx-intensity-view {
   display: none;
-  flex-direction: column;
-  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 10px 6px 14px;
+  gap: 0;
+  border-top: 0.5px solid rgba(255,255,255,0.08);
 }
 #fx-intensity-view.active { display: flex; }
-#fx-intensity-header {
-  display: flex;
-  align-items: center;
-  padding: 10px 14px 8px;
-  gap: 8px;
-  border-bottom: 0.5px solid rgba(255,255,255,0.08);
-  flex-shrink: 0;
-}
-#fx-intensity-back {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.5);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 0 6px 0 0;
-  line-height: 1;
-}
-#fx-intensity-title {
-  font-family: var(--mono, monospace);
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  color: rgba(255,255,255,0.8);
-  flex: 1;
-}
+#fx-intensity-header { display: none; }
+#fx-intensity-back  { display: none; }
+#fx-intensity-title { display: none; }
 #fx-intensity-body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 0 20px 20px;
-  gap: 18px;
+  padding: 0 10px;
+  gap: 10px;
 }
 #fx-intensity-label-row {
   display: flex;
@@ -3745,14 +3728,14 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 #fx-intensity-name {
   font-family: var(--mono, monospace);
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 600;
-  color: rgba(255,255,255,0.85);
-  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.12em;
 }
 #fx-intensity-val {
   font-family: var(--mono, monospace);
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
   color: #fff;
 }
@@ -3762,12 +3745,22 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   height: 2px;
   cursor: pointer;
 }
+/* dissolve actions container so buttons become direct flex children of the row */
 #fx-intensity-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px 24px;
-  flex-shrink: 0;
+  display: contents;
+}
+/* ✕ cancel — left of body */
+#fx-intensity-view .fx-action-btn:not(#fx-intensity-confirm) {
+  order: -1;
+  color: rgba(255,255,255,0.35);
+  font-size: 13px;
+  padding: 4px 10px;
+}
+/* ✓ confirm — right of body */
+#fx-intensity-view #fx-intensity-confirm {
+  order: 1;
+  font-size: 16px;
+  padding: 4px 10px;
 }
 .fx-action-btn {
   background: none;
@@ -3783,7 +3776,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .fx-action-btn:active { color: #fff; }
 #fx-intensity-confirm,
 .fx-action-btn.crop-exp-confirm {
-  color: rgba(130,230,130,0.85);
+  color: var(--accent, #c9b8d4);
 }
 
   /* Left pinned section (ATMOSPHERE + FX) */
@@ -22917,9 +22910,12 @@ function fxShowLevel(level) {
   if (lc) { lc.style.display = 'none'; if (_fxPanel) _fxPanel.classList.remove('fx-expanded'); }
   /* show the right one */
   if (level === 2) {
-    if (v) { v.classList.add('active'); v.style.display = 'flex'; }
+    if (v) { v.classList.add('active'); v.style.display = 'flex'; v.style.flex = '1'; }
   } else if (level === 3) {
     if (i) i.classList.add('active');
+    /* for variant cats keep the strip visible above the intensity bar */
+    var _isDirect = typeof FX_DIRECT !== 'undefined' && FX_DIRECT.indexOf(_fxActiveCat) !== -1;
+    if (!_isDirect && v) { v.classList.add('active'); v.style.display = 'flex'; v.style.flex = '0 0 auto'; }
   } else if (level === 4) {
     if (_fxActiveCat === 'glow'  && m)  m.classList.add('active');
     if (_fxActiveCat === 'paper' && p)  { p.classList.add('active'); p.style.display = 'flex'; }

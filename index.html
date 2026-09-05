@@ -1447,8 +1447,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
 /* ── DIAL + RULER SLIDER SYSTEM ── */
 .ev-dial-panel{display:flex;flex-direction:column;width:100%;padding:4px 0 2px;gap:6px}
-.ev-dial-strip{display:flex;flex-direction:row;gap:14px;overflow-x:auto;padding:2px 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start}
+.ev-dial-strip-wrap{position:relative;width:100%;-webkit-mask-image:linear-gradient(to right,transparent 0%,#000 18%,#000 82%,transparent 100%);mask-image:linear-gradient(to right,transparent 0%,#000 18%,#000 82%,transparent 100%)}
+.ev-dial-strip{display:flex;flex-direction:row;gap:14px;overflow-x:auto;padding:2px 50vw;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start;scroll-behavior:smooth;scroll-snap-type:x mandatory}
 .ev-dial-strip::-webkit-scrollbar{display:none}
+.ev-dial{scroll-snap-align:center}
 .ev-dial{display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;user-select:none}
 .ev-dial-ring{width:52px;height:52px;border-radius:50%;border:1.5px solid rgba(201,184,212,0.18);background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;position:relative;transition:border-color 0.14s,background 0.14s}
 .ev-dial.active .ev-dial-ring{border-color:var(--accent,#c9b8d4);background:rgba(201,184,212,0.07)}
@@ -10739,7 +10741,7 @@ function buildSectionHTML(p, section, rows, state) {
   return '<div class="ev-dial-panel" data-pid="' + p.id + '" data-fparam="' + (firstParam||'') + '">' +
     '<div class="ev-dial-panel-hdr"><span class="ev-dial-section-nm">' + section + '</span>' +
     '<span class="sl-reset-btn" data-section="' + section + '" onclick="resetSection(\'' + p.id + '\',\'' + section + '\')">RESET</span></div>' +
-    '<div class="ev-dial-strip">' + dialsHtml + '</div>' +
+    '<div class="ev-dial-strip-wrap"><div class="ev-dial-strip">' + dialsHtml + '</div></div>' +
     '<div class="ev-ruler-wrap"><canvas class="ev-ruler-canvas"></canvas><div class="ev-ruler-center"></div></div>' +
     '</div>';
 }
@@ -10814,6 +10816,8 @@ function evDialSelect(el) {
   _evDialPid = pid;
   _evDialParam = el.dataset.param;
   _evRulerUpdate(pid, _evDialParam);
+  var strip = panel.querySelector('.ev-dial-strip');
+  if (strip) { var sr = strip.getBoundingClientRect(), er = el.getBoundingClientRect(); strip.scrollLeft += (er.left + er.width/2) - (sr.left + sr.width/2); }
 }
 
 function _evDialDelta(pid, param) {
@@ -10895,6 +10899,12 @@ function attachDialListeners(p) {
     // init ruler for first (active) param
     var fp = panel.dataset.fparam;
     if (fp) { _evDialPid = p.id; _evDialParam = fp; setTimeout(function(){ _evRulerUpdate(p.id, fp); }, 0); }
+    // center first active dial in strip
+    setTimeout(function(){
+      var activeDial = panel.querySelector('.ev-dial.active');
+      var strip = panel.querySelector('.ev-dial-strip');
+      if (activeDial && strip) { var sr = strip.getBoundingClientRect(), er = activeDial.getBoundingClientRect(); strip.scrollLeft += (er.left + er.width/2) - (sr.left + sr.width/2); }
+    }, 50);
 
     // Panel-level horizontal swipe (anywhere in panel, not just ruler)
     if (!panel._panelBound) {

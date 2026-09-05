@@ -1446,23 +1446,26 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .sl-row:hover .sl-name { color:rgba(226,199,179,0.70) !important }
 
 /* ── DIAL + RULER SLIDER SYSTEM ── */
-.ev-dial-panel{display:flex;flex-direction:column;width:100%;padding:8px 0 4px;gap:10px}
-.ev-dial-strip{display:flex;flex-direction:row;gap:8px;overflow-x:auto;padding:4px 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start}
+.ev-dial-panel{display:flex;flex-direction:column;width:100%;padding:4px 0 2px;gap:6px}
+.ev-dial-strip{display:flex;flex-direction:row;gap:6px;overflow-x:auto;padding:2px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start}
 .ev-dial-strip::-webkit-scrollbar{display:none}
-.ev-dial{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;user-select:none}
+.ev-dial{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;user-select:none}
 .ev-dial-ring{width:52px;height:52px;border-radius:50%;border:1.5px solid rgba(201,184,212,0.18);background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;position:relative;transition:border-color 0.14s,background 0.14s}
 .ev-dial.active .ev-dial-ring{border-color:var(--accent,#c9b8d4);background:rgba(201,184,212,0.07)}
+.ev-dial.changed:not(.active) .ev-dial-ring{border-color:rgba(201,184,212,0.40)}
 .ev-dial-icon{display:flex;align-items:center;justify-content:center;color:rgba(228,217,211,0.42);transition:opacity 0.12s}
 #ev-editor-suite .ev-dial-icon .sl-icon-wrap{display:flex !important;align-items:center;justify-content:center;color:rgba(228,217,211,0.80) !important}
 #ev-editor-suite .ev-dial-icon .sl-icon-wrap svg{width:28px;height:28px}
-.ev-dial.active .ev-dial-icon{opacity:0;pointer-events:none}
-.ev-dial-val{position:absolute;font-size:12px;font-weight:600;letter-spacing:-0.01em;color:rgba(228,217,211,0.95);opacity:0;transition:opacity 0.12s;font-family:var(--mono,'monospace');pointer-events:none;white-space:nowrap}
-.ev-dial.active .ev-dial-val{opacity:1}
-.ev-dial-label{font-size:6.5px;letter-spacing:0.05em;color:rgba(228,217,211,0.35);font-weight:500;text-align:center;font-family:var(--mono,'monospace');text-transform:uppercase;transition:color 0.14s;max-width:68px;white-space:normal;overflow:visible;line-height:1.2}
+.ev-dial.active .ev-dial-icon,.ev-dial.changed:not(.active) .ev-dial-icon{opacity:0;pointer-events:none}
+.ev-dial-val{position:absolute;font-size:12px;font-weight:600;letter-spacing:-0.01em;color:rgba(228,217,211,0.95);opacity:0;transition:opacity 0.12s;font-family:var(--font-mono,'monospace');pointer-events:none;white-space:nowrap}
+.ev-dial.active .ev-dial-val,.ev-dial.changed:not(.active) .ev-dial-val{opacity:1}
+.ev-dial.changed:not(.active) .ev-dial-val{color:var(--accent,#c9b8d4);font-size:11px}
+.ev-dial-label{font-size:8px;letter-spacing:0.04em;color:rgba(228,217,211,0.35);font-weight:400;text-align:center;font-family:var(--font-ui,'sans-serif');text-transform:uppercase;transition:color 0.14s;max-width:68px;white-space:normal;overflow:visible;line-height:1.2}
 .ev-dial.active .ev-dial-label{color:rgba(228,217,211,0.85)}
+.ev-dial.changed:not(.active) .ev-dial-label{color:rgba(201,184,212,0.55)}
 .ev-dial-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:0 14px 0;width:100%}
-.ev-dial-section-nm{font-size:7px;letter-spacing:0.13em;color:rgba(228,217,211,0.22);font-family:var(--mono,'monospace');font-weight:500}
-.ev-ruler-wrap{width:100%;height:40px;position:relative;overflow:hidden;touch-action:none;cursor:ew-resize}
+.ev-dial-section-nm{font-size:9px;letter-spacing:0.25em;color:rgba(228,217,211,0.40);font-family:var(--font-ui,'sans-serif');font-weight:400;text-transform:uppercase}
+.ev-ruler-wrap{width:100%;height:32px;position:relative;overflow:hidden;touch-action:none;cursor:ew-resize}
 .ev-ruler-canvas{position:absolute;top:0;height:100%}
 .ev-ruler-center{position:absolute;left:50%;top:8%;bottom:8%;width:1.5px;background:var(--accent,#c9b8d4);transform:translateX(-50%);pointer-events:none;opacity:0.85}
 
@@ -10843,6 +10846,25 @@ function _evRulerUpdate(pid, param) {
     var valEl = activeDial.querySelector('.ev-dial-val');
     if (valEl) valEl.textContent = (dv > 0 ? '+' : '') + dv;
   }
+  // sync changed state + persistent val for all dials in all panels with this pid
+  var _chPanels = document.querySelectorAll('.ev-dial-panel[data-pid="' + pid + '"]');
+  for (var _cpi = 0; _cpi < _chPanels.length; _cpi++) {
+    var _cpDials = _chPanels[_cpi].querySelectorAll('.ev-dial[data-param]');
+    for (var _cdi = 0; _cdi < _cpDials.length; _cdi++) {
+      var _cd = _cpDials[_cdi];
+      var _cdp = _cd.dataset.param;
+      var _cdcfg = sliderConfig[_cdp];
+      var _cdbip = !_cdcfg || _cdcfg[3] !== false;
+      var _cdv = (sliderState[pid] && sliderState[pid][_cdp] !== undefined) ? sliderState[pid][_cdp] : (_cdbip ? 0.5 : 0);
+      var _cdDelta = _cdbip ? Math.round((_cdv - 0.5) * 200) : Math.round(_cdv * 100);
+      var _cdChanged = _cdDelta !== 0;
+      _cd.classList.toggle('changed', _cdChanged);
+      if (_cdChanged && !_cd.classList.contains('active')) {
+        var _cdVal = _cd.querySelector('.ev-dial-val');
+        if (_cdVal) _cdVal.textContent = (_cdDelta > 0 ? '+' : '') + _cdDelta;
+      }
+    }
+  }
 }
 
 function attachDialListeners(p) {
@@ -10851,6 +10873,53 @@ function attachDialListeners(p) {
     // init ruler for first (active) param
     var fp = panel.dataset.fparam;
     if (fp) { _evDialPid = p.id; _evDialParam = fp; setTimeout(function(){ _evRulerUpdate(p.id, fp); }, 0); }
+
+    // Panel-level horizontal swipe (anywhere in panel, not just ruler)
+    if (!panel._panelBound) {
+      panel._panelBound = true;
+      var _pStartX, _pStartY, _pStartVal2, _pParam2, _pBipolar2, _pActive2, _pLocked2;
+      panel.addEventListener('touchstart', function(e) {
+        if (e.target.closest && e.target.closest('.ev-ruler-wrap')) return;
+        _pParam2 = _evDialParam;
+        if (!_pParam2 || _evDialPid !== p.id) return;
+        var _pcfg = sliderConfig[_pParam2];
+        _pBipolar2 = !_pcfg || _pcfg[3] !== false;
+        _pStartX = e.touches[0].clientX;
+        _pStartY = e.touches[0].clientY;
+        _pStartVal2 = (sliderState[p.id] && sliderState[p.id][_pParam2] !== undefined) ? sliderState[p.id][_pParam2] : (_pBipolar2 ? 0.5 : 0);
+        _pActive2 = false; _pLocked2 = false;
+      }, {passive: true});
+      panel.addEventListener('touchmove', function(e) {
+        if (e.target.closest && e.target.closest('.ev-ruler-wrap')) return;
+        if (!_pParam2 || _evDialPid !== p.id) return;
+        var _pdX = e.touches[0].clientX - _pStartX;
+        var _pdY = e.touches[0].clientY - _pStartY;
+        if (!_pActive2 && !_pLocked2) {
+          if (Math.abs(_pdX) > Math.abs(_pdY) + 5) { _pActive2 = true; }
+          else if (Math.abs(_pdY) > Math.abs(_pdX) + 5) { _pLocked2 = true; return; }
+          else return;
+        }
+        if (_pLocked2) return;
+        var PX2 = 4;
+        if (_pBipolar2) {
+          var _pSD = (_pStartVal2 - 0.5) * 200;
+          var _pND = Math.max(-100, Math.min(100, _pSD + _pdX / PX2));
+          if (Math.abs(_pND) < 3) _pND = 0;
+          if (!sliderState[p.id]) sliderState[p.id] = {};
+          sliderState[p.id][_pParam2] = 0.5 + _pND / 200;
+        } else {
+          var _pSD2 = _pStartVal2 * 100;
+          var _pND2 = Math.max(0, Math.min(100, _pSD2 + _pdX / PX2));
+          if (_pND2 < 3) _pND2 = 0;
+          if (!sliderState[p.id]) sliderState[p.id] = {};
+          sliderState[p.id][_pParam2] = _pND2 / 100;
+        }
+        _evRulerUpdate(p.id, _pParam2);
+        scheduleRender(p.id);
+        e.preventDefault();
+      }, {passive: false});
+      panel.addEventListener('touchend', function() { _pParam2 = null; _pActive2 = false; _pLocked2 = false; });
+    }
 
     var wrap = panel.querySelector('.ev-ruler-wrap');
     if (!wrap || wrap._dialBound) return;

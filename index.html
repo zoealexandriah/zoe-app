@@ -21567,6 +21567,9 @@ function cropSelectSubTab(btn, tab) {
   var ov = document.getElementById('crop-overlay-canvas');
   if (tab !== 'ratio' && cropRect && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM') {
     _cropApplyRatioInPlace(tab === 'straighten');
+  } else if (ov && tab !== 'ratio') {
+    ov.remove();
+    ov = null;
   } else if (ov) {
     ov.style.display = 'none';
   }
@@ -21868,6 +21871,8 @@ function cropRotate90(dir) {
     var newImg = new Image();
     newImg.onload = function() {
       userImage = newImg;
+      // Keep pre-crop state current so RATIO re-entry re-crops from the rotated image
+      if (typeof _preCropState !== 'undefined' && _preCropState) _preCropState.userImage = newImg;
       _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
       if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
       _cropStraightenOrig = newImg;
@@ -22004,6 +22009,10 @@ function _cropPerspFlush(onFlush) {
     var _flushImg = new Image();
     _flushImg.onload = function() {
       userImage = _flushImg;
+      // Reset perspective base to the flushed (autocropped) image so re-entry warp
+      // starts from the correct dimensions and doesn't stretch.
+      _perspBaseURL = _flushImg.src;
+      _perspBaseV = 0; _perspBaseH = 0;
       // Keep straighten origin in sync so STRAIGHTEN tab preview draws from post-optical image
       if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig) _cropStraightenOrig = _flushImg;
       if (onFlush) { onFlush(); } else {

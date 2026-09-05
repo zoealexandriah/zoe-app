@@ -11091,6 +11091,14 @@ function evAdjustSubTab(name) {
   if (panelTab) {
     var tabEl = document.querySelector('.es-tab[data-tab="'+panelTab+'"]');
     if (tabEl) esTab(tabEl);
+    setTimeout(function() {
+      var _adp = document.querySelector('.es-tab-panel.active .ev-dial-panel');
+      if (!_adp) return;
+      var _ad = _adp.querySelector('.ev-dial.active');
+      var _param = (_ad && _ad.dataset.param) || _adp.dataset.fparam;
+      var _pid = _adp.dataset.pid;
+      if (_pid && _param) _evRulerUpdate(_pid, _param);
+    }, 0);
   }
   if (name === 'optical') buildOpticalPanel();
   if (name === 'blemish') { setTimeout(function(){ if (typeof blemishEnter === 'function') blemishEnter(); }, 60); }

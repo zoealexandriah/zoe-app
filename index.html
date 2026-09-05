@@ -21542,12 +21542,20 @@ function cropSubTabExpandStraighten() {
   }
 }
 function cropSelectSubTab(btn, tab) {
-  // If there's a pending straighten angle and we're leaving STRAIGHTEN, bake it first so all
-  // subsequent tabs (ratio crop, rotate, optical) operate on the already-straightened image.
+  // Commit any pending straighten angle to the non-destructive transform list.
+  // Defer the rest of this function until the render completes so the ratio overlay
+  // (and any other tab that reads canvas dimensions) sees the updated image.
   if (tab !== 'straighten'
-      && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal || 0) > 0.01
-      && typeof cropStraightenAutoApply === 'function') {
-    cropStraightenAutoApply(function() { cropSelectSubTab(btn, tab); });
+      && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal || 0) > 0.01) {
+    if (typeof evHistoryPush === 'function') evHistoryPush();
+    _cropTransforms.push({ op: 'straighten', angle: _cropStraightenVal });
+    _cropStraightenVal = 0;
+    var _csSl = document.getElementById('crop-straighten-slider'); if (_csSl) _csSl.value = 0;
+    var _csVl = document.getElementById('crop-straighten-val');    if (_csVl) _csVl.textContent = '0.00';
+    var _csSw = document.getElementById('crop-straighten-work');   if (_csSw) _csSw.remove();
+    var _csAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+    if (_csAc) _csAc.style.opacity = '';
+    _cropRenderFromSource(function() { cropSelectSubTab(btn, tab); });
     return;
   }
   var _csBar = document.getElementById('crop-subtabs-bar');

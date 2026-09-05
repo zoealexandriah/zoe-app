@@ -10875,11 +10875,13 @@ function attachDialListeners(p) {
       if (_rBipolar) {
         var startD = (_rStartVal - 0.5) * 200;
         var newD = Math.max(-100, Math.min(100, startD + dX / PX));
+        if (Math.abs(newD) < 3) newD = 0;
         if (!sliderState[p.id]) sliderState[p.id] = {};
         sliderState[p.id][_rParam] = 0.5 + newD / 200;
       } else {
         var startD2 = _rStartVal * 100;
         var newD2 = Math.max(0, Math.min(100, startD2 + dX / PX));
+        if (newD2 < 3) newD2 = 0;
         if (!sliderState[p.id]) sliderState[p.id] = {};
         sliderState[p.id][_rParam] = newD2 / 100;
       }
@@ -10909,11 +10911,13 @@ function attachDialListeners(p) {
       if (_mBipolar) {
         var sd = (_mStartVal - 0.5) * 200;
         var nd = Math.max(-100, Math.min(100, sd + dX / PX));
+        if (Math.abs(nd) < 3) nd = 0;
         if (!sliderState[p.id]) sliderState[p.id] = {};
         sliderState[p.id][_mParam] = 0.5 + nd / 200;
       } else {
         var sd2 = _mStartVal * 100;
         var nd2 = Math.max(0, Math.min(100, sd2 + dX / PX));
+        if (nd2 < 3) nd2 = 0;
         if (!sliderState[p.id]) sliderState[p.id] = {};
         sliderState[p.id][_mParam] = nd2 / 100;
       }

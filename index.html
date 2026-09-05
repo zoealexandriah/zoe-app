@@ -497,7 +497,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
    TOAST
 ══════════════════════════════════════ */
 .toast{
-  position:fixed;top:28px;left:50%;
+  position:fixed;top:50%;left:50%;
   transform:translateX(-50%) translateY(-4px) scale(0.98);
   z-index:2000;display:flex;align-items:center;gap:5px;
   padding:4px 10px;
@@ -509,7 +509,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   opacity:0;transition:all 0.22s cubic-bezier(0.22,1,0.36,1);
   pointer-events:none;white-space:nowrap;
 }
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-50%) scale(1)}
 .toast-dot{width:4px;height:4px;border-radius:50%;background:rgba(185,155,220,0.85);flex-shrink:0;}
 .toast-text{font-size:9px;letter-spacing:0.18em;color:rgba(200,185,225,0.80);font-weight:400;font-family:var(--font-mono)}
 
@@ -10825,7 +10825,7 @@ function _evRulerUpdate(pid, param) {
   if (!canvas || !wrap) return;
   var cfg = sliderConfig[param];
   var bipolar = !cfg || cfg[3] !== false;
-  if (!canvas._rDrawn || canvas._rBipolar !== bipolar) {
+  if (!canvas._rDrawn || canvas._rBipolar !== bipolar || canvas.height < 2) {
     _evRulerDraw(canvas, bipolar);
     canvas._rDrawn = true; canvas._rBipolar = bipolar;
   }
@@ -14807,6 +14807,7 @@ function openEditor(idx) {
     loadImageToCanvas(c, entry.img);
   });
   setTimeout(function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); }, 80);
+  setTimeout(function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); }, 350);
 }
 
 function backToLibrary() {

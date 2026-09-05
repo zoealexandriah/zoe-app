@@ -2140,17 +2140,17 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .crop-transform-icons { display:flex; justify-content:center; gap:8px; padding:10px 4px 6px; flex-wrap:wrap; }
 .crop-transform-icon-btn {
   display:flex; flex-direction:column; align-items:center; gap:5px;
-  cursor:pointer; touch-action:manipulation; min-width:46px;
+  cursor:pointer; touch-action:manipulation; min-width:46px; -webkit-tap-highlight-color:transparent; user-select:none;
 }
 .crop-transform-icon-box {
-  width:48px; height:48px; border:1.5px solid rgba(200,190,220,0.26);
+  width:52px; height:52px; border:1.5px solid rgba(201,184,212,0.18);
   border-radius:50%; display:flex; align-items:center; justify-content:center;
-  background:rgba(12,8,22,0.82); color:rgba(255,255,255,0.88);
+  background:rgba(255,255,255,0.04); color:rgba(228,217,211,0.80);
   transition:background 0.14s,border-color 0.14s;
 }
 .crop-transform-icon-btn:active .crop-transform-icon-box,
-.crop-transform-icon-box.active { background:rgba(192,64,90,0.20); border-color:rgba(218,90,125,0.55); }
-.crop-transform-icon-label { font-size:7.5px; color:rgba(255,255,255,0.38); font-family:var(--mono); letter-spacing:0.09em; }
+.crop-transform-icon-box.active { background:rgba(201,184,212,0.07); border-color:rgba(201,184,212,0.55); }
+.crop-transform-icon-label { font-size:7.5px; color:rgba(228,217,211,0.35); font-family:var(--font-ui,'sans-serif'); letter-spacing:0.09em; font-weight:400; }
 /* Action bar */
 /* Ratio grid */
 .crop-ratios { display:flex; justify-content:space-around; align-items:flex-end; padding:8px 8px 6px; gap:4px; }

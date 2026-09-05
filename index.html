@@ -1457,9 +1457,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 #ev-editor-suite .ev-dial-icon .sl-icon-wrap{display:flex !important;align-items:center;justify-content:center;color:rgba(228,217,211,0.80) !important}
 #ev-editor-suite .ev-dial-icon .sl-icon-wrap svg{width:28px;height:28px}
 .ev-dial.active .ev-dial-icon,.ev-dial.changed:not(.active) .ev-dial-icon{opacity:0;pointer-events:none}
-.ev-dial-val{position:absolute;font-size:12px;font-weight:600;letter-spacing:-0.01em;color:rgba(228,217,211,0.95);opacity:0;transition:opacity 0.12s;font-family:var(--font-mono,'monospace');pointer-events:none;white-space:nowrap}
+.ev-dial-val{position:absolute;font-size:10px;font-weight:400;letter-spacing:-0.01em;color:rgba(228,217,211,0.95);opacity:0;transition:opacity 0.12s;font-family:var(--font-mono,'monospace');pointer-events:none;white-space:nowrap}
 .ev-dial.active .ev-dial-val,.ev-dial.changed:not(.active) .ev-dial-val{opacity:1}
-.ev-dial.changed:not(.active) .ev-dial-val{color:var(--accent,#c9b8d4);font-size:11px}
+.ev-dial.adjusting .ev-dial-val{font-weight:600}
+.ev-dial.changed:not(.active) .ev-dial-val{color:var(--accent,#c9b8d4);font-size:10px}
 .ev-dial-label{font-size:8px;letter-spacing:0.04em;color:rgba(228,217,211,0.35);font-weight:400;text-align:center;font-family:var(--font-ui,'sans-serif');text-transform:uppercase;transition:color 0.14s;max-width:68px;white-space:normal;overflow:visible;line-height:1.2}
 .ev-dial.active .ev-dial-label{color:rgba(228,217,211,0.85)}
 .ev-dial.changed:not(.active) .ev-dial-label{color:rgba(201,184,212,0.55)}
@@ -10914,7 +10915,7 @@ function attachDialListeners(p) {
         var _pdX = e.touches[0].clientX - _pStartX;
         var _pdY = e.touches[0].clientY - _pStartY;
         if (!_pActive2 && !_pLocked2) {
-          if (Math.abs(_pdX) > Math.abs(_pdY) + 5) { _pActive2 = true; }
+          if (Math.abs(_pdX) > Math.abs(_pdY) + 5) { _pActive2 = true; var _pad=panel.querySelector('.ev-dial.active'); if(_pad) _pad.classList.add('adjusting'); }
           else if (Math.abs(_pdY) > Math.abs(_pdX) + 5) { _pLocked2 = true; return; }
           else return;
         }
@@ -10937,7 +10938,7 @@ function attachDialListeners(p) {
         scheduleRender(p.id);
         e.preventDefault();
       }, {passive: false});
-      panel.addEventListener('touchend', function() { _pParam2 = null; _pActive2 = false; _pLocked2 = false; });
+      panel.addEventListener('touchend', function() { var _pad=panel.querySelector('.ev-dial.active'); if(_pad) _pad.classList.remove('adjusting'); _pParam2 = null; _pActive2 = false; _pLocked2 = false; });
     }
 
     var wrap = panel.querySelector('.ev-ruler-wrap');
@@ -10953,6 +10954,7 @@ function attachDialListeners(p) {
       _rBipolar = !cfg || cfg[3] !== false;
       _rStartX = e.touches[0].clientX;
       _rStartVal = (sliderState[p.id] && sliderState[p.id][_rParam] !== undefined) ? sliderState[p.id][_rParam] : (_rBipolar ? 0.5 : 0);
+      var _rad = panel.querySelector('.ev-dial.active'); if (_rad) _rad.classList.add('adjusting');
       e.preventDefault();
     }, {passive: false});
 
@@ -10978,7 +10980,7 @@ function attachDialListeners(p) {
       e.preventDefault();
     }, {passive: false});
 
-    wrap.addEventListener('touchend', function() { _rParam = null; });
+    wrap.addEventListener('touchend', function() { var _rad=panel.querySelector('.ev-dial.active'); if(_rad) _rad.classList.remove('adjusting'); _rParam = null; });
 
     // mouse support for desktop testing
     var _mDown = false, _mStartX, _mStartVal, _mParam, _mBipolar;
@@ -10990,6 +10992,7 @@ function attachDialListeners(p) {
       _mStartX = e.clientX;
       _mStartVal = (sliderState[p.id] && sliderState[p.id][_mParam] !== undefined) ? sliderState[p.id][_mParam] : (_mBipolar ? 0.5 : 0);
       _mDown = true;
+      var _mad = panel.querySelector('.ev-dial.active'); if (_mad) _mad.classList.add('adjusting');
       e.preventDefault();
     });
     document.addEventListener('mousemove', function(e) {
@@ -11012,7 +11015,7 @@ function attachDialListeners(p) {
       _evRulerUpdate(p.id, _mParam);
       scheduleRender(p.id);
     });
-    document.addEventListener('mouseup', function() { _mDown = false; _mParam = null; });
+    document.addEventListener('mouseup', function() { var _mad=panel.querySelector('.ev-dial.active'); if(_mad) _mad.classList.remove('adjusting'); _mDown = false; _mParam = null; });
   });
 }
 document.addEventListener('touchend', _slEndDrag);

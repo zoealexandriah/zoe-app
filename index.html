@@ -2066,18 +2066,19 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .tc-slider-val  { font-size: 8.5px; color: rgba(175,168,210,0.50); font-family: var(--mono) }
 .tc-range {
   width: 100%; height: 2px; -webkit-appearance: none; appearance: none;
-  background: rgba(180,60,80,0.18); border-radius: 100px; outline: none; cursor: pointer;
+  background: rgba(201,184,212,0.18); border-radius: 100px; outline: none; cursor: pointer;
   touch-action: pan-x; padding: 14px 0; box-sizing: content-box; background-clip: content-box;
+  accent-color: var(--accent,#c9b8d4);
 }
 .tc-range::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%;
-  background: linear-gradient(135deg,#d4647a,#c0405a);
-  box-shadow: 0 0 8px rgba(192,64,90,0.62); cursor: pointer;
+  -webkit-appearance: none; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent,#c9b8d4);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4); cursor: pointer;
 }
 .tc-range::-moz-range-thumb {
-  width: 11px; height: 11px; border-radius: 50%;
-  background: linear-gradient(135deg,#d4647a,#c0405a);
-  box-shadow: 0 0 8px rgba(192,64,90,0.62); border: none; cursor: pointer;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent,#c9b8d4);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4); border: none; cursor: pointer;
 }
 
 /* Flip buttons */
@@ -3763,6 +3764,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   align-items: baseline;
 }
 #fx-intensity-name {
+  display: none;
   font-family: var(--font-ui, sans-serif);
   font-size: 8.5px;
   font-weight: 400;

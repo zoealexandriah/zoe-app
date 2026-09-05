@@ -18824,16 +18824,16 @@ function evShowIntensityOverlay(p) {
     tabsHtml += '<button id="ev-int-tab-'+d.key+'" onclick="evIntSelectTool(\''+d.key+'\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:4px 10px;color:rgba(228,217,211,0.32);font-size:10px;letter-spacing:0.10em;font-family:var(--font-ui);font-weight:500;">'+d.label+'</button>';
   });
   overlay.innerHTML =
-    '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">'
-      +'<span id="ev-int-tool-label" style="font-size:15px;font-weight:700;color:rgba(228,217,211,0.95);letter-spacing:0.08em;font-family:var(--font-ui);">FILTER</span>'
-      +'<span id="ev-int-val" style="font-size:15px;font-weight:700;color:rgba(228,217,211,0.95);font-family:var(--font-ui);">'+initVal+'</span>'
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+      +'<div style="display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">'+tabsHtml+'</div>'
+      +'<span id="ev-int-val" style="font-size:13px;font-weight:600;color:rgba(228,217,211,0.90);font-family:var(--font-ui);flex-shrink:0;padding-left:12px;">'+initVal+'</span>'
     +'</div>'
-    +'<input id="ev-int-slider" type="range" min="0" max="100" value="'+initVal+'" oninput="evIntUpdate(this.value)" style="display:block;width:100%;margin-bottom:10px;">'
-    +'<div style="display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -20px 8px;padding:0 20px;">'+tabsHtml+'</div>'
+    +'<input id="ev-int-slider" type="range" min="0" max="100" value="'+initVal+'" oninput="evIntUpdate(this.value)" style="display:block;width:100%;margin-bottom:8px;">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;">'
       +'<button onclick="evIntCancel()" style="width:36px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(228,217,211,0.45);font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent;">✕</button>'
       +'<button onclick="evIntConfirm()" style="width:36px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(228,217,211,0.45);font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent;">✓</button>'
-    +'</div>';
+    +'</div>'
+    +'<span id="ev-int-tool-label" style="display:none"></span>';
   document.body.appendChild(overlay);
   var strip = document.getElementById('ev-preset-strip');
   var mnav = document.getElementById('ev-mobile-nav');

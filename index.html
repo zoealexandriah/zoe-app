@@ -21642,6 +21642,11 @@ function cropSubTabCollapse(confirm) {
     }
     _cropRotateEntryImg = null;
     _cropOpticalEntryState = null;
+    // Remove straighten work canvas and grid overlay on confirm so the grid doesn't linger
+    var _swConf = document.getElementById('crop-straighten-work'); if (_swConf) _swConf.remove();
+    var _ovConf = document.getElementById('crop-overlay-canvas');  if (_ovConf) _ovConf.remove();
+    var _acConf = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+    if (_acConf) _acConf.style.opacity = '';
     // Capture angle from slider DOM before any async resets it
     var _preConfirmSl = document.getElementById('crop-straighten-slider');
     var _savedAngle = _preConfirmSl ? (parseFloat(_preConfirmSl.value) || 0) : (typeof _cropStraightenVal !== 'undefined' ? _cropStraightenVal : 0);
@@ -21768,7 +21773,8 @@ function cropSelectSubTab(btn, tab) {
   // async ops (perspective bake, flip onload) settle. We pass _doStRebuild as the onFlush
   // callback to _cropPerspFlush so it fires AFTER the full-res bake completes — not after a
   // fixed delay that may fire before the bake (causing a stale-image stretch glitch).
-  var _stNeedsRebuild = (tab === 'straighten') && !cropRect && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001;
+  var _csBarExp = document.getElementById('crop-subtabs-bar');
+  var _stNeedsRebuild = (tab === 'straighten') && (_csBarExp && _csBarExp.classList.contains('crop-expanded')) && !cropRect && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001;
   function _doStRebuild() {
     if (!_stNeedsRebuild) return;
     requestAnimationFrame(function() {

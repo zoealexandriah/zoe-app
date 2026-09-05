@@ -19167,8 +19167,10 @@ function evBuildSliders() {
     var src3 = document.getElementById('editor-tools-section');
     if (src3) tc.innerHTML = src3.innerHTML;
   }
-  // If crop was active when sliders were rebuilt, restore the crop UI
-  if (typeof etActiveTool !== 'undefined' && etActiveTool === 'crop') {
+  // If crop tab is currently visible and was active, restore the crop UI
+  var _cropPanel = document.getElementById('es-panel-crop') || document.querySelector('.es-tab-panel[data-tab="crop"]');
+  var _cropVisible = _cropPanel && (_cropPanel.classList.contains('active') || _cropPanel.offsetParent !== null);
+  if (_cropVisible && typeof etActiveTool !== 'undefined' && etActiveTool === 'crop') {
     if (typeof etSelectTool === 'function') etSelectTool('crop');
   }
 }

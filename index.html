@@ -1039,14 +1039,14 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 /* ── BOTTOM NAV ── */
 .bn-icon { color:transparent !important; font-size:0 !important; line-height:0 !important }
 .bn-item .zicon { width:20px; height:20px }
-.bn-item .zicon svg { stroke:rgba(172,82,105,0.30) }
-.bn-item.active .zicon svg { stroke:rgba(218,108,138,0.92); filter:drop-shadow(0 0 5px rgba(192,72,108,0.58)) drop-shadow(0 0 10px rgba(138,26,46,0.28)) }
-.bn-item:hover  .zicon svg { stroke:rgba(200,100,128,0.68) }
-.bn-label { font-size:6.5px !important; letter-spacing:0.26em !important; color:rgba(162,72,98,0.26) !important }
-.bn-item.active .bn-label { color:rgba(218,112,140,0.84) !important }
-.bn-item:hover  .bn-label { color:rgba(195,98,125,0.60) !important }
-.bn-item.active::before { background:linear-gradient(to right,transparent,rgba(192,64,90,0.65),rgba(138,26,46,0.50),rgba(192,64,90,0.60),transparent) !important }
-.bottomnav::before { background:linear-gradient(to right,transparent 0%,rgba(192,64,90,0.28) 18%,rgba(218,110,138,0.22) 38%,rgba(138,26,46,0.18) 56%,rgba(192,64,90,0.26) 74%,rgba(218,110,138,0.18) 88%,transparent 100%) !important }
+.bn-item .zicon svg { stroke:rgba(201,184,212,0.22) }
+.bn-item.active .zicon svg { stroke:rgba(201,184,212,0.90); filter:drop-shadow(0 0 6px rgba(201,184,212,0.50)) drop-shadow(0 0 12px rgba(150,120,200,0.28)) }
+.bn-item:hover  .zicon svg { stroke:rgba(201,184,212,0.55) }
+.bn-label { font-size:6.5px !important; letter-spacing:0.26em !important; color:rgba(175,155,210,0.22) !important }
+.bn-item.active .bn-label { color:rgba(201,184,212,0.80) !important }
+.bn-item:hover  .bn-label { color:rgba(185,165,215,0.52) !important }
+.bn-item.active::before { background:linear-gradient(to right,transparent,rgba(201,184,212,0.55),rgba(175,155,210,0.42),rgba(201,184,212,0.50),transparent) !important }
+.bottomnav::before { background:linear-gradient(to right,transparent 0%,rgba(201,184,212,0.16) 18%,rgba(180,160,220,0.12) 50%,rgba(201,184,212,0.14) 82%,transparent 100%) !important }
 .bn-item[data-tab="HOME"] .zicon{width:62px;height:62px}
 .bn-item[data-tab="HOME"] .zicon svg{stroke-width:0.7}
 
@@ -3094,8 +3094,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     display: flex !important;
     align-items: center;
     gap: 10px;
-    padding: 8px 14px 12px;
-    background: transparent;
+    padding: 10px 14px 14px;
+    background: linear-gradient(to top, rgba(8,6,12,0.96) 0%, rgba(8,6,12,0.70) 60%, transparent 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     position: absolute;
     bottom: 0;
     left: 0;
@@ -3107,14 +3109,14 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     flex: 1;
     display: flex;
     flex-direction: row;
-    background: rgba(10,9,12,0.92);
-    border: 1px solid rgba(228,217,211,0.10);
+    background: rgba(14,11,20,0.88);
+    border: 0.5px solid rgba(201,184,212,0.14);
     border-radius: 100px;
     padding: 4px;
     gap: 0;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.55), 0 0 0 0.5px rgba(228,217,211,0.06) inset;
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.50), 0 0 0 0.5px rgba(201,184,212,0.06) inset;
   }
   .gab-btn {
     flex: 1;
@@ -3128,7 +3130,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     border-radius: 100px;
     padding: 9px 2px 8px;
     cursor: pointer;
-    color: rgba(228,217,211,0.35);
+    color: rgba(201,184,212,0.30);
     font-size: 7px;
     letter-spacing: 0.14em;
     font-family: var(--font-ui, sans-serif);
@@ -3138,8 +3140,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     text-transform: uppercase;
   }
   .gab-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
-  .gab-btn.active { color: rgba(228,217,211,0.80); }
-  .gab-danger { color: rgba(218,90,125,0.55) !important; }
+  .gab-btn.active { color: rgba(201,184,212,0.82); }
+  .gab-danger { color: rgba(218,90,125,0.50) !important; }
   .gab-danger.active { color: rgba(218,90,125,1) !important; }
   #gallery-add-btn {
     width: 35px;

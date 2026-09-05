@@ -21698,6 +21698,111 @@ function cropSelectSubTab(btn, tab) {
   }
 }
 
+// ── Non-destructive crop pipeline ─────────────────────────────────────────
+var _cropSourceImage = null;  // image captured on crop-tab open; never mutated during session
+var _cropTransforms  = [];    // committed ops [{op,…},…] replayed in order at bake time
+
+function _cropApplyOne(t, srcImg, cb) {
+  var iw = srcImg.naturalWidth, ih = srcImg.naturalHeight;
+  var tmp = document.createElement('canvas');
+  var ctx;
+
+  if (t.op === 'straighten') {
+    var rad  = t.angle * Math.PI / 180;
+    var absR = Math.abs(rad);
+    var cosR = Math.cos(absR), sinR = Math.sin(absR);
+    var cos2R = Math.cos(2 * absR);
+    var s1 = iw * cos2R / Math.max(0.001, iw * cosR - ih * sinR);
+    var s2 = ih * cos2R / Math.max(0.001, ih * cosR - iw * sinR);
+    var s  = Math.max(s1, s2, 1);
+    tmp.width = iw; tmp.height = ih;
+    ctx = tmp.getContext('2d', { willReadFrequently: true });
+    ctx.save();
+    ctx.translate(iw / 2, ih / 2);
+    ctx.rotate(rad);
+    ctx.drawImage(srcImg, -iw * s / 2, -ih * s / 2, iw * s, ih * s);
+    ctx.restore();
+
+  } else if (t.op === 'rotate') {
+    tmp.width = ih; tmp.height = iw;
+    ctx = tmp.getContext('2d', { willReadFrequently: true });
+    ctx.save();
+    if (t.dir === 'cw') { ctx.translate(tmp.width, 0);  ctx.rotate( Math.PI / 2); }
+    else                { ctx.translate(0, tmp.height); ctx.rotate(-Math.PI / 2); }
+    ctx.drawImage(srcImg, 0, 0, iw, ih, 0, 0, iw, ih);
+    ctx.restore();
+
+  } else if (t.op === 'flip') {
+    tmp.width = iw; tmp.height = ih;
+    ctx = tmp.getContext('2d', { willReadFrequently: true });
+    ctx.save();
+    if (t.dir === 'h') { ctx.scale(-1,  1); ctx.drawImage(srcImg, -iw,  0); }
+    else               { ctx.scale( 1, -1); ctx.drawImage(srcImg,   0, -ih); }
+    ctx.restore();
+
+  } else if (t.op === 'crop') {
+    var cx = Math.round(t.rx * iw), cy = Math.round(t.ry * ih);
+    var cw = Math.max(1, Math.round(t.rw * iw)), ch = Math.max(1, Math.round(t.rh * ih));
+    tmp.width = cw; tmp.height = ch;
+    tmp.getContext('2d', { willReadFrequently: true }).drawImage(srcImg, cx, cy, cw, ch, 0, 0, cw, ch);
+
+  } else if (t.op === 'perspective') {
+    var amtV = (t.v >= 0 ? 1 : -1) * Math.pow(Math.abs(t.v) / 100, 2);
+    var amtH = (t.h >= 0 ? 1 : -1) * Math.pow(Math.abs(t.h) / 100, 2);
+    tmp.width = iw; tmp.height = ih;
+    _etPerspTrapezoidWarp(tmp.getContext('2d', { willReadFrequently: true }), srcImg, amtV, amtH, iw, ih);
+    var maxK = 0.35;
+    var kV = Math.abs(amtV) * maxK, kH = Math.abs(amtH) * maxK;
+    var scV = 1 / (1 - kV * 0.5), scH = 1 / (1 - kH * 0.5);
+    var xIV = Math.ceil(iw * 0.5 * (1 - 1 / scV)), xIH = Math.ceil(iw * 0.5 * (1 - 1 / scH));
+    var yIV = Math.ceil(ih * 0.5 * (1 - 1 / scV)), yIH = Math.ceil(ih * 0.5 * (1 - 1 / scH));
+    var mnX = Math.max(xIV, amtH < 0 ? xIH : 0);
+    var mxX = iw - 1 - Math.max(xIV, amtH > 0 ? xIH : 0);
+    var mnY = Math.max(yIH, amtV < 0 ? yIV : 0);
+    var mxY = ih - 1 - Math.max(yIH, amtV > 0 ? yIV : 0);
+    var pW = mxX - mnX + 1, pH = mxY - mnY + 1;
+    if (pW < 4 || pH < 4) { pW = iw; pH = ih; mnX = 0; mnY = 0; }
+    var _pcv = document.createElement('canvas');
+    _pcv.width = pW; _pcv.height = pH;
+    _pcv.getContext('2d', { willReadFrequently: true }).drawImage(tmp, mnX, mnY, pW, pH, 0, 0, pW, pH);
+    var _pni = new Image();
+    _pni.onload = function() { cb(_pni); };
+    _pni.src = _pcv.toDataURL('image/jpeg', 0.95);
+    return;
+  }
+
+  var _ni = new Image();
+  _ni.onload = function() { cb(_ni); };
+  _ni.src = tmp.toDataURL('image/jpeg', 0.95);
+}
+
+// Replay an ordered list of transforms against source; call cb(finalImage).
+function _cropApplyTransforms(transforms, source, cb) {
+  if (!transforms || transforms.length === 0) { cb(source); return; }
+  var idx = 0;
+  function step(img) {
+    if (idx >= transforms.length) { cb(img); return; }
+    _cropApplyOne(transforms[idx++], img, step);
+  }
+  step(source);
+}
+
+// Replay _cropTransforms on _cropSourceImage, update userImage + canvas.
+function _cropRenderFromSource(onDone) {
+  if (!_cropSourceImage) { if (onDone) onDone(); return; }
+  _cropApplyTransforms(_cropTransforms, _cropSourceImage, function(result) {
+    userImage = result;
+    var ev = document.getElementById('editor-view');
+    if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
+    else {
+      var _rAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+      if (_rAc && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rAc, result);
+    }
+    if (onDone) onDone();
+  });
+}
+// ── End non-destructive crop pipeline ──────────────────────────────────────
+
 var _cropStraightenOrig = null;
 var _cropStraightenRafId = null;
 var _cropStraightenVal = 0;

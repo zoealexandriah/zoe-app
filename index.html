@@ -1468,7 +1468,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .ev-dial-section-nm{font-size:9px;letter-spacing:0.25em;color:rgba(228,217,211,0.40);font-family:var(--font-ui,'sans-serif');font-weight:400;text-transform:uppercase}
 .ev-ruler-wrap{width:100%;height:32px;position:relative;overflow:hidden;touch-action:none;cursor:ew-resize}
 .ev-ruler-canvas{position:absolute;top:0;height:100%}
-.ev-ruler-center{position:absolute;left:50%;top:8%;bottom:8%;width:1.5px;background:var(--accent,#c9b8d4);transform:translateX(-50%);pointer-events:none;opacity:0.85}
+.ev-ruler-center{position:absolute;left:50%;top:20%;bottom:20%;width:1.5px;background:var(--accent,#c9b8d4);transform:translateX(-50%);pointer-events:none;opacity:0.85}
 
 /* ── QUICK ACTIONS LABELS — 11px ── */
 .qa-label {
@@ -10835,8 +10835,7 @@ function _evRulerDraw(canvas, bipolar) {
     var tH = isN ? h * 0.60 : isMaj ? h * 0.30 : isMin5 ? h * 0.20 : h * 0.12;
     ctx.fillStyle = isN ? 'rgba(201,184,212,0.85)' : isMaj ? 'rgba(228,217,211,0.38)' : 'rgba(228,217,211,0.16)';
     var tW = isN ? 1.5 : 1;
-    var tY = isN ? (h - tH) / 2 : h - tH;
-    ctx.fillRect(x - tW / 2, tY, tW, tH);
+    ctx.fillRect(x - tW / 2, (h - tH) / 2, tW, tH);
   }
 }
 

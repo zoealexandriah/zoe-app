@@ -20734,70 +20734,47 @@ window.etSelectTool = function(name) {
 window.toolsFlipApply = function(dir) {
   if (!userImage) return;
   evHistoryPush();
-  _flipPreState = { userImage };
-  // Save pre-flip _preCropState.userImage so undo can restore it
-  if (typeof _preCropState !== 'undefined' && _preCropState && _preCropState.userImage) {
-    _flipPreState.preCropUserImage = _preCropState.userImage;
-  }
   const undoBtn = document.getElementById('et-flip-undo') || document.getElementById('flip-undo-btn');
   if (undoBtn) undoBtn.style.display = 'block';
-  function _execFlip() {
-    var _rPrevURL = _perspBaseURL, _rPrevV = _perspBaseV, _rPrevH = _perspBaseH;
-    _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
-    const tmp = document.createElement('canvas');
-    tmp.width  = userImage.naturalWidth;
-    tmp.height = userImage.naturalHeight;
-    const ctx = tmp.getContext('2d', { willReadFrequently: true });
-    ctx.save();
-    if (dir === 'h') { ctx.scale(-1, 1); ctx.drawImage(userImage, -tmp.width,  0); }
-    else             { ctx.scale(1, -1); ctx.drawImage(userImage, 0, -tmp.height); }
-    ctx.restore();
-    const newImg = new Image();
-    newImg.onload = function() {
-      userImage = newImg; _origPixels = null;
-      // Keep _preCropState.userImage in sync with flip so RATIO re-adjust shows the
-      // flipped original instead of the pre-flip original
-      if (typeof _preCropState !== 'undefined' && _preCropState && _preCropState.userImage) {
-        var _pcTmp = document.createElement('canvas');
-        _pcTmp.width = _preCropState.userImage.naturalWidth;
-        _pcTmp.height = _preCropState.userImage.naturalHeight;
-        var _pcCtx = _pcTmp.getContext('2d', { willReadFrequently: true });
-        _pcCtx.save();
-        if (dir === 'h') { _pcCtx.scale(-1, 1); _pcCtx.drawImage(_preCropState.userImage, -_pcTmp.width, 0); }
-        else             { _pcCtx.scale(1, -1); _pcCtx.drawImage(_preCropState.userImage, 0, -_pcTmp.height); }
-        _pcCtx.restore();
-        var _pcImg = new Image();
-        _pcImg.onload = function() { if (_preCropState) _preCropState.userImage = _pcImg; };
-        _pcImg.src = _pcTmp.toDataURL();
-      }
+
+  function _doFlip() {
+    if (typeof _cropSourceImage !== 'undefined' && _cropSourceImage) {
+      // Inside a crop session — push to non-destructive transforms
+      if (_cropSourceImage) _cropSourceImage = userImage; // sync any interim bakes (e.g. perspective flush)
+      _cropTransforms.push({ op: 'flip', dir: dir });
+      _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
       if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
-      if (_rPrevURL) {
-        var _pbFlip = new Image();
-        _pbFlip.onload = function() {
-          var _pbC = document.createElement('canvas');
-          _pbC.width = _pbFlip.naturalWidth; _pbC.height = _pbFlip.naturalHeight;
-          var _pbCtx = _pbC.getContext('2d', { willReadFrequently: true });
-          _pbCtx.save();
-          if (dir === 'h') { _pbCtx.scale(-1, 1); _pbCtx.drawImage(_pbFlip, -_pbC.width, 0); }
-          else { _pbCtx.scale(1, -1); _pbCtx.drawImage(_pbFlip, 0, -_pbC.height); }
-          _pbCtx.restore();
-          _perspBaseURL = _pbC.toDataURL('image/jpeg', 0.95);
-          _perspBaseV = _rPrevV; _perspBaseH = _rPrevH;
-          if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
-        };
-        _pbFlip.src = _rPrevURL;
-      } else {
+      _cropRenderFromSource(function() {
+        _cropStraightenOrig = userImage;
+        showToast('FLIPPED');
         if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
-      }
-      showToast('FLIPPED');
-      if (typeof evRenderCanvas === 'function') {
-        const ev = document.getElementById('editor-view');
-        if (ev && ev.classList.contains('active')) evRenderCanvas();
-      }
-    };
-    newImg.src = tmp.toDataURL();
+        var ev = document.getElementById('editor-view');
+        if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
+      });
+    } else {
+      // Outside crop session — bake directly into userImage
+      _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
+      var tmp = document.createElement('canvas');
+      tmp.width = userImage.naturalWidth; tmp.height = userImage.naturalHeight;
+      var ctx = tmp.getContext('2d', { willReadFrequently: true });
+      ctx.save();
+      if (dir === 'h') { ctx.scale(-1, 1); ctx.drawImage(userImage, -tmp.width, 0); }
+      else             { ctx.scale( 1,-1); ctx.drawImage(userImage, 0, -tmp.height); }
+      ctx.restore();
+      var newImg = new Image();
+      newImg.onload = function() {
+        userImage = newImg; _origPixels = null;
+        if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
+        showToast('FLIPPED');
+        if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
+        var ev = document.getElementById('editor-view');
+        if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
+      };
+      newImg.src = tmp.toDataURL();
+    }
   }
-  if (typeof _cropPerspFlush === 'function') { _cropPerspFlush(_execFlip); } else { _execFlip(); }
+
+  if (typeof _cropPerspFlush === 'function') { _cropPerspFlush(_doFlip); } else { _doFlip(); }
 };
 
 // Restore _preCropState.userImage on flip undo so RATIO re-adjust stays in sync
@@ -21947,90 +21924,45 @@ function cropStraightenAutoApply(onDone) {
 }
 
 function cropRotate90(dir) {
-  if (!_preCropState) {
-    _preCropState = { userImage: userImage, origPixels: _origPixels, origOffX: _origOffX, origOffY: _origOffY, origW: _origW, origH: _origH };
-  }
   evHistoryPush();
-  // Remove overlays immediately — before perspective flush, so there's no flash
-  var _o = document.getElementById('crop-overlay-canvas'); if (_o) _o.remove();
-  var _sw = document.getElementById('crop-straighten-work'); if (_sw) _sw.remove();
-  var _sw2 = document.getElementById('straighten-work-canvas'); if (_sw2) _sw2.remove();
-  function _execRotate() {
-    var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
-    if (!hc || !userImage) return;
-    // Ignore auto-generated cropRect (set by toolsCropDraw on crop panel open) — only apply
-    // cropRect when the overlay was actively visible, meaning the user positioned it intentionally
-    var _ovChk = document.getElementById('crop-overlay-canvas');
-    if (cropRect && (!_ovChk || _ovChk.style.display === 'none')) { cropRect = null; }
-    // Capture perspective state before the rotation so we can restore slider values after
-    var _rPrevURL = _perspBaseURL, _rPrevV = _perspBaseV, _rPrevH = _perspBaseH;
-    // Operate on userImage (clean source) — NOT hc, which has adjustments baked in.
-    // Drawing from hc would double-apply all sliders/presets on the next evRenderCanvas() call.
-    // If a crop rect is pending (drawn but not yet applied), bake it into the rotation so
-    // the user sees the cropped region rotated — not the full original image.
-    var _rSrcW = userImage.naturalWidth, _rSrcH = userImage.naturalHeight;
-    var _rDx = 0, _rDy = 0, _rDw = _rSrcW, _rDh = _rSrcH;
-    var _hadCropRect = !!cropRect;
-    if (cropRect) {
-      var _rSx = _rSrcW / hc.width, _rSy = _rSrcH / hc.height;
-      _rDx = Math.round(cropRect.x * _rSx);
-      _rDy = Math.round(cropRect.y * _rSy);
-      _rDw = Math.max(1, Math.round(cropRect.w * _rSx));
-      _rDh = Math.max(1, Math.round(cropRect.h * _rSy));
-      cropRect = null;
-    }
-    var tmp = document.createElement('canvas');
-    tmp.width = _rDh; tmp.height = _rDw;
-    var ctx = tmp.getContext('2d', { willReadFrequently: true });
-    ctx.save();
-    if (dir === 'cw')  { ctx.translate(tmp.width, 0);   ctx.rotate(Math.PI / 2); }
-    else               { ctx.translate(0, tmp.height);  ctx.rotate(-Math.PI / 2); }
-    ctx.drawImage(userImage, _rDx, _rDy, _rDw, _rDh, 0, 0, _rDw, _rDh); ctx.restore();
-    var newImg = new Image();
-    newImg.onload = function() {
-      userImage = newImg;
-      // Keep pre-crop state current so RATIO re-entry re-crops from the rotated image
-      if (typeof _preCropState !== 'undefined' && _preCropState) _preCropState.userImage = newImg;
-      _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
-      if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
-      _cropStraightenOrig = newImg;
-      cropRect = null;
-      // Rotate the pre-warp original so the perspective slider shows the saved value on re-entry
-      if (_rPrevURL && !_hadCropRect) {
-        var _pbRot = new Image();
-        _pbRot.onload = function() {
-          var _pbC = document.createElement('canvas');
-          _pbC.width = _pbRot.naturalHeight; _pbC.height = _pbRot.naturalWidth;
-          var _pbCtx = _pbC.getContext('2d', { willReadFrequently: true });
-          _pbCtx.save();
-          if (dir === 'cw') { _pbCtx.translate(_pbC.width, 0); _pbCtx.rotate(Math.PI / 2); }
-          else { _pbCtx.translate(0, _pbC.height); _pbCtx.rotate(-Math.PI / 2); }
-          _pbCtx.drawImage(_pbRot, 0, 0, _pbRot.naturalWidth, _pbRot.naturalHeight, 0, 0, _pbRot.naturalWidth, _pbRot.naturalHeight);
-          _pbCtx.restore();
-          _perspBaseURL = _pbC.toDataURL('image/jpeg', 0.95);
-          _perspBaseV = _rPrevV; _perspBaseH = _rPrevH;
-        };
-        _pbRot.src = _rPrevURL;
-      }
-      if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
-      var ev = document.getElementById('editor-view');
-      if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') {
-        evRenderCanvas();
-        // Delay crop UI rebuild until after rAF has painted the new frame
-        setTimeout(function() {
-          if (typeof window.etSelectTool === 'function') {
-            _etCropDefaultTab = 'transform';
-            window.etSelectTool('crop');
-            // Re-expand ROTATE bar — _etCropDefaultTab is reset by etCropHTML before evAdjustSubTab reads it
-            setTimeout(function() { if (typeof cropSubTabExpand === 'function') cropSubTabExpand('ROTATE'); }, 20);
-          }
-        }, 60);
-      } else { loadImageToCanvas(hc, newImg); }
-      showToast('ROTATED');
-    };
-    newImg.src = tmp.toDataURL('image/jpeg', 0.95);
+  // Commit any pending straighten before rotating
+  if (typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal || 0) > 0.01) {
+    _cropTransforms.push({ op: 'straighten', angle: _cropStraightenVal });
+    _cropStraightenVal = 0;
+    var _rSl = document.getElementById('crop-straighten-slider'); if (_rSl) _rSl.value = 0;
+    var _rVl = document.getElementById('crop-straighten-val'); if (_rVl) _rVl.textContent = '0.00';
   }
-  if (typeof _cropPerspFlush === 'function') { _cropPerspFlush(_execRotate); } else { _execRotate(); }
+  // Remove all overlay canvases
+  var _ro = document.getElementById('crop-overlay-canvas'); if (_ro) _ro.remove();
+  var _rsw = document.getElementById('crop-straighten-work'); if (_rsw) _rsw.remove();
+  var _rpw = document.getElementById('crop-perspective-work'); if (_rpw) _rpw.remove();
+  cropRect = null;
+  _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
+  if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
+
+  function _doRotate() {
+    _cropTransforms.push({ op: 'rotate', dir: dir });
+    _cropRenderFromSource(function() {
+      _cropStraightenOrig = userImage;
+      if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
+      showToast('ROTATED');
+      setTimeout(function() {
+        if (typeof window.etSelectTool === 'function') {
+          _etCropDefaultTab = 'transform';
+          window.etSelectTool('crop');
+          setTimeout(function() { if (typeof cropSubTabExpand === 'function') cropSubTabExpand('ROTATE'); }, 20);
+        }
+      }, 60);
+    });
+  }
+
+  // Flush any live perspective preview first; sync source so replay is correct
+  if (typeof _cropPerspFlush === 'function') {
+    _cropPerspFlush(function() {
+      if (typeof _cropSourceImage !== 'undefined' && _cropSourceImage) _cropSourceImage = userImage;
+      _doRotate();
+    });
+  } else { _doRotate(); }
 }
 
 // ── Perspective Warp ────────────────────────────────────────────────────────

@@ -3196,8 +3196,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   /* Intensity overlay slider */
   #ev-int-slider{-webkit-appearance:none;appearance:none;width:100%;height:2px;background:rgba(255,255,255,0.28);border-radius:1px;outline:none;cursor:pointer;}
-  #ev-int-slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;background:#fff;border-radius:3px;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
-  #ev-int-slider::-moz-range-thumb{width:24px;height:24px;background:#fff;border-radius:3px;cursor:pointer;border:none;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
+  #ev-int-slider::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;background:#fff;border-radius:3px;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
+  #ev-int-slider::-moz-range-thumb{width:17px;height:17px;background:#fff;border-radius:3px;cursor:pointer;border:none;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
 
   /* Blemish panel */
   .blemish-action-bar { display:flex; align-items:center; justify-content:space-between; padding:8px 4px; border-bottom:0.5px solid rgba(255,255,255,0.1); flex-shrink:0; }
@@ -18789,9 +18789,9 @@ function evShowIntensityOverlay(p) {
     var v = p && p.defaults && p.defaults[d.key] !== undefined ? p.defaults[d.key] : d.neutral;
     return Math.abs(v - d.neutral) > 0.30;
   });
-  var tabsHtml = '<button id="ev-int-tab-filter" onclick="evIntSelectTool(\'filter\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 12px;color:rgba(218,90,125,1);font-size:7.5px;letter-spacing:0.12em;font-family:var(--mono);font-weight:500;">FILTER</button>';
+  var tabsHtml = '<button id="ev-int-tab-filter" onclick="evIntSelectTool(\'filter\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 12px;color:rgba(218,90,125,1);font-size:10px;letter-spacing:0.10em;font-family:var(--font-ui);font-weight:500;">FILTER</button>';
   activeEffects.forEach(function(d){
-    tabsHtml += '<button id="ev-int-tab-'+d.key+'" onclick="evIntSelectTool(\''+d.key+'\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 12px;color:rgba(228,217,211,0.32);font-size:7.5px;letter-spacing:0.12em;font-family:var(--mono);font-weight:500;">'+d.label+'</button>';
+    tabsHtml += '<button id="ev-int-tab-'+d.key+'" onclick="evIntSelectTool(\''+d.key+'\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 12px;color:rgba(228,217,211,0.32);font-size:10px;letter-spacing:0.10em;font-family:var(--font-ui);font-weight:500;">'+d.label+'</button>';
   });
   overlay.innerHTML =
     '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">'

@@ -10818,7 +10818,10 @@ function _evRulerDraw(canvas, bipolar) {
 }
 
 function _evRulerUpdate(pid, param) {
-  var panel = document.querySelector('.ev-dial-panel[data-pid="' + pid + '"]');
+  var _panels = document.querySelectorAll('.ev-dial-panel[data-pid="' + pid + '"]');
+  var panel = null;
+  for (var _pi = 0; _pi < _panels.length; _pi++) { if (_panels[_pi].offsetHeight > 0) { panel = _panels[_pi]; break; } }
+  if (!panel && _panels.length > 0) panel = _panels[0];
   if (!panel) return;
   var canvas = panel.querySelector('.ev-ruler-canvas');
   var wrap = panel.querySelector('.ev-ruler-wrap');

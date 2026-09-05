@@ -11339,7 +11339,7 @@ function doRender(presetId) {
   if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
   adj.curve = p.curve || null;
   adj.halationBloom = p.halationBloom || null;
-  if (p.scanLines) adj.scanLines = p.scanLines;
+  if (p.scanLines) { var _slD1 = sliderState && sliderState[p.id] && sliderState[p.id]['SCANLINES'] !== undefined ? sliderState[p.id]['SCANLINES'] : 0; adj.scanLines = { spacing: p.scanLines.spacing || 2, opacity: Math.max(0, p.scanLines.opacity + _slD1) }; }
   if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
   if (p.filmCrossover) adj.filmCrossover = p.filmCrossover;
   if (p.vhsBleed) adj.vhsBleed = p.vhsBleed;
@@ -17899,7 +17899,7 @@ function _evDoSave() {
     if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
     if (p.filmCrossover)       adj.filmCrossover       = p.filmCrossover;
     if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
-    if (p.scanLines) adj.scanLines = p.scanLines;
+    if (p.scanLines) { var _slD2 = sliderState && sliderState[p.id] && sliderState[p.id]['SCANLINES'] !== undefined ? sliderState[p.id]['SCANLINES'] : 0; adj.scanLines = { spacing: p.scanLines.spacing || 2, opacity: Math.max(0, p.scanLines.opacity + _slD2) }; }
     if (p.vhsBleed)  adj.vhsBleed  = p.vhsBleed;
     if (p.textureOverlay) adj.textureOverlay = p.textureOverlay;
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
@@ -18314,7 +18314,10 @@ function _evRenderCanvasImmediate() {
       if (activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
       if (activePreset.filmCrossover)       adj.filmCrossover       = activePreset.filmCrossover;
       if (activePreset.chromaticAberration) adj.chromaticAberration = activePreset.chromaticAberration;
-      if (activePreset.scanLines) adj.scanLines = activePreset.scanLines;
+      if (activePreset.scanLines) {
+        var _slODelta = sliderState[_evCurPreset.id] && sliderState[_evCurPreset.id]['SCANLINES'] !== undefined ? sliderState[_evCurPreset.id]['SCANLINES'] : 0;
+        adj.scanLines = { spacing: activePreset.scanLines.spacing || 2, opacity: Math.max(0, activePreset.scanLines.opacity + _slODelta) };
+      }
       if (activePreset.vhsBleed)  adj.vhsBleed  = activePreset.vhsBleed;
       if (activePreset.textureOverlay) adj.textureOverlay = activePreset.textureOverlay;
       if (activePreset.border)       adj.border       = activePreset.border;
@@ -18338,6 +18341,13 @@ function _evRenderCanvasImmediate() {
       }
     }
     ctx.putImageData(new ImageData(processed, canvas.width, canvas.height), 0, 0);
+    // Snapshot after pixel-blend so canvas overlays (halation, scanLines, etc.) also scale with intensity
+    var _preOverlaySnap = null;
+    if (intensity < 0.999) {
+      _preOverlaySnap = document.createElement('canvas');
+      _preOverlaySnap.width = canvas.width; _preOverlaySnap.height = canvas.height;
+      _preOverlaySnap.getContext('2d').drawImage(canvas, 0, 0);
+    }
     if (activePreset && activePreset.curve) applyCurveLUTs(canvas, activePreset.curve, 0, 0, canvas.width, canvas.height);
     var _dragging = window._slDragging;
     if ((adj.glow || 0) > 0.01) applyGlow(canvas, adj.glow, 0, 0, canvas.width, canvas.height);
@@ -18393,6 +18403,14 @@ function _evRenderCanvasImmediate() {
       if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, canvas.width, canvas.height);
     }
     if ((adj.vignette || 0) > 0.01) applyVignette(canvas, adj.vignette, 0, 0, canvas.width, canvas.height);
+    // Blend canvas overlays back toward original by (1-intensity)
+    if (_preOverlaySnap) {
+      var _pCtx = canvas.getContext('2d', { willReadFrequently: true });
+      _pCtx.save();
+      _pCtx.globalAlpha = 1 - intensity;
+      _pCtx.drawImage(_preOverlaySnap, 0, 0);
+      _pCtx.restore();
+    }
   }
   // Grain last, before FX frames, so it lands on the photo and not the frame.
   if (typeof _evGrain !== 'undefined' && _evGrain > 0.005) {
@@ -18772,6 +18790,7 @@ var _evIntEffectDefs = [
   {key:'SHARPEN',label:'SHARPEN',neutral:0},
   {key:'CLARITY',label:'CLARITY',neutral:0},
   {key:'DEHAZE',label:'DEHAZE',neutral:0.5},
+  {key:'SCANLINES',label:'SCAN LINES',neutral:0},
 ];
 function evShowIntensityOverlay(p) {
   _evIntPrevIntensity = presetIntensity;
@@ -18786,6 +18805,7 @@ function evShowIntensityOverlay(p) {
   overlay.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:500;padding:22px 24px calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,#0f0e0d 0%,rgba(15,14,13,0.97) 75%,transparent 100%);display:none;';
   var initVal = Math.round(presetIntensity * 100);
   var activeEffects = _evIntEffectDefs.filter(function(d){
+    if (d.key === 'SCANLINES') return !!(p && p.scanLines && p.scanLines.opacity > 0.005);
     var v = p && p.defaults && p.defaults[d.key] !== undefined ? p.defaults[d.key] : d.neutral;
     return Math.abs(v - d.neutral) > 0.30;
   });
@@ -18817,6 +18837,10 @@ function evIntSelectTool(toolId) {
   var val;
   if (toolId === 'filter') {
     val = Math.round(presetIntensity * 100);
+  } else if (toolId === 'SCANLINES') {
+    var _slBase = (p && p.scanLines) ? p.scanLines.opacity : 0;
+    var _slDelta = (p && sliderState[p.id] && sliderState[p.id]['SCANLINES'] !== undefined) ? sliderState[p.id]['SCANLINES'] : 0;
+    val = Math.round(Math.max(0, Math.min(1, _slBase + _slDelta)) * 100);
   } else {
     var def = _evIntEffectDefs.find(function(d){ return d.key === toolId; }) || {neutral:0};
     var base = (p && p.defaults && p.defaults[toolId] !== undefined) ? p.defaults[toolId] : def.neutral;
@@ -18843,6 +18867,13 @@ function evIntUpdate(val) {
     presetIntensity = num / 100;
     document.querySelectorAll('.intensity-slider').forEach(function(el){ el.value = num; });
     document.querySelectorAll('.intensity-val').forEach(function(el){ el.textContent = num + '%'; });
+  } else if (_evIntActiveTool === 'SCANLINES') {
+    var p = _evIntActivePreset;
+    if (p) {
+      var _slBaseO = p.scanLines ? p.scanLines.opacity : 0;
+      if (!sliderState[p.id]) sliderState[p.id] = {};
+      sliderState[p.id]['SCANLINES'] = (num / 100) - _slBaseO;
+    }
   } else {
     var p = _evIntActivePreset;
     if (p) {

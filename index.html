@@ -10834,7 +10834,8 @@ function _evRulerDraw(canvas, bipolar) {
     var tH = isN ? h * 0.60 : isMaj ? h * 0.30 : isMin5 ? h * 0.20 : h * 0.12;
     ctx.fillStyle = isN ? 'rgba(201,184,212,0.85)' : isMaj ? 'rgba(228,217,211,0.38)' : 'rgba(228,217,211,0.16)';
     var tW = isN ? 1.5 : 1;
-    ctx.fillRect(x - tW / 2, h - tH, tW, tH);
+    var tY = isN ? (h - tH) / 2 : h - tH;
+    ctx.fillRect(x - tW / 2, tY, tW, tH);
   }
 }
 

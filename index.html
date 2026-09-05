@@ -17091,6 +17091,11 @@ function buildEditorToolsSection() {
 }
 
 function etSelectTool(name) {
+  // Close any open crop session when switching to a different tool
+  if (name !== 'crop' && typeof _cropSourceImage !== 'undefined' && _cropSourceImage) {
+    _cropSourceImage = null;
+    _cropTransforms  = [];
+  }
   etActiveTool = name;
   document.querySelectorAll('.et-tool-row').forEach(r => r.classList.remove('active'));
   const row = document.getElementById('et-' + name);
@@ -17114,7 +17119,7 @@ function etSelectTool(name) {
   }
   const _suite = document.getElementById('ev-editor-suite');
   if (_suite) _suite.classList.add('open');
-  if (name === 'crop')       { ctrl.innerHTML = etCropHTML();       requestAnimationFrame(() => { if (userImage) toolsCropDraw(); }); }
+  if (name === 'crop')       { if (!_cropSourceImage) { _cropSourceImage = userImage; _cropTransforms = []; } ctrl.innerHTML = etCropHTML(); requestAnimationFrame(() => { if (userImage) toolsCropDraw(); }); }
   if (name === 'straighten') { ctrl.innerHTML = etStraightenHTML(); _straightenOrigImage = userImage; }
   if (name === 'flip')       { ctrl.innerHTML = etFlipHTML(); }
 }

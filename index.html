@@ -17593,6 +17593,8 @@ function globalReset() {
     _preCropState = null;
   }
   _savedCropRect = null; _cropReAdjSaved = null; _cropReAdjRect = null; _cropReAdjOrigState = null;
+  if (typeof _cropTransforms !== 'undefined') _cropTransforms = [];
+  if (typeof _cropReAdjTransform !== 'undefined') _cropReAdjTransform = null;
 
   // Clear preset so evRenderCanvas draws a clean image
   activePreset   = null;
@@ -19294,7 +19296,10 @@ function galleryOpenInEditor(idx) {
   // Set up globals
   editingIdx = idx;
   _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0; // reset perspective re-edit state
-  _preCropState = null; _savedCropRect = null; _cropReAdjSaved = null; _cropReAdjOrigState = null; // clear crop state from previous photo
+  _preCropState = null; _savedCropRect = null; _cropReAdjSaved = null; _cropReAdjOrigState = null;
+  if (typeof _cropSourceImage !== 'undefined') _cropSourceImage = null;
+  if (typeof _cropTransforms !== 'undefined') _cropTransforms = [];
+  if (typeof _cropReAdjTransform !== 'undefined') _cropReAdjTransform = null; // clear crop state from previous photo
   _clearPresetThumbCaches(); // new image — invalidate all cached thumbnails
   evHistory.length = 0;
   evFuture.length  = 0;
@@ -21369,6 +21374,8 @@ function _cropRatioConfirm() {
   if (!ac || !ac.width || !ac.height) return;
   if (typeof evHistoryPush === 'function') evHistoryPush();
   // Store crop as normalized [0-1] fractions so replay works at any resolution
+  // Preserve original for RESET (first crop only — so reset always returns to session-open image)
+  if (!_preCropState) _preCropState = { userImage: _cropSourceImage || userImage, origPixels: null, origOffX: 0, origOffY: 0, origW: 0, origH: 0 };
   _cropTransforms.push({
     op: 'crop',
     rx: cropRect.x / ac.width,  ry: cropRect.y / ac.height,

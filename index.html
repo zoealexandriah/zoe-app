@@ -11341,7 +11341,7 @@ function doRender(presetId) {
   if (p.textureOverlay) adj.textureOverlay = p.textureOverlay;
   if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
     var _fxTv = null; if (FX_VARIANTS.texture) { for (var _ti=0;_ti<FX_VARIANTS.texture.length;_ti++) { if (FX_VARIANTS.texture[_ti].id===fxState.texture.variant) { _fxTv=FX_VARIANTS.texture[_ti]; break; } } }
-    if (_fxTv) adj.textureOverlay = { file: _fxTv.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||100)/100 };
+    if (_fxTv) adj.textureOverlay = { file: _fxTv.assetFile, blend: 'screen', opacity: (fxState.texture.intensity!=null?fxState.texture.intensity:100)/100 };
   }
   if (p.border) adj.border = p.border;
 
@@ -17892,7 +17892,7 @@ function _evDoSave() {
     if (p.textureOverlay) adj.textureOverlay = p.textureOverlay;
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
       var _fxTv2 = null; if (FX_VARIANTS.texture) { for (var _ti2=0;_ti2<FX_VARIANTS.texture.length;_ti2++) { if (FX_VARIANTS.texture[_ti2].id===fxState.texture.variant) { _fxTv2=FX_VARIANTS.texture[_ti2]; break; } } }
-      if (_fxTv2) adj.textureOverlay = { file: _fxTv2.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||100)/100 };
+      if (_fxTv2) adj.textureOverlay = { file: _fxTv2.assetFile, blend: 'screen', opacity: (fxState.texture.intensity!=null?fxState.texture.intensity:100)/100 };
     }
     if (p.border)       adj.border       = p.border;
     // Grain is applied post-upscale at export resolution, not on the 800px proxy.
@@ -18301,7 +18301,7 @@ function _evRenderCanvasImmediate() {
     }
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
       var _fxTv3 = null; if (FX_VARIANTS.texture) { for (var _ti3=0;_ti3<FX_VARIANTS.texture.length;_ti3++) { if (FX_VARIANTS.texture[_ti3].id===fxState.texture.variant) { _fxTv3=FX_VARIANTS.texture[_ti3]; break; } } }
-      if (_fxTv3) adj.textureOverlay = { file: _fxTv3.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||100)/100 };
+      if (_fxTv3) adj.textureOverlay = { file: _fxTv3.assetFile, blend: 'screen', opacity: (fxState.texture.intensity!=null?fxState.texture.intensity:100)/100 };
     }
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var _evGrain = adj.grain || 0;
@@ -19742,7 +19742,7 @@ function evSaveAndReturn() {
       if (adj.border)                  applyBorder(off, adj.border, 0, 0, iw, ih);
     }
     // FX texture applied outside the preset block so it works even with no active look
-    if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvSR=null; if (FX_VARIANTS.texture){for(var _tiSR=0;_tiSR<FX_VARIANTS.texture.length;_tiSR++){if(FX_VARIANTS.texture[_tiSR].id===fxState.texture.variant){_fxTvSR=FX_VARIANTS.texture[_tiSR];break;}}} if(_fxTvSR) { var _srTexAdj={file:_fxTvSR.assetFile,blend:'screen',opacity:(fxState.texture.intensity||100)/100}; loadTexture(_srTexAdj.file); applyTextureOverlay(off, _srTexAdj, 0, 0, iw, ih); } }
+    if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvSR=null; if (FX_VARIANTS.texture){for(var _tiSR=0;_tiSR<FX_VARIANTS.texture.length;_tiSR++){if(FX_VARIANTS.texture[_tiSR].id===fxState.texture.variant){_fxTvSR=FX_VARIANTS.texture[_tiSR];break;}}} if(_fxTvSR) { var _srTexAdj={file:_fxTvSR.assetFile,blend:'screen',opacity:(fxState.texture.intensity!=null?fxState.texture.intensity:100)/100}; loadTexture(_srTexAdj.file); applyTextureOverlay(off, _srTexAdj, 0, 0, iw, ih); } }
     var dataURL = off.toDataURL('image/jpeg', 0.93);
     var img = new Image();
     img.onload = function() {
@@ -19825,7 +19825,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
       var _savedFxTexBT = entry.editState && entry.editState.fxState && entry.editState.fxState.texture && entry.editState.fxState.texture.variant;
-      if (_savedFxTexBT && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { for(var _tiBT=0;_tiBT<FX_VARIANTS.texture.length;_tiBT++){if(FX_VARIANTS.texture[_tiBT].id===_savedFxTexBT){adj.textureOverlay={file:FX_VARIANTS.texture[_tiBT].assetFile,blend:'screen',opacity:(entry.editState.fxState.texture.intensity||100)/100};break;}} }
+      if (_savedFxTexBT && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { for(var _tiBT=0;_tiBT<FX_VARIANTS.texture.length;_tiBT++){if(FX_VARIANTS.texture[_tiBT].id===_savedFxTexBT){adj.textureOverlay={file:FX_VARIANTS.texture[_tiBT].assetFile,blend:'screen',opacity:(entry.editState.fxState.texture.intensity!=null?fxState.texture.intensity:100)/100};break;}} }
       if (adj.textureOverlay)            applyTextureOverlay(off, adj.textureOverlay, 0, 0, w, h);
       if (adj.border)                    applyBorder(off, adj.border, 0, 0, w, h);
     }
@@ -23678,7 +23678,7 @@ function fxSelectVariant(cat, variantId) {
     } else {
       _tImg.onload = function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); };
     }
-    _fxPendingIntensity = fxState.texture.intensity || 100;
+    _fxPendingIntensity = fxState.texture.intensity != null ? fxState.texture.intensity : 100;
     var _tLabel = varDef.label || variantId.toUpperCase();
     document.getElementById('fx-intensity-name').textContent  = _tLabel;
     document.getElementById('fx-intensity-val').textContent   = _fxPendingIntensity;

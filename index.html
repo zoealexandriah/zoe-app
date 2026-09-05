@@ -4828,13 +4828,13 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
 <body>
 
 <!-- Reset confirm modal -->
-<div id="ev-reset-confirm-bar" onclick="evResetDismiss()" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);">
-  <div onclick="event.stopPropagation()" style="background:rgba(10,9,12,0.96);border:1px solid rgba(228,217,211,0.10);border-radius:28px;padding:32px 24px 22px;width:260px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 0 60px rgba(0,0,0,0.80),0 0 20px rgba(201,184,212,0.06);">
-    <span style="font-size:8px;letter-spacing:0.30em;font-family:var(--font-ui);color:rgba(228,217,211,0.28);text-transform:uppercase;margin-bottom:4px;">Edits</span>
-    <span style="font-size:22px;letter-spacing:-0.01em;font-family:var(--font-serif,'serif');color:rgba(228,217,211,0.95);font-weight:400;text-align:center;line-height:1.2;">Reset all edits?</span>
-    <span style="font-size:10px;font-family:var(--font-ui);color:rgba(228,217,211,0.28);text-align:center;line-height:1.6;margin:4px 0 10px;">All adjustments will be cleared<br>and the photo returned to original.</span>
-    <button onclick="evResetConfirmed()" style="background:rgba(218,90,125,0.14);border:1px solid rgba(218,90,125,0.45);border-radius:50px;color:rgba(218,90,125,1);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;font-weight:500;text-transform:uppercase;">Reset</button>
-    <button onclick="evResetDismiss()" style="background:transparent;border:1px solid rgba(255,255,255,0.07);border-radius:50px;color:rgba(228,217,211,0.32);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;text-transform:uppercase;margin-top:2px;">Cancel</button>
+<div id="ev-reset-confirm-bar" onclick="evResetDismiss()" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.60);align-items:center;justify-content:center;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);">
+  <div onclick="event.stopPropagation()" style="background:rgba(208,200,194,0.97);border:1px solid rgba(18,14,22,0.06);border-radius:28px;padding:28px 24px 28px;width:260px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 0 60px rgba(0,0,0,0.50),0 16px 48px rgba(0,0,0,0.30);">
+    <span style="font-size:8px;letter-spacing:0.30em;font-family:var(--font-ui);color:rgba(18,14,22,0.35);text-transform:uppercase;margin-bottom:4px;">Edits</span>
+    <span style="font-size:22px;letter-spacing:-0.01em;font-family:var(--font-serif,'serif');color:rgba(18,14,22,0.88);font-weight:400;text-align:center;line-height:1.2;">Reset all edits?</span>
+    <span style="font-size:10px;font-family:var(--font-ui);color:rgba(18,14,22,0.55);text-align:center;line-height:1.6;margin:4px 0 10px;">All adjustments will be cleared<br>and the photo returned to original.</span>
+    <button onclick="evResetConfirmed()" style="background:rgba(218,90,125,0.18);border:1px solid rgba(218,90,125,0.50);border-radius:50px;color:rgba(218,90,125,1);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;font-weight:500;text-transform:uppercase;">Reset</button>
+    <button onclick="evResetDismiss()" style="background:rgba(18,14,22,0.06);border:1px solid rgba(18,14,22,0.14);border-radius:50px;color:rgba(18,14,22,0.52);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;text-transform:uppercase;margin-top:2px;">Cancel</button>
   </div>
 </div>
 <!-- Reusable confirm modal -->
@@ -18660,6 +18660,8 @@ function evRenderPresets() {
     if (evActivePreset && sliderState[evActivePreset.id]) {
       sliderState[_evNoLookPreset.id] = Object.assign({}, sliderState[evActivePreset.id]);
     }
+    // Remove adjust icon from previously active preset card
+    document.querySelectorAll('.ev-int-hint').forEach(function(el){ el.remove(); });
     // Swap active highlight without rebuilding the whole list
     if (_evActiveCardEl) _evActiveCardEl.style.boxShadow = '';
     _evActiveCardEl = noneCard;

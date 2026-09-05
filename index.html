@@ -10828,7 +10828,7 @@ function _evDialDelta(pid, param) {
 }
 
 function _evRulerDraw(canvas, bipolar) {
-  var PX = 4;
+  var PX = 8;
   var minV = bipolar ? -100 : 0, maxV = 100;
   var totalU = maxV - minV;
   var h = canvas.parentElement ? (canvas.parentElement.clientHeight || 34) : 34;
@@ -10836,11 +10836,11 @@ function _evRulerDraw(canvas, bipolar) {
   canvas.height = h;
   var ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, h);
-  for (var u = minV; u <= maxV; u++) {
+  for (var u = minV; u <= maxV; u += 5) {
     var x = (u - minV) * PX;
-    var isN = (u === 0), isMaj = (u % 10 === 0 && u !== 0), isMin5 = (u % 5 === 0 && u % 10 !== 0);
-    var tH = isN ? h * 0.60 : isMaj ? h * 0.30 : isMin5 ? h * 0.20 : h * 0.12;
-    ctx.fillStyle = isN ? 'rgba(201,184,212,0.85)' : isMaj ? 'rgba(228,217,211,0.38)' : 'rgba(228,217,211,0.16)';
+    var isN = (u === 0), isMaj = (u % 10 === 0 && u !== 0);
+    var tH = isN ? h * 0.65 : isMaj ? h * 0.38 : h * 0.22;
+    ctx.fillStyle = isN ? 'rgba(201,184,212,0.90)' : isMaj ? 'rgba(228,217,211,0.42)' : 'rgba(228,217,211,0.20)';
     var tW = isN ? 1.5 : 1;
     ctx.fillRect(x - tW / 2, (h - tH) / 2, tW, tH);
   }
@@ -10863,7 +10863,7 @@ function _evRulerUpdate(pid, param) {
   }
   var dv = _evDialDelta(pid, param);
   var minV = bipolar ? -100 : 0;
-  var PX = 4;
+  var PX = 8;
   var cw = wrap.clientWidth;
   canvas.style.left = (cw / 2 - (dv - minV) * PX) + 'px';
   // update active dial val

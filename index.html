@@ -18085,6 +18085,14 @@ function _evDoSave() {
       setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
     }, 'image/jpeg', 0.92);
   }
+  // Apply FX texture in the no-preset path
+  if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant && FX_VARIANTS.texture) {
+    var _fxTvNP = null;
+    for (var _tiNP = 0; _tiNP < FX_VARIANTS.texture.length; _tiNP++) {
+      if (FX_VARIANTS.texture[_tiNP].id === fxState.texture.variant) { _fxTvNP = FX_VARIANTS.texture[_tiNP]; break; }
+    }
+    if (_fxTvNP) applyTextureOverlay(out, { file: _fxTvNP.assetFile, blend: 'screen', opacity: (fxState.texture.intensity != null ? fxState.texture.intensity : 100) / 100 }, 0, 0, ew, eh);
+  }
   if (_fxFrameVariant && _fxFrameVariant !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
     fxApplyFrameToCanvas(out, _fxFrameVariant, fxState.frames, _doDownload);
   } else {

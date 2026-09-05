@@ -1449,7 +1449,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .ev-dial-panel{display:flex;flex-direction:column;width:100%;padding:4px 0 2px;gap:6px}
 .ev-dial-strip{display:flex;flex-direction:row;gap:14px;overflow-x:auto;padding:2px 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start}
 .ev-dial-strip::-webkit-scrollbar{display:none}
-.ev-dial{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;user-select:none}
+.ev-dial{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;user-select:none}
 .ev-dial-ring{width:52px;height:52px;border-radius:50%;border:1.5px solid rgba(201,184,212,0.18);background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;position:relative;transition:border-color 0.14s,background 0.14s}
 .ev-dial.active .ev-dial-ring{border-color:var(--accent,#c9b8d4);background:rgba(201,184,212,0.07)}
 .ev-dial.changed:not(.active) .ev-dial-ring{border-color:rgba(201,184,212,0.40)}
@@ -1457,11 +1457,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 #ev-editor-suite .ev-dial-icon .sl-icon-wrap{display:flex !important;align-items:center;justify-content:center;color:rgba(228,217,211,0.80) !important}
 #ev-editor-suite .ev-dial-icon .sl-icon-wrap svg{width:28px;height:28px}
 .ev-dial.active .ev-dial-icon,.ev-dial.changed:not(.active) .ev-dial-icon{opacity:0;pointer-events:none}
-.ev-dial-val{position:absolute;font-size:10px;font-weight:400;letter-spacing:-0.01em;color:rgba(228,217,211,0.95);opacity:0;transition:opacity 0.12s;font-family:var(--font-mono,'monospace');pointer-events:none;white-space:nowrap}
+.ev-dial-val{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:400;letter-spacing:-0.01em;color:rgba(228,217,211,0.95);opacity:0;transition:opacity 0.12s;font-family:var(--font-mono,'monospace');pointer-events:none;white-space:nowrap}
 .ev-dial.active .ev-dial-val,.ev-dial.changed:not(.active) .ev-dial-val{opacity:1}
 .ev-dial.adjusting .ev-dial-val{font-weight:600}
 .ev-dial.changed:not(.active) .ev-dial-val{color:var(--accent,#c9b8d4);font-size:10px}
-.ev-dial-label{font-size:8px;letter-spacing:0.04em;color:rgba(228,217,211,0.35);font-weight:400;text-align:center;font-family:var(--font-ui,'sans-serif');text-transform:uppercase;transition:color 0.14s;max-width:68px;white-space:normal;overflow:visible;line-height:1.2}
+.ev-dial-label{font-size:7.5px;letter-spacing:0.09em;color:rgba(228,217,211,0.35);font-weight:400;text-align:center;font-family:var(--font-ui,'sans-serif');text-transform:uppercase;transition:color 0.14s;max-width:68px;white-space:normal;overflow:visible;line-height:1.2}
 .ev-dial.active .ev-dial-label{color:rgba(228,217,211,0.85)}
 .ev-dial.changed:not(.active) .ev-dial-label{color:rgba(201,184,212,0.55)}
 .ev-dial-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:0 14px 0;width:100%}
@@ -2111,7 +2111,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 /* Sub-tab bar — matches editor subnav style */
 .crop-subtabs {
   display:flex; background:rgba(255,255,255,0.06); border-radius:10px;
-  margin:6px 12px 0; padding:2px; gap:1px;
+  margin:2px 12px 0; padding:2px; gap:1px;
 }
 #ev-color-subtabs {
   margin-bottom: 2px;

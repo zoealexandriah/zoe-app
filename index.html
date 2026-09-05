@@ -5517,6 +5517,18 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
               </div>
             </div>
           </div>
+          <!-- Reusable confirm modal -->
+          <div id="app-confirm-modal" onclick="_appConfirmDismiss()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
+            <div onclick="event.stopPropagation()" style="background:rgba(22,18,28,0.97);border:0.5px solid rgba(201,184,212,0.18);border-radius:18px;padding:28px 28px 20px;min-width:240px;max-width:80vw;display:flex;flex-direction:column;align-items:center;gap:18px;box-shadow:0 8px 40px rgba(0,0,0,0.55);">
+              <span id="app-confirm-label" style="font-size:10px;letter-spacing:0.22em;font-family:var(--font-ui);color:rgba(228,217,211,0.50);text-transform:uppercase;"></span>
+              <span id="app-confirm-title" style="font-size:17px;letter-spacing:0.01em;font-family:var(--font-ui);color:rgba(228,217,211,0.95);font-weight:500;text-align:center;line-height:1.3;"></span>
+              <span id="app-confirm-body" style="font-size:11px;font-family:var(--font-ui);color:rgba(228,217,211,0.38);text-align:center;line-height:1.5;"></span>
+              <div style="display:flex;flex-direction:column;gap:8px;width:100%;margin-top:4px;">
+                <button id="app-confirm-ok" onclick="_appConfirmOk()" style="background:rgba(218,90,125,0.14);border:0.5px solid rgba(218,90,125,0.35);border-radius:10px;color:rgba(218,90,125,0.95);font-size:13px;padding:12px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.04em;width:100%;font-weight:500;">Delete</button>
+                <button onclick="_appConfirmDismiss()" style="background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);border-radius:10px;color:rgba(228,217,211,0.55);font-size:13px;padding:12px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.04em;width:100%;">Cancel</button>
+              </div>
+            </div>
+          </div>
           <!-- Canvas area -->
           <div id="ev-canvas-area" style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:#0d0d0e;">
             <canvas id="ev-canvas"></canvas>
@@ -14820,13 +14832,19 @@ function toggleSelect(idx) {
 function deleteSelected() {
   var n = libSelected.length;
   if (!n) return;
-  var msg = n === 1 ? 'Remove 1 photo from your gallery?' : 'Remove ' + n + ' photos from your gallery?';
-  if (!confirm(msg)) return;
-  libSelected.sort((a,b)=>b-a).forEach(i => library.splice(i,1));
-  libSelected = [];
-  libSaveToStorage();
-  renderLibrary();
-  showToast('REMOVED FROM ARCHIVE');
+  showConfirmModal({
+    label: 'Gallery',
+    title: n === 1 ? 'Remove 1 photo?' : 'Remove ' + n + ' photos?',
+    body: 'This will permanently remove the selected photo' + (n === 1 ? '' : 's') + ' from your gallery.',
+    ok: 'Remove',
+    onConfirm: function() {
+      libSelected.sort((a,b)=>b-a).forEach(i => library.splice(i,1));
+      libSelected = [];
+      libSaveToStorage();
+      renderLibrary();
+      showToast('REMOVED FROM ARCHIVE');
+    }
+  });
 }
 
 function openEditor(idx) {
@@ -17408,6 +17426,26 @@ window.globalRedo = function() {
 };
 
 // ── Reset confirm ─────────────────────────────────────────────────────────
+var _appConfirmCb = null;
+function showConfirmModal(opts) {
+  var el = document.getElementById('app-confirm-modal');
+  if (!el) return;
+  document.getElementById('app-confirm-label').textContent = opts.label || '';
+  document.getElementById('app-confirm-title').textContent = opts.title || '';
+  document.getElementById('app-confirm-body').textContent = opts.body || '';
+  document.getElementById('app-confirm-ok').textContent = opts.ok || 'Delete';
+  _appConfirmCb = opts.onConfirm || null;
+  el.style.display = 'flex';
+}
+function _appConfirmDismiss() {
+  var el = document.getElementById('app-confirm-modal');
+  if (el) el.style.display = 'none';
+  _appConfirmCb = null;
+}
+function _appConfirmOk() {
+  _appConfirmDismiss();
+  if (_appConfirmCb) _appConfirmCb();
+}
 function evResetConfirm() {
   if (!userImage) { showToast('NOTHING TO RESET'); return; }
   var bar = document.getElementById('ev-reset-confirm-bar');
@@ -19353,9 +19391,13 @@ window.toggleSelect = function(idx) {
 function galleryBatchDeleteConfirm() {
   var n = libSelected.length;
   if (!n) return;
-  var msg = n === 1 ? 'Remove 1 photo from your gallery?' : 'Remove ' + n + ' photos from your gallery?';
-  if (!confirm(msg)) return;
-  galleryBatchDelete();
+  showConfirmModal({
+    label: 'Gallery',
+    title: n === 1 ? 'Remove 1 photo?' : 'Remove ' + n + ' photos?',
+    body: 'This will permanently remove the selected photo' + (n === 1 ? '' : 's') + ' from your gallery.',
+    ok: 'Remove',
+    onConfirm: galleryBatchDelete
+  });
 }
 
 function galleryBatchDelete() {

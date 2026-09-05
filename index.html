@@ -17458,8 +17458,9 @@ function _appConfirmDismiss() {
   _appConfirmCb = null;
 }
 function _appConfirmOk() {
+  var cb = _appConfirmCb;
   _appConfirmDismiss();
-  if (_appConfirmCb) _appConfirmCb();
+  if (cb) cb();
 }
 function evResetConfirm() {
   if (!userImage) { showToast('NOTHING TO RESET'); return; }

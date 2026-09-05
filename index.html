@@ -17403,7 +17403,7 @@ function etCropHTML() {
     <div class="crop-sub-content" id="crop-sub-straighten"${_st!=='straighten'?' style="display:none"':''}>
       <div class="crop-sub-row" style="margin-top:4px">
         <span class="crop-sub-label">Amount</span>
-        <span class="crop-sub-val" id="crop-straighten-val">${(typeof _cropStraightenVal !== 'undefined' && _cropStraightenVal) ? parseFloat(_cropStraightenVal).toFixed(2) : '0.00'}</span>
+        <span class="crop-sub-val" id="crop-straighten-val">${(typeof _cropStraightenVal !== 'undefined' && _cropStraightenVal) ? Math.round(parseFloat(_cropStraightenVal)) : '0'}</span>
       </div>
       <input type="range" class="tc-range" id="crop-straighten-slider"
              min="-45" max="45" step="0.1" value="${(typeof _cropStraightenVal !== 'undefined' && _cropStraightenVal) ? _cropStraightenVal : 0}"
@@ -21463,7 +21463,7 @@ function _cropApplyRatioInPlace(keepStraighten) {
     _cropStraightenOrig = newImg;
     _cropStraightenVal = 0;
     var _sl = document.getElementById('crop-straighten-slider'); if (_sl) _sl.value = 0;
-    var _vl = document.getElementById('crop-straighten-val'); if (_vl) _vl.textContent = '0.00';
+    var _vl = document.getElementById('crop-straighten-val'); if (_vl) _vl.textContent = '0';
     if (sc) { sc.remove(); ac.style.opacity = ''; }
     cropRect = null;
     var ov2 = document.getElementById('crop-overlay-canvas'); if (ov2) ov2.style.display = 'none';
@@ -21653,7 +21653,7 @@ function cropSubTabCollapse(confirm) {
         var _reSl = document.getElementById('crop-straighten-slider');
         if (_reSl) _reSl.value = _savedAngle;
         var _reValEl = document.getElementById('crop-straighten-val');
-        if (_reValEl) _reValEl.textContent = _savedAngle.toFixed(2);
+        if (_reValEl) _reValEl.textContent = Math.round(_savedAngle);
         if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = _savedAngle;
       }, 50);
     }
@@ -21722,7 +21722,7 @@ function cropSelectSubTab(btn, tab) {
     _cropTransforms.push({ op: 'straighten', angle: _cropStraightenVal });
     _cropStraightenVal = 0;
     var _csSl = document.getElementById('crop-straighten-slider'); if (_csSl) _csSl.value = 0;
-    var _csVl = document.getElementById('crop-straighten-val');    if (_csVl) _csVl.textContent = '0.00';
+    var _csVl = document.getElementById('crop-straighten-val');    if (_csVl) _csVl.textContent = '0';
     var _csSw = document.getElementById('crop-straighten-work');   if (_csSw) _csSw.remove();
     var _csAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
     if (_csAc) _csAc.style.opacity = '';
@@ -22005,7 +22005,7 @@ function cropStraightenPreview(val) {
     if (_snapSl) _snapSl.value = 0;
   }
   var valEl = document.getElementById('crop-straighten-val');
-  if (valEl) valEl.textContent = val.toFixed(2);
+  if (valEl) valEl.textContent = Math.round(val);
   if (!_cropStraightenOrig) return;
   // Always store the latest value so a queued rAF uses it, not the value at schedule time.
   // Without this, dragging back to 0 while a rAF is pending silently drops the zero.
@@ -22127,7 +22127,7 @@ function cropRotate90(dir) {
     _cropTransforms.push({ op: 'straighten', angle: _cropStraightenVal });
     _cropStraightenVal = 0;
     var _rSl = document.getElementById('crop-straighten-slider'); if (_rSl) _rSl.value = 0;
-    var _rVl = document.getElementById('crop-straighten-val'); if (_rVl) _rVl.textContent = '0.00';
+    var _rVl = document.getElementById('crop-straighten-val'); if (_rVl) _rVl.textContent = '0';
   }
   // Remove all overlay canvases
   var _ro = document.getElementById('crop-overlay-canvas'); if (_ro) _ro.remove();

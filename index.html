@@ -20741,7 +20741,6 @@ window.toolsFlipApply = function(dir) {
   function _doFlip() {
     if (typeof _cropSourceImage !== 'undefined' && _cropSourceImage) {
       // Inside a crop session — push to non-destructive transforms
-      if (_cropSourceImage) _cropSourceImage = userImage; // sync any interim bakes (e.g. perspective flush)
       _cropTransforms.push({ op: 'flip', dir: dir });
       _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
       if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
@@ -21929,12 +21928,8 @@ function cropRotate90(dir) {
     });
   }
 
-  // Flush any live perspective preview first; sync source so replay is correct
   if (typeof _cropPerspFlush === 'function') {
-    _cropPerspFlush(function() {
-      if (typeof _cropSourceImage !== 'undefined' && _cropSourceImage) _cropSourceImage = userImage;
-      _doRotate();
-    });
+    _cropPerspFlush(_doRotate);
   } else { _doRotate(); }
 }
 
@@ -21947,124 +21942,24 @@ var _cropPerspOrig = null;
 function _cropPerspFlush(onFlush) {
   var sc = document.getElementById('crop-perspective-work');
   if (!sc || !sc.width) { if (onFlush) onFlush(); return; }
-  var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
-  if (!ac) { sc.remove(); return; }
-  // Autocrop: analytically compute inscribed rectangle from slider values.
-  // Alpha-scanning fails for keystone because the wide edge spans full canvas width,
-  // making the bounding box always equal to the full canvas.
   var _slV = document.getElementById('crop-persp-v-slider');
   var _slH = document.getElementById('crop-persp-h-slider');
-  var _amtV = _slV ? parseFloat(_slV.value) / 100 : 0;
-  var _amtH = _slH ? parseFloat(_slH.value) / 100 : 0;
-  // Apply same quadratic curve used in etPerspUpdate so inscribed rect matches actual warp
-  _amtV = (_amtV >= 0 ? 1 : -1) * Math.pow(Math.abs(_amtV), 2);
-  _amtH = (_amtH >= 0 ? 1 : -1) * Math.pow(Math.abs(_amtH), 2);
-  // Inscribed rectangle for shear: both sides inset equally by shear * 0.5 * dimension.
-  // Must match maxShear in _etPerspTrapezoidWarp and _pvMaxShear in live preview.
-  var _maxK = 0.35;
-  var _cW = sc.width, _cH = sc.height;
-  var _kV = Math.abs(_amtV) * _maxK, _kH = Math.abs(_amtH) * _maxK;
-  var _scaleVedge = 1 / (1 - _kV * 0.5);
-  var _scaleHedge = 1 / (1 - _kH * 0.5);
-  var _xInsetV = Math.ceil(_cW * 0.5 * (1 - 1 / _scaleVedge));
-  var _xInsetH = Math.ceil(_cW * 0.5 * (1 - 1 / _scaleHedge));
-  var _yInsetV = Math.ceil(_cH * 0.5 * (1 - 1 / _scaleVedge));
-  var _yInsetH = Math.ceil(_cH * 0.5 * (1 - 1 / _scaleHedge));
-  var _minX = Math.max(_xInsetV, _amtH < 0 ? _xInsetH : 0);
-  var _maxX = _cW - 1 - Math.max(_xInsetV, _amtH > 0 ? _xInsetH : 0);
-  var _minY = Math.max(_yInsetH, _amtV < 0 ? _yInsetV : 0);
-  var _maxY = _cH - 1 - Math.max(_yInsetH, _amtV > 0 ? _yInsetV : 0);
-  var _cropW = _maxX - _minX + 1, _cropH = _maxY - _minY + 1;
-  if (_cropW < 4 || _cropH < 4) { _cropW = _cW; _cropH = _cH; _minX = 0; _minY = 0; }
-
-  // Build a cropped canvas at the inscribed bounds
-  var _cropped = document.createElement('canvas');
-  _cropped.width = _cropW; _cropped.height = _cropH;
-  _cropped.getContext('2d', { willReadFrequently: true }).drawImage(sc, _minX, _minY, _cropW, _cropH, 0, 0, _cropW, _cropH);
-
-  // Keep ac at original dimensions — scale cropped region up to fill (zoom in)
-  var _origW = ac.width, _origH = ac.height;
-  ac.style.opacity = '1';
-  ac.getContext('2d', { willReadFrequently: true }).clearRect(0, 0, _origW, _origH);
-  ac.getContext('2d', { willReadFrequently: true }).drawImage(_cropped, 0, 0, _origW, _origH);
-
-  // Keep cropped canvas as new perspective base
-  var snap = document.createElement('canvas');
-  snap.width = _cropW; snap.height = _cropH;
-  snap.getContext('2d', { willReadFrequently: true }).drawImage(_cropped, 0, 0);
-  _cropPerspOrig = snap;
-
-  // Hide overlay
-  var ov = document.getElementById('crop-overlay-canvas');
-  if (ov) ov.style.display = 'none';
-  sc.remove();
-
-  // Save raw slider values so re-entry can report the correct saved state
   var _rawV = _slV ? parseFloat(_slV.value) : 0;
   var _rawH = _slH ? parseFloat(_slH.value) : 0;
-  _perspBaseV = _rawV;
-  _perspBaseH = _rawH;
-
-  // Capture editingIdx now — the bake is async and editingIdx may be -1 by the time it completes.
-  var _flushIdx = (typeof editingIdx !== 'undefined') ? editingIdx : -1;
-
-  // Bake full-res — always from the pre-perspective original (_perspBaseURL) when available
-  // so re-applying warp at the same value is idempotent and sliding to 0 yields the exact original.
-  function _doPerspBake(srcImg) {
-    var _fullW = srcImg.naturalWidth, _fullH = srcImg.naturalHeight;
-    var _fullCanvas = document.createElement('canvas');
-    _fullCanvas.width = _fullW; _fullCanvas.height = _fullH;
-    _etPerspTrapezoidWarp(_fullCanvas.getContext('2d', { willReadFrequently: true }), srcImg, _amtV, _amtH, _fullW, _fullH);
-    var _fxInsetV = Math.ceil(_fullW * 0.5 * (1 - 1 / _scaleVedge));
-    var _fxInsetH = Math.ceil(_fullW * 0.5 * (1 - 1 / _scaleHedge));
-    var _fyInsetV = Math.ceil(_fullH * 0.5 * (1 - 1 / _scaleVedge));
-    var _fyInsetH = Math.ceil(_fullH * 0.5 * (1 - 1 / _scaleHedge));
-    var _fMinX = Math.max(_fxInsetV, _amtH < 0 ? _fxInsetH : 0);
-    var _fMaxX = _fullW - 1 - Math.max(_fxInsetV, _amtH > 0 ? _fxInsetH : 0);
-    var _fMinY = Math.max(_fyInsetH, _amtV < 0 ? _fyInsetV : 0);
-    var _fMaxY = _fullH - 1 - Math.max(_fyInsetH, _amtV > 0 ? _fyInsetV : 0);
-    var _fCropW = _fMaxX - _fMinX + 1, _fCropH = _fMaxY - _fMinY + 1;
-    if (_fCropW < 4 || _fCropH < 4) { _fCropW = _fullW; _fCropH = _fullH; _fMinX = 0; _fMinY = 0; }
-    var _fCropped = document.createElement('canvas');
-    _fCropped.width = _fCropW; _fCropped.height = _fCropH;
-    _fCropped.getContext('2d', { willReadFrequently: true }).drawImage(_fullCanvas, _fMinX, _fMinY, _fCropW, _fCropH, 0, 0, _fCropW, _fCropH);
-    var _flushDU = _fCropped.toDataURL('image/jpeg', 0.95);
-    var _flushImg = new Image();
-    _flushImg.onload = function() {
-      userImage = _flushImg;
-      // Reset perspective base to the flushed (autocropped) image so re-entry warp
-      // starts from the correct dimensions and doesn't stretch.
-      _perspBaseURL = _flushImg.src;
-      _perspBaseV = 0; _perspBaseH = 0;
-      // Keep straighten origin in sync so STRAIGHTEN tab preview draws from post-optical image
-      if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig) _cropStraightenOrig = _flushImg;
-      if (onFlush) { onFlush(); } else {
-        if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
-        if (typeof evRenderCanvas === 'function') evRenderCanvas();
-      }
-      // If user navigated to gallery before bake finished, save full-res result directly
-      if ((typeof editingIdx === 'undefined' || editingIdx === -1) && _flushIdx >= 0 &&
-          typeof library !== 'undefined' && library[_flushIdx] && library[_flushIdx].editState) {
-        library[_flushIdx].editState.editedDataURL = _flushImg.src;
-        if (typeof _renderBatchThumbnail === 'function') {
-          var _fe = library[_flushIdx];
-          _renderBatchThumbnail(_fe, _fe.editState.presetId, _fe.editState.sliders || {}, _fe.editState.intensity || 1.0, function() {
-            if (typeof libSaveToStorage === 'function') libSaveToStorage();
-            if (typeof renderLibrary === 'function') renderLibrary();
-          });
-        } else if (typeof libSaveToStorage === 'function') libSaveToStorage();
-      }
-    };
-    _flushImg.src = _flushDU;
-  }
-
-  if (_perspBaseURL) {
-    var _pbImg = new Image();
-    _pbImg.onload = function() { _doPerspBake(_pbImg); };
-    _pbImg.src = _perspBaseURL;
-  } else {
-    _doPerspBake(userImage);
-  }
+  sc.remove();
+  var _ov = document.getElementById('crop-overlay-canvas');
+  if (_ov) _ov.style.display = 'none';
+  _cropTransforms.push({ op: 'perspective', v: _rawV, h: _rawH });
+  _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
+  if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
+  _cropRenderFromSource(function() {
+    if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
+    if (onFlush) { onFlush(); }
+    else {
+      if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+    }
+  });
 }
 
 function cropPerspActivate(axis) {

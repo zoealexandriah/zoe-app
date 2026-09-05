@@ -5501,7 +5501,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
                 </svg>
               </div>
               <div style="width:1px;height:22px;background:rgba(255,255,255,0.14);flex-shrink:0;"></div>
-              <div class="ctb-btn" id="save-to-gallery-btn" onclick="evSaveWithAnimation()" style="display:inline-flex;align-items:center;">
+              <div class="ctb-btn" id="save-to-gallery-btn" onclick="evSaveWithAnimation()" style="display:inline-flex;align-items:center;justify-content:center;">
                 <span style="font-family:var(--font-serif);font-weight:500;font-size:12px;">Save</span>
                 <span class="ev-tb-text">↑ EXPORT</span>
               </div>
@@ -18781,13 +18781,13 @@ function evShowIntensityOverlay(p) {
   if (existing) existing.remove();
   var overlay = document.createElement('div');
   overlay.id = 'ev-intensity-overlay';
-  overlay.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:500;padding:22px 24px calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,#0f0e0d 0%,rgba(15,14,13,0.97) 60%,transparent 100%);display:none;';
+  overlay.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:500;padding:22px 24px calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,#0f0e0d 0%,rgba(15,14,13,0.97) 75%,transparent 100%);display:none;';
   var initVal = Math.round(presetIntensity * 100);
   var activeEffects = _evIntEffectDefs.filter(function(d){
     var v = p && p.defaults && p.defaults[d.key] !== undefined ? p.defaults[d.key] : d.neutral;
     return Math.abs(v - d.neutral) > 0.30;
   });
-  var tabsHtml = '<button id="ev-int-tab-filter" onclick="evIntSelectTool(\'filter\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 12px;color:rgba(228,217,211,0.90);font-size:7.5px;letter-spacing:0.12em;font-family:var(--mono);font-weight:500;">FILTER</button>';
+  var tabsHtml = '<button id="ev-int-tab-filter" onclick="evIntSelectTool(\'filter\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 12px;color:rgba(218,90,125,1);font-size:7.5px;letter-spacing:0.12em;font-family:var(--mono);font-weight:500;">FILTER</button>';
   activeEffects.forEach(function(d){
     tabsHtml += '<button id="ev-int-tab-'+d.key+'" onclick="evIntSelectTool(\''+d.key+'\')" style="flex:0 0 auto;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:6px 12px;color:rgba(228,217,211,0.32);font-size:7.5px;letter-spacing:0.12em;font-family:var(--mono);font-weight:500;">'+d.label+'</button>';
   });
@@ -18830,7 +18830,7 @@ function evIntSelectTool(toolId) {
   if (slider) slider.value = val;
   if (valEl) valEl.textContent = val;
   document.querySelectorAll('[id^="ev-int-tab-"]').forEach(function(tab){
-    tab.style.color = tab.id === 'ev-int-tab-'+toolId ? 'rgba(228,217,211,0.90)' : 'rgba(228,217,211,0.32)';
+    tab.style.color = tab.id === 'ev-int-tab-'+toolId ? 'rgba(218,90,125,1)' : 'rgba(228,217,211,0.32)';
   });
 }
 function evIntUpdate(val) {

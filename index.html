@@ -18137,11 +18137,17 @@ function _evRenderCanvasImmediate() {
       '#es-color-sliders .sl-track[data-preset],' +
       '#es-detail-sliders .sl-track[data-preset],' +
       '#es-blur-sliders .sl-track[data-preset],' +
-      '#es-atmosphere-sliders .sl-track[data-preset]');
+      '#es-atmosphere-sliders .sl-track[data-preset],' +
+      '#es-details-sliders .ev-dial-panel[data-pid],' +
+      '#es-color-sliders .ev-dial-panel[data-pid],' +
+      '#es-detail-sliders .ev-dial-panel[data-pid],' +
+      '#es-blur-sliders .ev-dial-panel[data-pid],' +
+      '#es-atmosphere-sliders .ev-dial-panel[data-pid]');
     if (_evTrack) {
-      var _evDomPreset = presets.find(function(x){ return x.id === _evTrack.dataset.preset; });
+      var _evPresetKey = _evTrack.dataset.preset || _evTrack.dataset.pid;
+      var _evDomPreset = presets.find(function(x){ return x.id === _evPresetKey; });
       if (_evDomPreset) { _evCurPreset = _evDomPreset; _evNolookMode = true; }
-      else if (_evNoLookPreset && _evTrack.dataset.preset === _evNoLookPreset.id) {
+      else if (_evNoLookPreset && _evPresetKey === _evNoLookPreset.id) {
         _evCurPreset = _evNoLookPreset; _evNolookMode = true;
       }
     }

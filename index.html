@@ -1452,19 +1452,20 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .ev-dial-strip::-webkit-scrollbar{display:none}
 .ev-dial{scroll-snap-align:center}
 .ev-dial{display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;user-select:none}
-.ev-dial-ring{width:52px;height:52px;border-radius:50%;border:1.5px solid rgba(201,184,212,0.18);background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;position:relative;transition:border-color 0.14s,background 0.14s}
-.ev-dial.active .ev-dial-ring{border-color:var(--accent,#c9b8d4);background:rgba(201,184,212,0.07)}
+.ev-dial-ring{width:52px;height:52px;border-radius:50%;border:1.5px solid rgba(201,184,212,0.18);background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;position:relative;transition:border-color 0.18s,background 0.18s,box-shadow 0.18s}
+.ev-dial.active .ev-dial-ring{border-color:var(--accent,#c9b8d4);border-width:2px;background:rgba(201,184,212,0.10);box-shadow:0 0 10px rgba(201,184,212,0.22),inset 0 0 8px rgba(201,184,212,0.06)}
 .ev-dial.changed:not(.active) .ev-dial-ring{border-color:rgba(201,184,212,0.40)}
 .ev-dial-icon{display:flex;align-items:center;justify-content:center;color:rgba(228,217,211,0.42);transition:opacity 0.12s}
 #ev-editor-suite .ev-dial-icon .sl-icon-wrap{display:flex !important;align-items:center;justify-content:center;color:rgba(228,217,211,0.80) !important}
 #ev-editor-suite .ev-dial-icon .sl-icon-wrap svg{width:28px;height:28px}
 .ev-dial.active .ev-dial-icon,.ev-dial.changed:not(.active) .ev-dial-icon{opacity:0;pointer-events:none}
 .ev-dial-val{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:400;letter-spacing:-0.01em;color:rgba(228,217,211,0.95);opacity:0;transition:opacity 0.12s;font-family:var(--font-mono,'monospace');pointer-events:none;white-space:nowrap}
-.ev-dial.active .ev-dial-val,.ev-dial.changed:not(.active) .ev-dial-val{opacity:1}
+.ev-dial.active .ev-dial-val{opacity:1;color:var(--accent,#c9b8d4)}
+.ev-dial.changed:not(.active) .ev-dial-val{opacity:1}
 .ev-dial.adjusting .ev-dial-val{font-weight:600}
 .ev-dial.changed:not(.active) .ev-dial-val{color:var(--accent,#c9b8d4);font-size:10px}
 .ev-dial-label{font-size:7.5px;letter-spacing:0.09em;color:rgba(228,217,211,0.35);font-weight:400;text-align:center;font-family:var(--font-ui,'sans-serif');text-transform:uppercase;transition:color 0.14s;max-width:68px;white-space:normal;overflow:visible;line-height:1.2}
-.ev-dial.active .ev-dial-label{color:rgba(228,217,211,0.85)}
+.ev-dial.active .ev-dial-label{color:var(--accent,#c9b8d4);font-weight:500}
 .ev-dial.changed:not(.active) .ev-dial-label{color:rgba(201,184,212,0.55)}
 .ev-dial-panel-hdr{display:flex;align-items:center;padding:2px 12px 8px;width:100%}
 .ev-dial-section-nm{flex:1;text-align:center;font-size:8px;letter-spacing:0.18em;color:rgba(228,217,211,0.70);font-family:var(--font-ui,'sans-serif');font-weight:400;text-transform:uppercase;background:rgba(255,255,255,0.08);border-radius:8px;padding:5px 0}

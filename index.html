@@ -17833,8 +17833,7 @@ function evSaveWithAnimation() {
 }
 var _saveAnimEndTime = 0;
 function _showSavedToast() {
-  var delay = Math.max(0, _saveAnimEndTime - Date.now());
-  setTimeout(function() { showToast('SAVED ✓'); }, delay);
+  // animation completing is the confirmation — no toast needed
 }
 
 function _evDoSave() {
@@ -19635,7 +19634,6 @@ function editorSaveToGallery() {
     library.unshift({ id: Date.now(), img, name, dataURL, editState });
     libSaveToStorage();
     renderLibrary();
-    showToast('_ SAVED TO GALLERY');
   };
   img.src = dataURL;
 }
@@ -20400,7 +20398,6 @@ window.editorSaveToGallery = function() {
     library.unshift({ id: 'saved_' + Date.now(), img, name, dataURL, editState });
     libSaveToStorage();
     renderLibrary();
-    showToast('_ SAVED TO GALLERY');
   };
   img.src = dataURL;
 };

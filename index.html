@@ -16197,6 +16197,7 @@ var _savedCropRect = null;   // last applied crop rect for re-entry
 var _cropReAdjSaved = null;      // cropped userImage preserved during re-adjust session
 var _cropReAdjRect  = null;      // rect to pre-populate when RATIO tab opens in re-adjust mode
 var _cropReAdjOrigState = null;  // _origPixels snapshot saved when re-adjust mode activates
+var _cropReAdjTransform = null;  // spliced-out crop transform held during re-adjust session
 
 function toolsCropApply() {
   const hc = document.getElementById('hero-canvas');
@@ -21366,51 +21367,23 @@ function cropSubTabExpand(label) {
 function _cropRatioConfirm() {
   if (!cropRect) return;
   var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
-  if (!ac) return;
-  var _cSrc = userImage;
-  var _cScX = (_cSrc.naturalWidth || _cSrc.width) / ac.width;
-  var _cScY = (_cSrc.naturalHeight || _cSrc.height) / ac.height;
-  var _pendingRect = cropRect;
-  // Save for re-adjust on next crop-panel open
-  if (typeof _savedCropRect !== 'undefined') _savedCropRect = { x: _pendingRect.x, y: _pendingRect.y, w: _pendingRect.w, h: _pendingRect.h };
-  if (typeof _preCropState === 'undefined' || !_preCropState) {
-    _preCropState = { userImage: _cSrc, origPixels: (typeof _origPixels !== 'undefined') ? _origPixels : null,
-      origOffX: (typeof _origOffX !== 'undefined') ? _origOffX : 0, origOffY: (typeof _origOffY !== 'undefined') ? _origOffY : 0,
-      origW: (typeof _origW !== 'undefined') ? _origW : 0, origH: (typeof _origH !== 'undefined') ? _origH : 0 };
-  }
-  // Clear state immediately so nothing restores old image on cancel
+  if (!ac || !ac.width || !ac.height) return;
+  if (typeof evHistoryPush === 'function') evHistoryPush();
+  // Store crop as normalized [0-1] fractions so replay works at any resolution
+  _cropTransforms.push({
+    op: 'crop',
+    rx: cropRect.x / ac.width,  ry: cropRect.y / ac.height,
+    rw: cropRect.w / ac.width,  rh: cropRect.h / ac.height
+  });
+  _cropReAdjTransform = null;
   cropRect = null;
   _ratioPreCropUserImage = null;
-  _cropReAdjSaved = null; _cropReAdjOrigState = null;
   var _cOv = document.getElementById('crop-overlay-canvas');
-  if (_cOv) _cOv.style.display = 'none';
-  // Bake crop
-  var tmp = document.createElement('canvas');
-  tmp.width  = Math.round(_pendingRect.w * _cScX);
-  tmp.height = Math.round(_pendingRect.h * _cScY);
-  tmp.getContext('2d', { willReadFrequently: true }).drawImage(_cSrc, _pendingRect.x * _cScX, _pendingRect.y * _cScY, _pendingRect.w * _cScX, _pendingRect.h * _cScY, 0, 0, tmp.width, tmp.height);
-  var newImg = new Image();
-  newImg.onload = function() {
-    var _p = (typeof evActivePreset !== 'undefined') ? (evActivePreset || activePreset) : null;
-    var _snap = { presetId: _p ? _p.id : null, sliders: _p ? JSON.parse(JSON.stringify((typeof sliderState !== 'undefined') ? sliderState[_p.id] || {} : {})) : {}, intensity: (typeof presetIntensity !== 'undefined') ? presetIntensity : 1, _userImage: _cSrc };
-    if (typeof evHistory !== 'undefined') { if (evHistory.length >= 30) evHistory.shift(); evHistory.push(_snap); evFuture.length = 0; }
-    if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
-    userImage = newImg;
-    // Keep straighten origin in sync so STRAIGHTEN preview draws from the ratio-cropped image
-    if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = newImg;
-    // If STRAIGHTEN tab is active with a pending angle, refresh the work canvas now that origin is correct
-    if (typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
-      var _rcStBtn = document.querySelector('.crop-subtab[onclick*="straighten"]');
-      if (_rcStBtn && _rcStBtn.classList.contains('active') && typeof cropStraightenPreview === 'function') {
-        cropStraightenPreview(_cropStraightenVal);
-      }
-    }
+  if (_cOv) _cOv.remove();
+  _cropRenderFromSource(function() {
+    _cropStraightenOrig = userImage;
     showToast('CROP APPLIED');
-    var _ev = document.getElementById('editor-view');
-    if (_ev && _ev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
-    else if (typeof loadImageToCanvas === 'function') loadImageToCanvas(ac, newImg);
-  };
-  newImg.src = tmp.toDataURL();
+  });
 }
 function cropSubTabCollapse(confirm) {
   var bar = document.getElementById('crop-subtabs-bar');
@@ -21465,13 +21438,10 @@ function cropSubTabCollapse(confirm) {
       var sl = document.getElementById('crop-straighten-slider');
       if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
     } else if (activeTab === 'RATIO') {
-      if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved) {
-        userImage = _cropReAdjSaved;
-        _cropReAdjSaved = null;
-        if (typeof _cropReAdjOrigState !== 'undefined' && _cropReAdjOrigState) { _origPixels = _cropReAdjOrigState.pixels; _origW = _cropReAdjOrigState.w; _origH = _cropReAdjOrigState.h; _origOffX = _cropReAdjOrigState.offX; _origOffY = _cropReAdjOrigState.offY; _cropReAdjOrigState = null; }
-        var _ev2 = document.getElementById('editor-view');
-        if (_ev2 && _ev2.classList.contains('active') && typeof evRenderCanvas === 'function') requestAnimationFrame(evRenderCanvas);
-        else { var _rac2 = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rac2 && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac2, userImage); }
+      if (typeof _cropReAdjTransform !== 'undefined' && _cropReAdjTransform) {
+        _cropTransforms.push(_cropReAdjTransform);
+        _cropReAdjTransform = null;
+        _cropRenderFromSource();
       }
       cropRect = null;
     } else if (activeTab === 'ROTATE') {
@@ -21618,22 +21588,22 @@ function cropSelectSubTab(btn, tab) {
     if (el) el.style.display = id === tab ? '' : 'none';
   });
   if (tab === 'ratio') {
-    // Activate re-adjust if a confirmed crop exists and we're not already in re-adjust mode
+    // Re-adjust mode: splice out last crop transform, replay pre-crop state, then re-enter
     var _ratioActivatedReAdj = false;
-    if (!_cropReAdjSaved && typeof _preCropState !== 'undefined' && _preCropState && _preCropState.userImage
-        && typeof _savedCropRect !== 'undefined' && _savedCropRect) {
-      _cropReAdjSaved = userImage;
-      _cropReAdjOrigState = { pixels: _origPixels, w: _origW, h: _origH, offX: _origOffX, offY: _origOffY };
-      userImage = _preCropState.userImage;
-      _ratioActivatedReAdj = true;
-      // Remove stale overlay — RAF will recreate it sized to the restored-original canvas
-      var _oldOvR = document.getElementById('crop-overlay-canvas');
-      if (_oldOvR) _oldOvR.remove();
-      ov = null;
-      // Re-render canvas with original image now so RAF sees correct dimensions
-      var _rAdjEv = document.getElementById('editor-view');
-      if (_rAdjEv && _rAdjEv.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
-      else { var _rAdjAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rAdjAc && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rAdjAc, userImage); }
+    if (!_cropReAdjTransform) {
+      var _lastCropIdx = -1;
+      for (var _lci = _cropTransforms.length - 1; _lci >= 0; _lci--) {
+        if (_cropTransforms[_lci].op === 'crop') { _lastCropIdx = _lci; break; }
+      }
+      if (_lastCropIdx >= 0) {
+        _cropReAdjTransform = _cropTransforms.splice(_lastCropIdx, 1)[0];
+        _ratioActivatedReAdj = true;
+        var _oldOvR = document.getElementById('crop-overlay-canvas');
+        if (_oldOvR) _oldOvR.remove();
+        ov = null;
+        _cropRenderFromSource(function() { cropSelectSubTab(btn, tab); });
+        return;
+      }
     }
     // Use RAF so panel reflow settles before measuring positions.
     var _needCreate = !ov;
@@ -21655,11 +21625,14 @@ function cropSelectSubTab(btn, tab) {
       _ov2.style.height = _acRect.height + 'px';
       _ov2.style.left   = (_acRect.left - _parRect.left) + 'px';
       _ov2.style.top    = (_acRect.top  - _parRect.top)  + 'px';
-      // In re-adjust mode use saved rect; otherwise keep current or default to full canvas
-      var _srR = (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved && typeof _savedCropRect !== 'undefined') ? _savedCropRect : null;
-      if (_srR && _srR.w > 0) {
-        cropRect = { x: _srR.x, y: _srR.y, w: Math.min(_srR.w, ac.width), h: Math.min(_srR.h, ac.height) };
-      } else if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
+      // In re-adjust mode restore cropRect from the spliced transform's normalized coords
+      if (typeof _cropReAdjTransform !== 'undefined' && _cropReAdjTransform) {
+        var _t = _cropReAdjTransform;
+        var _rx = Math.round(_t.rx * ac.width), _ry = Math.round(_t.ry * ac.height);
+        var _rw = Math.round(_t.rw * ac.width), _rh = Math.round(_t.rh * ac.height);
+        cropRect = { x: _rx, y: _ry, w: Math.min(_rw, ac.width - _rx), h: Math.min(_rh, ac.height - _ry) };
+      }
+      if (!cropRect || cropRect.w <= 0 || cropRect.h <= 0
           || cropRect.x + cropRect.w > ac.width || cropRect.y + cropRect.h > ac.height) {
         cropRect = { x: 0, y: 0, w: ac.width, h: ac.height };
       }

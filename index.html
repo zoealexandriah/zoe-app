@@ -4819,27 +4819,23 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
 <body>
 
 <!-- Reset confirm modal -->
-<div id="ev-reset-confirm-bar" onclick="evResetDismiss()" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.50);align-items:center;justify-content:center;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);">
-  <div onclick="event.stopPropagation()" style="background:rgba(18,16,20,0.88);border:1px solid rgba(201,184,212,0.20);border-radius:22px;padding:22px 20px 16px;width:240px;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 0 32px rgba(201,184,212,0.08),0 12px 40px rgba(0,0,0,0.65);">
-    <span style="font-size:8.5px;letter-spacing:0.22em;font-family:var(--font-ui);color:rgba(228,217,211,0.38);text-transform:uppercase;">Edits</span>
-    <span style="font-size:14px;letter-spacing:0.01em;font-family:var(--font-ui);color:rgba(228,217,211,0.92);font-weight:500;text-align:center;line-height:1.3;">Reset all edits?</span>
-    <span style="font-size:10px;font-family:var(--font-ui);color:rgba(228,217,211,0.32);text-align:center;line-height:1.5;">All adjustments will be cleared<br>and the photo returned to original.</span>
-    <div style="display:flex;flex-direction:column;gap:6px;width:100%;margin-top:6px;">
-      <button onclick="evResetConfirmed()" style="background:rgba(218,90,125,0.16);border:1px solid rgba(218,90,125,0.38);border-radius:50px;color:rgba(218,90,125,1);font-size:11px;padding:10px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.10em;width:100%;font-weight:500;text-transform:uppercase;">Reset</button>
-      <button onclick="evResetDismiss()" style="background:transparent;border:1px solid rgba(255,255,255,0.08);border-radius:50px;color:rgba(228,217,211,0.40);font-size:11px;padding:10px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.10em;width:100%;text-transform:uppercase;">Cancel</button>
-    </div>
+<div id="ev-reset-confirm-bar" onclick="evResetDismiss()" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);">
+  <div onclick="event.stopPropagation()" style="background:rgba(10,9,12,0.96);border:1px solid rgba(228,217,211,0.10);border-radius:28px;padding:32px 24px 22px;width:260px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 0 60px rgba(0,0,0,0.80),0 0 20px rgba(201,184,212,0.06);">
+    <span style="font-size:8px;letter-spacing:0.30em;font-family:var(--font-ui);color:rgba(228,217,211,0.28);text-transform:uppercase;margin-bottom:4px;">Edits</span>
+    <span style="font-size:22px;letter-spacing:-0.01em;font-family:var(--font-serif,'serif');color:rgba(228,217,211,0.95);font-weight:400;text-align:center;line-height:1.2;">Reset all edits?</span>
+    <span style="font-size:10px;font-family:var(--font-ui);color:rgba(228,217,211,0.28);text-align:center;line-height:1.6;margin:4px 0 10px;">All adjustments will be cleared<br>and the photo returned to original.</span>
+    <button onclick="evResetConfirmed()" style="background:rgba(218,90,125,0.14);border:1px solid rgba(218,90,125,0.45);border-radius:50px;color:rgba(218,90,125,1);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;font-weight:500;text-transform:uppercase;">Reset</button>
+    <button onclick="evResetDismiss()" style="background:transparent;border:1px solid rgba(255,255,255,0.07);border-radius:50px;color:rgba(228,217,211,0.32);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;text-transform:uppercase;margin-top:2px;">Cancel</button>
   </div>
 </div>
 <!-- Reusable confirm modal -->
-<div id="app-confirm-modal" onclick="_appConfirmDismiss()" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.50);align-items:center;justify-content:center;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);">
-  <div onclick="event.stopPropagation()" style="background:rgba(18,16,20,0.88);border:1px solid rgba(201,184,212,0.20);border-radius:22px;padding:22px 20px 16px;width:240px;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 0 32px rgba(201,184,212,0.08),0 12px 40px rgba(0,0,0,0.65);">
-    <span id="app-confirm-label" style="font-size:8.5px;letter-spacing:0.22em;font-family:var(--font-ui);color:rgba(228,217,211,0.38);text-transform:uppercase;"></span>
-    <span id="app-confirm-title" style="font-size:14px;letter-spacing:0.01em;font-family:var(--font-ui);color:rgba(228,217,211,0.92);font-weight:500;text-align:center;line-height:1.3;"></span>
-    <span id="app-confirm-body" style="font-size:10px;font-family:var(--font-ui);color:rgba(228,217,211,0.32);text-align:center;line-height:1.5;"></span>
-    <div style="display:flex;flex-direction:column;gap:6px;width:100%;margin-top:6px;">
-      <button id="app-confirm-ok" onclick="_appConfirmOk()" style="background:rgba(218,90,125,0.16);border:1px solid rgba(218,90,125,0.38);border-radius:50px;color:rgba(218,90,125,1);font-size:11px;padding:10px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.10em;width:100%;font-weight:500;text-transform:uppercase;">Delete</button>
-      <button onclick="_appConfirmDismiss()" style="background:transparent;border:1px solid rgba(255,255,255,0.08);border-radius:50px;color:rgba(228,217,211,0.40);font-size:11px;padding:10px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.10em;width:100%;text-transform:uppercase;">Cancel</button>
-    </div>
+<div id="app-confirm-modal" onclick="_appConfirmDismiss()" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.72);align-items:center;justify-content:center;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);">
+  <div onclick="event.stopPropagation()" style="background:rgba(10,9,12,0.96);border:1px solid rgba(228,217,211,0.10);border-radius:28px;padding:32px 24px 22px;width:260px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 0 60px rgba(0,0,0,0.80),0 0 20px rgba(201,184,212,0.06);">
+    <span id="app-confirm-label" style="font-size:8px;letter-spacing:0.30em;font-family:var(--font-ui);color:rgba(228,217,211,0.28);text-transform:uppercase;margin-bottom:4px;"></span>
+    <span id="app-confirm-title" style="font-size:22px;letter-spacing:-0.01em;font-family:var(--font-serif,'serif');color:rgba(228,217,211,0.95);font-weight:400;text-align:center;line-height:1.2;"></span>
+    <span id="app-confirm-body" style="font-size:10px;font-family:var(--font-ui);color:rgba(228,217,211,0.28);text-align:center;line-height:1.6;margin:4px 0 10px;"></span>
+    <button id="app-confirm-ok" onclick="_appConfirmOk()" style="background:rgba(218,90,125,0.14);border:1px solid rgba(218,90,125,0.45);border-radius:50px;color:rgba(218,90,125,1);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;font-weight:500;text-transform:uppercase;">Delete</button>
+    <button onclick="_appConfirmDismiss()" style="background:transparent;border:1px solid rgba(255,255,255,0.07);border-radius:50px;color:rgba(228,217,211,0.32);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;text-transform:uppercase;margin-top:2px;">Cancel</button>
   </div>
 </div>
 
@@ -19285,6 +19281,8 @@ function galleryOpenInEditor(idx) {
   // It will be nulled before evInit's rAF fires to prevent stacking effects on the thumbnail.
   userImage = entry.img;
   // Hide gallery, show editor
+  _appConfirmDismiss();
+  evResetDismiss();
   var lv = document.getElementById('library-view');
   if (lv) lv.classList.add('hidden');
   switchToTab('EDITOR');

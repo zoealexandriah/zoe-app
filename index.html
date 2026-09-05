@@ -11250,7 +11250,7 @@ function doRender(presetId) {
   if (p.textureOverlay) adj.textureOverlay = p.textureOverlay;
   if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
     var _fxTv = null; if (FX_VARIANTS.texture) { for (var _ti=0;_ti<FX_VARIANTS.texture.length;_ti++) { if (FX_VARIANTS.texture[_ti].id===fxState.texture.variant) { _fxTv=FX_VARIANTS.texture[_ti]; break; } } }
-    if (_fxTv) adj.textureOverlay = { file: _fxTv.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||35)/100 };
+    if (_fxTv) adj.textureOverlay = { file: _fxTv.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||100)/100 };
   }
   if (p.border) adj.border = p.border;
 
@@ -17373,7 +17373,7 @@ function globalReset() {
     fxState.paper     = { fold: 0, texture: 0 };
     fxState.stickers  = { variant: null };
     fxState.frames    = { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0, lbPosX: 0, lbPosY: 0, lbScale: 1.0 };
-    fxState.texture   = { variant: null, intensity: 35 };
+    fxState.texture   = { variant: null, intensity: 100 };
     ['glow','glossy','scanlines','vhsbleed','paper','stickers','frames','texture'].forEach(function(cat) {
       if (typeof fxUpdateCatDot === 'function') fxUpdateCatDot(cat);
     });
@@ -17775,7 +17775,7 @@ function _evDoSave() {
     if (p.textureOverlay) adj.textureOverlay = p.textureOverlay;
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
       var _fxTv2 = null; if (FX_VARIANTS.texture) { for (var _ti2=0;_ti2<FX_VARIANTS.texture.length;_ti2++) { if (FX_VARIANTS.texture[_ti2].id===fxState.texture.variant) { _fxTv2=FX_VARIANTS.texture[_ti2]; break; } } }
-      if (_fxTv2) adj.textureOverlay = { file: _fxTv2.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||35)/100 };
+      if (_fxTv2) adj.textureOverlay = { file: _fxTv2.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||100)/100 };
     }
     if (p.border)       adj.border       = p.border;
     // Grain is applied post-upscale at export resolution, not on the 800px proxy.
@@ -18184,7 +18184,7 @@ function _evRenderCanvasImmediate() {
     }
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
       var _fxTv3 = null; if (FX_VARIANTS.texture) { for (var _ti3=0;_ti3<FX_VARIANTS.texture.length;_ti3++) { if (FX_VARIANTS.texture[_ti3].id===fxState.texture.variant) { _fxTv3=FX_VARIANTS.texture[_ti3]; break; } } }
-      if (_fxTv3) adj.textureOverlay = { file: _fxTv3.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||35)/100 };
+      if (_fxTv3) adj.textureOverlay = { file: _fxTv3.assetFile, blend: 'screen', opacity: (fxState.texture.intensity||100)/100 };
     }
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var _evGrain = adj.grain || 0;
@@ -19100,7 +19100,7 @@ function galleryOpenInEditor(idx) {
   evFuture.length  = 0;
   Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
   evActivePreset = null; activePreset = null;
-  if (typeof fxState !== 'undefined') { fxState.texture = { variant: null, intensity: 35 }; if (typeof fxUpdateCatDot === 'function') fxUpdateCatDot('texture'); }
+  if (typeof fxState !== 'undefined') { fxState.texture = { variant: null, intensity: 100 }; if (typeof fxUpdateCatDot === 'function') fxUpdateCatDot('texture'); }
   // Temporarily set userImage = entry.img so evInit shows the canvas (not the import screen).
   // It will be nulled before evInit's rAF fires to prevent stacking effects on the thumbnail.
   userImage = entry.img;
@@ -22840,7 +22840,7 @@ var fxState = {
   bleeds:      { variant: null, intensity: 0, edge: 'left', color: null },
   stickers:    { variant: null },
   frames:      { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0, lbPosX: 0, lbPosY: 0, lbScale: 1.0 },
-  texture:     { variant: null, intensity: 35 }
+  texture:     { variant: null, intensity: 100 }
 };
 
 var _fxActiveCat = null;
@@ -23557,7 +23557,7 @@ function fxSelectVariant(cat, variantId) {
     } else {
       _tImg.onload = function() { if (typeof evRenderCanvas === 'function') evRenderCanvas(); };
     }
-    _fxPendingIntensity = fxState.texture.intensity || 35;
+    _fxPendingIntensity = fxState.texture.intensity || 100;
     var _tLabel = varDef.label || variantId.toUpperCase();
     document.getElementById('fx-intensity-name').textContent  = _tLabel;
     document.getElementById('fx-intensity-val').textContent   = _fxPendingIntensity;
@@ -23630,6 +23630,10 @@ function fxSelectVariant(cat, variantId) {
 function fxIntensityChange(val) {
   _fxPendingIntensity = parseInt(val, 10);
   document.getElementById('fx-intensity-val').textContent = _fxPendingIntensity;
+  if (_fxActiveCat === 'texture' && typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
+    fxState.texture.intensity = _fxPendingIntensity;
+    if (typeof evRenderCanvas === 'function') evRenderCanvas();
+  }
 }
 
 function fxIntensityConfirm() {

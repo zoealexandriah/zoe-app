@@ -17803,6 +17803,7 @@ function evSaveWithAnimation() {
     ov.classList.add('saf-active');
   }); });
 
+  _saveAnimEndTime = Date.now() + 2660;
   setTimeout(_evDoSave, 150);
 
   setTimeout(function() {
@@ -17815,6 +17816,11 @@ function evSaveWithAnimation() {
       ov.classList.remove('saf-active');
     }, 460);
   }, 2200);
+}
+var _saveAnimEndTime = 0;
+function _showSavedToast() {
+  var delay = Math.max(0, _saveAnimEndTime - Date.now());
+  setTimeout(function() { showToast('SAVED ✓'); }, delay);
 }
 
 function _evDoSave() {
@@ -18013,7 +18019,7 @@ function _evDoSave() {
           var a = document.createElement('a');
           a.download = filename; a.href = dataURL;
           document.body.appendChild(a); a.click(); document.body.removeChild(a);
-          showToast('SAVED ✓');
+          _showSavedToast();
         }, 50);
         return;
       }
@@ -18027,7 +18033,7 @@ function _evDoSave() {
           var a = document.createElement('a');
           a.download = filename; a.href = url;
           document.body.appendChild(a); a.click(); document.body.removeChild(a);
-          showToast('SAVED ✓');
+          _showSavedToast();
         }
         setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
       }, 'image/jpeg', 0.92);
@@ -18069,7 +18075,7 @@ function _evDoSave() {
         var a = document.createElement('a');
         a.download = filename; a.href = dataURL;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        showToast('SAVED ✓');
+        _showSavedToast();
       }, 50);
       return;
     }
@@ -18083,7 +18089,7 @@ function _evDoSave() {
         var a = document.createElement('a');
         a.download = filename; a.href = url;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        showToast('SAVED ✓');
+        _showSavedToast();
       }
       setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
     }, 'image/jpeg', 0.92);

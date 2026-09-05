@@ -2047,10 +2047,10 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 
 /* Crop ratios — visual icon grid */
-.crop-ratios { display:flex; justify-content:space-around; align-items:flex-end; padding:8px 8px 6px; gap:4px; }
+.crop-ratios { display:flex; justify-content:space-around; align-items:center; padding:8px 8px 6px; gap:4px; }
 .crop-ratio-item { display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; touch-action:manipulation; }
-.crop-ratio-box { border:1.5px solid rgba(255,255,255,0.30); background:transparent; transition:border-color 0.15s; flex-shrink:0; }
-.crop-ratio-item.active .crop-ratio-box { border-color:#fff; background:rgba(255,255,255,0.07); }
+.crop-ratio-svg { width:36px; height:36px; color:rgba(255,255,255,0.30); transition:color 0.15s; flex-shrink:0; }
+.crop-ratio-item.active .crop-ratio-svg { color:#fff; }
 .crop-ratio-label { font-size:9.5px; color:rgba(255,255,255,0.40); font-family:var(--mono); letter-spacing:0.04em; transition:color 0.15s; }
 .crop-ratio-item.active .crop-ratio-label { color:#fff; }
 
@@ -17095,22 +17095,22 @@ function etSelectTool(name) {
 }
 
 function etCropHTML() {
-  // Ratio items: [label, ratio-key, box-width, box-height] — max dim = 28px
+  // Ratio items: [label, ratio-key, rx, ry, rw, rh, dashed] — in 46×46 viewBox, max dim = 32
   const ratioItems = [
-    ['FREE',  'FREEFORM', 22, 22],
-    ['1:1',   '1:1',      28, 28],
-    ['3:4',   '3:4',      21, 28],
-    ['4:3',   '4:3',      28, 21],
-    ['4:5',   '4:5',      22, 28],
-    ['5:4',   '5:4',      28, 22],
-    ['9:16',  '9:16',     16, 28],
-    ['16:9',  '16:9',     28, 16],
+    ['FREE',  'FREEFORM', 7,   7,    32, 32,   true],
+    ['1:1',   '1:1',      7,   7,    32, 32,   false],
+    ['3:4',   '3:4',      11,  7,    24, 32,   false],
+    ['4:3',   '4:3',      7,   11,   32, 24,   false],
+    ['4:5',   '4:5',      10,  7,    26, 32,   false],
+    ['5:4',   '5:4',      7,   10,   32, 26,   false],
+    ['9:16',  '9:16',     14,  7,    18, 32,   false],
+    ['16:9',  '16:9',     7,   14,   32, 18,   false],
   ];
-  const ratioBtns = ratioItems.map(([lbl, r, w, h]) => {
+  const ratioBtns = ratioItems.map(([lbl, r, rx, ry, rw, rh, dashed]) => {
     const active = r === toolsCropRatio ? ' active' : '';
-    const dash   = r === 'FREEFORM' ? ';border-style:dashed' : '';
+    const dashAttr = dashed ? ' stroke-dasharray="3,2.5"' : '';
     return `<div class="crop-ratio-item${active}" onclick="toolsCropSetRatio('${r}')">
-      <div class="crop-ratio-box" style="width:${w}px;height:${h}px${dash}"></div>
+      <svg class="crop-ratio-svg" viewBox="0 0 46 46" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="1.5"${dashAttr}/></svg>
       <span class="crop-ratio-label">${lbl}</span>
     </div>`;
   }).join('');

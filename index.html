@@ -18244,8 +18244,8 @@ function _evRenderCanvasImmediate() {
   if (typeof _evGrain !== 'undefined' && _evGrain > 0.005) {
     applyFilmGrain(canvas, _evGrain, ((_evCurPreset && _evCurPreset.grainSize) || 1));
   }
-  if (adj.textureOverlay) applyTextureOverlay(canvas, adj.textureOverlay, 0, 0, canvas.width, canvas.height);
-  if (adj.border) applyBorder(canvas, adj.border, 0, 0, canvas.width, canvas.height);
+  if (typeof adj !== 'undefined' && adj && adj.textureOverlay) applyTextureOverlay(canvas, adj.textureOverlay, 0, 0, canvas.width, canvas.height);
+  if (typeof adj !== 'undefined' && adj && adj.border) applyBorder(canvas, adj.border, 0, 0, canvas.width, canvas.height);
   if (blemishSpots && blemishSpots.length > 0) applyBlemishHeal(canvas, blemishSpots, 0, 0, canvas.width, canvas.height);
   if (typeof _blemishSyncOverlay === 'function') _blemishSyncOverlay();
   /* FX frame overlay — drawn on top of everything */

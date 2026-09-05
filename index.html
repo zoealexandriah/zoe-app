@@ -498,20 +498,20 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 ══════════════════════════════════════ */
 .toast{
   position:fixed;top:50%;left:50%;
-  transform:translateX(-50%) translateY(-4px) scale(0.98);
-  z-index:2000;display:flex;align-items:center;gap:5px;
-  padding:4px 10px;
-  background:rgba(10,10,11,0.96);
-  border:0.5px solid rgba(210,210,220,0.13);
-  border-radius:2px;
-  box-shadow:0 4px 18px rgba(0,0,0,0.55);
-  backdrop-filter:blur(20px);
-  opacity:0;transition:all 0.22s cubic-bezier(0.22,1,0.36,1);
+  transform:translateX(-50%) translateY(6px) scale(0.96);
+  z-index:2000;display:flex;align-items:center;gap:7px;
+  padding:8px 18px;
+  background:rgba(18,16,20,0.82);
+  border:1px solid rgba(201,184,212,0.22);
+  border-radius:50px;
+  box-shadow:0 0 24px rgba(201,184,212,0.12),0 8px 32px rgba(0,0,0,0.60);
+  backdrop-filter:blur(28px);
+  opacity:0;transition:all 0.26s cubic-bezier(0.22,1,0.36,1);
   pointer-events:none;white-space:nowrap;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(-50%) scale(1)}
-.toast-dot{width:4px;height:4px;border-radius:50%;background:rgba(185,155,220,0.85);flex-shrink:0;}
-.toast-text{font-size:9px;letter-spacing:0.18em;color:rgba(200,185,225,0.80);font-weight:400;font-family:var(--font-mono)}
+.toast-dot{width:5px;height:5px;border-radius:50%;background:var(--accent,#c9b8d4);flex-shrink:0;box-shadow:0 0 6px rgba(201,184,212,0.7);}
+.toast-text{font-size:10px;letter-spacing:0.20em;color:rgba(228,217,211,0.90);font-weight:400;font-family:var(--font-ui,'sans-serif')}
 
 /* section panel title row */
 .panel-title-row{
@@ -935,8 +935,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 
 /* ── Toast ── */
-.toast{background:rgba(10,10,11,0.96)!important;border-color:rgba(210,210,220,0.13)!important;box-shadow:0 4px 18px rgba(0,0,0,0.55)!important;}
-.toast-text{color:rgba(200,185,225,0.80)!important}
+.toast{background:rgba(18,16,20,0.82)!important;border-color:rgba(201,184,212,0.22)!important;box-shadow:0 0 24px rgba(201,184,212,0.12),0 8px 32px rgba(0,0,0,0.60)!important;}
+.toast-text{color:rgba(228,217,211,0.90)!important}
 
 /* ── Look card names ── */
 .lc-name{font-size:9px!important;text-shadow:0 0 14px rgba(195,152,238,0.65),0 0 35px rgba(165,112,225,0.32)!important;}
@@ -1092,7 +1092,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .status-dot { background:rgba(218,108,138,0.88) !important; box-shadow:0 0 6px rgba(192,64,90,0.60),0 0 16px rgba(138,26,46,0.28) !important }
 @keyframes dot-pulse { 0%,100%{ box-shadow:0 0 5px rgba(192,64,90,0.50),0 0 12px rgba(138,26,46,0.20) } 50%{ box-shadow:0 0 9px rgba(218,90,118,0.80),0 0 22px rgba(160,40,60,0.36) } }
 .tb-live { color:rgba(218,108,138,0.62) !important }
-.toast-dot { background:rgba(185,155,220,0.85) !important; box-shadow:none !important }
+.toast-dot { background:var(--accent,#c9b8d4) !important; box-shadow:0 0 6px rgba(201,184,212,0.7) !important }
 
 /* ── LOOK CARDS ── */
 .look-card.selected::after { background:linear-gradient(to right,transparent,rgba(192,64,90,0.72),rgba(138,26,46,0.58),rgba(192,64,90,0.68),transparent) !important }

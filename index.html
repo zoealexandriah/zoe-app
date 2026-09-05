@@ -18822,7 +18822,7 @@ function evShowIntensityOverlay(p) {
   if (existing) existing.remove();
   var overlay = document.createElement('div');
   overlay.id = 'ev-intensity-overlay';
-  overlay.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:500;padding:14px 20px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,#0f0e0d 0%,rgba(15,14,13,0.97) 88%,transparent 100%);display:none;';
+  overlay.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:500;padding:60px 20px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,#0f0e0d 0%,rgba(15,14,13,0.97) 60%,rgba(15,14,13,0.60) 80%,transparent 100%);display:none;';
   var initVal = Math.round(presetIntensity * 100);
   var activeEffects = _evIntEffectDefs.filter(function(d){
     if (d.key === 'SCANLINES') return !!(p && p.scanLines && p.scanLines.opacity > 0.005);
@@ -18838,7 +18838,7 @@ function evShowIntensityOverlay(p) {
       +'<div style="display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">'+tabsHtml+'</div>'
       +'<span id="ev-int-val" style="font-size:13px;font-weight:600;color:rgba(228,217,211,0.90);font-family:var(--font-ui);flex-shrink:0;padding-left:12px;">'+initVal+'</span>'
     +'</div>'
-    +'<input id="ev-int-slider" type="range" min="0" max="100" value="'+initVal+'" oninput="evIntUpdate(this.value)" style="display:block;width:100%;margin-bottom:8px;">'
+    +'<input id="ev-int-slider" type="range" min="0" max="100" value="'+initVal+'" oninput="evIntUpdate(this.value)" style="display:block;width:100%;margin:12px 0;">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;">'
       +'<button onclick="evIntCancel()" style="width:36px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(228,217,211,0.45);font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent;">✕</button>'
       +'<button onclick="evIntConfirm()" style="width:36px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(228,217,211,0.45);font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent;">✓</button>'

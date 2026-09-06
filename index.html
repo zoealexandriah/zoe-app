@@ -20448,7 +20448,7 @@ function _exportEntry(entry, onDone) {
     return;
   }
   const p         = presets.find(x => x.id === entry.editState.presetId);
-  const srcURL    = entry.editState.originalDataURL || entry.dataURL;
+  const srcURL    = entry.editState.editedDataURL || entry.editState.originalDataURL || entry.dataURL;
   const intensity = entry.editState.intensity || 1.0;
   const sliders   = entry.editState.sliders   || {};
   const src = new Image();

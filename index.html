@@ -20690,10 +20690,12 @@ window.editorBackToGallery = function editorBackToGallery() {
     const label = el.querySelector('.nav-label');
     if (label && label.textContent.trim() === 'GALLERY') galleryNav = el;
   });
-  const editView = document.getElementById('edit-view');
-  const libView  = document.getElementById('library-view');
-  if (editView) editView.classList.add('hidden');
-  if (libView)  libView.classList.remove('hidden');
+  const editView  = document.getElementById('edit-view');
+  const editorView = document.getElementById('editor-view');
+  const libView   = document.getElementById('library-view');
+  if (editView)   editView.classList.add('hidden');
+  if (editorView) { editorView.style.display = 'none'; editorView.classList.remove('active'); }
+  if (libView)    libView.classList.remove('hidden');
   if (galleryNav) navClick(galleryNav);
   else switchToTab('GALLERY');
 

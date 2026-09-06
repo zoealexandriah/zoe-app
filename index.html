@@ -3209,12 +3209,13 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-int-slider::-moz-range-thumb{width:17px;height:17px;background:#fff;border-radius:3px;cursor:pointer;border:none;box-shadow:0 1px 6px rgba(0,0,0,0.45);}
 
   /* Blemish panel */
-  .blemish-action-bar { display:flex; align-items:center; justify-content:space-between; padding:6px 8px 4px; flex-shrink:0; }
-  .blemish-act-btn { background:none; border:none; color:rgba(228,217,211,0.38); font-size:14px; line-height:1; padding:4px 10px; cursor:pointer; -webkit-tap-highlight-color:transparent; font-family:var(--font-ui); transition:color 0.15s; }
-  .blemish-act-btn:active { color:rgba(228,217,211,0.75); }
-  .blemish-act-confirm { color:rgba(201,184,212,0.65); }
-  .blemish-act-confirm:active { color:rgba(201,184,212,1); }
-  .blemish-act-label { flex:1; text-align:center; font-size:9px; letter-spacing:0.25em; font-family:var(--font-ui); font-weight:400; color:rgba(228,217,211,0.75); text-transform:uppercase; background:rgba(255,255,255,0.08); border-radius:8px; padding:5px 0; margin:0 4px; }
+  .blemish-action-bar { display:flex; align-items:center; justify-content:space-between; gap:6px; padding:6px 8px 4px; flex-shrink:0; }
+  .blemish-act-btn { background:none; border:none; font-size:14px; line-height:1; padding:4px 10px; cursor:pointer; -webkit-tap-highlight-color:transparent; font-family:var(--font-ui); transition:color 0.15s; }
+  .blemish-act-cancel { color:#de82a8; }
+  .blemish-act-cancel:active { color:#f0a8c4; }
+  .blemish-act-confirm { color:#de82a8; }
+  .blemish-act-confirm:active { color:#f0a8c4; }
+  .blemish-bar-clear { align-self:center; }
   #ev-blemish-ui { padding:8px 12px 10px; display:flex; flex-direction:column; gap:10px; }
   .blemish-hint { font-size:9px; color:rgba(228,217,211,0.30); font-family:var(--font-ui); letter-spacing:0.12em; line-height:1.6; margin:0; text-transform:uppercase; }
   .blemish-size-row { display:flex; align-items:center; gap:10px; }
@@ -5803,13 +5804,15 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <!-- BLEMISH panel -->
           <div class="es-tab-panel" id="es-panel-blemish">
             <div class="blemish-action-bar">
-              <button class="blemish-act-btn" onclick="blemishDiscard()">✕</button>
-              <span class="blemish-act-label">Blemish</span>
+              <button class="blemish-act-btn blemish-act-cancel" onclick="blemishDiscard()">✕</button>
+              <div class="blemish-ud-pill">
+                <button class="blemish-ud-item" id="blemish-undo" onclick="blemishUndo()" disabled>UNDO</button>
+                <button class="blemish-ud-item" id="blemish-redo" onclick="blemishRedo()" disabled>REDO</button>
+              </div>
+              <button class="blemish-clear-btn blemish-bar-clear" onclick="blemishClearAll()">CLEAR ALL</button>
               <button class="blemish-act-btn blemish-act-confirm" onclick="blemishConfirm()">✓</button>
             </div>
-            <div id="ev-blemish-ui">
-              <button class="blemish-clear-btn" onclick="blemishClearAll()">CLEAR ALL</button>
-            </div>
+            <div id="ev-blemish-ui"></div>
           </div>
           <!-- DETAIL panel: SHARPEN CLARITY GRAIN FADE -->
           <div class="es-tab-panel" id="es-panel-detail">
@@ -15962,6 +15965,10 @@ function _blemishUpdateUD() {
   var r = document.getElementById('ev-redo');
   if (u) u.classList.toggle('disabled', _blemishHistory.length === 0);
   if (r) r.classList.toggle('disabled', _blemishFuture.length  === 0);
+  var bu = document.getElementById('blemish-undo');
+  var br = document.getElementById('blemish-redo');
+  if (bu) bu.disabled = (_blemishHistory.length === 0);
+  if (br) br.disabled = (_blemishFuture.length  === 0);
 }
 
 function blemishSizeInput(val) {

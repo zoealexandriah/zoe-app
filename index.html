@@ -20174,6 +20174,8 @@ function evSaveAndReturn() {
       adj.shadow_tint = p.shadowTint || null;
       adj.highlight_tint = p.highlightTint || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+      var _fgGrain = adj.grain || 0;
+      adj.grain = 0;
       var origData  = ctx.getImageData(0, 0, iw, ih);
       var processed = applyPixelAdjustments(origData, adj);
       var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
@@ -20202,6 +20204,7 @@ function evSaveAndReturn() {
       if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
+      if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, (p.grainSize || 1));
       if (adj.border)                  applyBorder(off, adj.border, 0, 0, iw, ih);
     }
     // FX texture applied outside the preset block so it works even with no active look
@@ -20261,6 +20264,8 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       adj.shadow_tint = p.shadowTint || null;
       adj.highlight_tint = p.highlightTint || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+      const _fgGrain = adj.grain || 0;
+      adj.grain = 0;
       const origData = ctx.getImageData(0, 0, w, h);
       let processed  = applyPixelAdjustments(origData, adj);
       if (intensity < 0.999) {
@@ -20287,6 +20292,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, w, h);
       if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
+      if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, (p.grainSize || 1));
       var _savedFxTexBT = entry.editState && entry.editState.fxState && entry.editState.fxState.texture && entry.editState.fxState.texture.variant;
       if (_savedFxTexBT && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { for(var _tiBT=0;_tiBT<FX_VARIANTS.texture.length;_tiBT++){if(FX_VARIANTS.texture[_tiBT].id===_savedFxTexBT){adj.textureOverlay={file:FX_VARIANTS.texture[_tiBT].assetFile,blend:'screen',opacity:(entry.editState.fxState.texture.intensity!=null?fxState.texture.intensity:100)/100};break;}} }
       if (adj.textureOverlay)            applyTextureOverlay(off, adj.textureOverlay, 0, 0, w, h);
@@ -20448,6 +20454,8 @@ function _exportEntry(entry, onDone) {
       adj.shadow_tint = p.shadowTint || null;
       adj.highlight_tint = p.highlightTint || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+      const _fgGrain = adj.grain || 0;
+      adj.grain = 0;
       const origData = ctx.getImageData(0, 0, iw, ih);
       let processed  = applyPixelAdjustments(origData, adj);
       if (intensity < 0.999) {
@@ -20474,6 +20482,7 @@ function _exportEntry(entry, onDone) {
       if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                       applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01)         applyVignette(off, adj.vignette, 0, 0, iw, ih);
+      if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, (p.grainSize || 1));
       if (adj.textureOverlay)                  applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
       if (adj.border)                          applyBorder(off, adj.border, 0, 0, iw, ih);
     }

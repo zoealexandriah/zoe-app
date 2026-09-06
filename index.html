@@ -511,7 +511,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   pointer-events:none;white-space:nowrap;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(-50%) scale(1)}
-.toast-dot{width:5px;height:5px;border-radius:50%;background:var(--accent,#c9b8d4);flex-shrink:0;box-shadow:0 0 6px rgba(201,184,212,0.7);}
 .toast-text{font-size:10px;letter-spacing:0.20em;color:rgba(228,217,211,0.90);font-weight:400;font-family:var(--font-ui,'sans-serif')}
 
 /* section panel title row */
@@ -1093,7 +1092,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .status-dot { background:rgba(218,108,138,0.88) !important; box-shadow:0 0 6px rgba(192,64,90,0.60),0 0 16px rgba(138,26,46,0.28) !important }
 @keyframes dot-pulse { 0%,100%{ box-shadow:0 0 5px rgba(192,64,90,0.50),0 0 12px rgba(138,26,46,0.20) } 50%{ box-shadow:0 0 9px rgba(218,90,118,0.80),0 0 22px rgba(160,40,60,0.36) } }
 .tb-live { color:rgba(218,108,138,0.62) !important }
-.toast-dot { background:var(--accent,#c9b8d4) !important; box-shadow:0 0 6px rgba(201,184,212,0.7) !important }
 
 /* ── LOOK CARDS ── */
 .look-card.selected::after { background:linear-gradient(to right,transparent,rgba(192,64,90,0.72),rgba(138,26,46,0.58),rgba(192,64,90,0.68),transparent) !important }
@@ -4865,7 +4863,6 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
 <canvas id="particle-canvas"></canvas>
 
 <div class="toast" id="toast">
-  <div class="toast-dot"></div>
   <span class="toast-text" id="toast-text">—</span>
 </div>
 
@@ -19857,7 +19854,7 @@ function editorOpenGalleryPicker() {
 // ── Fix 1+8: Save to gallery (offscreen canvas — no UI chrome) ───────────
 function editorSaveToGallery() {
   const hc = document.getElementById('hero-canvas') || document.getElementById('ev-canvas');
-  if (!hc || !userImage) { showToast('_ OPEN A PHOTO FIRST'); return; }
+  if (!hc || !userImage) { showToast('OPEN A PHOTO FIRST'); return; }
   // Capture current edit state so it can be restored later
   const activeP = evActivePreset || activePreset;
   const editState = activeP ? {
@@ -20071,11 +20068,11 @@ function galleryCopyEdits(imageId) {
   if (!entry) return;
   if (entry.editState && entry.editState.presetId) {
     window.copiedEdits = { presetId: entry.editState.presetId, state: entry.editState.sliders };
-    showToast('_ EDITS COPIED');
+    showToast('EDITS COPIED');
     const pasteBtn = document.getElementById('gallery-paste-edits-btn');
     if (pasteBtn) pasteBtn.style.display = 'inline-flex';
   } else {
-    showToast('_ NO EDITS ON THIS IMAGE');
+    showToast('NO EDITS ON THIS IMAGE');
   }
 }
 
@@ -20241,7 +20238,7 @@ function _doGalleryPasteEdits() {
     targets.push(entry);
   });
   if (!targets.length) return;
-  showToast('_ RENDERING ' + targets.length + ' PHOTO' + (targets.length===1?'':'S') + '…');
+  showToast('RENDERING ' + targets.length + ' PHOTO' + (targets.length===1?'':'S') + '…');
   let done = 0;
   targets.forEach(entry => {
     _renderBatchThumbnail(entry, presetId, state, 1.0, () => {
@@ -20249,7 +20246,7 @@ function _doGalleryPasteEdits() {
       if (done === targets.length) {
         libSaveToStorage();
         renderLibrary();
-        showToast('_ EDITS APPLIED TO ' + targets.length + ' PHOTO' + (targets.length===1?'':'S'));
+        showToast('EDITS APPLIED TO ' + targets.length + ' PHOTO' + (targets.length===1?'':'S'));
       }
     });
   });
@@ -20392,7 +20389,7 @@ function galleryCopyEditFromSelection() {
   const entry = library[libSelected[0]];
   if (!entry) return;
   const hasEdits = entry.editState && entry.editState.presetId;
-  if (!hasEdits) { showToast('_ OPEN THIS PHOTO IN EDITOR FIRST'); return; }
+  if (!hasEdits) { showToast('OPEN THIS PHOTO IN EDITOR FIRST'); return; }
   galleryCopyEdits(entry.id);
 }
 
@@ -20621,7 +20618,7 @@ window.switchToTab = function(label) {
 
 // ── Fix 4: editorSaveToGallery — save at original resolution ─────────────
 window.editorSaveToGallery = function() {
-  if (!userImage) { showToast('_ OPEN A PHOTO FIRST'); return; }
+  if (!userImage) { showToast('OPEN A PHOTO FIRST'); return; }
   const hc = getActiveCanvas();
   if (!hc) return;
   const activeP = evActivePreset || activePreset;

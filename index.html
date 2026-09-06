@@ -12196,6 +12196,12 @@ function switchToTab(label) {
   const rc       = document.getElementById('right-col');
   const hv       = document.getElementById('home-view');
 
+  // When leaving the editor for gallery via bottom nav, delegate so edits are saved and thumbnail updated
+  if (label === 'GALLERY' && edView && edView.classList.contains('active') && typeof editorBackToGallery === 'function') {
+    editorBackToGallery();
+    return;
+  }
+
   // Hide everything
   if (colView)  colView.classList.remove('active');
   if (presView) presView.classList.remove('active');
@@ -19916,7 +19922,7 @@ function editorBackToGallery() {
   var _exitEntry = (_exitIdx >= 0 && library[_exitIdx]) ? library[_exitIdx] : null;
   // Hide editor, restore hero-win
   var _evEl = document.getElementById('editor-view');
-  if (_evEl) _evEl.style.display = 'none';
+  if (_evEl) { _evEl.style.display = 'none'; _evEl.classList.remove('active'); }
   var rc = document.getElementById('right-col');
   if (rc) { rc.style.display = 'none'; rc.style.width = '0'; rc.style.minWidth = '0'; }
   var hw = document.querySelector('.hero-win');
@@ -19940,7 +19946,8 @@ function editorBackToGallery() {
   // Render updated thumbnail in background, then refresh
   var _exitFxV = _exitEntry && _exitEntry.editState && _exitEntry.editState.fxState && _exitEntry.editState.fxState.frames && _exitEntry.editState.fxState.frames.variant;
   var _exitFxTex = _exitEntry && _exitEntry.editState && _exitEntry.editState.fxState && _exitEntry.editState.fxState.texture && _exitEntry.editState.fxState.texture.variant;
-  if (_exitEntry && _exitEntry.editState && (_exitEntry.editState.presetId || Object.keys(_exitEntry.editState.sliders || {}).length || (_exitFxV && _exitFxV !== 'none') || _exitFxTex)) {
+  var _hasCropChange = _exitEntry && _exitEntry.editState && _exitEntry.editState.editedDataURL && _exitEntry.editState.originalDataURL && _exitEntry.editState.editedDataURL !== _exitEntry.editState.originalDataURL;
+  if (_exitEntry && _exitEntry.editState && (_exitEntry.editState.presetId || Object.keys(_exitEntry.editState.sliders || {}).length || (_exitFxV && _exitFxV !== 'none') || _exitFxTex || _hasCropChange)) {
     _renderBatchThumbnail(_exitEntry, _exitEntry.editState.presetId, _exitEntry.editState.sliders || {}, _exitEntry.editState.intensity || 1.0, function() {
       if (typeof libSaveToStorage === 'function') libSaveToStorage();
       renderLibrary();

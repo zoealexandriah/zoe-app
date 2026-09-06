@@ -1,4 +1,4 @@
-﻿<html lang="en">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -6327,6 +6327,7 @@ const presets = [
     halationBloom: { threshold: 0.78, radius: 14, hue: 28, intensity: 0.05 },
     shadowTint:    { r: 0.18, g: 0.12, b: 0.04, strength: 0.05 },
     highlightTint: { r: 0.22, g: 0.18, b: 0.10, strength: 0.04 },
+    matteFade:     { lift: 0.04, rolloff: 0.20 },
     chromaticAberration: { amount: 0.15, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: -0.05, g: +0.04, b: -0.06, strength: 0.50 },
@@ -6414,6 +6415,7 @@ const presets = [
     halationBloom: { threshold: 0.86, radius: 10, hue: 32, intensity: 0.04 },
     shadowTint:    { r: 0.22, g: 0.16, b: 0.06, strength: 0.06 },
     highlightTint: { r: 0.20, g: 0.16, b: 0.08, strength: 0.05 },
+    matteFade:     { lift: 0.03, rolloff: 0.18 },
     chromaticAberration: { amount: 0.15, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: -0.06, g: +0.04, b: -0.07, strength: 0.50 },
@@ -6460,6 +6462,7 @@ const presets = [
     halationBloom: { threshold: 0.80, radius: 12, hue: 28, intensity: 0.05 },
     shadowTint:    { r: 0.18, g: 0.13, b: 0.06, strength: 0.05 },
     highlightTint: { r: 0.18, g: 0.14, b: 0.08, strength: 0.03 },
+    matteFade:     { lift: 0.04, rolloff: 0.20 },
     chromaticAberration: { amount: 0.12, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: -0.04, g: +0.04, b: -0.05, strength: 0.40 },
@@ -6508,6 +6511,7 @@ const presets = [
     halationBloom: { threshold: 0.82, radius: 10, hue: 195, intensity: 0.04 },
     shadowTint:    { r: 0.06, g: 0.12, b: 0.20, strength: 0.06 },
     highlightTint: { r: 0.24, g: 0.20, b: 0.12, strength: 0.06 },
+    matteFade:     { lift: 0.03, rolloff: 0.16 },
     chromaticAberration: { amount: 0.15, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: -0.02, g: +0.02, b: +0.06, strength: 0.40 },
@@ -6556,6 +6560,7 @@ const presets = [
     halationBloom: { threshold: 0.80, radius: 12, hue: 30, intensity: 0.05 },
     shadowTint:    { r: 0.22, g: 0.15, b: 0.04, strength: 0.07 },
     highlightTint: { r: 0.32, g: 0.24, b: 0.10, strength: 0.07 },
+    matteFade:     { lift: 0.01, rolloff: 0.12 },
     chromaticAberration: { amount: 0.15, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: -0.05, g: +0.04, b: -0.06, strength: 0.45 },
@@ -6604,6 +6609,7 @@ const presets = [
     halationBloom: { threshold: 0.82, radius: 11, hue: 28, intensity: 0.04 },
     shadowTint:    { r: 0.10, g: 0.09, b: 0.07, strength: 0.02 },
     highlightTint: { r: 0.20, g: 0.18, b: 0.12, strength: 0.04 },
+    matteFade:     { lift: 0.00, rolloff: 0.05 },
     chromaticAberration: { amount: 0.10, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: -0.01, g: +0.01, b: -0.01, strength: 0.15 },
@@ -6652,6 +6658,7 @@ const presets = [
     halationBloom: { threshold: 0.86, radius: 9, hue: 175, intensity: 0.03 },
     shadowTint:    { r: 0.06, g: 0.14, b: 0.12, strength: 0.06 },
     highlightTint: { r: 0.12, g: 0.20, b: 0.18, strength: 0.06 },
+    matteFade:     { lift: 0.01, rolloff: 0.09 },
     chromaticAberration: { amount: 0.09, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: -0.08, g: +0.04, b: +0.02, strength: 0.45 },
@@ -6700,6 +6707,7 @@ const presets = [
     halationBloom: { threshold: 0.80, radius: 12, hue: 160, intensity: 0.04 },
     shadowTint:    { r: 0.16, g: 0.12, b: 0.08, strength: 0.04 },
     highlightTint: { r: 0.18, g: 0.20, b: 0.16, strength: 0.04 },
+    matteFade:     { lift: 0.01, rolloff: 0.05 },
     chromaticAberration: { amount: 0.08, falloff: 0.91 },
     filmCrossover: {
       toe:      { r: +0.03, g: +0.02, b: +0.01, strength: 0.28 },
@@ -6748,6 +6756,7 @@ const presets = [
     halationBloom: { threshold: 0.78, radius: 13, hue: 0, intensity: 0.04 },
     shadowTint:    { r: 0.50, g: 0.50, b: 0.50, strength: 0.00 },
     highlightTint: { r: 0.50, g: 0.50, b: 0.50, strength: 0.00 },
+    matteFade:     { lift: 0.03, rolloff: 0.14 },
     chromaticAberration: { amount: 0.06, falloff: 0.94 },
     filmCrossover: {
       toe:      { r: +0.01, g: +0.01, b: +0.01, strength: 0.15 },
@@ -6796,6 +6805,7 @@ const presets = [
     halationBloom: { threshold: 0.80, radius: 11, hue: 32, intensity: 0.04 },
     shadowTint:    { r: 0.18, g: 0.12, b: 0.08, strength: 0.04 },
     highlightTint: { r: 0.24, g: 0.18, b: 0.12, strength: 0.04 },
+    matteFade:     { lift: 0.00, rolloff: 0.04 },
     chromaticAberration: { amount: 0.08, falloff: 0.91 },
     filmCrossover: {
       toe:      { r: +0.03, g: -0.01, b: -0.03, strength: 0.30 },
@@ -6844,6 +6854,7 @@ const presets = [
     halationBloom: { threshold: 1.00, radius: 0, hue: 0, intensity: 0.0 },
     shadowTint:    { r: 0.50, g: 0.50, b: 0.50, strength: 0.00 },
     highlightTint: { r: 0.50, g: 0.50, b: 0.50, strength: 0.00 },
+    matteFade:     { lift: 0.00, rolloff: 0.00 },
     chromaticAberration: { amount: 0.00, falloff: 1.00 },
     splitTone:{
       shadows:    {r:128, g:128, b:128, a:0.00},
@@ -6889,6 +6900,7 @@ const presets = [
     halationBloom: { threshold: 0.84, radius: 9, hue: 25, intensity: 0.03 },
     shadowTint:    { r: 0.06, g: 0.08, b: 0.10, strength: 0.03 },
     highlightTint: { r: 0.24, g: 0.20, b: 0.10, strength: 0.04 },
+    matteFade:     { lift: 0.00, rolloff: 0.00 },
     chromaticAberration: { amount: 0.10, falloff: 0.88 },
     filmCrossover: {
       toe:      { r: -0.01, g: +0.00, b: +0.01, strength: 0.10 },
@@ -6937,6 +6949,7 @@ const presets = [
     halationBloom: { threshold: 0.82, radius: 10, hue: 195, intensity: 0.04 },
     shadowTint:    { r: 0.10, g: 0.14, b: 0.16, strength: 0.05 },
     highlightTint: { r: 0.22, g: 0.20, b: 0.14, strength: 0.05 },
+    matteFade:     { lift: 0.01, rolloff: 0.10 },
     chromaticAberration: { amount: 0.12, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: -0.04, g: +0.02, b: +0.06, strength: 0.40 },
@@ -7028,6 +7041,7 @@ const presets = [
     halationBloom: { threshold: 0.65, radius: 22, hue: 8, intensity: 0.14 },
     shadowTint:    { r: 0.18, g: 0.12, b: 0.04, strength: 0.06 },
     highlightTint: { r: 0.22, g: 0.18, b: 0.10, strength: 0.02 },
+    matteFade:     { lift: 0.00, rolloff: 0.10 },
     chromaticAberration: { amount: 0.00, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: -0.06, g: +0.04, b: -0.08, strength: 0.60 },
@@ -7076,6 +7090,7 @@ const presets = [
     halationBloom: { threshold: 0.70, radius: 20, hue: 0, intensity: 0.10 },
     shadowTint:    { r: 0.00, g: 0.00, b: 0.00, strength: 0.00 },
     highlightTint: { r: 0.00, g: 0.00, b: 0.00, strength: 0.00 },
+    matteFade:     { lift: 0.02, rolloff: 0.12 },
     chromaticAberration: { amount: 0.00, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: -0.04, g: +0.03, b: -0.02, strength: 0.40 },
@@ -7127,6 +7142,7 @@ const presets = [
     halationBloom: { threshold: 0.74, radius: 16, hue: 28, intensity: 0.09 },
     shadowTint:    { r: 0.16, g: 0.13, b: 0.05, strength: 0.06 },
     highlightTint: { r: 0.24, g: 0.20, b: 0.12, strength: 0.06 },
+    matteFade:     { lift: 0.05, rolloff: 0.22 },
     chromaticAberration: { amount: 0.20, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: -0.08, g: +0.06, b: -0.05, strength: 0.70 },
@@ -7197,6 +7213,7 @@ const presets = [
     halationBloom: { threshold: 0.72, radius: 16, hue: 180, intensity: 0.06 },
     shadowTint:    { r: 0.02, g: 0.04, b: 0.08, strength: 0.04 },
     highlightTint: { r: 0.08, g: 0.08, b: 0.10, strength: 0.03 },
+    matteFade:     { lift: 0.04, rolloff: 0.20 },
     chromaticAberration: { amount: 0.15, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: -0.02, g: +0.02, b: +0.04, strength: 0.45 },
@@ -7238,6 +7255,7 @@ const presets = [
     halationBloom: { threshold: 0.76, radius: 14, hue: 30, intensity: 0.06 },
     shadowTint:    { r: 0.16, g: 0.10, b: 0.04, strength: 0.05 },
     highlightTint: { r: 0.20, g: 0.16, b: 0.10, strength: 0.04 },
+    matteFade:     { lift: 0.04, rolloff: 0.20 },
     chromaticAberration: { amount: 0.18, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: -0.06, g: +0.04, b: -0.06, strength: 0.50 },
@@ -7298,6 +7316,7 @@ const presets = [
     halationBloom: { threshold: 0.76, radius: 14, hue: 26, intensity: 0.07 },
     shadowTint:    { r: 0.20, g: 0.12, b: 0.04, strength: 0.06 },
     highlightTint: { r: 0.24, g: 0.18, b: 0.10, strength: 0.05 },
+    matteFade:     { lift: 0.03, rolloff: 0.18 },
     chromaticAberration: { amount: 0.18, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: -0.06, g: +0.05, b: -0.08, strength: 0.60 },
@@ -7381,6 +7400,7 @@ const presets = [
     colorGlow: 0.0,
     halationBloom: { threshold: 0.62, radius: 28, hue: 65, intensity: 0.55 },
     scanLines: { opacity: 0.07, spacing: 2 },
+    matteFade: { lift: 0.0, rolloff: 0.88 },
     splitTone:{
       shadows:    {r:12,  g:12,  b:8,   a:0.22},
       midtones:   {r:165, g:158, b:80,  a:0.06},
@@ -7421,6 +7441,7 @@ const presets = [
     halationBloom: { threshold: 0.74, radius: 16, hue: 185, intensity: 0.06 },
     shadowTint:    { r: 0.04, g: 0.10, b: 0.08, strength: 0.04 },
     highlightTint: { r: 0.08, g: 0.12, b: 0.10, strength: 0.03 },
+    matteFade:     { lift: 0.05, rolloff: 0.22 },
     chromaticAberration: { amount: 0.20, falloff: 0.88 },
     filmCrossover: {
       toe:      { r: -0.02, g: +0.03, b: +0.05, strength: 0.45 },
@@ -7640,6 +7661,7 @@ const presets = [
     halationBloom: { threshold: 0.74, radius: 16, hue: 40, intensity: 0.09 },
     shadowTint:    { r: 0.06, g: 0.20, b: 0.16, strength: 0.05 },
     highlightTint: { r: 0.22, g: 0.20, b: 0.15, strength: 0.03 },
+    matteFade:     { lift: 0.02, rolloff: 0.20 },
     chromaticAberration: { amount: 0.10, falloff: 0.92 },
     splitTone:{
       shadows:    {r:70,  g:104, b:96,  a:0.07},
@@ -7685,6 +7707,7 @@ const presets = [
     halationBloom: { threshold: 0.68, radius: 20, hue: 14, intensity: 0.13 },
     shadowTint:    { r: 0.20, g: 0.10, b: 0.06, strength: 0.07 },
     highlightTint: { r: 0.24, g: 0.19, b: 0.13, strength: 0.03 },
+    matteFade:     { lift: 0.035, rolloff: 0.18 },
     chromaticAberration: { amount: 0.14, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: -0.06, g: +0.04, b: -0.08, strength: 0.62 },
@@ -7783,6 +7806,7 @@ const presets = [
     halationBloom: { threshold: 0.72, radius: 18, hue: 32, intensity: 0.11 },
     shadowTint:    { r: 0.14, g: 0.12, b: 0.10, strength: 0.05 },
     highlightTint: { r: 0.26, g: 0.21, b: 0.12, strength: 0.04 },
+    matteFade:     { lift: 0.02, rolloff: 0.16 },
     chromaticAberration: { amount: 0.11, falloff: 0.91 },
     filmCrossover: {
       toe:      { r: +0.03, g: -0.01, b: +0.02, strength: 0.40 },
@@ -7831,6 +7855,7 @@ const presets = [
     halationBloom: { threshold: 0.66, radius: 22, hue: 10, intensity: 0.16 },
     shadowTint:    { r: 0.24, g: 0.06, b: 0.05, strength: 0.07 },
     highlightTint: { r: 0.26, g: 0.22, b: 0.12, strength: 0.04 },
+    matteFade:     { lift: 0.02, rolloff: 0.22 },
     chromaticAberration: { amount: 0.17, falloff: 0.88 },
     filmCrossover: {
       toe:      { r: +0.12, g: -0.08, b: -0.06, strength: 0.60 },
@@ -7879,6 +7904,7 @@ const presets = [
     halationBloom: { threshold: 0.78, radius: 14, hue: 28, intensity: 0.07 },
     shadowTint:    { r: 0.16, g: 0.12, b: 0.16, strength: 0.05 },
     highlightTint: { r: 0.20, g: 0.19, b: 0.18, strength: 0.03 },
+    matteFade:     { lift: 0.02, rolloff: 0.24 },
     chromaticAberration: { amount: 0.09, falloff: 0.93 },
     filmCrossover: {
       toe:      { r: +0.04, g: -0.05, b: +0.03, strength: 0.45 },
@@ -7928,6 +7954,7 @@ const presets = [
     halationBloom: { threshold: 0.74, radius: 16, hue: 34, intensity: 0.10 },
     shadowTint:    { r: 0.20, g: 0.15, b: 0.10, strength: 0.06 },
     highlightTint: { r: 0.22, g: 0.21, b: 0.19, strength: 0.02 },
+    matteFade:     { lift: 0.03, rolloff: 0.18 },
     chromaticAberration: { amount: 0.10, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: +0.08, g: +0.02, b: -0.06, strength: 0.50 },
@@ -8121,6 +8148,7 @@ const presets = [
     halationBloom: { threshold: 0.80, radius: 14, hue: 30, intensity: 0.06 },
     shadowTint:    { r: 0.17, g: 0.18, b: 0.17, strength: 0.05 },
     highlightTint: { r: 0.20, g: 0.20, b: 0.19, strength: 0.02 },
+    matteFade:     { lift: 0.03, rolloff: 0.20 },
     chromaticAberration: { amount: 0.08, falloff: 0.93 },
     filmCrossover: {
       toe:      { r: -0.02, g: +0.03, b: +0.01, strength: 0.35 },
@@ -8217,6 +8245,7 @@ const presets = [
     halationBloom: { threshold: 0.72, radius: 16, hue: 192, intensity: 0.09 },
     shadowTint:    { r: 0.06, g: 0.16, b: 0.22, strength: 0.08 },
     highlightTint: { r: 0.22, g: 0.20, b: 0.18, strength: 0.03 },
+    matteFade:     { lift: 0.02, rolloff: 0.22 },
     chromaticAberration: { amount: 0.11, falloff: 0.91 },
     filmCrossover: {
       toe:      { r: -0.14, g: +0.02, b: +0.12, strength: 0.62 },
@@ -8313,6 +8342,7 @@ const presets = [
     halationBloom: { threshold: 0.76, radius: 15, hue: 84, intensity: 0.07 },
     shadowTint:    { r: 0.20, g: 0.13, b: 0.19, strength: 0.06 },
     highlightTint: { r: 0.17, g: 0.22, b: 0.16, strength: 0.04 },
+    matteFade:     { lift: 0.03, rolloff: 0.20 },
     chromaticAberration: { amount: 0.09, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: +0.04, g: -0.08, b: +0.06, strength: 0.55 },
@@ -8409,6 +8439,7 @@ const presets = [
     halationBloom: { threshold: 0.68, radius: 20, hue: 200, intensity: 0.12 },
     shadowTint:    { r: 0.26, g: 0.14, b: 0.08, strength: 0.08 },
     highlightTint: { r: 0.12, g: 0.18, b: 0.26, strength: 0.06 },
+    matteFade:     { lift: 0.04, rolloff: 0.22 },
     chromaticAberration: { amount: 0.12, falloff: 0.90 },
     filmCrossover: {
       toe:      { r: +0.14, g: -0.02, b: -0.12, strength: 0.62 },
@@ -8505,6 +8536,7 @@ const presets = [
     halationBloom: { threshold: 0.74, radius: 18, hue: 66, intensity: 0.10 },
     shadowTint:    { r: 0.18, g: 0.18, b: 0.22, strength: 0.06 },
     highlightTint: { r: 0.20, g: 0.24, b: 0.15, strength: 0.05 },
+    matteFade:     { lift: 0.05, rolloff: 0.26 },
     chromaticAberration: { amount: 0.10, falloff: 0.91 },
     filmCrossover: {
       toe:      { r: -0.04, g: -0.02, b: +0.08, strength: 0.50 },
@@ -8553,6 +8585,7 @@ const presets = [
     halationBloom: { threshold: 0.80, radius: 14, hue: 38, intensity: 0.06 },
     shadowTint:    { r: 0.17, g: 0.17, b: 0.20, strength: 0.05 },
     highlightTint: { r: 0.21, g: 0.20, b: 0.18, strength: 0.03 },
+    matteFade:     { lift: 0.06, rolloff: 0.28 },
     chromaticAberration: { amount: 0.07, falloff: 0.94 },
     filmCrossover: {
       toe:      { r: -0.02, g: -0.04, b: +0.08, strength: 0.48 },
@@ -8598,6 +8631,7 @@ const presets = [
     halationBloom: { threshold: 0.76, radius: 16, hue: 92, intensity: 0.08 },
     shadowTint:    { r: 0.17, g: 0.19, b: 0.18, strength: 0.06 },
     highlightTint: { r: 0.18, g: 0.22, b: 0.17, strength: 0.04 },
+    matteFade:     { lift: 0.03, rolloff: 0.22 },
     chromaticAberration: { amount: 0.09, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: +0.02, g: +0.04, b: +0.02, strength: 0.45 },
@@ -8680,6 +8714,7 @@ const presets = [
     halationBloom: { threshold: 0.72, radius: 18, hue: 318, intensity: 0.11 },
     shadowTint:    { r: 0.20, g: 0.10, b: 0.20, strength: 0.07 },
     highlightTint: { r: 0.16, g: 0.16, b: 0.26, strength: 0.06 },
+    matteFade:     { lift: 0.03, rolloff: 0.24 },
     chromaticAberration: { amount: 0.11, falloff: 0.91 },
     filmCrossover: {
       toe:      { r: +0.06, g: -0.10, b: +0.04, strength: 0.58 },
@@ -8844,6 +8879,7 @@ const presets = [
     halationBloom: { threshold: 0.80, radius: 14, hue: 228, intensity: 0.06 },
     shadowTint:    { r: 0.16, g: 0.15, b: 0.22, strength: 0.06 },
     highlightTint: { r: 0.20, g: 0.20, b: 0.21, strength: 0.03 },
+    matteFade:     { lift: 0.05, rolloff: 0.26 },
     chromaticAberration: { amount: 0.07, falloff: 0.94 },
     filmCrossover: {
       toe:      { r: -0.04, g: -0.06, b: +0.12, strength: 0.56 },
@@ -8926,6 +8962,7 @@ const presets = [
     halationBloom: { threshold: 0.74, radius: 16, hue: 34, intensity: 0.09 },
     shadowTint:    { r: 0.22, g: 0.14, b: 0.12, strength: 0.06 },
     highlightTint: { r: 0.24, g: 0.22, b: 0.16, strength: 0.04 },
+    matteFade:     { lift: 0.02, rolloff: 0.20 },
     chromaticAberration: { amount: 0.10, falloff: 0.91 },
     filmCrossover: {
       toe:      { r: +0.08, g: -0.06, b: +0.02, strength: 0.52 },
@@ -8967,6 +9004,7 @@ const presets = [
     halationBloom: { threshold: 0.78, radius: 15, hue: 196, intensity: 0.07 },
     shadowTint:    { r: 0.14, g: 0.16, b: 0.22, strength: 0.07 },
     highlightTint: { r: 0.20, g: 0.20, b: 0.20, strength: 0.03 },
+    matteFade:     { lift: 0.06, rolloff: 0.28 },
     chromaticAberration: { amount: 0.08, falloff: 0.93 },
     filmCrossover: {
       toe:      { r: -0.04, g: -0.06, b: +0.10, strength: 0.54 },
@@ -9132,6 +9170,7 @@ const presets = [
     halationBloom: { threshold: 0.76, radius: 16, hue: 36, intensity: 0.08 },
     shadowTint:    { r: 0.24, g: 0.20, b: 0.14, strength: 0.07 },
     highlightTint: { r: 0.24, g: 0.22, b: 0.17, strength: 0.04 },
+    matteFade:     { lift: 0.08, rolloff: 0.30 },
     chromaticAberration: { amount: 0.08, falloff: 0.93 },
     filmCrossover: {
       toe:      { r: +0.08, g: +0.02, b: -0.04, strength: 0.50 },
@@ -9173,6 +9212,7 @@ const presets = [
     halationBloom: { threshold: 0.76, radius: 16, hue: 56, intensity: 0.09 },
     shadowTint:    { r: 0.20, g: 0.18, b: 0.16, strength: 0.07 },
     highlightTint: { r: 0.20, g: 0.21, b: 0.19, strength: 0.03 },
+    matteFade:     { lift: 0.05, rolloff: 0.26 },
     chromaticAberration: { amount: 0.09, falloff: 0.92 },
     filmCrossover: {
       toe:      { r: +0.06, g: +0.02, b: -0.02, strength: 0.48 },

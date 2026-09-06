@@ -3699,8 +3699,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 #fx-variant-strip::-webkit-scrollbar { display: none; }
 #fx-subtab-bar::-webkit-scrollbar { display: none; }
-#fx-subtab-bar .ev-cat-btn { flex-shrink:0; flex:none; white-space:nowrap; background:transparent; border:none; border-radius:8px; color:rgba(228,217,211,0.35); font-size:9px; letter-spacing:0.25em; font-family:var(--font-ui); font-weight:400; padding:5px 10px; cursor:pointer; transition:background 0.18s,color 0.18s; -webkit-tap-highlight-color:transparent; touch-action:manipulation; outline:none; }
-#fx-subtab-bar .ev-cat-btn.active { background:rgba(255,255,255,0.10); color:rgba(228,217,211,0.90); }
 .fx-var-thumb {
   flex-shrink: 0;
   width: 70px;
@@ -5823,7 +5821,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <div class="es-tab-panel" id="es-panel-fx">
 
             <!-- Permanent FX subtab bar -->
-            <div id="fx-subtab-bar" style="flex-shrink:0;display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:rgba(255,255,255,0.06);border-radius:10px;margin:8px 12px 4px;padding:2px;gap:1px;">
+            <div id="fx-subtab-bar" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:4px;padding:0 10px;height:32px;border-bottom:0.5px solid rgba(200,168,232,0.07);">
               <div class="ev-cat-btn active" onclick="fxOpenCat('texture')" data-fxstrip="texture">TEXTURE</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('stickers')" data-fxstrip="stickers">STICKERS</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('frames')" data-fxstrip="frames">FRAMES</div>
@@ -20209,16 +20207,23 @@ function evSaveAndReturn() {
     }
     // FX texture applied outside the preset block so it works even with no active look
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvSR=null; if (FX_VARIANTS.texture){for(var _tiSR=0;_tiSR<FX_VARIANTS.texture.length;_tiSR++){if(FX_VARIANTS.texture[_tiSR].id===fxState.texture.variant){_fxTvSR=FX_VARIANTS.texture[_tiSR];break;}}} if(_fxTvSR) { var _srTexAdj={file:_fxTvSR.assetFile,blend:'screen',opacity:(fxState.texture.intensity!=null?fxState.texture.intensity:100)/100}; loadTexture(_srTexAdj.file); applyTextureOverlay(off, _srTexAdj, 0, 0, iw, ih); } }
-    var dataURL = off.toDataURL('image/jpeg', 0.93);
-    var img = new Image();
-    img.onload = function() {
-      entry.dataURL = dataURL;
-      entry.img     = img;
-      libSaveToStorage();
-      renderLibrary();
-      editorBackToGallery();
-    };
-    img.src = dataURL;
+    function _doSaveReturn(canvas) {
+      var dataURL = canvas.toDataURL('image/jpeg', 0.93);
+      var img = new Image();
+      img.onload = function() {
+        entry.dataURL = dataURL;
+        entry.img     = img;
+        libSaveToStorage();
+        renderLibrary();
+        editorBackToGallery();
+      };
+      img.src = dataURL;
+    }
+    var _srFrameVar = (typeof fxState !== 'undefined' && fxState.frames) ? fxState.frames.variant : null;
+    if (_srFrameVar && _srFrameVar !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
+      if (_srFrameVar.indexOf('arc-') === 0) { fxCompositeArchiveExport(off, _srFrameVar, iw, ih, _doSaveReturn); }
+      else { fxApplyFrameToCanvas(off, _srFrameVar, fxState.frames, function() { _doSaveReturn(off); }); }
+    } else { _doSaveReturn(off); }
   } else {
     editorBackToGallery();
   }
@@ -20486,11 +20491,17 @@ function _exportEntry(entry, onDone) {
       if (adj.textureOverlay)                  applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
       if (adj.border)                          applyBorder(off, adj.border, 0, 0, iw, ih);
     }
-    const a = document.createElement('a');
-    a.download = name + '.jpg';
-    a.href = off.toDataURL('image/jpeg', 0.95);
-    a.click();
-    setTimeout(onDone, 150);
+    const _expD = new Date();
+    const _expDs = _expD.getFullYear().toString() + String(_expD.getMonth()+1).padStart(2,'0') + String(_expD.getDate()).padStart(2,'0');
+    const _expTs = String(_expD.getHours()).padStart(2,'0') + String(_expD.getMinutes()).padStart(2,'0') + String(_expD.getSeconds()).padStart(2,'0');
+    const _expFilename = 'ZOE_' + _expDs + '_' + _expTs + '.jpg';
+    function _doExpDownload(canvas) { const a = document.createElement('a'); a.download = _expFilename; a.href = canvas.toDataURL('image/jpeg', 0.95); a.click(); setTimeout(onDone, 150); }
+    const _expFxFrames = entry.editState && entry.editState.fxState && entry.editState.fxState.frames;
+    const _expFrameVar = _expFxFrames ? _expFxFrames.variant : null;
+    if (_expFrameVar && _expFrameVar !== 'none' && typeof fxApplyFrameToCanvas === 'function') {
+      if (_expFrameVar.indexOf('arc-') === 0) { fxCompositeArchiveExport(off, _expFrameVar, iw, ih, _doExpDownload); }
+      else { fxApplyFrameToCanvas(off, _expFrameVar, _expFxFrames, function() { _doExpDownload(off); }); }
+    } else { _doExpDownload(off); }
   };
   src.onerror = () => setTimeout(onDone, 150);
   src.src = srcURL;
@@ -22421,6 +22432,12 @@ var _cropPerspOrig = null;
 // Auto-applies any in-progress perspective preview before switching tools.
 // Called by flip, rotate, and perspective activate so transforms stack cleanly.
 function _cropPerspFlush(onFlush) {
+  // Re-entrancy guard: a flush already in flight has not yet removed
+  // crop-perspective-work, so the element check below cannot catch a second call.
+  if (typeof _cropPerspFlushPending !== 'undefined' && _cropPerspFlushPending) {
+    if (onFlush) onFlush();
+    return;
+  }
   var sc = document.getElementById('crop-perspective-work');
   if (!sc || !sc.width) { if (onFlush) onFlush(); return; }
   var _slV = document.getElementById('crop-persp-v-slider');
@@ -24528,16 +24545,13 @@ function fxOpenGemControls() {
     pv.id = 'fx-gem-controls';
     pv.style.cssText = 'display:none;flex-direction:column;overflow-y:auto;';
     pv.innerHTML =
-      '<div class="blemish-action-bar">' +
-        '<button class="blemish-act-btn" onclick="fxGemControlsDiscard()">✕</button>' +
-        '<span class="blemish-act-label">GEMS</span>' +
-        '<button class="blemish-act-btn blemish-act-confirm" onclick="fxCloseGemControls()">✓</button>' +
-      '</div>' +
       '<div class="crop-subtabs" id="fxgc-subtabs" style="margin:6px 12px 0;">' +
+        '<button class="blemish-act-btn" style="margin-right:4px;" onclick="fxGemControlsDiscard()">✕</button>' +
         '<button class="crop-subtab active" onclick="fxGcSubTab(this,\'opacity\')">OPACITY</button>' +
         '<button class="crop-subtab" onclick="fxGcSubTab(this,\'scale\')">SCALE</button>' +
         '<button class="crop-subtab" onclick="fxGcSubTab(this,\'position\')">POSITION</button>' +
         '<button class="crop-subtab" onclick="fxGcSubTab(this,\'rotate\')">ROTATE</button>' +
+        '<button class="blemish-act-btn blemish-act-confirm" style="margin-left:auto;" onclick="fxCloseGemControls()">✓</button>' +
       '</div>' +
       '<div class="crop-sub-content" id="fxgc-sub-opacity">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">OPACITY</span><span class="crop-sub-val" id="fxgcv-opacity">100</span></div>' +

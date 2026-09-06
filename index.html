@@ -3699,7 +3699,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 #fx-variant-strip::-webkit-scrollbar { display: none; }
 #fx-subtab-bar::-webkit-scrollbar { display: none; }
-#fx-subtab-bar .crop-subtab { flex-shrink: 0; flex: none; white-space: nowrap; }
+#fx-subtab-bar .ev-cat-btn { flex-shrink:0; flex:none; white-space:nowrap; background:transparent; border:none; border-radius:8px; color:rgba(228,217,211,0.35); font-size:9px; letter-spacing:0.25em; font-family:var(--font-ui); font-weight:400; padding:5px 10px; cursor:pointer; transition:background 0.18s,color 0.18s; -webkit-tap-highlight-color:transparent; touch-action:manipulation; outline:none; }
+#fx-subtab-bar .ev-cat-btn.active { background:rgba(255,255,255,0.10); color:rgba(228,217,211,0.90); }
 .fx-var-thumb {
   flex-shrink: 0;
   width: 70px;
@@ -5822,7 +5823,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <div class="es-tab-panel" id="es-panel-fx">
 
             <!-- Permanent FX subtab bar -->
-            <div id="fx-subtab-bar" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);">
+            <div id="fx-subtab-bar" style="flex-shrink:0;display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:rgba(255,255,255,0.06);border-radius:10px;margin:8px 12px 4px;padding:2px;gap:1px;">
               <div class="ev-cat-btn active" onclick="fxOpenCat('texture')" data-fxstrip="texture">TEXTURE</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('stickers')" data-fxstrip="stickers">STICKERS</div>
               <div class="ev-cat-btn" onclick="fxOpenCat('frames')" data-fxstrip="frames">FRAMES</div>

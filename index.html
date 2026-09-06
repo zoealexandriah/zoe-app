@@ -1446,7 +1446,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .sl-row:hover .sl-name { color:rgba(226,199,179,0.70) !important }
 
 /* ── DIAL + RULER SLIDER SYSTEM ── */
-.ev-dial-panel{display:flex;flex-direction:column;width:100%;padding:16px 0 2px;gap:6px}
+.ev-dial-panel{display:flex;flex-direction:column;width:100%;padding:10px 0 2px;gap:6px}
 .ev-dial-strip-wrap{position:relative;width:100%;-webkit-mask-image:linear-gradient(to right,transparent 0%,#000 18%,#000 82%,transparent 100%);mask-image:linear-gradient(to right,transparent 0%,#000 18%,#000 82%,transparent 100%)}
 .ev-dial-strip{display:flex;flex-direction:row;gap:14px;overflow-x:auto;padding:2px 50vw;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start;scroll-behavior:smooth;scroll-snap-type:x mandatory}
 .ev-dial-strip::-webkit-scrollbar{display:none}
@@ -2117,7 +2117,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   margin:2px 12px 0; padding:2px; gap:1px;
 }
 #ev-color-subtabs {
-  margin-bottom: 2px;
+  margin-top: 8px;
+  margin-bottom: 6px;
 }
 .crop-subtab {
   flex:1; background:transparent; border:none; border-radius:8px;
@@ -2135,7 +2136,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .crop-exp-confirm { color:rgba(201,184,212,0.75); }
 .crop-exp-name { flex:1; text-align:center; font-size:9px; letter-spacing:0.25em; font-family:var(--font-ui); font-weight:400; color:rgba(228,217,211,0.75); text-transform:uppercase; }
 /* Sub-content areas */
-.crop-sub-content { padding:2px 12px 4px; }
+.crop-sub-content { padding:8px 12px 4px; }
 .crop-sub-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
 .crop-sub-label { font-size:9px; color:rgba(210,205,235,0.75); font-family:var(--mono); letter-spacing:0.08em; }
 .crop-sub-val   { font-size:9px; color:rgba(175,168,210,0.45); font-family:var(--mono); }
@@ -2160,8 +2161,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 /* Hide TOOLS header and tool-row buttons during crop — keep et-tool-controls visible */
 #editor-view.crop-mode .et-section-header,
 #editor-view.crop-mode .et-tool-row { display:none !important; }
-/* Pull crop pill bar close to the image (matches COLOR/HSL pill spacing) */
-#editor-view.crop-mode .et-tool-controls { padding-top: 2px; }
+/* Crop pill bar spacing above */
+#editor-view.crop-mode .et-tool-controls { padding-top: 8px; }
 
 
 /* ── ZOOM + UNDO/REDO TOOLBAR ── */
@@ -21611,6 +21612,7 @@ function cropSubTabCollapse(confirm) {
     // Capture angle from slider DOM before any async resets it
     var _preConfirmSl = document.getElementById('crop-straighten-slider');
     var _savedAngle = _preConfirmSl ? (parseFloat(_preConfirmSl.value) || 0) : (typeof _cropStraightenVal !== 'undefined' ? _cropStraightenVal : 0);
+    if (typeof _cropStReAdjTransform !== 'undefined') _cropStReAdjTransform = null;
     var _stBtnC = bar.querySelector('.crop-subtab[onclick*="straighten"]');
     if (_stBtnC && typeof cropSelectSubTab === 'function') cropSelectSubTab(_stBtnC, 'straighten');
     // Restore slider and rebuild preview after all sync+async paths have settled
@@ -21620,14 +21622,23 @@ function cropSubTabCollapse(confirm) {
         if (_reSl) _reSl.value = _savedAngle;
         var _reValEl = document.getElementById('crop-straighten-val');
         if (_reValEl) _reValEl.textContent = Math.round(_savedAngle);
-        if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = _savedAngle;
         if (typeof cropStraightenPreview === 'function') cropStraightenPreview(_savedAngle);
       }, 50);
     }
   } else {
     if (activeTab === 'STRAIGHTEN') {
-      var sl = document.getElementById('crop-straighten-slider');
-      if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
+      if (typeof _cropStReAdjTransform !== 'undefined' && _cropStReAdjTransform) {
+        // Re-adjust cancel: push back the original baked transform and render
+        _cropTransforms.push(_cropStReAdjTransform);
+        _cropStReAdjTransform = null;
+        _cropStraightenVal = 0;
+        var _csCancSw = document.getElementById('crop-straighten-work'); if (_csCancSw) _csCancSw.remove();
+        var _csCancAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_csCancAc) _csCancAc.style.opacity = '';
+        _cropRenderFromSource();
+      } else {
+        var sl = document.getElementById('crop-straighten-slider');
+        if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
+      }
     } else if (activeTab === 'RATIO') {
       if (typeof _cropReAdjTransform !== 'undefined' && _cropReAdjTransform) {
         _cropTransforms.push(_cropReAdjTransform);
@@ -21680,6 +21691,7 @@ var _cropOpticalEntryState = null;
 var _cropPerspAxisEntry = null;
 var _cropOptReAdjTransform = null;
 var _cropPerspFlushPending = false;
+var _cropStReAdjTransform = null;
 function cropSubTabExpandStraighten() {
   var sl = document.getElementById('crop-straighten-slider');
   if (!sl) return;
@@ -21697,12 +21709,17 @@ function cropSelectSubTab(btn, tab) {
     if (typeof evHistoryPush === 'function') evHistoryPush();
     _cropTransforms.push({ op: 'straighten', angle: _cropStraightenVal });
     _cropStraightenVal = 0;
+    if (typeof _cropStReAdjTransform !== 'undefined') _cropStReAdjTransform = null;
     var _csSl = document.getElementById('crop-straighten-slider'); if (_csSl) _csSl.value = 0;
     var _csVl = document.getElementById('crop-straighten-val');    if (_csVl) _csVl.textContent = '0';
     var _csSw = document.getElementById('crop-straighten-work');   if (_csSw) _csSw.remove();
     var _csAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
-    if (_csAc) _csAc.style.opacity = '';
-    _cropRenderFromSource(function() { cropSelectSubTab(btn, tab); });
+    if (_csAc) _csAc.style.opacity = '0';
+    _cropRenderFromSource(function() {
+      var _rcAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+      if (_rcAc) _rcAc.style.opacity = '';
+      cropSelectSubTab(btn, tab);
+    });
     return;
   }
   var _csBar = document.getElementById('crop-subtabs-bar');
@@ -21713,6 +21730,27 @@ function cropSelectSubTab(btn, tab) {
   // Snapshot entry state so X can fully revert this tab's session
   if (tab === 'transform') {
     _cropRotateEntryImg = userImage;
+  } else if (tab === 'straighten') {
+    // Re-adjust mode: if no live pending angle but a baked straighten exists, splice it out
+    // so user can re-edit from pre-straighten state (mirrors OPTICAL re-adjust pattern)
+    if (typeof _cropStReAdjTransform !== 'undefined' && !_cropStReAdjTransform
+        && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal || 0) < 0.01) {
+      var _lsIdx = -1;
+      for (var _lsi = _cropTransforms.length - 1; _lsi >= 0; _lsi--) {
+        if (_cropTransforms[_lsi].op === 'straighten') { _lsIdx = _lsi; break; }
+      }
+      if (_lsIdx >= 0) {
+        _cropStReAdjTransform = _cropTransforms.splice(_lsIdx, 1)[0];
+        var _reAdjSt = _cropStReAdjTransform;
+        _cropRenderFromSource(function() {
+          _cropStraightenOrig = userImage;
+          _cropStraightenVal = _reAdjSt.angle;
+          var _rSl = document.getElementById('crop-straighten-slider'); if (_rSl) _rSl.value = _reAdjSt.angle;
+          var _rVl = document.getElementById('crop-straighten-val'); if (_rVl) _rVl.textContent = Math.round(_reAdjSt.angle);
+          if (typeof cropStraightenPreview === 'function') cropStraightenPreview(_reAdjSt.angle);
+        });
+      }
+    }
   } else if (tab === 'optical') {
     _cropOpticalEntryState = {
       url: (typeof _perspBaseURL !== 'undefined') ? _perspBaseURL : null,

@@ -21607,7 +21607,7 @@ function cropSubTabCollapse(confirm) {
     var _savedAngle = _preConfirmSl ? (parseFloat(_preConfirmSl.value) || 0) : (typeof _cropStraightenVal !== 'undefined' ? _cropStraightenVal : 0);
     var _stBtnC = bar.querySelector('.crop-subtab[onclick*="straighten"]');
     if (_stBtnC && typeof cropSelectSubTab === 'function') cropSelectSubTab(_stBtnC, 'straighten');
-    // Restore slider after all sync+async paths (onload, rAF) have had a chance to reset it
+    // Restore slider and rebuild preview after all sync+async paths have settled
     if (Math.abs(_savedAngle) > 0.001) {
       setTimeout(function() {
         var _reSl = document.getElementById('crop-straighten-slider');
@@ -21615,6 +21615,7 @@ function cropSubTabCollapse(confirm) {
         var _reValEl = document.getElementById('crop-straighten-val');
         if (_reValEl) _reValEl.textContent = Math.round(_savedAngle);
         if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = _savedAngle;
+        if (typeof cropStraightenPreview === 'function') cropStraightenPreview(_savedAngle);
       }, 50);
     }
   } else {

@@ -10807,7 +10807,9 @@ function applyLook(id){
     if(hc){
       const w=hc.offsetWidth||700, h=hc.offsetHeight||420;
       hc.width=w; hc.height=h;
-      const _adj = buildAdjustments(sliderState[p.id]||{});
+      const _adjSliders = sliderState[p.id]||{};
+      const _adjMerged = (typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, _adjSliders) : _adjSliders;
+      const _adj = buildAdjustments(_adjMerged);
       renderPhotoAdjusted(hc, p.heroKey||p.imgKey, p.tint, p.orbs, p.acc, p.warm, 'hero', _adj);
     }
     showToast(p.name.toUpperCase()+' — APPLIED ✓');
@@ -11703,7 +11705,8 @@ function doRender(presetId) {
     return;
   }
   const state = sliderState[presetId] || {};
-  const adj   = buildAdjustments(state);
+  const _doRenderMerged = (typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, state) : state;
+  const adj   = buildAdjustments(_doRenderMerged);
   if (!adj.halation && p.defaults && p.defaults.HALATION) adj.halation = p.defaults.HALATION;
   if (p.splitTone) adj.split_tone = p.splitTone;
   if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
@@ -12214,7 +12217,9 @@ function renderHero(p){
   p = p || activePreset || presets[0];
   const w=c.offsetWidth||700, h=c.offsetHeight||420;
   c.width=w; c.height=h;
-  const adj = buildAdjustments(sliderState[p.id]||{});
+  const _rhSliders = sliderState[p.id]||{};
+  const _rhMerged = (typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, _rhSliders) : _rhSliders;
+  const adj = buildAdjustments(_rhMerged);
   renderPhotoAdjusted(c, p.heroKey||p.imgKey, p.tint, p.orbs, p.acc, p.warm, 'hero', adj);
 }
 
@@ -12443,7 +12448,9 @@ window.addEventListener('load',()=>{
     // Re-render whichever canvas is active
     const hc = document.getElementById('hero-canvas');
     if (hc && userImage) {
-      const adj = (activePreset && sliderState[activePreset.id]) ? buildAdjustments(sliderState[activePreset.id]) : {};
+      const _intSliders = (activePreset && sliderState[activePreset.id]) ? sliderState[activePreset.id] : null;
+      const _intMerged = (_intSliders && typeof _evMergeAdjState === 'function') ? _evMergeAdjState(activePreset, _intSliders) : _intSliders;
+      const adj = _intMerged ? buildAdjustments(_intMerged) : {};
       renderWithAdjustments(hc, adj);
     }
     if (typeof evRenderCanvas === 'function') evRenderCanvas();
@@ -12569,7 +12576,9 @@ function applyLookToUserImage(presetId) {
   document.querySelectorAll('.intensity-val').forEach(el => { el.textContent = Math.round(presetIntensity * 100) + '%'; });
 
   refreshEditor(p);
-  const _applyAdj = buildAdjustments(sliderState[p.id] || {});
+  const _applySliders = sliderState[p.id] || {};
+  const _applyMerged = (typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, _applySliders) : _applySliders;
+  const _applyAdj = buildAdjustments(_applyMerged);
   if (!_applyAdj.halation && p.defaults && p.defaults.HALATION) _applyAdj.halation = p.defaults.HALATION;
   if (p.splitTone) _applyAdj.split_tone = p.splitTone;
   if (p.halationHue !== undefined) _applyAdj.halation_hue = p.halationHue;
@@ -16879,8 +16888,9 @@ async function _zoomRerender() {
   const hc = document.getElementById('hero-canvas');
   if (!hc || !userImage) return;
   await captureOriginal(hc, userImage);
-  const adj = (activePreset && sliderState[activePreset.id])
-    ? buildAdjustments(sliderState[activePreset.id]) : {};
+  const _zzSliders = (activePreset && sliderState[activePreset.id]) ? sliderState[activePreset.id] : null;
+  const _zzMerged = (_zzSliders && typeof _evMergeAdjState === 'function') ? _evMergeAdjState(activePreset, _zzSliders) : _zzSliders;
+  const adj = _zzMerged ? buildAdjustments(_zzMerged) : {};
   renderWithAdjustments(hc, adj);
 }
 
@@ -17747,7 +17757,7 @@ function _evRestoreSnap(snap) {
   if (p) {
     if (typeof evRenderCanvas === 'function') evRenderCanvas();
     const hc = document.getElementById('hero-canvas');
-    if (hc && userImage) renderWithAdjustments(hc, buildAdjustments(sliderState[p.id] || {}));
+    if (hc && userImage) { const _rsSliders = sliderState[p.id]||{}; const _rsMerged = (typeof _evMergeAdjState==='function') ? _evMergeAdjState(p,_rsSliders) : _rsSliders; renderWithAdjustments(hc, buildAdjustments(_rsMerged)); }
   } else {
     // No preset — reload image from scratch to guarantee clean state
     const hc = document.getElementById('hero-canvas');
@@ -18690,9 +18700,7 @@ function _evRenderCanvasImmediate() {
   }
   if (_evCurPreset) {
     if (!sliderState[_evCurPreset.id]) { initSliderState(_evCurPreset); }
-    var adj = _evNolookMode
-      ? buildAdjustments(sliderState[_evCurPreset.id])
-      : buildAdjustments(_evMergeAdjState(_evCurPreset, sliderState[_evCurPreset.id]));
+    var adj = buildAdjustments(_evMergeAdjState(_evCurPreset, sliderState[_evCurPreset.id]));
     if (!adj.halation && _evCurPreset.defaults && _evCurPreset.defaults.HALATION) adj.halation = _evCurPreset.defaults.HALATION;
     // Only inject preset color-science when a look is actually applied
     if (activePreset) {
@@ -20155,7 +20163,9 @@ function evSaveAndReturn() {
     ctx.drawImage(userImage, 0, 0, iw, ih);
     var p = activePreset || evActivePreset;
     if (p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) {
-      var adj = buildAdjustments(sliderState[p.id]);
+      var _evSaveSliders = sliderState[p.id];
+      var _evSaveMerged = (typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, _evSaveSliders) : _evSaveSliders;
+      var adj = buildAdjustments(_evSaveMerged);
       adj.hueTempZones = p.hueTempZones || null;
       adj.colorGlow = p.colorGlow !== undefined ? p.colorGlow : 0;
       if (p.skinLift  !== undefined) adj.skinLift  = p.skinLift;
@@ -22624,7 +22634,8 @@ function _evBuildCurAdj() {
   if (!_c) return null;
   var _st = (typeof sliderState !== 'undefined') ? sliderState[_c.id] : null;
   if (!_st || !Object.keys(_st).length) return null;
-  var adj = buildAdjustments(_st);
+  var _bcMerged = (typeof _evMergeAdjState === 'function') ? _evMergeAdjState(_c, _st) : _st;
+  var adj = buildAdjustments(_bcMerged);
   if (!adj.halation && _c.defaults && _c.defaults.HALATION) adj.halation = _c.defaults.HALATION;
   if (activePreset) {
     adj.hueTempZones = activePreset.hueTempZones || null;

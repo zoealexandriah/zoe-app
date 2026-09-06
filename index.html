@@ -2050,7 +2050,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 
 /* Crop ratios — visual icon grid */
-.crop-ratios { display:flex; justify-content:space-around; align-items:center; padding:8px 8px 6px; gap:4px; }
 .crop-ratio-item { display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; touch-action:manipulation; }
 .crop-ratio-svg { width:36px; height:36px; color:rgba(255,255,255,0.30); transition:color 0.15s; flex-shrink:0; }
 .crop-ratio-item.active .crop-ratio-svg { color:#fff; }
@@ -2136,7 +2135,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 .crop-exp-confirm { color:rgba(201,184,212,0.75); }
 .crop-exp-name { flex:1; text-align:center; font-size:9px; letter-spacing:0.25em; font-family:var(--font-ui); font-weight:400; color:rgba(228,217,211,0.75); text-transform:uppercase; }
 /* Sub-content areas */
-.crop-sub-content { padding:2px 14px 4px; }
+.crop-sub-content { padding:2px 12px 4px; }
 .crop-sub-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
 .crop-sub-label { font-size:9px; color:rgba(210,205,235,0.75); font-family:var(--mono); letter-spacing:0.08em; }
 .crop-sub-val   { font-size:9px; color:rgba(175,168,210,0.45); font-family:var(--mono); }
@@ -3216,7 +3215,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   .blemish-act-confirm { color:#de82a8; }
   .blemish-act-confirm:active { color:#f0a8c4; }
   .blemish-bar-clear { align-self:center; }
-  #ev-blemish-ui { padding:8px 12px 10px; display:flex; flex-direction:column; gap:10px; }
   .blemish-hint { font-size:9px; color:rgba(228,217,211,0.30); font-family:var(--font-ui); letter-spacing:0.12em; line-height:1.6; margin:0; text-transform:uppercase; }
   .blemish-size-row { display:flex; align-items:center; gap:10px; }
   .blemish-size-label { font-size:8px; font-family:var(--font-ui); letter-spacing:0.16em; color:rgba(228,217,211,0.45); flex-shrink:0; text-transform:uppercase; }
@@ -5812,7 +5810,6 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
               <button class="blemish-clear-btn blemish-bar-clear" onclick="blemishClearAll()">CLEAR ALL</button>
               <button class="blemish-act-btn blemish-act-confirm" onclick="blemishConfirm()">✓</button>
             </div>
-            <div id="ev-blemish-ui"></div>
           </div>
           <!-- DETAIL panel: SHARPEN CLARITY GRAIN FADE -->
           <div class="es-tab-panel" id="es-panel-detail">

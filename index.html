@@ -18278,7 +18278,6 @@ function _evDoSave() {
         var url = URL.createObjectURL(blob);
         if (_isIOS) {
           window.open(url, '_blank');
-          showToast('TAP AND HOLD → SAVE TO PHOTOS');
         } else {
           var a = document.createElement('a');
           a.download = filename; a.href = url;
@@ -18334,7 +18333,6 @@ function _evDoSave() {
       var url = URL.createObjectURL(blob);
       if (_isIOS) {
         window.open(url, '_blank');
-        showToast('TAP AND HOLD → SAVE TO PHOTOS');
       } else {
         var a = document.createElement('a');
         a.download = filename; a.href = url;
@@ -20732,7 +20730,6 @@ window.exportDownload = function() {
       const _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
       if (_isIOS) {
         window.open(url, '_blank');
-        showToast('TAP AND HOLD → SAVE TO PHOTOS');
       } else {
         document.body.appendChild(a);
         a.click();

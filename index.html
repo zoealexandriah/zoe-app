@@ -17766,6 +17766,8 @@ function globalReset() {
   _savedCropRect = null; _cropReAdjSaved = null; _cropReAdjRect = null; _cropReAdjOrigState = null;
   if (typeof _cropTransforms !== 'undefined') _cropTransforms = [];
   if (typeof _cropReAdjTransform !== 'undefined') _cropReAdjTransform = null;
+  if (typeof _cropOptReAdjTransform !== 'undefined') _cropOptReAdjTransform = null;
+  if (typeof _cropPerspFlushPending !== 'undefined') _cropPerspFlushPending = false;
 
   // Clear preset so evRenderCanvas draws a clean image
   activePreset   = null;
@@ -19469,6 +19471,8 @@ function galleryOpenInEditor(idx) {
   if (typeof _cropSourceImage !== 'undefined') _cropSourceImage = null;
   if (typeof _cropTransforms !== 'undefined') _cropTransforms = [];
   if (typeof _cropReAdjTransform !== 'undefined') _cropReAdjTransform = null; // clear crop state from previous photo
+  if (typeof _cropOptReAdjTransform !== 'undefined') _cropOptReAdjTransform = null;
+  if (typeof _cropPerspFlushPending !== 'undefined') _cropPerspFlushPending = false;
   _clearPresetThumbCaches(); // new image — invalidate all cached thumbnails
   evHistory.length = 0;
   evFuture.length  = 0;
@@ -21588,6 +21592,7 @@ function cropSubTabCollapse(confirm) {
     if (activeTab === 'RATIO') {
       _cropRatioConfirm();
     } else if (activeTab === 'OPTICAL') {
+      if (typeof _cropOptReAdjTransform !== 'undefined') _cropOptReAdjTransform = null;
       if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
     }
     _cropRotateEntryImg = null;
@@ -21648,9 +21653,16 @@ function cropSubTabCollapse(confirm) {
       var _hv = document.getElementById('crop-persp-h-val'); if (_hv) _hv.textContent = Math.round(_perspBaseH);
       var _vl = document.getElementById('persp-v-lbl'); if (_vl) _vl.textContent = _perspBaseV !== 0 ? Math.round(_perspBaseV) : 'VERT';
       var _hl = document.getElementById('persp-h-lbl'); if (_hl) _hl.textContent = _perspBaseH !== 0 ? Math.round(_perspBaseH) : 'HORIZ';
-      var _ev4 = document.getElementById('editor-view');
-      if (_ev4 && _ev4.classList.contains('active') && typeof evRenderCanvas === 'function') requestAnimationFrame(evRenderCanvas);
-      else { var _rac4 = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rac4 && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac4, userImage); }
+      // Re-adjust cancel: restore the spliced perspective transform
+      if (typeof _cropOptReAdjTransform !== 'undefined' && _cropOptReAdjTransform) {
+        _cropTransforms.push(_cropOptReAdjTransform);
+        _cropOptReAdjTransform = null;
+        _cropRenderFromSource();
+      } else {
+        var _ev4 = document.getElementById('editor-view');
+        if (_ev4 && _ev4.classList.contains('active') && typeof evRenderCanvas === 'function') requestAnimationFrame(evRenderCanvas);
+        else { var _rac4 = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rac4 && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rac4, userImage); }
+      }
     }
     var _stBtn = bar.querySelector('.crop-subtab[onclick*="straighten"]');
     if (_stBtn && typeof cropSelectSubTab === 'function') cropSelectSubTab(_stBtn, 'straighten');
@@ -21659,6 +21671,8 @@ function cropSubTabCollapse(confirm) {
 var _cropRotateEntryImg = null;
 var _cropOpticalEntryState = null;
 var _cropPerspAxisEntry = null;
+var _cropOptReAdjTransform = null;
+var _cropPerspFlushPending = false;
 function cropSubTabExpandStraighten() {
   var sl = document.getElementById('crop-straighten-slider');
   if (!sl) return;
@@ -21702,6 +21716,38 @@ function cropSelectSubTab(btn, tab) {
     if (typeof _perspBaseURL !== 'undefined' && _perspBaseURL && typeof _etPerspOrigImg !== 'undefined' && !_etPerspOrigImg) {
       var _preImg = new Image(); _preImg.onload = function() { _etPerspOrigImg = _preImg; }; _preImg.src = _perspBaseURL;
     }
+    // Re-adjust mode: splice out last perspective transform so user can re-edit from pre-warp state
+    if (typeof _cropOptReAdjTransform !== 'undefined' && !_cropOptReAdjTransform) {
+      var _lpIdx = -1;
+      for (var _li = _cropTransforms.length - 1; _li >= 0; _li--) {
+        if (_cropTransforms[_li].op === 'perspective') { _lpIdx = _li; break; }
+      }
+      if (_lpIdx >= 0) {
+        _cropOptReAdjTransform = _cropTransforms.splice(_lpIdx, 1)[0];
+        var _reAdjT = _cropOptReAdjTransform;
+        _cropRenderFromSource(function() {
+          // userImage is now the pre-warp state — set it as warp origin
+          _perspBaseV = _reAdjT.v; _perspBaseH = _reAdjT.h;
+          if (userImage.src && userImage.src.startsWith('data:')) {
+            _perspBaseURL = userImage.src;
+          } else {
+            var _c = document.createElement('canvas');
+            _c.width = userImage.naturalWidth; _c.height = userImage.naturalHeight;
+            _c.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0);
+            _perspBaseURL = _c.toDataURL('image/jpeg', 0.95);
+          }
+          var _rvs = document.getElementById('crop-persp-v-slider'); if (_rvs) _rvs.value = _reAdjT.v;
+          var _rhs = document.getElementById('crop-persp-h-slider'); if (_rhs) _rhs.value = _reAdjT.h;
+          var _rvv = document.getElementById('crop-persp-v-val'); if (_rvv) _rvv.textContent = Math.round(_reAdjT.v);
+          var _rhv = document.getElementById('crop-persp-h-val'); if (_rhv) _rhv.textContent = Math.round(_reAdjT.h);
+          var _rvl = document.getElementById('persp-v-lbl'); if (_rvl) _rvl.textContent = _reAdjT.v !== 0 ? Math.round(_reAdjT.v) : 'VERT';
+          var _rhl = document.getElementById('persp-h-lbl'); if (_rhl) _rhl.textContent = _reAdjT.h !== 0 ? Math.round(_reAdjT.h) : 'HORIZ';
+          if (typeof _etPerspVVal !== 'undefined') _etPerspVVal = _reAdjT.v;
+          if (typeof _etPerspHVal !== 'undefined') _etPerspHVal = _reAdjT.h;
+          if (typeof etPerspUpdate === 'function') etPerspUpdate();
+        });
+      }
+    }
   }
   var ov = document.getElementById('crop-overlay-canvas');
   if (tab !== 'ratio' && cropRect && typeof toolsCropRatio !== 'undefined' && toolsCropRatio !== 'FREEFORM') {
@@ -21736,7 +21782,11 @@ function cropSelectSubTab(btn, tab) {
   // Clean up perspective work canvas when leaving transform; pass rebuild callback so
   // OPTICAL→STRAIGHTEN rebuilds after the bake, not before.
   if (typeof _cropPerspFlush === 'function') _cropPerspFlush(_doStRebuild); else _doStRebuild();
-  var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
+  // Don't remove the work canvas if _cropPerspFlush already started an async render
+  // (it keeps the warp visible until the new userImage is ready)
+  if (!(typeof _cropPerspFlushPending !== 'undefined' && _cropPerspFlushPending)) {
+    var pw = document.getElementById('crop-perspective-work'); if (pw) { pw.remove(); var _pac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_pac) _pac.style.opacity = '1'; }
+  }
   _etPerspOrig = null; _etPerspOrigDataURL = null; _etPerspOrigImg = null;
   _etPerspVVal = 0; _etPerspHVal = 0; _etPerspActiveAxis = null;
   var _pvs = document.getElementById('crop-persp-v-slider'); if (_pvs) _pvs.value = 0;
@@ -22127,13 +22177,19 @@ function _cropPerspFlush(onFlush) {
   var _slH = document.getElementById('crop-persp-h-slider');
   var _rawV = _slV ? parseFloat(_slV.value) : 0;
   var _rawH = _slH ? parseFloat(_slH.value) : 0;
-  sc.remove();
+  // Keep the work canvas visible during the async render so the user sees no flash
   var _ov = document.getElementById('crop-overlay-canvas');
   if (_ov) _ov.style.display = 'none';
   _cropTransforms.push({ op: 'perspective', v: _rawV, h: _rawH });
   _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
   if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
+  if (typeof _cropPerspFlushPending !== 'undefined') _cropPerspFlushPending = true;
   _cropRenderFromSource(function() {
+    if (typeof _cropPerspFlushPending !== 'undefined') _cropPerspFlushPending = false;
+    var _scDone = document.getElementById('crop-perspective-work');
+    if (_scDone) { _scDone.remove(); }
+    var _acDone = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+    if (_acDone) _acDone.style.opacity = '1';
     if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = userImage;
     if (onFlush) { onFlush(); }
     else {

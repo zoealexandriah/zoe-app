@@ -19689,6 +19689,11 @@ function galleryOpenInEditor(idx) {
   var editorBnItem = Array.from(document.querySelectorAll('.bn-item'))
     .find(function(n){ return ((n.querySelector('.bn-label')||{}).textContent||'').trim() === 'EDITOR'; });
   if (editorBnItem) editorBnItem.classList.add('active');
+  // Null userImage so any stale pre-queued rAF (e.g. from a previous slider drag)
+  // aborts on !userImage before the slider DOM is rebuilt — prevents the old preset
+  // from flashing onto the new photo. Case A restores via origImg.onload; Case B
+  // restores via the rAF at the bottom of this function.
+  userImage = null;
   // Restore saved edit state AFTER evInit (switchToTab calls evInit which resets preset)
   if (entry.editState) {
     // Null userImage so evInit's scheduled rAF skips rendering on the baked thumbnail.
@@ -19782,6 +19787,11 @@ function galleryOpenInEditor(idx) {
       if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
       setTimeout(function() { evRenderPresets(); }, 60);
     }
+  } else {
+    // Case B: fresh photo, no saved editState. Restore userImage after evInit's
+    // rAF-B has rebuilt the slider DOM, so the first render sees a clean slate.
+    var _goeFreshImg = entry.img;
+    requestAnimationFrame(function() { userImage = _goeFreshImg; if (typeof evRenderCanvas === 'function') evRenderCanvas(); });
   }
 }
 

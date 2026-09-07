@@ -11479,9 +11479,11 @@ function evMobileNavToggle(name) {
 // survives a tab switch. Pass true to also clear that state (undo/reset).
 function _cropTeardownVisuals(clearState) {
   var _tdSc = document.getElementById('crop-straighten-work');
-  if (_tdSc) _tdSc.remove();
-  var _tdAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
-  if (_tdAc) _tdAc.style.opacity = '';
+  if (_tdSc) {
+    _tdSc.remove();
+    var _tdAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
+    if (_tdAc) _tdAc.style.opacity = '';
+  }
   if (clearState) {
     if (typeof _cropStraightenRafId !== 'undefined' && _cropStraightenRafId) {
       cancelAnimationFrame(_cropStraightenRafId); _cropStraightenRafId = null;

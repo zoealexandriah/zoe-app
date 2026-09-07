@@ -11473,27 +11473,8 @@ function evMobileNavToggle(name) {
   }
 }
 
-// Removes the straighten work canvas and restores the active canvas so the
-// real image is visible again. Visual teardown ONLY — does not clear
-// _cropStraightenVal / _cropStraightenOrig, so in-progress straighten state
-// survives a tab switch. Pass true to also clear that state (undo/reset).
-function _cropTeardownVisuals(clearState) {
-  var _tdSc = document.getElementById('crop-straighten-work');
-  if (_tdSc) _tdSc.remove();
-  var _tdAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
-  if (_tdAc) _tdAc.style.opacity = '';
-  if (clearState) {
-    if (typeof _cropStraightenRafId !== 'undefined' && _cropStraightenRafId) {
-      cancelAnimationFrame(_cropStraightenRafId); _cropStraightenRafId = null;
-    }
-    if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
-    if (typeof _cropStraightenVal  !== 'undefined') _cropStraightenVal  = 0;
-  }
-}
-
 function evAdjustSubTab(name) {
   if (name !== 'optical' && typeof _cropPerspFlush === 'function') _cropPerspFlush();
-  if (name !== 'crop') _cropTeardownVisuals(false);
   if (name !== 'blemish' && typeof blemishExit === 'function') blemishExit();
   var panelMap = {
     'light':   'details',
@@ -17597,7 +17578,6 @@ function evHistoryPush() {
 }
 
 function _evRestoreSnap(snap) {
-  _cropTeardownVisuals(true);
   var _pwR = document.getElementById('crop-perspective-work');
   if (_pwR) {
     _pwR.remove();

@@ -21709,6 +21709,18 @@ function cropSubTabCollapse(confirm) {
       if (typeof _cropOptReAdjTransform !== 'undefined') _cropOptReAdjTransform = null;
       if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
     }
+    if (activeTab === 'STRAIGHTEN') {
+      if (typeof _cropStraightenVal === 'undefined' || Math.abs(_cropStraightenVal || 0) <= 0.01) {
+        var _cfSl = document.getElementById('crop-straighten-slider');
+        if (_cfSl) _cropStraightenVal = parseFloat(_cfSl.value) || 0;
+      }
+      if (_cropBakeStraighten()) {
+        _cropRotateEntryImg = null;
+        _cropOpticalEntryState = null;
+        var _bkOv = document.getElementById('crop-overlay-canvas'); if (_bkOv) _bkOv.remove();
+        return;
+      }
+    }
     _cropRotateEntryImg = null;
     _cropOpticalEntryState = null;
     // Remove straighten work canvas and grid overlay on confirm so the grid doesn't linger
@@ -21807,26 +21819,30 @@ function cropSubTabExpandStraighten() {
     if (bar && !bar.classList.contains('crop-expanded')) cropSubTabExpand('STRAIGHTEN');
   }
 }
+function _cropBakeStraighten(onDone) {
+  if (typeof _cropStraightenVal === 'undefined' || Math.abs(_cropStraightenVal || 0) <= 0.01) return false;
+  if (typeof evHistoryPush === 'function') evHistoryPush();
+  _cropTransforms.push({ op: 'straighten', angle: _cropStraightenVal });
+  _cropStraightenVal = 0;
+  if (typeof _cropStReAdjTransform !== 'undefined') _cropStReAdjTransform = null;
+  var _csSl = document.getElementById('crop-straighten-slider'); if (_csSl) _csSl.value = 0;
+  var _csVl = document.getElementById('crop-straighten-val');    if (_csVl) _csVl.textContent = '0';
+  var _csSw = document.getElementById('crop-straighten-work');   if (_csSw) _csSw.remove();
+  var _csAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+  if (_csAc) _csAc.style.opacity = '0';
+  _cropRenderFromSource(function() {
+    var _rcAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+    if (_rcAc) _rcAc.style.opacity = '';
+    if (onDone) onDone();
+  });
+  return true;
+}
 function cropSelectSubTab(btn, tab) {
   // Commit any pending straighten angle to the non-destructive transform list.
   // Defer the rest of this function until the render completes so the ratio overlay
   // (and any other tab that reads canvas dimensions) sees the updated image.
   if (tab !== 'straighten'
-      && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal || 0) > 0.01) {
-    if (typeof evHistoryPush === 'function') evHistoryPush();
-    _cropTransforms.push({ op: 'straighten', angle: _cropStraightenVal });
-    _cropStraightenVal = 0;
-    if (typeof _cropStReAdjTransform !== 'undefined') _cropStReAdjTransform = null;
-    var _csSl = document.getElementById('crop-straighten-slider'); if (_csSl) _csSl.value = 0;
-    var _csVl = document.getElementById('crop-straighten-val');    if (_csVl) _csVl.textContent = '0';
-    var _csSw = document.getElementById('crop-straighten-work');   if (_csSw) _csSw.remove();
-    var _csAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
-    if (_csAc) _csAc.style.opacity = '0';
-    _cropRenderFromSource(function() {
-      var _rcAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
-      if (_rcAc) _rcAc.style.opacity = '';
-      cropSelectSubTab(btn, tab);
-    });
+      && _cropBakeStraighten(function() { cropSelectSubTab(btn, tab); })) {
     return;
   }
   var _csBar = document.getElementById('crop-subtabs-bar');

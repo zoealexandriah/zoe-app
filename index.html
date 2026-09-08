@@ -3530,20 +3530,32 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
 
 
-  /* Panel header (L I G H T, C O L O R, etc.) — hidden on mobile */
+  /* Panel header — matches FX subtab bar style */
   .ev-panel-hdr {
-    display: none !important;
+    display: flex !important;
     align-items: center !important;
-    justify-content: space-between !important;
-    padding: 4px 16px 2px !important;
     flex-shrink: 0 !important;
+    height: 32px !important;
+    padding: 0 10px !important;
+    border-top: 0.5px solid var(--border) !important;
+    border-bottom: 0.5px solid rgba(200,168,232,0.07) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
   }
+  .ev-panel-hdr::-webkit-scrollbar { display: none !important; }
   .ev-panel-hdr-title {
+    padding: 3px 12px !important;
+    border-radius: 100px !important;
+    border: 0.5px solid rgba(201,184,212,0.35) !important;
+    background: rgba(201,184,212,0.13) !important;
     font-size: 8px !important;
-    letter-spacing: 0.28em !important;
-    color: rgba(226,199,179,0.42) !important;
+    letter-spacing: 0.16em !important;
+    color: rgba(220,205,250,0.95) !important;
     font-family: var(--mono) !important;
     font-weight: 400 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
   }
   .ev-hdr-fav {
     background: none !important;
@@ -5164,7 +5176,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           </div>
           <!-- DETAILS panel: EXPOSURE CONTRAST HIGHLIGHTS SHADOWS WHITES BLACKS SHARPEN CLARITY -->
           <div class="es-tab-panel" id="es-panel-details">
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">L I G H T</span></div>
+            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">LIGHT</span></div>
             <div id="es-details-sliders"></div>
           </div>
           <!-- TOOLS panel -->
@@ -5173,6 +5185,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           </div>
           <!-- BLEMISH panel -->
           <div class="es-tab-panel" id="es-panel-blemish">
+            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">BLEMISH</span></div>
             <div class="blemish-action-bar">
               <button class="blemish-act-btn blemish-act-cancel" onclick="blemishDiscard()">✕</button>
               <button class="blemish-clear-btn" id="blemish-undo" onclick="blemishUndo()" disabled>UNDO</button>
@@ -5183,12 +5196,12 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           </div>
           <!-- DETAIL panel: SHARPEN CLARITY GRAIN FADE -->
           <div class="es-tab-panel" id="es-panel-detail">
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">D E T A I L S</span></div>
+            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">DETAILS</span></div>
             <div id="es-detail-sliders"></div>
           </div>
           <!-- BLUR panel: BLUR GLOW -->
           <div class="es-tab-panel" id="es-panel-blur">
-            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">B L U R</span></div>
+            <div class="ev-panel-hdr"><span class="ev-panel-hdr-title">BLUR</span></div>
             <div class="blur-scroll-wrap">
               <div id="es-blur-sliders"></div>
             </div>

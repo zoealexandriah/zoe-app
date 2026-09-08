@@ -21759,6 +21759,11 @@ function cropSubTabCollapse(confirm) {
         var _csCancAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_csCancAc) _csCancAc.style.opacity = '';
         _cropRenderFromSource();
       } else {
+        // Clear the live angle before any exit path can bake it. _cropExitMode
+        // calls _cropBakeStraighten() unconditionally, so leaving this set would
+        // commit a rotation the user just cancelled.
+        _cropStraightenVal = 0;
+        if (typeof _cropStRestoredVal !== 'undefined') _cropStRestoredVal = 0;
         var sl = document.getElementById('crop-straighten-slider');
         if (sl && typeof cropStraightenPreview === 'function') { sl.value = 0; cropStraightenPreview(0); }
       }

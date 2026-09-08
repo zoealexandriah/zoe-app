@@ -21544,37 +21544,17 @@ function _cropApplyRatioInPlace(keepStraighten) {
 
 function _cropExitMode() {
   _ratioPreCropUserImage = null;
-  // Auto-commit any pending straighten before removing the work canvas
+  // Auto-commit any pending straighten before removing the work canvas.
+  // Routed through the shared bake so the op lands in _cropTransforms and stays
+  // undoable and re-adjustable — see _cropBakeStraighten.
   var _sw = document.getElementById('crop-straighten-work');
-  if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig &&
-      typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
-    // Save state so returning to crop can restore the adjustable pre-rotation base
-    if (typeof _savedStraightenOrig !== 'undefined') { _savedStraightenOrig = _cropStraightenOrig; _savedStraightenAngle = _cropStraightenVal; }
-    var _ceIw = _cropStraightenOrig.naturalWidth, _ceIh = _cropStraightenOrig.naturalHeight;
-    var _ceCC = document.createElement('canvas');
-    _ceCC.width = _ceIw; _ceCC.height = _ceIh;
-    var _ceRad = _cropStraightenVal * Math.PI / 180;
-    var _ceAbsR = Math.abs(_ceRad);
-    var _ceCosR = Math.cos(_ceAbsR), _ceSinR = Math.sin(_ceAbsR);
-    var _ceCos2R = Math.cos(2 * _ceAbsR);
-    var _ceS1 = _ceIw * _ceCos2R / Math.max(0.001, _ceIw * _ceCosR - _ceIh * _ceSinR);
-    var _ceS2 = _ceIh * _ceCos2R / Math.max(0.001, _ceIh * _ceCosR - _ceIw * _ceSinR);
-    var _ceS  = Math.max(_ceS1, _ceS2, 1);
-    var _ceCCtx = _ceCC.getContext('2d', { willReadFrequently: true });
-    _ceCCtx.save();
-    _ceCCtx.translate(_ceIw / 2, _ceIh / 2);
-    _ceCCtx.rotate(_ceRad);
-    _ceCCtx.drawImage(_cropStraightenOrig, -_ceIw * _ceS / 2, -_ceIh * _ceS / 2, _ceIw * _ceS, _ceIh * _ceS);
-    _ceCCtx.restore();
-    var _ceSI = new Image();
-    _cropExitGen = (typeof _cropExitGen !== 'undefined' ? _cropExitGen : 0) + 1;
-    var _ceGen = _cropExitGen;
-    _ceSI.onload = function() {
-      if (_cropExitGen !== _ceGen) return; // new crop session started before encode finished
-      userImage = _ceSI; _origPixels = null; if (typeof evRenderCanvas === 'function') evRenderCanvas();
-    };
-    _ceSI.src = _ceCC.toDataURL('image/jpeg', 0.95);
+  if (typeof _savedStraightenOrig !== 'undefined'
+      && typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig
+      && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal) > 0.001) {
+    _savedStraightenOrig = _cropStraightenOrig;
+    _savedStraightenAngle = _cropStraightenVal;
   }
+  if (typeof _cropBakeStraighten === 'function') _cropBakeStraighten();
   if (_sw) _sw.remove();
   if (typeof _cropPerspFlush === 'function') _cropPerspFlush(); var _pw = document.getElementById('crop-perspective-work'); if (_pw) _pw.remove();
   if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;

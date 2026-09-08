@@ -17439,7 +17439,7 @@ function etCropHTML() {
       </div>
       <input type="range" class="tc-range" id="crop-straighten-slider"
              min="-45" max="45" step="0.1" value="${(typeof _cropStraightenVal !== 'undefined' && _cropStraightenVal) ? _cropStraightenVal : 0}"
-             oninput="cropStraightenPreview(this.value);cropSubTabExpandStraighten()">
+             oninput="if(typeof _cropStRestoredVal!=='undefined')_cropStRestoredVal=0;cropStraightenPreview(this.value);cropSubTabExpandStraighten()">
     </div>
     <div class="crop-sub-content" id="crop-sub-ratio" style="display:${_st==='ratio'?'block':'none'};padding-left:4px;padding-right:4px">
       <div class="crop-ratios">${ratioBtns}</div>
@@ -17833,6 +17833,7 @@ function globalReset() {
   if (_rstEvAc) _rstEvAc.style.opacity = '1';
   // Clear saved-straighten state so re-entering crop after reset doesn't restore stale pre-rotation base
   if (typeof _savedStraightenOrig !== 'undefined') { _savedStraightenOrig = null; _savedStraightenAngle = 0; }
+  if (typeof _cropStRestoredVal !== 'undefined') _cropStRestoredVal = 0;
   _etPerspVVal = 0; _etPerspHVal = 0; _etPerspActiveAxis = null;
   // Restore pre-crop image if crop was applied
   if (_preCropState) {
@@ -21160,6 +21161,7 @@ window.galleryCopyEdits = function(imageId) {
         if (typeof cropStraightenPreview === 'function') cropStraightenPreview(_restAngle);
         var _rsl = document.getElementById('crop-straighten-slider'); if (_rsl) _rsl.value = _restAngle;
         if (typeof _cropStraightenVal !== 'undefined') _cropStraightenVal = _restAngle;
+        if (typeof _cropStRestoredVal !== 'undefined') _cropStRestoredVal = _restAngle;
       }, 200);
     }
     setTimeout(function() {
@@ -21418,6 +21420,7 @@ window.toolsCropApply = function() {
   _cropExitMode();
   if (typeof _cropReAdjSaved !== 'undefined') { _cropReAdjSaved = null; _cropReAdjOrigState = null; }
   if (typeof _savedStraightenOrig !== 'undefined') { _savedStraightenOrig = null; _savedStraightenAngle = 0; }
+  if (typeof _cropStRestoredVal !== 'undefined') _cropStRestoredVal = 0;
   toolsCropCancel();
 };
 
@@ -21791,6 +21794,7 @@ var _cropPerspAxisEntry = null;
 var _cropOptReAdjTransform = null;
 var _cropPerspFlushPending = false;
 var _cropStReAdjTransform = null;
+var _cropStRestoredVal = 0;
 function cropSubTabExpandStraighten() {
   var sl = document.getElementById('crop-straighten-slider');
   if (!sl) return;
@@ -21801,6 +21805,7 @@ function cropSubTabExpandStraighten() {
 }
 function _cropBakeStraighten(onDone) {
   if (typeof _cropStraightenVal === 'undefined' || Math.abs(_cropStraightenVal || 0) <= 0.01) return false;
+  if (typeof _cropStRestoredVal !== 'undefined') _cropStRestoredVal = 0;
   if (typeof evHistoryPush === 'function') evHistoryPush();
   _cropTransforms.push({ op: 'straighten', angle: _cropStraightenVal });
   _cropStraightenVal = 0;
@@ -21836,8 +21841,15 @@ function cropSelectSubTab(btn, tab) {
   } else if (tab === 'straighten') {
     // Re-adjust mode: if no live pending angle but a baked straighten exists, splice it out
     // so user can re-edit from pre-straighten state (mirrors OPTICAL re-adjust pattern)
+    // Re-adjust is available whenever a baked straighten exists and the user has
+    // not started a NEW angle since re-entering crop. _cropStraightenVal is set
+    // by a 200ms restore timer, so testing it directly made this race the user's
+    // tap speed. _cropStRestoredVal records what that timer wrote, letting us
+    // tell a restored value apart from a freshly dragged one.
     if (typeof _cropStReAdjTransform !== 'undefined' && !_cropStReAdjTransform
-        && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal || 0) < 0.01) {
+        && (Math.abs(_cropStraightenVal || 0) < 0.01
+            || (typeof _cropStRestoredVal !== 'undefined'
+                && Math.abs((_cropStraightenVal || 0) - _cropStRestoredVal) < 0.01))) {
       var _lsIdx = -1;
       for (var _lsi = _cropTransforms.length - 1; _lsi >= 0; _lsi--) {
         if (_cropTransforms[_lsi].op === 'straighten') { _lsIdx = _lsi; break; }

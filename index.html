@@ -11489,11 +11489,23 @@ function _cropTeardownVisuals(clearState) {
     if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
     if (typeof _cropStraightenVal  !== 'undefined') _cropStraightenVal  = 0;
     if (typeof _cropStRestoredVal  !== 'undefined') _cropStRestoredVal  = 0;
+    if (typeof _savedPerspV !== 'undefined') { _savedPerspV = 0; _savedPerspH = 0; }
   }
 }
 
 function evAdjustSubTab(name) {
-  if (name !== 'optical' && typeof _cropPerspFlush === 'function') _cropPerspFlush();
+  if (name !== 'optical') {
+    if (typeof _etPerspVVal !== 'undefined' && typeof _etPerspHVal !== 'undefined'
+        && (Math.abs(_etPerspVVal || 0) > 0.001 || Math.abs(_etPerspHVal || 0) > 0.001)) {
+      _savedPerspV = _etPerspVVal;
+      _savedPerspH = _etPerspHVal;
+      _etPerspVVal = 0; _etPerspHVal = 0;
+      var _pwTd = document.getElementById('crop-perspective-work');
+      if (_pwTd) _pwTd.remove();
+      var _pwAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null;
+      if (_pwAc) _pwAc.style.opacity = '';
+    }
+  }
   if (name !== 'crop') _cropTeardownVisuals(false);
   if (name !== 'blemish' && typeof blemishExit === 'function') blemishExit();
   var panelMap = {
@@ -17855,6 +17867,7 @@ function globalReset() {
   // Clear saved-straighten state so re-entering crop after reset doesn't restore stale pre-rotation base
   if (typeof _savedStraightenOrig !== 'undefined') { _savedStraightenOrig = null; _savedStraightenAngle = 0; }
   if (typeof _cropStRestoredVal !== 'undefined') _cropStRestoredVal = 0;
+  if (typeof _savedPerspV !== 'undefined') { _savedPerspV = 0; _savedPerspH = 0; }
   _etPerspVVal = 0; _etPerspHVal = 0; _etPerspActiveAxis = null;
   // Restore pre-crop image if crop was applied
   if (_preCropState) {
@@ -21185,6 +21198,18 @@ window.galleryCopyEdits = function(imageId) {
         if (typeof _cropStRestoredVal !== 'undefined') _cropStRestoredVal = _restAngle;
       }, 200);
     }
+    if (Math.abs(_savedPerspV || 0) > 0.001 || Math.abs(_savedPerspH || 0) > 0.001) {
+      var _rpV = _savedPerspV, _rpH = _savedPerspH;
+      _savedPerspV = 0; _savedPerspH = 0;
+      setTimeout(function() {
+        _etPerspVVal = _rpV; _etPerspHVal = _rpH;
+        var _rvs = document.getElementById('crop-persp-v-slider'); if (_rvs) _rvs.value = _rpV;
+        var _rhs = document.getElementById('crop-persp-h-slider'); if (_rhs) _rhs.value = _rpH;
+        var _rvv = document.getElementById('crop-persp-v-val'); if (_rvv) _rvv.textContent = Math.round(_rpV);
+        var _rhv = document.getElementById('crop-persp-h-val'); if (_rhv) _rhv.textContent = Math.round(_rpH);
+        if (typeof etPerspUpdate === 'function') etPerspUpdate();
+      }, 200);
+    }
     setTimeout(function() {
       var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
       if (!ac || !userImage) return;
@@ -21442,6 +21467,7 @@ window.toolsCropApply = function() {
   if (typeof _cropReAdjSaved !== 'undefined') { _cropReAdjSaved = null; _cropReAdjOrigState = null; }
   if (typeof _savedStraightenOrig !== 'undefined') { _savedStraightenOrig = null; _savedStraightenAngle = 0; }
   if (typeof _cropStRestoredVal !== 'undefined') _cropStRestoredVal = 0;
+  if (typeof _savedPerspV !== 'undefined') { _savedPerspV = 0; _savedPerspH = 0; }
   toolsCropCancel();
 };
 
@@ -21819,6 +21845,8 @@ var _cropOpticalEntryState = null;
 var _cropPerspAxisEntry = null;
 var _cropOptReAdjTransform = null;
 var _cropPerspFlushPending = false;
+var _savedPerspV = 0;
+var _savedPerspH = 0;
 var _cropStReAdjTransform = null;
 var _cropStRestoredVal = 0;
 function cropSubTabExpandStraighten() {

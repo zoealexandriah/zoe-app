@@ -15862,7 +15862,7 @@ function colOpenPhotoInEditor(idx) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const archiveNav = [...document.querySelectorAll('.nav-item')].find(n => (n.querySelector('.nav-label')||{}).textContent === 'GALLERY');
     if (archiveNav) archiveNav.classList.add('active');
-    openEditor(library.length - 1);
+    galleryOpenInEditor(library.length - 1);
   };
   img.src = col.photos[idx].dataURL;
 }

@@ -22035,12 +22035,18 @@ function cropSelectSubTab(btn, tab) {
       if (_ov2.parentElement !== ac.parentElement) ac.parentElement.appendChild(_ov2);
       var _acRect  = ac.getBoundingClientRect();
       var _parRect = ac.parentElement.getBoundingClientRect();
+      var _ovPrevW = _ov2.width, _ovPrevH = _ov2.height;
       _ov2.width  = ac.width;
       _ov2.height = ac.height;
       _ov2.style.width  = _acRect.width  + 'px';
       _ov2.style.height = _acRect.height + 'px';
       _ov2.style.left   = (_acRect.left - _parRect.left) + 'px';
       _ov2.style.top    = (_acRect.top  - _parRect.top)  + 'px';
+      // If canvas dimensions changed since cropRect was set (e.g. after a perspective or
+      // straighten bake), the pixel coords are stale — reset so the full-canvas fallback runs.
+      if (cropRect && _ovPrevW && _ovPrevH && (_ovPrevW !== ac.width || _ovPrevH !== ac.height)) {
+        cropRect = null;
+      }
       // In re-adjust mode restore cropRect from the spliced transform's normalized coords
       if (typeof _cropReAdjTransform !== 'undefined' && _cropReAdjTransform) {
         var _t = _cropReAdjTransform;

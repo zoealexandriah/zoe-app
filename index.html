@@ -10569,11 +10569,11 @@ function _evRulerDraw(canvas, bipolar) {
   canvas.height = h;
   var ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, h);
-  for (var u = minV; u <= maxV; u += 2) {
+  for (var u = minV; u <= maxV; u += 1) {
     var x = (u - minV) * PX;
-    var isN = (u === 0), isMaj = (u % 10 === 0 && u !== 0), isMid = (u % 5 === 0 && u % 10 !== 0);
-    var tH = isN ? h * 0.50 : isMaj ? h * 0.28 : isMid ? h * 0.18 : h * 0.12;
-    ctx.fillStyle = isN ? 'rgba(201,184,212,0.90)' : isMaj ? 'rgba(228,217,211,0.38)' : isMid ? 'rgba(228,217,211,0.18)' : 'rgba(228,217,211,0.12)';
+    var isN = (u === 0), isMaj = (u % 10 === 0 && u !== 0), isMid = (u % 5 === 0 && u % 10 !== 0), isMin = (u % 2 === 0);
+    var tH = isN ? h * 0.50 : isMaj ? h * 0.28 : isMid ? h * 0.18 : isMin ? h * 0.12 : h * 0.07;
+    ctx.fillStyle = isN ? 'rgba(201,184,212,0.90)' : isMaj ? 'rgba(228,217,211,0.38)' : isMid ? 'rgba(228,217,211,0.18)' : isMin ? 'rgba(228,217,211,0.12)' : 'rgba(228,217,211,0.07)';
     var tW = isN ? 1.5 : 1;
     ctx.fillRect(x - tW / 2, (h - tH) / 2, tW, tH);
   }
@@ -10668,7 +10668,7 @@ function attachDialListeners(p) {
       // Negate dX so the ruler tape scrolls with the finger:
       // slide left → canvas moves left → positive territory (right side) comes to center
       var dX = _rStartX - e.touches[0].clientX;
-      var PX = 4;
+      var PX = 3;
       if (_rBipolar) {
         var startD = (_rStartVal - 0.5) * 200;
         var newD = Math.max(-100, Math.min(100, startD + dX / PX));
@@ -10707,7 +10707,7 @@ function attachDialListeners(p) {
     document.addEventListener('mousemove', function(e) {
       if (!_mDown || !_mParam || _evDialPid !== p.id) return;
       var dX = e.clientX - _mStartX;
-      var PX = 4;
+      var PX = 3;
       if (_mBipolar) {
         var sd = (_mStartVal - 0.5) * 200;
         var nd = Math.max(-100, Math.min(100, sd + dX / PX));
@@ -10982,10 +10982,9 @@ function evAdjustSubTab(name) {
       }, 80);
     }
   }
-  // Resize + redraw after layout reflows; calling evRenderCanvas prevents squish
-  // when the 120ms timeout fires while the image is already visible
-  requestAnimationFrame(function() { _evResizeCanvas(); evRenderCanvas(); });
-  setTimeout(function() { _evResizeCanvas(); evRenderCanvas(); }, 120);
+  // Resize + redraw synchronously so the browser never paints a squished frame
+  requestAnimationFrame(function() { if (userImage) _evRenderCanvasImmediate(); });
+  setTimeout(function() { if (userImage) _evRenderCanvasImmediate(); }, 120);
 }
 
 function evAdjustSubnavBack() {

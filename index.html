@@ -10533,11 +10533,22 @@ function evDialSelect(el) {
   var panel = el.closest('.ev-dial-panel');
   if (!panel) return;
   var pid = panel.dataset.pid;
+  var param = el.dataset.param;
+  if (el.classList.contains('active')) {
+    // tap active dial → reset to neutral (0)
+    var cfg = sliderConfig[param];
+    var bipolar = !cfg || cfg[3] !== false;
+    if (!sliderState[pid]) sliderState[pid] = {};
+    sliderState[pid][param] = bipolar ? 0.5 : 0;
+    _evRulerUpdate(pid, param);
+    scheduleRender(pid);
+    return;
+  }
   panel.querySelectorAll('.ev-dial').forEach(function(d){ d.classList.remove('active'); });
   el.classList.add('active');
   _evDialPid = pid;
-  _evDialParam = el.dataset.param;
-  _evRulerUpdate(pid, _evDialParam);
+  _evDialParam = param;
+  _evRulerUpdate(pid, param);
   var strip = panel.querySelector('.ev-dial-strip');
   if (strip) { var sr = strip.getBoundingClientRect(), er = el.getBoundingClientRect(); strip.scrollLeft += (er.left + er.width/2) - (sr.left + sr.width/2); }
 }
@@ -10559,7 +10570,7 @@ function _evRulerDraw(canvas, bipolar) {
   var ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, h);
   for (var u = minV; u <= maxV; u += 2) {
-    var x = (maxV - u) * PX;
+    var x = (u - minV) * PX;
     var isN = (u === 0), isMaj = (u % 10 === 0 && u !== 0), isMid = (u % 5 === 0 && u % 10 !== 0);
     var tH = isN ? h * 0.50 : isMaj ? h * 0.28 : isMid ? h * 0.18 : h * 0.12;
     ctx.fillStyle = isN ? 'rgba(201,184,212,0.90)' : isMaj ? 'rgba(228,217,211,0.38)' : isMid ? 'rgba(228,217,211,0.18)' : 'rgba(228,217,211,0.12)';
@@ -10590,7 +10601,8 @@ function _evRulerUpdate(pid, param) {
   // Use raw float for smooth sub-unit canvas motion (no integer quantization jumps)
   var _tRaw = (sliderState[pid] && sliderState[pid][param] !== undefined) ? sliderState[pid][param] : (bipolar ? 0.5 : 0);
   var dvFloat = bipolar ? (_tRaw - 0.5) * 200 : _tRaw * 100;
-  canvas.style.left = (cw / 2 - (maxV - dvFloat) * PX) + 'px';
+  var dvOffset = bipolar ? (dvFloat + maxV) : dvFloat;
+  canvas.style.left = (cw / 2 - dvOffset * PX) + 'px';
   // update active dial val
   var activeDial = panel.querySelector('.ev-dial.active');
   if (activeDial && activeDial.dataset.param === param) {
@@ -10623,7 +10635,7 @@ function attachDialListeners(p) {
   panels.forEach(function(panel) {
     // init ruler for first (active) param
     var fp = panel.dataset.fparam;
-    if (fp) { _evDialPid = p.id; _evDialParam = fp; setTimeout(function(){ _evRulerUpdate(p.id, fp); }, 0); }
+    if (fp) { if (panel.offsetHeight > 0) { _evDialPid = p.id; _evDialParam = fp; } setTimeout(function(){ _evRulerUpdate(p.id, fp); }, 0); }
     // center first active dial in strip
     setTimeout(function(){
       var activeDial = panel.querySelector('.ev-dial.active');
@@ -10638,19 +10650,24 @@ function attachDialListeners(p) {
     var _rStartX, _rStartVal, _rParam, _rBipolar;
 
     wrap.addEventListener('touchstart', function(e) {
-      _rParam = _evDialParam;
+      var _activeDial = panel.querySelector('.ev-dial.active');
+      _rParam = (_activeDial && _activeDial.dataset.param) ? _activeDial.dataset.param : _evDialParam;
+      if (_rParam) { _evDialPid = p.id; _evDialParam = _rParam; }
       if (!_rParam || _evDialPid !== p.id) return;
       var cfg = sliderConfig[_rParam];
       _rBipolar = !cfg || cfg[3] !== false;
       _rStartX = e.touches[0].clientX;
       _rStartVal = (sliderState[p.id] && sliderState[p.id][_rParam] !== undefined) ? sliderState[p.id][_rParam] : (_rBipolar ? 0.5 : 0);
+      _evRulerUpdate(p.id, _rParam); // ensure ruler is correctly positioned before drag starts
       var _rad = panel.querySelector('.ev-dial.active'); if (_rad) _rad.classList.add('adjusting');
       e.preventDefault();
     }, {passive: false});
 
     wrap.addEventListener('touchmove', function(e) {
       if (!_rParam || _evDialPid !== p.id) return;
-      var dX = e.touches[0].clientX - _rStartX;
+      // Negate dX so the ruler tape scrolls with the finger:
+      // slide left → canvas moves left → positive territory (right side) comes to center
+      var dX = _rStartX - e.touches[0].clientX;
       var PX = 4;
       if (_rBipolar) {
         var startD = (_rStartVal - 0.5) * 200;
@@ -10675,7 +10692,9 @@ function attachDialListeners(p) {
     // mouse support for desktop testing
     var _mDown = false, _mStartX, _mStartVal, _mParam, _mBipolar;
     wrap.addEventListener('mousedown', function(e) {
-      _mParam = _evDialParam;
+      var _activeDial2 = panel.querySelector('.ev-dial.active');
+      _mParam = (_activeDial2 && _activeDial2.dataset.param) ? _activeDial2.dataset.param : _evDialParam;
+      if (_mParam) { _evDialPid = p.id; _evDialParam = _mParam; }
       if (!_mParam || _evDialPid !== p.id) return;
       var cfg = sliderConfig[_mParam];
       _mBipolar = !cfg || cfg[3] !== false;
@@ -10963,9 +10982,10 @@ function evAdjustSubTab(name) {
       }, 80);
     }
   }
-  // Resize canvas CSS to match new canvas-area dimensions after layout reflows
-  requestAnimationFrame(_evResizeCanvas);
-  setTimeout(_evResizeCanvas, 120);
+  // Resize + redraw after layout reflows; calling evRenderCanvas prevents squish
+  // when the 120ms timeout fires while the image is already visible
+  requestAnimationFrame(function() { _evResizeCanvas(); evRenderCanvas(); });
+  setTimeout(function() { _evResizeCanvas(); evRenderCanvas(); }, 120);
 }
 
 function evAdjustSubnavBack() {

@@ -10668,7 +10668,7 @@ function attachDialListeners(p) {
       // Negate dX so the ruler tape scrolls with the finger:
       // slide left → canvas moves left → positive territory (right side) comes to center
       var dX = _rStartX - e.touches[0].clientX;
-      var PX = 3;
+      var PX = 3.3;
       if (_rBipolar) {
         var startD = (_rStartVal - 0.5) * 200;
         var newD = Math.max(-100, Math.min(100, startD + dX / PX));
@@ -10707,7 +10707,7 @@ function attachDialListeners(p) {
     document.addEventListener('mousemove', function(e) {
       if (!_mDown || !_mParam || _evDialPid !== p.id) return;
       var dX = e.clientX - _mStartX;
-      var PX = 3;
+      var PX = 3.3;
       if (_mBipolar) {
         var sd = (_mStartVal - 0.5) * 200;
         var nd = Math.max(-100, Math.min(100, sd + dX / PX));
@@ -11814,7 +11814,7 @@ window.addEventListener('load',()=>{
 });
 
 initUploadDrop();
-  window.addEventListener('resize',()=>{ if(!userImage) renderHero(); if(library.length) renderLibrary(); });
+  window.addEventListener('resize',()=>{ if(!userImage) renderHero(); if(library.length) renderLibrary(); if(userImage && typeof _evRenderCanvasImmediate === 'function') _evRenderCanvasImmediate(); });
 
 // ══════════════════════════════════════════════════════
 // USER IMAGE UPLOAD + FULL-SIZE LIVE EDITING
@@ -18376,7 +18376,12 @@ function galleryOpenInEditor(idx) {
     // Case B: fresh photo, no saved editState. Restore userImage after evInit's
     // rAF-B has rebuilt the slider DOM, so the first render sees a clean slate.
     var _goeFreshImg = entry.img;
-    requestAnimationFrame(function() { userImage = _goeFreshImg; if (typeof evRenderCanvas === 'function') evRenderCanvas(); });
+    requestAnimationFrame(function() {
+      userImage = _goeFreshImg;
+      if (typeof evRenderCanvas === 'function') evRenderCanvas();
+      // Re-render after suite animation and layout settle (handles squish on first open)
+      setTimeout(function() { if (userImage && typeof _evRenderCanvasImmediate === 'function') _evRenderCanvasImmediate(); }, 350);
+    });
   }
 }
 

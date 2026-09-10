@@ -15170,7 +15170,7 @@ function toolsCropApply() {
     userImage = newImg; loadImageToCanvas(hc, newImg);
     showToast('CROP APPLIED');
   };
-  newImg.src = tmp.toDataURL();
+  tmp.toBlob(function(_b) { newImg.src = URL.createObjectURL(_b); }, 'image/jpeg', 0.95);
   _cropReAdjSaved = null; _cropReAdjOrigState = null; // clear so cancel won't restore after a confirmed apply
   toolsCropCancel();
 }
@@ -15342,7 +15342,7 @@ function toolsStraightenApply() {
       loadImageToCanvas(hc, newImg);
       showToast('STRAIGHTEN APPLIED');
     };
-    newImg.src = tmp.toDataURL();
+    tmp.toBlob(function(_b) { newImg.src = URL.createObjectURL(_b); }, 'image/jpeg', 0.95);
     sc.remove();
   }
   hc.style.opacity = '1';
@@ -15426,7 +15426,7 @@ function toolsFlipApply(dir) {
     showToast('FLIPPED');
   };
   if (typeof _cropStraightenOrig !== 'undefined' && _cropStraightenOrig) _cropStraightenOrig = tmp;
-  newImg.src = tmp.toDataURL();
+  tmp.toBlob(function(_b) { newImg.src = URL.createObjectURL(_b); }, 'image/jpeg', 0.95);
 }
 
 function toolsFlipUndo() {
@@ -20769,13 +20769,13 @@ function _cropApplyOne(t, srcImg, cb) {
     _pcv.getContext('2d', { willReadFrequently: true }).drawImage(tmp, mnX, mnY, pW, pH, 0, 0, pW, pH);
     var _pni = new Image();
     _pni.onload = function() { cb(_pni); };
-    _pni.src = _pcv.toDataURL('image/jpeg', 0.95);
+    _pcv.toBlob(function(_b) { _pni.src = URL.createObjectURL(_b); }, 'image/jpeg', 0.95);
     return;
   }
 
   var _ni = new Image();
   _ni.onload = function() { cb(_ni); };
-  _ni.src = tmp.toDataURL('image/jpeg', 0.95);
+  tmp.toBlob(function(_b) { _ni.src = URL.createObjectURL(_b); }, 'image/jpeg', 0.95);
 }
 
 // Replay an ordered list of transforms against source; call cb(finalImage).

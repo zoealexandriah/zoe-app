@@ -15571,44 +15571,6 @@ function globalHistoryPush() {
   globalUndoRedoUpdate();
 }
 
-function globalUndo() {
-  var _edV = document.getElementById('editor-view');
-  if (_edV && _edV.classList.contains('active')) {
-    if (evHistory.length === 0) return;
-    var _p = evActivePreset || activePreset;
-    evFuture.push({ presetId: _p ? _p.id : null, sliders: _p ? JSON.parse(JSON.stringify(sliderState[_p.id] || {})) : {}, intensity: presetIntensity, _userImage: userImage, _cropTransforms: (typeof _cropTransforms !== 'undefined') ? JSON.parse(JSON.stringify(_cropTransforms)) : [] });
-    _evRestoreSnap(evHistory.pop());
-    _evUpdateUndoRedoBtns();
-    return;
-  }
-  if (globalHistory.length === 0) return;
-  const hc = document.getElementById('hero-canvas');
-  if (!hc) return;
-  globalFuture.push(hc.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, hc.width, hc.height));
-  const prev = globalHistory.pop();
-  hc.getContext('2d', { willReadFrequently: true }).putImageData(prev, 0, 0);
-  globalUndoRedoUpdate();
-}
-
-function globalRedo() {
-  var _edV = document.getElementById('editor-view');
-  if (_edV && _edV.classList.contains('active')) {
-    if (evFuture.length === 0) return;
-    var _p = evActivePreset || activePreset;
-    evHistory.push({ presetId: _p ? _p.id : null, sliders: _p ? JSON.parse(JSON.stringify(sliderState[_p.id] || {})) : {}, intensity: presetIntensity, _userImage: userImage, _cropTransforms: (typeof _cropTransforms !== 'undefined') ? JSON.parse(JSON.stringify(_cropTransforms)) : [] });
-    _evRestoreSnap(evFuture.pop());
-    _evUpdateUndoRedoBtns();
-    return;
-  }
-  if (globalFuture.length === 0) return;
-  const hc = document.getElementById('hero-canvas');
-  if (!hc) return;
-  globalHistory.push(hc.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, hc.width, hc.height));
-  const next = globalFuture.pop();
-  hc.getContext('2d', { willReadFrequently: true }).putImageData(next, 0, 0);
-  globalUndoRedoUpdate();
-}
-
 function globalUndoRedoUpdate() {
   const undoBtn = document.getElementById('ctb-undo');
   const redoBtn = document.getElementById('ctb-redo');
@@ -16397,7 +16359,13 @@ window.globalUndo = function() {
   var _fuSnap = {
     presetId:  p ? p.id : null,
     sliders:   p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
-    intensity: presetIntensity
+    intensity: presetIntensity,
+    _cropTransforms: (function() {
+      var _ct = (typeof _cropTransforms !== 'undefined') ? JSON.parse(JSON.stringify(_cropTransforms)) : [];
+      if (typeof _cropStReAdjTransform !== 'undefined' && _cropStReAdjTransform)
+        _ct = _ct.concat([JSON.parse(JSON.stringify(_cropStReAdjTransform))]);
+      return _ct;
+    })()
   };
   var _histSnap = evHistory[evHistory.length - 1];
   // If the history snap carries a pre-crop image, save current image so redo can restore it
@@ -16419,7 +16387,13 @@ window.globalRedo = function() {
   var _hiSnap = {
     presetId:  p ? p.id : null,
     sliders:   p ? JSON.parse(JSON.stringify(sliderState[p.id] || {})) : {},
-    intensity: presetIntensity
+    intensity: presetIntensity,
+    _cropTransforms: (function() {
+      var _ct = (typeof _cropTransforms !== 'undefined') ? JSON.parse(JSON.stringify(_cropTransforms)) : [];
+      if (typeof _cropStReAdjTransform !== 'undefined' && _cropStReAdjTransform)
+        _ct = _ct.concat([JSON.parse(JSON.stringify(_cropStReAdjTransform))]);
+      return _ct;
+    })()
   };
   var _futSnap = evFuture[evFuture.length - 1];
   if (_futSnap && _futSnap._userImage) _hiSnap._userImage = userImage;

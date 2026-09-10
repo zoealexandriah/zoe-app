@@ -16128,9 +16128,9 @@ function etCropHTML() {
   return `<div class="crop-ui">
     <div class="crop-subtabs" id="crop-subtabs-bar">
       <button class="crop-subtab${_st==='straighten'?' active':''}" id="crop-subtab-straighten" data-tab="STRAIGHTEN" style="${Math.abs(_cropCommittedAngle())>0.01?'font-size:7.5px;letter-spacing:0.05em':''}" onclick="cropSelectSubTab(this,'straighten')">${_cropStraightenLabel()}</button>
-      <button class="crop-subtab${_st==='ratio'?' active':''}" onclick="cropSelectSubTab(this,'ratio')">RATIO</button>
-      <button class="crop-subtab${_st==='transform'?' active':''}" onclick="cropSelectSubTab(this,'transform')">ROTATE</button>
-      <button class="crop-subtab${_st==='optical'?' active':''}" onclick="cropSelectSubTab(this,'optical')">OPTICAL</button>
+      <button class="crop-subtab${_st==='ratio'?' active':''}" data-tab="RATIO" onclick="cropSelectSubTab(this,'ratio')">RATIO</button>
+      <button class="crop-subtab${_st==='transform'?' active':''}" data-tab="ROTATE" onclick="cropSelectSubTab(this,'transform')">ROTATE</button>
+      <button class="crop-subtab${_st==='optical'?' active':''}" data-tab="OPTICAL" onclick="cropSelectSubTab(this,'optical')">OPTICAL</button>
       <div class="crop-expanded-bar" id="crop-exp-bar">
         <button class="crop-exp-btn crop-exp-cancel" onclick="cropSubTabCollapse(false)">✕</button>
         <span class="crop-exp-name" id="crop-exp-name"></span>

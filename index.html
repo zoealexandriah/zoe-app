@@ -18739,6 +18739,7 @@ function evSaveAndReturn() {
       if (adj.scanLines)               applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
       if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
+      if ((adj.diffusion || 0) > 0.01) applyDiffusion(off, adj.diffusion, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
       if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, (p.grainSize || 1));
       if (adj.border)                  applyBorder(off, adj.border, 0, 0, iw, ih);
@@ -18834,6 +18835,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (adj.scanLines)                 applyScanLines(off, adj.scanLines, 0, 0, w, h);
       if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, w, h);
       if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
+      if ((adj.diffusion || 0) > 0.01)  applyDiffusion(off, adj.diffusion, 0, 0, w, h);
       if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
       if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, (p.grainSize || 1));
       var _savedFxTexBT = entry.editState && entry.editState.fxState && entry.editState.fxState.texture && entry.editState.fxState.texture.variant;
@@ -19024,6 +19026,7 @@ function _exportEntry(entry, onDone) {
       if (adj.scanLines)                      applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
       if (adj.chromaticAberration)            applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
       if (adj.vhsBleed)                       applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
+      if ((adj.diffusion || 0) > 0.01)        applyDiffusion(off, adj.diffusion, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01)         applyVignette(off, adj.vignette, 0, 0, iw, ih);
       if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, (p.grainSize || 1));
       if (adj.textureOverlay)                  applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);

@@ -20833,8 +20833,13 @@ function _cropRenderFromSource(onDone) {
   _cropApplyTransforms(_cropTransforms, _cropSourceImage, function(result) {
     userImage = result;
     var ev = document.getElementById('editor-view');
-    if (ev && ev.classList.contains('active') && typeof evRenderCanvas === 'function') evRenderCanvas();
-    else {
+    if (ev && ev.classList.contains('active') && typeof _evRenderCanvasImmediate === 'function') {
+      // Direct call, not evRenderCanvas(): its _evRenderScheduled guard silently
+      // drops this when a frame is already pending, leaving the canvas at the
+      // previous image's dimensions. Callers downstream of onDone read
+      // getActiveCanvas().height to compute geometry and need it correct now.
+      _evRenderCanvasImmediate();
+    } else {
       var _rAc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('ev-canvas');
       if (_rAc && typeof loadImageToCanvas === 'function') loadImageToCanvas(_rAc, result);
     }

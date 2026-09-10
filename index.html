@@ -19417,6 +19417,9 @@ window.exportDownload = function() {
     }
   }
 
+  const _modalGrain = adj ? (adj.grain || 0) : 0;
+  if (adj) adj.grain = 0;
+
   function _applyCanvasEffects(adjObj) {
     if (!adjObj) return;
     if (p.curve)                             applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
@@ -19436,10 +19439,14 @@ window.exportDownload = function() {
     if ((adjObj.halation  || 0) > 0.01)   applyHalation(off, adjObj.halation, adjObj.halation_hue || 0, 0, 0, iw, ih);
     if (p.halationBloom)                   applyHalationBloom(off, p.halationBloom, 0, 0, iw, ih);
     if (p.bleeds)                          applyBleeds(off, p.bleeds, 0, 0, iw, ih);
+    if (adjObj.scanLines)                  applyScanLines(off, adjObj.scanLines, 0, 0, iw, ih);
+    if (adjObj.chromaticAberration)        applyChromaticAberration(off, adjObj.chromaticAberration.amount ?? adjObj.chromaticAberration.intensity ?? 1, adjObj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
+    if (adjObj.vhsBleed)                   applyVHSBleed(off, adjObj.vhsBleed.intensity || 8, 0, 0, iw, ih);
     if ((adjObj.diffusion || 0) > 0.01)   applyDiffusion(off, adjObj.diffusion, 0, 0, iw, ih);
     if (adjObj.duotone_a && adjObj.duotone_b && (adjObj.duotone_strength || 0) > 0.01)
       applyDuotone(off, adjObj.duotone_a, adjObj.duotone_b, adjObj.duotone_strength, 0, 0, iw, ih);
     if ((adjObj.vignette  || 0) > 0.01)   applyVignette(off, adjObj.vignette, 0, 0, iw, ih);
+    if (_modalGrain > 0.005)              applyFilmGrain(off, _modalGrain * intensity, (p.grainSize || 1));
     if (adjObj.textureOverlay)            applyTextureOverlay(off, adjObj.textureOverlay, 0, 0, iw, ih);
     if (adjObj.border)                    applyBorder(off, adjObj.border, 0, 0, iw, ih);
   }

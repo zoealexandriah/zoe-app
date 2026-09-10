@@ -18245,7 +18245,24 @@ function galleryOpenInEditor(idx) {
   // or the import screen). Must happen before clearRect so we can composite it.
   var _evC0 = document.getElementById('ev-canvas');
   if (_evC0 && entry.img) {
-    try { _evC0.getContext('2d', { willReadFrequently: true }).drawImage(entry.img, 0, 0, _evC0.width || entry.img.width, _evC0.height || entry.img.height); } catch(e) {}
+    try {
+      // Size the canvas to the image's aspect BEFORE drawing. Previously this
+      // drew into the browser-default 300x150, stretching portrait images into a
+      // landscape box — the squished frame visible until the pixel pipeline
+      // finished. Geometry here matches _evResizeCanvas.
+      var _evA0 = document.getElementById('ev-canvas-area');
+      var _iw0 = entry.img.naturalWidth || entry.img.width;
+      var _ih0 = entry.img.naturalHeight || entry.img.height;
+      if (_evA0 && _iw0 && _ih0) {
+        var _aw0 = _evA0.clientWidth || 375, _ah0 = _evA0.clientHeight || 500;
+        var _bs0 = Math.min(_aw0 / _iw0, _ah0 / _ih0, 1);
+        _evC0.width  = Math.round(_iw0 * _bs0);
+        _evC0.height = Math.round(_ih0 * _bs0);
+        _evC0.style.width  = Math.round(_iw0 * _bs0) + 'px';
+        _evC0.style.height = Math.round(_ih0 * _bs0) + 'px';
+      }
+      _evC0.getContext('2d', { willReadFrequently: true }).drawImage(entry.img, 0, 0, _evC0.width, _evC0.height);
+    } catch(e) {}
   }
   // Set up globals
   editingIdx = idx;

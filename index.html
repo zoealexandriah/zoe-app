@@ -16276,7 +16276,13 @@ function evHistoryPush() {
     _userImage:      userImage,
     _perspState:     _perspBaseURL ? { url: _perspBaseURL, v: _perspBaseV, h: _perspBaseH } : null,
     _fxState:        (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null,
-    _cropTransforms: (typeof _cropTransforms !== 'undefined') ? JSON.parse(JSON.stringify(_cropTransforms)) : []
+    _cropTransforms: (function() {
+      var _ct = (typeof _cropTransforms !== 'undefined') ? JSON.parse(JSON.stringify(_cropTransforms)) : [];
+      // If a re-adjust transform was spliced out, include it so undo restores the full committed state
+      if (typeof _cropStReAdjTransform !== 'undefined' && _cropStReAdjTransform)
+        _ct = _ct.concat([JSON.parse(JSON.stringify(_cropStReAdjTransform))]);
+      return _ct;
+    })()
   });
   if (evHistory.length > 30) evHistory.shift();
   evFuture.length = 0;
@@ -16315,6 +16321,7 @@ function _evRestoreSnap(snap) {
   if ('_cropTransforms' in snap && typeof _cropTransforms !== 'undefined') {
     _cropTransforms.length = 0;
     (snap._cropTransforms || []).forEach(function(t) { _cropTransforms.push(t); });
+    if (typeof _cropStReAdjTransform !== 'undefined') _cropStReAdjTransform = null;
     _cropRefreshStraightenLabel();
   }
   // Restore userImage if the snap captured a different image (crop/flip/rotate ops)

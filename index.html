@@ -15340,12 +15340,14 @@ function toolsStraightenApply() {
       userImage = newImg;
       _origPixels = null;
       loadImageToCanvas(hc, newImg);
+      sc.remove();
+      hc.style.opacity = '1';
       showToast('STRAIGHTEN APPLIED');
     };
     tmp.toBlob(function(_b) { newImg.src = URL.createObjectURL(_b); }, 'image/jpeg', 0.95);
-    sc.remove();
+  } else {
+    hc.style.opacity = '1';
   }
-  hc.style.opacity = '1';
   toolsStraightenVal   = 0;
   _straightenOrigImage = null;
   const sl = document.getElementById('ts-angle') || document.getElementById('et-angle');

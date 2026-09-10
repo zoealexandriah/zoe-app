@@ -16994,7 +16994,7 @@ function _evDoSave() {
       var _isFile = location.protocol === 'file:';
       if (_isFile) {
         setTimeout(function() {
-          var dataURL = out.toDataURL('image/jpeg', 0.92);
+          var dataURL = out.toDataURL('image/jpeg', 0.95);
           var a = document.createElement('a');
           a.download = filename; a.href = dataURL;
           document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -17014,7 +17014,7 @@ function _evDoSave() {
           _showSavedToast();
         }
         setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
-      }, 'image/jpeg', 0.92);
+      }, 'image/jpeg', 0.95);
     }
 
     setTimeout(function() {
@@ -17049,7 +17049,7 @@ function _evDoSave() {
     var _isFile = location.protocol === 'file:';
     if (_isFile) {
       setTimeout(function() {
-        var dataURL = out.toDataURL('image/jpeg', 0.92);
+        var dataURL = out.toDataURL('image/jpeg', 0.95);
         var a = document.createElement('a');
         a.download = filename; a.href = dataURL;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -17069,7 +17069,7 @@ function _evDoSave() {
         _showSavedToast();
       }
       setTimeout(function() { URL.revokeObjectURL(url); }, 30000);
-    }, 'image/jpeg', 0.92);
+    }, 'image/jpeg', 0.95);
   }
   // Apply FX texture in the no-preset path
   if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant && FX_VARIANTS.texture) {
@@ -18563,7 +18563,7 @@ function editorSaveToGallery() {
   off.width  = userImage.naturalWidth  || hc.width;
   off.height = userImage.naturalHeight || hc.height;
   off.getContext('2d', { willReadFrequently: true }).drawImage(hc, 0, 0, hc.width, hc.height, 0, 0, off.width, off.height);
-  const dataURL = off.toDataURL('image/jpeg', 0.92);
+  const dataURL = off.toDataURL('image/jpeg', 0.95);
   const name = 'EDIT_' + new Date().toISOString().slice(0,10) + '_' + Date.now() + '.jpg';
   const img  = new Image();
   img.onload = () => {
@@ -18748,7 +18748,7 @@ function evSaveAndReturn() {
     // FX texture applied outside the preset block so it works even with no active look
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvSR=null; if (FX_VARIANTS.texture){for(var _tiSR=0;_tiSR<FX_VARIANTS.texture.length;_tiSR++){if(FX_VARIANTS.texture[_tiSR].id===fxState.texture.variant){_fxTvSR=FX_VARIANTS.texture[_tiSR];break;}}} if(_fxTvSR) { var _srTexAdj={file:_fxTvSR.assetFile,blend:'screen',opacity:(fxState.texture.intensity!=null?fxState.texture.intensity:100)/100}; loadTexture(_srTexAdj.file); applyTextureOverlay(off, _srTexAdj, 0, 0, iw, ih); } }
     function _doSaveReturn(canvas) {
-      var dataURL = canvas.toDataURL('image/jpeg', 0.93);
+      var dataURL = canvas.toDataURL('image/jpeg', 0.95);
       var img = new Image();
       img.onload = function() {
         entry.dataURL = dataURL;
@@ -18850,7 +18850,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
     var _savedFxSt = entry.editState && entry.editState.fxState;
     var _fxFV = _savedFxSt && _savedFxSt.frames ? _savedFxSt.frames.variant : null;
     function _finalizeThumbnail() {
-      entry.dataURL = off.toDataURL('image/jpeg', 0.90);
+      entry.dataURL = off.toDataURL('image/jpeg', 0.95);
       const img = new Image();
       img.onload = () => { entry.img = img; onDone && onDone(); };
       img.src = entry.dataURL;

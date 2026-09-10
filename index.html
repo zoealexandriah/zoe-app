@@ -18709,6 +18709,7 @@ function evSaveAndReturn() {
       if (p.halationHue !== undefined) adj.halation_hue = p.halationHue;
       adj.shadow_tint = p.shadowTint || null;
       adj.highlight_tint = p.highlightTint || null;
+      adj.halationBloom = p.halationBloom || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       var _fgGrain = adj.grain || 0;
       adj.grain = 0;
@@ -18807,6 +18808,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       if (p.halationHue !== undefined) adj.halation_hue  = p.halationHue;
       adj.shadow_tint = p.shadowTint || null;
       adj.highlight_tint = p.highlightTint || null;
+      adj.halationBloom = p.halationBloom || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       const _fgGrain = adj.grain || 0;
       adj.grain = 0;
@@ -18998,6 +19000,7 @@ function _exportEntry(entry, onDone) {
       if (p.halationHue !== undefined) adj.halation_hue  = p.halationHue;
       adj.shadow_tint = p.shadowTint || null;
       adj.highlight_tint = p.highlightTint || null;
+      adj.halationBloom = p.halationBloom || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
       const _fgGrain = adj.grain || 0;
       adj.grain = 0;

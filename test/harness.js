@@ -25,6 +25,20 @@ const PATHS   = [
 ];
 const GRAIN_SEED = 0xBEEF; // fixed starting seed; each combo uses seed+n
 
+// FX texture variant used for the fxtex render variant.
+// tex01 / photobooth_texture01.webp is the first entry in FX_VARIANTS.texture.
+// In headless Playwright image loads fail, so the harness injects a 32×32 gray
+// canvas dummy — non-black so screen-blend produces visible output change,
+// proving the fxState texture path is actually exercised.
+const FX_TEX_VARIANT = 'tex01';
+const FX_TEX_FILE    = 'photobooth_texture01.webp';
+
+// Two render variants per combo: with and without an active FX-layer texture.
+const RENDER_VARIANTS = [
+  { id: 'null',  fxTexture: null },
+  { id: 'fxtex', fxTexture: { variant: FX_TEX_VARIANT, intensity: 100 } },
+];
+
 // ── synthetic photo generators ────────────────────────────────────────────────
 // Both photos are 100 % algorithmic — no files, fully reproducible.
 
@@ -231,11 +245,12 @@ async function launchBrowser() {
 }
 
 // ── render one combination via the REAL app path function ─────────────────────
-async function renderCombo(page, photoId, presetId, pathId, seed) {
+// fxTexture: null | { variant: string, intensity: number }
+async function renderCombo(page, photoId, presetId, pathId, seed, fxTexture) {
   const { W, H, px } = photoId === 'portrait' ? makePortrait() : makeLandscape();
   const photoURL     = pixelsToDataURL(W, H, px);
 
-  return page.evaluate(async ([photoURL, presetId, pathId, seed]) => {
+  return page.evaluate(async ([photoURL, presetId, pathId, seed, fxTexture]) => {
     // Deterministic XORShift32 PRNG — seeded consistently per combo so grain
     // is identical between capture and compare runs.
     let _s = (seed >>> 0) || 1;
@@ -261,6 +276,7 @@ async function renderCombo(page, photoId, presetId, pathId, seed) {
       presetIntensity = 1.0;        // let presetIntensity
       window.blemishSpots = [];
       window._slDragging     = false;
+      // fxState.texture is set below after dummy injection; always clear frames.
       if (typeof fxState !== 'undefined') { fxState.frames = null; fxState.texture = null; }
       // library is const array — mutate in place
       library.length = 0;
@@ -283,6 +299,31 @@ async function renderCombo(page, photoId, presetId, pathId, seed) {
         dummy.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI6QAAAABJRU5ErkJggg==';
         await new Promise(r => { dummy.onload = r; dummy.onerror = r; });
         _texCache[file] = dummy;
+      }
+
+      // ── inject FX texture dummy when testing the fxState texture path ────────
+      // Use a 32×32 gray canvas (not 1×1 black) so screen-blend produces a visible
+      // change, proving the code path is exercised rather than silently skipped.
+      if (fxTexture && typeof _texCache !== 'undefined') {
+        const fxVariant = (typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture || [])
+          .find(t => t.id === fxTexture.variant);
+        const fxFile = fxVariant && fxVariant.assetFile;
+        if (fxFile) {
+          const dc = document.createElement('canvas');
+          dc.width = 32; dc.height = 32;
+          const dctx = dc.getContext('2d');
+          dctx.fillStyle = '#808080';
+          dctx.fillRect(0, 0, 32, 32);
+          const di = new Image();
+          di.src = dc.toDataURL('image/png');
+          await new Promise(r => { di.onload = r; di.onerror = r; });
+          _texCache[fxFile] = di;
+        }
+      }
+
+      // ── set fxState.texture (after dummy injection so loadTexture finds it) ──
+      if (typeof fxState !== 'undefined') {
+        fxState.texture = fxTexture; // null or { variant, intensity }
       }
 
       // ── shared capture-promise factory ─────────────────────────────────────
@@ -373,10 +414,10 @@ async function renderCombo(page, photoId, presetId, pathId, seed) {
     } finally {
       Math.random = _origRandom;
     }
-  }, [photoURL, presetId, pathId, seed]);
+  }, [photoURL, presetId, pathId, seed, fxTexture]);
 }
 
-// ── reload helper — resets page state between preset groups ──────────────────
+// ── reload helper — resets page state between preset+variant groups ───────────
 async function reloadPage(page) {
   await page.goto(APP_URL, { waitUntil: 'networkidle' });
 }
@@ -384,23 +425,25 @@ async function reloadPage(page) {
 // ── capture mode ──────────────────────────────────────────────────────────────
 async function capture(outDir) {
   const { browser, page } = await launchBrowser();
+  const total = PHOTOS.length * PRESETS.length * RENDER_VARIANTS.length * PATHS.length;
   let count = 0, totalBytes = 0;
   try {
     let seed = GRAIN_SEED;
     for (const photoId of PHOTOS) {
       for (const presetId of PRESETS) {
-        // Fresh page state per photo+preset group so any lingering workers/timers
-        // from the previous group (especially the applyCanvasEffects Web Worker)
-        // don't interfere with the next group's captures.
-        await reloadPage(page);
-        for (const pathId of PATHS) {
-          const dataURL = await renderCombo(page, photoId, presetId, pathId, seed++);
-          const buf     = Buffer.from(dataURL.replace('data:image/png;base64,', ''), 'base64');
-          const name    = `${photoId}__${presetId}__${pathId}.png`;
-          fs.writeFileSync(path.join(outDir, name), buf);
-          totalBytes += buf.length;
-          count++;
-          process.stdout.write(`\r  [${count}/48] ${name}             `);
+        for (const variant of RENDER_VARIANTS) {
+          // Fresh page state per photo+preset+variant group so lingering workers/timers
+          // from the previous group don't interfere with the next group's captures.
+          await reloadPage(page);
+          for (const pathId of PATHS) {
+            const dataURL = await renderCombo(page, photoId, presetId, pathId, seed++, variant.fxTexture);
+            const buf     = Buffer.from(dataURL.replace('data:image/png;base64,', ''), 'base64');
+            const name    = `${photoId}__${presetId}__${pathId}__${variant.id}.png`;
+            fs.writeFileSync(path.join(outDir, name), buf);
+            totalBytes += buf.length;
+            count++;
+            process.stdout.write(`\r  [${count}/${total}] ${name}             `);
+          }
         }
       }
     }
@@ -419,40 +462,42 @@ async function compare(baseDir, threshold, mutate) {
     let seed = GRAIN_SEED;
     for (const photoId of PHOTOS) {
       for (const presetId of PRESETS) {
-        await reloadPage(page);
-        // --mutate: patch velvetroom grain in-page so detection is independent of
-        // server-side file caching (server may cache HTML in memory between runs).
-        if (mutate && presetId === 'velvetroom') {
-          await page.evaluate(() => {
-            const p = presets.find(x => x.id === 'velvetroom');
-            if (p && p.defaults) p.defaults.GRAIN = 0.70; // was 0.35
-          });
-        }
-        for (const pathId of PATHS) {
-          const key      = `${photoId}/${presetId}/${pathId}`;
-          const baseFile = path.join(baseDir, `${photoId}__${presetId}__${pathId}.png`);
-          if (!fs.existsSync(baseFile)) {
-            rows.push({ key, madStr: 'MISSING BASELINE', fail: true }); failures++; seed++; continue;
+        for (const variant of RENDER_VARIANTS) {
+          await reloadPage(page);
+          // --mutate: patch velvetroom grain in-page so detection is independent of
+          // server-side file caching (server may cache HTML in memory between runs).
+          if (mutate && presetId === 'velvetroom') {
+            await page.evaluate(() => {
+              const p = presets.find(x => x.id === 'velvetroom');
+              if (p && p.defaults) p.defaults.GRAIN = 0.70; // was 0.35
+            });
           }
-          let dataURL;
-          try {
-            dataURL = await renderCombo(page, photoId, presetId, pathId, seed++);
-          } catch (e) {
-            rows.push({ key, madStr: `RENDER ERR: ${String(e.message).slice(0,50)}`, fail: true });
-            failures++; continue;
+          for (const pathId of PATHS) {
+            const key      = `${photoId}/${presetId}/${variant.id}/${pathId}`;
+            const baseFile = path.join(baseDir, `${photoId}__${presetId}__${pathId}__${variant.id}.png`);
+            if (!fs.existsSync(baseFile)) {
+              rows.push({ key, madStr: 'MISSING BASELINE', fail: true }); failures++; seed++; continue;
+            }
+            let dataURL;
+            try {
+              dataURL = await renderCombo(page, photoId, presetId, pathId, seed++, variant.fxTexture);
+            } catch (e) {
+              rows.push({ key, madStr: `RENDER ERR: ${String(e.message).slice(0,50)}`, fail: true });
+              failures++; continue;
+            }
+            const cur  = Buffer.from(dataURL.replace('data:image/png;base64,', ''), 'base64');
+            const base = fs.readFileSync(baseFile);
+            let mad;
+            try { mad = computeMAD(base, cur); }
+            catch (e) {
+              rows.push({ key, madStr: `DECODE ERR: ${String(e.message).slice(0,50)}`, fail: true });
+              failures++; continue;
+            }
+            const fail = mad > threshold;
+            if (fail) failures++;
+            maxMAD = Math.max(maxMAD, mad);
+            rows.push({ key, madStr: mad.toFixed(4), fail });
           }
-          const cur  = Buffer.from(dataURL.replace('data:image/png;base64,', ''), 'base64');
-          const base = fs.readFileSync(baseFile);
-          let mad;
-          try { mad = computeMAD(base, cur); }
-          catch (e) {
-            rows.push({ key, madStr: `DECODE ERR: ${String(e.message).slice(0,50)}`, fail: true });
-            failures++; continue;
-          }
-          const fail = mad > threshold;
-          if (fail) failures++;
-          maxMAD = Math.max(maxMAD, mad);
-          rows.push({ key, madStr: mad.toFixed(4), fail });
         }
       }
     }
@@ -460,14 +505,45 @@ async function compare(baseDir, threshold, mutate) {
     await browser.close();
   }
 
-  const PAD = 54;
+  const PAD = 62;
   console.log(`\n  ${'combo'.padEnd(PAD)} MAD`);
   console.log(`  ${'─'.repeat(PAD + 10)}`);
   for (const r of rows)
     console.log(`  ${r.key.padEnd(PAD)} ${r.madStr}${r.fail ? '  ✗ FAIL' : ''}`);
   console.log(`  ${'─'.repeat(PAD + 10)}`);
   console.log(`  max MAD: ${maxMAD.toFixed(4)}   failures: ${failures}\n`);
-  return failures === 0;
+
+  // ── cross-variant diff — proves fxState path exercises a different code path ─
+  // Compare null vs fxtex baseline captures for specific presets and paths.
+  // If MAD = 0, the FX texture was not applied and the coverage is fake.
+  const DIFF_CHECKS = [
+    // automat HAS a preset textureOverlay — fxtex replaces it with FX texture
+    { presetId: 'automat',    pathId: 'evSaveAndReturn', note: 'preset texture → FX texture swap' },
+    // velvetroom has NO preset textureOverlay — fxtex adds FX texture on top
+    { presetId: 'velvetroom', pathId: 'evSaveAndReturn', note: 'no preset texture → FX texture added' },
+  ];
+  const diffRows = [];
+  for (const { presetId, pathId, note } of DIFF_CHECKS) {
+    for (const photoId of PHOTOS) {
+      const nullFile  = path.join(baseDir, `${photoId}__${presetId}__${pathId}__null.png`);
+      const fxtexFile = path.join(baseDir, `${photoId}__${presetId}__${pathId}__fxtex.png`);
+      if (!fs.existsSync(nullFile) || !fs.existsSync(fxtexFile)) {
+        diffRows.push({ key: `${photoId}/${presetId}/${pathId}`, madStr: 'MISSING FILE', note });
+        continue;
+      }
+      let mad;
+      try { mad = computeMAD(fs.readFileSync(nullFile), fs.readFileSync(fxtexFile)); }
+      catch (e) { mad = -1; }
+      diffRows.push({ key: `${photoId}/${presetId}/${pathId}`, madStr: mad >= 0 ? mad.toFixed(4) : 'DECODE ERR', note, zero: mad === 0 });
+    }
+  }
+  console.log(`  Cross-variant diff (null vs fxtex baseline — must be > 0):`);
+  console.log(`  ${'─'.repeat(PAD + 10)}`);
+  for (const r of diffRows)
+    console.log(`  ${r.key.padEnd(PAD)} ${r.madStr}${r.zero ? '  ✗ ZERO — coverage is fake!' : '  ✓'}  [${r.note}]`);
+  console.log(`  ${'─'.repeat(PAD + 10)}\n`);
+
+  return failures === 0 && diffRows.every(r => !r.zero);
 }
 
 // ── CLI ───────────────────────────────────────────────────────────────────────
@@ -482,7 +558,8 @@ if (cmd === 'capture') {
   const dirName = flags.dir || `baseline-${stamp}`;
   const outDir  = path.resolve(TEST_DIR, dirName);
   fs.mkdirSync(outDir, { recursive: true });
-  console.log(`Capturing 48 combinations → ${outDir}`);
+  console.log(`Capturing ${PHOTOS.length * PRESETS.length * RENDER_VARIANTS.length * PATHS.length} combinations → ${outDir}`);
+  console.log(`  Variants: ${RENDER_VARIANTS.map(v => v.id).join(', ')}  (FX texture: ${FX_TEX_VARIANT} / ${FX_TEX_FILE})`);
   const t0 = Date.now();
   capture(outDir)
     .then(() => console.log(`Done in ${((Date.now() - t0) / 1000).toFixed(1)}s`))

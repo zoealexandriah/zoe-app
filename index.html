@@ -18598,6 +18598,22 @@ function autoSaveEdit() {
   var editedDataURL = null;
   if (userImage && userImage.src && userImage.src.startsWith('data:') && userImage.src !== originalDataURL) {
     editedDataURL = userImage.src;
+  } else if (userImage && userImage.src && userImage.src.startsWith('blob:')) {
+    // blob: URLs don't survive a page reload — serialise to JPEG data URL via canvas.
+    // Cache by blob URL so the expensive encode runs once per crop commit, not once
+    // per slider drag (autoSaveEdit fires on every drag-end after a 1500ms timer).
+    if (!window._blobDataCache) window._blobDataCache = new Map();
+    if (window._blobDataCache.has(userImage.src)) {
+      editedDataURL = window._blobDataCache.get(userImage.src);
+    } else {
+      var _blobC = document.createElement('canvas');
+      _blobC.width  = userImage.naturalWidth  || userImage.width;
+      _blobC.height = userImage.naturalHeight || userImage.height;
+      _blobC.getContext('2d').drawImage(userImage, 0, 0);
+      var _blobEncoded = _blobC.toDataURL('image/jpeg', 0.95);
+      editedDataURL = (_blobEncoded !== originalDataURL) ? _blobEncoded : null;
+      window._blobDataCache.set(userImage.src, editedDataURL);
+    }
   } else if (entry.editState && entry.editState.editedDataURL) {
     editedDataURL = entry.editState.editedDataURL;
   }

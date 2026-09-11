@@ -18228,6 +18228,8 @@ document.addEventListener('mouseup', function(){
 function galleryOpenInEditor(idx) {
   var entry = library[idx];
   if (!entry) return;
+  var _goEdV = document.getElementById('editor-view');
+  if (_goEdV) _goEdV.classList.remove('crop-ratio-active');
   clearTimeout(_autoSaveTimer);
   // Draw the saved thumbnail as a visual placeholder on the canvas so the editor
   // shows something while the full-res original loads (instead of a blank canvas
@@ -19271,6 +19273,8 @@ function _bakePendingCropForSave() {
 
 // ── Fix 2: editorBackToGallery — navigate immediately, save/thumbnail in background ──
 window.editorBackToGallery = function editorBackToGallery() {
+  var _bkEdV = document.getElementById('editor-view');
+  if (_bkEdV) _bkEdV.classList.remove('crop-ratio-active');
   clearTimeout(_autoSaveTimer);
   // Hide intensity overlay — it's fixed on body and persists across views
   var _intOv = document.getElementById('ev-intensity-overlay');
@@ -20251,6 +20255,8 @@ function _cropApplyRatioInPlace(keepStraighten) {
 }
 
 function _cropExitMode() {
+  var _cExV = document.getElementById('editor-view');
+  if (_cExV) _cExV.classList.remove('crop-ratio-active');
   _ratioPreCropUserImage = null;
   // Auto-commit any pending straighten before removing the work canvas.
   // Routed through the shared bake so the op lands in _cropTransforms and stays

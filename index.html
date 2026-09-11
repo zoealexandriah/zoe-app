@@ -18338,8 +18338,9 @@ function galleryOpenInEditor(idx) {
         if (_hasCrop && es.originalDataURL) {
           var _preOrigImg = new Image();
           _preOrigImg.onload = function() {
-            _preCropState = { userImage: _preOrigImg, origPixels: null, origOffX: 0, origOffY: 0, origW: 0, origH: 0 };
-            _savedCropRect = { x: 0, y: 0, w: 99999, h: 99999 };
+            var _preW = _preOrigImg.naturalWidth, _preH = _preOrigImg.naturalHeight;
+            _preCropState = { userImage: _preOrigImg, origPixels: null, origOffX: 0, origOffY: 0, origW: _preW, origH: _preH };
+            _savedCropRect = { x: 0, y: 0, w: _preW, h: _preH };
           };
           _preOrigImg.src = es.originalDataURL;
         }
@@ -20355,6 +20356,7 @@ function _cropRatioConfirm() {
     rw: cropRect.w / ac.width,  rh: cropRect.h / ac.height
   });
   _cropReAdjTransform = null;
+  if (typeof _cropReAdjSaved !== 'undefined') _cropReAdjSaved = null;
   cropRect = null;
   _ratioPreCropUserImage = null;
   var _cOv = document.getElementById('crop-overlay-canvas');
@@ -20457,6 +20459,13 @@ function cropSubTabCollapse(confirm) {
         _cropTransforms.push(_cropReAdjTransform);
         _cropReAdjTransform = null;
         _cropRenderFromSource();
+      } else if (typeof _cropReAdjSaved !== 'undefined' && _cropReAdjSaved) {
+        // Reopen re-adjust cancel: restore the saved cropped image
+        userImage = _cropReAdjSaved;
+        _cropReAdjSaved = null;
+        _cropSourceImage = userImage;
+        _cropTransforms = [];
+        if (typeof evRenderCanvas === 'function') evRenderCanvas();
       }
       cropRect = null;
     } else if (activeTab === 'ROTATE') {
@@ -20729,6 +20738,18 @@ function cropSelectSubTab(btn, tab) {
         _ratioActivatedReAdj = true;
         var _oldOvR = document.getElementById('crop-overlay-canvas');
         if (_oldOvR) _oldOvR.remove();
+        ov = null;
+        _cropRenderFromSource(function() { cropSelectSubTab(btn, tab); });
+        return;
+      } else if (_preCropState && _preCropState.userImage && _preCropState.userImage !== userImage) {
+        // Reopen re-adjust: no crop in _cropTransforms, but we have the pre-crop original.
+        // Save current (cropped) image so cancel/exit can restore it, then show the original.
+        _cropReAdjSaved = userImage;
+        _cropSourceImage = _preCropState.userImage;
+        _cropTransforms = [];
+        _ratioActivatedReAdj = true;
+        var _oldOvRP2 = document.getElementById('crop-overlay-canvas');
+        if (_oldOvRP2) _oldOvRP2.remove();
         ov = null;
         _cropRenderFromSource(function() { cropSelectSubTab(btn, tab); });
         return;

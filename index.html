@@ -18749,6 +18749,7 @@ function evSaveAndReturn() {
       if ((adj.diffusion || 0) > 0.01) applyDiffusion(off, adj.diffusion, 0, 0, iw, ih);
       if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
       if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, (p.grainSize || 1));
+      if (adj.textureOverlay && !(typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant)) applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
       if (adj.border)                  applyBorder(off, adj.border, 0, 0, iw, ih);
     }
     // FX texture applied outside the preset block so it works even with no active look

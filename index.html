@@ -18753,26 +18753,12 @@ function evSaveAndReturn() {
         }
       }
       ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
-      if (p.curve) applyCurveLUTs(off, p.curve, 0, 0, iw, ih);
-      if ((adj.sharpen  || 0) > 0.01) applySharpness(off, adj.sharpen,  0, 0, iw, ih);
-      if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(off, adj.clarity, 0, 0, iw, ih);
-      if ((adj.blur     || 0) > 0.01) applyBlur(off,  adj.blur,      0, 0, iw, ih);
-      if ((adj.vignette_blur || 0) > 0.01) applyVignetteBlur(off, adj.vignette_blur, 0, 0, iw, ih);
-      if ((adj.motion_blur   || 0) > 0.01) applyMotionBlur(off, adj.motion_blur, 0, 0, iw, ih);
-      if ((adj.radial_blur   || 0) > 0.01) applyRadialBlur(off, adj.radial_blur, 0, 0, iw, ih);
-      if ((adj.glow     || 0) > 0.01) applyGlow(off,  adj.glow,      0, 0, iw, ih);
-      if ((adj.mist     || 0) > 0.01) applyMist(off,  adj.mist,      0, 0, iw, ih);
-      if ((adj.halation || 0) > 0.01) applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, iw, ih);
-      if (adj.halationBloom)           applyHalationBloom(off, adj.halationBloom, 0, 0, iw, ih);
-      if (p.bleeds)                    applyBleeds(off, p.bleeds, 0, 0, iw, ih);
-      if (adj.scanLines)               applyScanLines(off, adj.scanLines, 0, 0, iw, ih);
-      if (adj.chromaticAberration)     applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, iw, ih);
-      if (adj.vhsBleed)                applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, iw, ih);
-      if ((adj.diffusion || 0) > 0.01) applyDiffusion(off, adj.diffusion, 0, 0, iw, ih);
-      if ((adj.vignette || 0) > 0.01) applyVignette(off, adj.vignette, 0, 0, iw, ih);
-      if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, (p.grainSize || 1));
-      if (adj.textureOverlay && !(typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant)) applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
-      if (adj.border)                  applyBorder(off, adj.border, 0, 0, iw, ih);
+      if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) adj.textureOverlay = null;
+      applyEffectChain(off, adj, p, 0, 0, iw, ih, {
+        skipBlemish: true,
+        grainAmount: _fgGrain * intensity,
+        grainSize:   p.grainSize || 1,
+      });
     }
     // FX texture applied outside the preset block so it works even with no active look
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvSR=null; if (FX_VARIANTS.texture){for(var _tiSR=0;_tiSR<FX_VARIANTS.texture.length;_tiSR++){if(FX_VARIANTS.texture[_tiSR].id===fxState.texture.variant){_fxTvSR=FX_VARIANTS.texture[_tiSR];break;}}} if(_fxTvSR) { var _srTexAdj={file:_fxTvSR.assetFile,blend:'screen',opacity:(fxState.texture.intensity!=null?fxState.texture.intensity:100)/100}; loadTexture(_srTexAdj.file); applyTextureOverlay(off, _srTexAdj, 0, 0, iw, ih); } }
@@ -19021,15 +19007,22 @@ function applyEffectChain(canvas, adj, p, offX, offY, w, h, opts) {
   var grainSize         = opts.grainSize         != null ? opts.grainSize  : (p && p.grainSize || 1);
   var skipBlemish       = opts.skipBlemish       != null ? opts.skipBlemish : true;
   var skipAfterVignette = !!opts.skipAfterVignette;
+  var glowBeforeSharpen = !!opts.glowBeforeSharpen;
   if (p && p.curve)                                        applyCurveLUTs(canvas, p.curve, offX, offY, w, h);
+  if (glowBeforeSharpen) {
+    if ((adj.glow        || 0) > 0.01)                     applyGlow(canvas, adj.glow, offX, offY, w, h);
+    if ((adj.mist        || 0) > 0.01)                     applyMist(canvas, adj.mist, offX, offY, w, h);
+  }
   if ((adj.sharpen       || 0) > 0.01)                     applySharpness(canvas, adj.sharpen, offX, offY, w, h);
   if (Math.abs(adj.clarity || 0) > 0.005)                  applyClarity(canvas, adj.clarity, offX, offY, w, h);
   if ((adj.blur          || 0) > 0.01)                     applyBlur(canvas, adj.blur, offX, offY, w, h);
   if ((adj.vignette_blur || 0) > 0.01)                     applyVignetteBlur(canvas, adj.vignette_blur, offX, offY, w, h);
   if ((adj.motion_blur   || 0) > 0.01)                     applyMotionBlur(canvas, adj.motion_blur, offX, offY, w, h);
   if ((adj.radial_blur   || 0) > 0.01)                     applyRadialBlur(canvas, adj.radial_blur, offX, offY, w, h);
-  if ((adj.glow          || 0) > 0.01)                     applyGlow(canvas, adj.glow, offX, offY, w, h);
-  if ((adj.mist          || 0) > 0.01)                     applyMist(canvas, adj.mist, offX, offY, w, h);
+  if (!glowBeforeSharpen) {
+    if ((adj.glow        || 0) > 0.01)                     applyGlow(canvas, adj.glow, offX, offY, w, h);
+    if ((adj.mist        || 0) > 0.01)                     applyMist(canvas, adj.mist, offX, offY, w, h);
+  }
   if ((adj.halation      || 0) > 0.01)                     applyHalation(canvas, adj.halation, adj.halation_hue || 0, offX, offY, w, h);
   if (adj.halationBloom)                                   applyHalationBloom(canvas, adj.halationBloom, offX, offY, w, h);
   if (p && p.bleeds)                                       applyBleeds(canvas, p.bleeds, offX, offY, w, h);

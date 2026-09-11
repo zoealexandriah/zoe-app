@@ -18844,28 +18844,14 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
         }
       }
       ctx.putImageData(new ImageData(processed, w, h), 0, 0);
-      if (p.curve)                      applyCurveLUTs(off, p.curve,      0, 0, w, h);
-      if ((adj.sharpen  || 0) > 0.01)   applySharpness(off, adj.sharpen,  0, 0, w, h);
-      if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(off, adj.clarity, 0, 0, w, h);
-      if ((adj.blur     || 0) > 0.01)   applyBlur(off,     adj.blur,      0, 0, w, h);
-      if ((adj.vignette_blur || 0) > 0.01) applyVignetteBlur(off, adj.vignette_blur, 0, 0, w, h);
-      if ((adj.motion_blur   || 0) > 0.01) applyMotionBlur(off, adj.motion_blur, 0, 0, w, h);
-      if ((adj.radial_blur   || 0) > 0.01) applyRadialBlur(off, adj.radial_blur, 0, 0, w, h);
-      if ((adj.glow     || 0) > 0.01)   applyGlow(off,     adj.glow,      0, 0, w, h);
-      if ((adj.mist     || 0) > 0.01)   applyMist(off,     adj.mist,      0, 0, w, h);
-      if ((adj.halation || 0) > 0.01)   applyHalation(off, adj.halation, adj.halation_hue || 0, 0, 0, w, h);
-      if (adj.halationBloom)             applyHalationBloom(off, adj.halationBloom, 0, 0, w, h);
-      if (p.bleeds)                      applyBleeds(off, p.bleeds, 0, 0, w, h);
-      if (adj.scanLines)                 applyScanLines(off, adj.scanLines, 0, 0, w, h);
-      if (adj.chromaticAberration)       applyChromaticAberration(off, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, w, h);
-      if (adj.vhsBleed)                  applyVHSBleed(off, adj.vhsBleed.intensity || 8, 0, 0, w, h);
-      if ((adj.diffusion || 0) > 0.01)  applyDiffusion(off, adj.diffusion, 0, 0, w, h);
-      if ((adj.vignette || 0) > 0.01)   applyVignette(off, adj.vignette, 0, 0, w, h);
-      if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, (p.grainSize || 1));
       var _savedFxTexBT = entry.editState && entry.editState.fxState && entry.editState.fxState.texture && entry.editState.fxState.texture.variant;
       if (_savedFxTexBT && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { for(var _tiBT=0;_tiBT<FX_VARIANTS.texture.length;_tiBT++){if(FX_VARIANTS.texture[_tiBT].id===_savedFxTexBT){adj.textureOverlay={file:FX_VARIANTS.texture[_tiBT].assetFile,blend:'screen',opacity:(entry.editState.fxState.texture.intensity!=null?fxState.texture.intensity:100)/100};break;}} }
-      if (adj.textureOverlay)            applyTextureOverlay(off, adj.textureOverlay, 0, 0, w, h);
-      if (adj.border)                    applyBorder(off, adj.border, 0, 0, w, h);
+      applyEffectChain(off, adj, p, 0, 0, w, h, {
+        skipBlemish: true,
+        skipDuotone: true,
+        grainAmount: _fgGrain * intensity,
+        grainSize:   p.grainSize || 1,
+      });
     }
     // Apply FX frame/letterbox from saved fxState
     var _savedFxSt = entry.editState && entry.editState.fxState;
@@ -19008,6 +18994,7 @@ function applyEffectChain(canvas, adj, p, offX, offY, w, h, opts) {
   var skipBlemish       = opts.skipBlemish       != null ? opts.skipBlemish : true;
   var skipAfterVignette = !!opts.skipAfterVignette;
   var glowBeforeSharpen = !!opts.glowBeforeSharpen;
+  var skipDuotone       = !!opts.skipDuotone;
   if (p && p.curve)                                        applyCurveLUTs(canvas, p.curve, offX, offY, w, h);
   if (glowBeforeSharpen) {
     if ((adj.glow        || 0) > 0.01)                     applyGlow(canvas, adj.glow, offX, offY, w, h);
@@ -19030,7 +19017,7 @@ function applyEffectChain(canvas, adj, p, offX, offY, w, h, opts) {
   if (adj.chromaticAberration)                             applyChromaticAberration(canvas, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, offX, offY, w, h);
   if (adj.vhsBleed)                                        applyVHSBleed(canvas, adj.vhsBleed.intensity || 8, offX, offY, w, h);
   if ((adj.diffusion     || 0) > 0.01)                     applyDiffusion(canvas, adj.diffusion, offX, offY, w, h);
-  if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength || 0) > 0.01)
+  if (!skipDuotone && adj.duotone_a && adj.duotone_b && (adj.duotone_strength || 0) > 0.01)
                                                             applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, offX, offY, w, h);
   if ((adj.vignette      || 0) > 0.01)                     applyVignette(canvas, adj.vignette, offX, offY, w, h);
   if (!skipBlemish && typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)

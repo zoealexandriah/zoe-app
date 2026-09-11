@@ -18386,6 +18386,9 @@ function galleryOpenInEditor(idx) {
   } else {
     // Case B: fresh photo, no saved editState. Restore userImage after evInit's
     // rAF-B has rebuilt the slider DOM, so the first render sees a clean slate.
+    // Latch originalDataURL now — synchronously, before any preset tap or
+    // save-and-return can overwrite entry.dataURL with a baked JPEG.
+    if (entry.dataURL) entry.editState = { originalDataURL: entry.dataURL };
     var _goeFreshImg = entry.img;
     requestAnimationFrame(function() {
       userImage = _goeFreshImg;

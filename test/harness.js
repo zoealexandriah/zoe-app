@@ -27,9 +27,8 @@ const GRAIN_SEED = 0xBEEF; // fixed starting seed; each combo uses seed+n
 
 // FX texture variant used for the fxtex render variant.
 // tex01 / photobooth_texture01.webp is the first entry in FX_VARIANTS.texture.
-// In headless Playwright image loads fail, so the harness injects a 32×32 gray
-// canvas dummy — non-black so screen-blend produces visible output change,
-// proving the fxState texture path is actually exercised.
+// page.route() in launchBrowser() intercepts texture requests and serves real
+// WebP files from assets/textures/ — no dummy injection needed.
 const FX_TEX_VARIANT = 'tex01';
 const FX_TEX_FILE    = 'photobooth_texture01.webp';
 
@@ -239,18 +238,37 @@ async function launchBrowser() {
   });
 
   const page = await ctx.newPage();
-  page.on('download', d => d.cancel().catch(() => {})); // swallow any download attempts
+  page.on('download', d => d.cancel().catch(() => {}));
+
+  // Serve real texture WebP files. The dev server returns index.html for every URL
+  // (single-file HttpListener with no static routing), so texture requests fail there.
+  // Intercept them here and fulfill from disk instead.
+  await page.route('**/assets/textures/*.webp', async (route) => {
+    const url      = new URL(route.request().url());
+    const filename = path.basename(url.pathname);
+    const filePath = path.resolve(TEST_DIR, '..', 'assets', 'textures', filename);
+    if (fs.existsSync(filePath)) {
+      await route.fulfill({
+        body:        fs.readFileSync(filePath),
+        contentType: 'image/webp',
+        headers:     { 'Access-Control-Allow-Origin': '*' },
+      });
+    } else {
+      await route.abort();
+    }
+  });
+
   await page.goto(APP_URL, { waitUntil: 'networkidle' });
   return { browser, page };
 }
 
 // ── render one combination via the REAL app path function ─────────────────────
 // fxTexture: null | { variant: string, intensity: number }
-async function renderCombo(page, photoId, presetId, pathId, seed, fxTexture) {
+async function renderCombo(page, photoId, presetId, pathId, seed, fxTexture, probeOpts) {
   const { W, H, px } = photoId === 'portrait' ? makePortrait() : makeLandscape();
   const photoURL     = pixelsToDataURL(W, H, px);
 
-  return page.evaluate(async ([photoURL, presetId, pathId, seed, fxTexture]) => {
+  return page.evaluate(async ([photoURL, presetId, pathId, seed, fxTexture, probeOpts]) => {
     // Deterministic XORShift32 PRNG — seeded consistently per combo so grain
     // is identical between capture and compare runs.
     let _s = (seed >>> 0) || 1;
@@ -259,6 +277,7 @@ async function renderCombo(page, photoId, presetId, pathId, seed, fxTexture) {
       _s ^= _s << 13; _s ^= _s >>> 17; _s ^= _s << 5;
       return (_s >>> 0) / 4294967296;
     };
+    let _origApplyTextureOverlay = null;
 
     try {
       // ── load test photo ────────────────────────────────────────────────────
@@ -276,7 +295,7 @@ async function renderCombo(page, photoId, presetId, pathId, seed, fxTexture) {
       presetIntensity = 1.0;        // let presetIntensity
       window.blemishSpots = [];
       window._slDragging     = false;
-      // fxState.texture is set below after dummy injection; always clear frames.
+      // fxState.texture is set below; always clear frames.
       if (typeof fxState !== 'undefined') { fxState.frames = null; fxState.texture = null; }
       // library is const array — mutate in place
       library.length = 0;
@@ -287,43 +306,36 @@ async function renderCombo(page, photoId, presetId, pathId, seed, fxTexture) {
       library.push(entry);
       editingIdx = 0;
 
-      // ── inject synthetic texture so _evDoSave's texture check passes ─────────
-      // loadTexture() uses crossOrigin='anonymous' which makes headless Playwright
-      // return complete=true but naturalWidth=0 (load failure). _evDoSave checks
-      // !complete || !naturalWidth and if true: sets tx.onload=_evDoSave; return —
-      // onload never fires on a failed image → infinite hang. Fix: replace the
-      // cache entry with a working 1×1 dummy before calling any path.
-      if (p.textureOverlay && p.textureOverlay.file) {
-        const file = p.textureOverlay.file;
-        const dummy = new Image();
-        dummy.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI6QAAAABJRU5ErkJggg==';
-        await new Promise(r => { dummy.onload = r; dummy.onerror = r; });
-        _texCache[file] = dummy;
-      }
-
-      // ── inject FX texture dummy when testing the fxState texture path ────────
-      // Use a 32×32 gray canvas (not 1×1 black) so screen-blend produces a visible
-      // change, proving the code path is exercised rather than silently skipped.
-      if (fxTexture && typeof _texCache !== 'undefined') {
-        const fxVariant = (typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture || [])
-          .find(t => t.id === fxTexture.variant);
-        const fxFile = fxVariant && fxVariant.assetFile;
-        if (fxFile) {
-          const dc = document.createElement('canvas');
-          dc.width = 32; dc.height = 32;
-          const dctx = dc.getContext('2d');
-          dctx.fillStyle = '#808080';
-          dctx.fillRect(0, 0, 32, 32);
-          const di = new Image();
-          di.src = dc.toDataURL('image/png');
-          await new Promise(r => { di.onload = r; di.onerror = r; });
-          _texCache[fxFile] = di;
-        }
-      }
-
-      // ── set fxState.texture (after dummy injection so loadTexture finds it) ──
+      // ── set fxState.texture ────────────────────────────────────────────────────
       if (typeof fxState !== 'undefined') {
         fxState.texture = fxTexture; // null or { variant, intensity }
+      }
+
+      // ── proof mode: intercept applyTextureOverlay to render without texture ──
+      if (probeOpts && probeOpts.nullPresetTexture) {
+        _origApplyTextureOverlay = window.applyTextureOverlay;
+        window.applyTextureOverlay = function() {};
+      }
+
+      // ── pre-warm textures ─────────────────────────────────────────────────────
+      // applyTextureOverlay returns early if !img.complete || !img.naturalWidth.
+      // _evDoSave retries via tx.onload; other paths do not — they silently skip.
+      // Pre-loading here ensures every path finds its texture ready in _texCache.
+      const _preWarm = async (file) => {
+        if (!file) return;
+        const img = loadTexture(file);
+        if (img.complete && img.naturalWidth) return;
+        await new Promise((res) => {
+          const origOnload = img.onload;
+          img.onload = () => { img.onload = origOnload; res(); };
+          img.onerror = res;
+        });
+      };
+      if (p.textureOverlay && p.textureOverlay.file) await _preWarm(p.textureOverlay.file);
+      if (fxTexture) {
+        const fxVariant = (typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture || [])
+          .find(t => t.id === fxTexture.variant);
+        if (fxVariant && fxVariant.assetFile) await _preWarm(fxVariant.assetFile);
       }
 
       // ── shared capture-promise factory ─────────────────────────────────────
@@ -413,13 +425,36 @@ async function renderCombo(page, photoId, presetId, pathId, seed, fxTexture) {
 
     } finally {
       Math.random = _origRandom;
+      if (_origApplyTextureOverlay !== null) window.applyTextureOverlay = _origApplyTextureOverlay;
     }
-  }, [photoURL, presetId, pathId, seed, fxTexture]);
+  }, [photoURL, presetId, pathId, seed, fxTexture, probeOpts || {}]);
 }
 
 // ── reload helper — resets page state between preset+variant groups ───────────
 async function reloadPage(page) {
   await page.goto(APP_URL, { waitUntil: 'networkidle' });
+}
+
+// ── texture coverage proof ─────────────────────────────────────────────────────
+// Renders automat/portrait/evSaveAndReturn twice with the same seed: once normally
+// (real preset WebP texture composited) and once with applyTextureOverlay
+// intercepted (no texture applied). MAD between them proves the real WebP
+// texture is changing pixels. Companion number: 1×1 black dummy gives MAD ~0
+// analytically — screen-blend of black: result = src + dst - src*dst/255 → dst.
+async function proveTexture(page) {
+  const PROOF_SEED = 0xDEAD;
+  await reloadPage(page);
+  const dataWith    = await renderCombo(page, 'portrait', 'automat', 'evSaveAndReturn', PROOF_SEED, null, {});
+  await reloadPage(page);
+  const dataWithout = await renderCombo(page, 'portrait', 'automat', 'evSaveAndReturn', PROOF_SEED, null, { nullPresetTexture: true });
+
+  const bufWith    = Buffer.from(dataWith.replace('data:image/png;base64,', ''), 'base64');
+  const bufWithout = Buffer.from(dataWithout.replace('data:image/png;base64,', ''), 'base64');
+  const madReal    = computeMAD(bufWith, bufWithout);
+
+  console.log('\n  Texture coverage proof (automat/portrait/evSaveAndReturn):');
+  console.log(`  MAD real WebP texture vs no texture:  ${madReal.toFixed(4)}${madReal > 0.5 ? '  ✓ compositing' : '  ✗ NOT compositing — texture not applied!'}`);
+  console.log(`  MAD 1×1 black dummy vs no texture:    ~0.0000  (screen-blend of black is a no-op: result = dst)`);
 }
 
 // ── capture mode ──────────────────────────────────────────────────────────────
@@ -448,6 +483,7 @@ async function capture(outDir) {
       }
     }
     console.log(`\n  wrote ${count} files · ${(totalBytes / 1024).toFixed(0)} KB total`);
+    await proveTexture(page);
   } finally {
     await browser.close();
   }

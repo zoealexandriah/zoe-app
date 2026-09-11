@@ -1,2 +1,4 @@
 node_modules/
 www/
+test/baseline-*/
+test/debug_probe.js

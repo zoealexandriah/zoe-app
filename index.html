@@ -18711,6 +18711,12 @@ function evSaveAndReturn() {
       adj.highlight_tint = p.highlightTint || null;
       adj.halationBloom = p.halationBloom || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+      if (p.filmCrossover)       adj.filmCrossover       = p.filmCrossover;
+      if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
+      if (p.scanLines) { var _slSR = _evSaveSliders && _evSaveSliders['SCANLINES'] !== undefined ? _evSaveSliders['SCANLINES'] : 0; adj.scanLines = { spacing: p.scanLines.spacing || 2, opacity: Math.max(0, p.scanLines.opacity + _slSR) }; }
+      if (p.vhsBleed)            adj.vhsBleed            = p.vhsBleed;
+      if (p.textureOverlay)      adj.textureOverlay      = p.textureOverlay;
+      if (p.border)              adj.border              = p.border;
       var _fgGrain = adj.grain || 0;
       adj.grain = 0;
       var origData  = ctx.getImageData(0, 0, iw, ih);
@@ -18810,6 +18816,12 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       adj.highlight_tint = p.highlightTint || null;
       adj.halationBloom = p.halationBloom || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+      if (p.filmCrossover)       adj.filmCrossover       = p.filmCrossover;
+      if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
+      if (p.scanLines) { const _slBT = sliders && sliders['SCANLINES'] !== undefined ? sliders['SCANLINES'] : 0; adj.scanLines = { spacing: p.scanLines.spacing || 2, opacity: Math.max(0, p.scanLines.opacity + _slBT) }; }
+      if (p.vhsBleed)            adj.vhsBleed            = p.vhsBleed;
+      if (p.textureOverlay)      adj.textureOverlay      = p.textureOverlay;
+      if (p.border)              adj.border              = p.border;
       const _fgGrain = adj.grain || 0;
       adj.grain = 0;
       const origData = ctx.getImageData(0, 0, w, h);
@@ -19003,6 +19015,13 @@ function _exportEntry(entry, onDone) {
       adj.highlight_tint = p.highlightTint || null;
       adj.halationBloom = p.halationBloom || null;
       if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+      if (p.filmCrossover)       adj.filmCrossover       = p.filmCrossover;
+      if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
+      if (p.scanLines) { const _slEE = sliders && sliders['SCANLINES'] !== undefined ? sliders['SCANLINES'] : 0; adj.scanLines = { spacing: p.scanLines.spacing || 2, opacity: Math.max(0, p.scanLines.opacity + _slEE) }; }
+      if (p.vhsBleed)            adj.vhsBleed            = p.vhsBleed;
+      if (p.textureOverlay)      adj.textureOverlay      = p.textureOverlay;
+      if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvEE = null; if (FX_VARIANTS.texture) { for (var _tiEE=0;_tiEE<FX_VARIANTS.texture.length;_tiEE++) { if (FX_VARIANTS.texture[_tiEE].id===fxState.texture.variant) { _fxTvEE=FX_VARIANTS.texture[_tiEE]; break; } } } if (_fxTvEE) adj.textureOverlay = { file: _fxTvEE.assetFile, blend: 'screen', opacity: (fxState.texture.intensity!=null?fxState.texture.intensity:100)/100 }; }
+      if (p.border)              adj.border              = p.border;
       const _fgGrain = adj.grain || 0;
       adj.grain = 0;
       const origData = ctx.getImageData(0, 0, iw, ih);
@@ -19411,6 +19430,13 @@ window.exportDownload = function() {
     if (p.highlightTint)             adj.highlight_tint  = p.highlightTint;
     if (p.halationHue !== undefined) adj.halation_hue    = p.halationHue;
     if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
+    if (p.filmCrossover)       adj.filmCrossover       = p.filmCrossover;
+    if (p.chromaticAberration) adj.chromaticAberration = p.chromaticAberration;
+    if (p.scanLines) { const _slMD = sliderState[p.id] && sliderState[p.id]['SCANLINES'] !== undefined ? sliderState[p.id]['SCANLINES'] : 0; adj.scanLines = { spacing: p.scanLines.spacing || 2, opacity: Math.max(0, p.scanLines.opacity + _slMD) }; }
+    if (p.vhsBleed)            adj.vhsBleed            = p.vhsBleed;
+    if (p.textureOverlay)      adj.textureOverlay      = p.textureOverlay;
+    if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvMD = null; if (FX_VARIANTS.texture) { for (var _tiMD=0;_tiMD<FX_VARIANTS.texture.length;_tiMD++) { if (FX_VARIANTS.texture[_tiMD].id===fxState.texture.variant) { _fxTvMD=FX_VARIANTS.texture[_tiMD]; break; } } } if (_fxTvMD) adj.textureOverlay = { file: _fxTvMD.assetFile, blend: 'screen', opacity: (fxState.texture.intensity!=null?fxState.texture.intensity:100)/100 }; }
+    if (p.border)              adj.border              = p.border;
     try { origData = ctx.getImageData(0, 0, iw, ih); } catch(e) { origData = null; }
     if (!origData || !origData.data || origData.data.length === 0) {
       showToast('Export failed — reduce photo size and try again'); return;

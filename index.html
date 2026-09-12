@@ -17273,6 +17273,8 @@ function _evRenderCanvasImmediate() {
       if (activePreset.vhsBleed)  adj.vhsBleed  = activePreset.vhsBleed;
       if (activePreset.textureOverlay) adj.textureOverlay = activePreset.textureOverlay;
       if (activePreset.border)       adj.border       = activePreset.border;
+      if (activePreset.duotone) { adj.duotone_a = activePreset.duotone.a; adj.duotone_b = activePreset.duotone.b; adj.duotone_strength = activePreset.duotone.strength || 0.7; }
+      adj.halationBloom = activePreset.halationBloom || null;
     }
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
       var _fxTv3 = null; if (FX_VARIANTS.texture) { for (var _ti3=0;_ti3<FX_VARIANTS.texture.length;_ti3++) { if (FX_VARIANTS.texture[_ti3].id===fxState.texture.variant) { _fxTv3=FX_VARIANTS.texture[_ti3]; break; } } }
@@ -17300,61 +17302,36 @@ function _evRenderCanvasImmediate() {
       _preOverlaySnap.width = canvas.width; _preOverlaySnap.height = canvas.height;
       _preOverlaySnap.getContext('2d').drawImage(canvas, 0, 0);
     }
-    if (activePreset && activePreset.curve) applyCurveLUTs(canvas, activePreset.curve, 0, 0, canvas.width, canvas.height);
     var _dragging = window._slDragging;
-    if ((adj.glow || 0) > 0.01) applyGlow(canvas, adj.glow, 0, 0, canvas.width, canvas.height);
-    if ((adj.mist || 0) > 0.01) applyMist(canvas, adj.mist, 0, 0, canvas.width, canvas.height);
-    if ((adj.sharpen || 0) > 0.01) applySharpness(canvas, adj.sharpen, 0, 0, canvas.width, canvas.height);
-    if (Math.abs(adj.clarity || 0) > 0.005) applyClarity(canvas, adj.clarity, 0, 0, canvas.width, canvas.height);
-    if ((adj.blur   || 0) > 0.01) applyBlur(canvas, adj.blur, 0, 0, canvas.width, canvas.height);
-    if ((adj.vignette_blur || 0) > 0.01) applyVignetteBlur(canvas, adj.vignette_blur, 0, 0, canvas.width, canvas.height);
-    if ((adj.motion_blur   || 0) > 0.01) applyMotionBlur(canvas, adj.motion_blur, 0, 0, canvas.width, canvas.height);
-    if ((adj.radial_blur   || 0) > 0.01) applyRadialBlur(canvas, adj.radial_blur, 0, 0, canvas.width, canvas.height);
-    if (activePreset && activePreset.splitTone) adj.split_tone = activePreset.splitTone;
-    if (activePreset && activePreset.halationHue !== undefined) adj.halation_hue = activePreset.halationHue;
-    if (activePreset && activePreset.shadowTint) adj.shadow_tint = activePreset.shadowTint;
-    if (activePreset && activePreset.highlightTint) adj.highlight_tint = activePreset.highlightTint;
-    if (activePreset && activePreset.duotone) { adj.duotone_a = activePreset.duotone.a; adj.duotone_b = activePreset.duotone.b; adj.duotone_strength = activePreset.duotone.strength || 0.7; }
-    // Halation, bloom, diffusion always apply (visible look — skipping them causes the
-    // whole aesthetic to lift/disappear during drag). Bloom uses a lighter canvas-source
-    // path during drag to keep it fast.
-    if ((adj.halation || 0) > 0.01) applyHalation(canvas, adj.halation, adj.halation_hue || 0, 0, 0, canvas.width, canvas.height);
-    if (activePreset && activePreset.halationBloom) {
-      if (!_dragging && userImage) {
-        var _hbNw = userImage.naturalWidth, _hbNh = userImage.naturalHeight;
-        var _hbS = Math.min(1, 1200 / _hbNw);
-        var _hbW = Math.round(_hbNw * _hbS), _hbH = Math.round(_hbNh * _hbS);
-        var _hbSrc = document.createElement('canvas');
-        _hbSrc.width = _hbW; _hbSrc.height = _hbH;
-        _hbSrc.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0, _hbW, _hbH);
-        if (activePreset.curve) applyCurveLUTs(_hbSrc, activePreset.curve, 0, 0, _hbW, _hbH);
-        var _hbLayer = _evBloomLayer(_hbSrc, activePreset.halationBloom, _hbW, _hbH);
-        var _hbCtx = canvas.getContext('2d', { willReadFrequently: true });
-        _hbCtx.save(); _hbCtx.globalCompositeOperation = 'lighter';
-        _hbCtx.drawImage(_hbLayer, 0, 0, canvas.width, canvas.height);
-        _hbCtx.restore();
-      } else if (_dragging) {
-        // Drag: bloom from already-rendered canvas (same size, fast)
-        var _hbLayer2 = _evBloomLayer(canvas, activePreset.halationBloom, canvas.width, canvas.height);
-        var _hbCtx2 = canvas.getContext('2d', { willReadFrequently: true });
-        _hbCtx2.save(); _hbCtx2.globalCompositeOperation = 'lighter';
-        _hbCtx2.drawImage(_hbLayer2, 0, 0);
-        _hbCtx2.restore();
-      }
-    }
-    if (activePreset && activePreset.bleeds)
-      applyBleeds(canvas, activePreset.bleeds, 0, 0, canvas.width, canvas.height);
-    if (adj.scanLines)
-      applyScanLines(canvas, adj.scanLines, 0, 0, canvas.width, canvas.height);
-    if (adj.chromaticAberration)
-      applyChromaticAberration(canvas, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, canvas.width, canvas.height);
-    if (adj.vhsBleed)
-      applyVHSBleed(canvas, adj.vhsBleed.intensity || 8, 0, 0, canvas.width, canvas.height);
-    if ((adj.diffusion || 0) > 0.01) applyDiffusion(canvas, adj.diffusion, 0, 0, canvas.width, canvas.height);
-    if (!_dragging) {
-      if (adj.duotone_a && adj.duotone_b && adj.duotone_strength > 0.01) applyDuotone(canvas, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, canvas.width, canvas.height);
-    }
-    if ((adj.vignette || 0) > 0.01) applyVignette(canvas, adj.vignette, 0, 0, canvas.width, canvas.height);
+    applyEffectChain(canvas, adj, activePreset, 0, 0, canvas.width, canvas.height, {
+      glowBeforeSharpen: true,
+      skipBlemish:       true,
+      skipAfterVignette: true,
+      skipDuotone:       !!_dragging,
+      bloomFn: activePreset && activePreset.halationBloom ? function(_c) {
+        if (!_dragging && userImage) {
+          var _hbNw = userImage.naturalWidth, _hbNh = userImage.naturalHeight;
+          var _hbS  = Math.min(1, 1200 / _hbNw);
+          var _hbW  = Math.round(_hbNw * _hbS), _hbH = Math.round(_hbNh * _hbS);
+          var _hbSrc = document.createElement('canvas');
+          _hbSrc.width = _hbW; _hbSrc.height = _hbH;
+          _hbSrc.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0, _hbW, _hbH);
+          if (activePreset.curve) applyCurveLUTs(_hbSrc, activePreset.curve, 0, 0, _hbW, _hbH);
+          var _hbLayer = _evBloomLayer(_hbSrc, activePreset.halationBloom, _hbW, _hbH);
+          var _hbCtx = _c.getContext('2d', { willReadFrequently: true });
+          _hbCtx.save(); _hbCtx.globalCompositeOperation = 'lighter';
+          _hbCtx.drawImage(_hbLayer, 0, 0, _c.width, _c.height);
+          _hbCtx.restore();
+        } else if (_dragging) {
+          // Drag: bloom from already-rendered canvas (same size, fast)
+          var _hbLayer2 = _evBloomLayer(_c, activePreset.halationBloom, _c.width, _c.height);
+          var _hbCtx2 = _c.getContext('2d', { willReadFrequently: true });
+          _hbCtx2.save(); _hbCtx2.globalCompositeOperation = 'lighter';
+          _hbCtx2.drawImage(_hbLayer2, 0, 0);
+          _hbCtx2.restore();
+        }
+      } : null,
+    });
     // Blend canvas overlays back toward original by (1-intensity)
     if (_preOverlaySnap) {
       var _pCtx = canvas.getContext('2d', { willReadFrequently: true });
@@ -18974,6 +18951,7 @@ function applyEffectChain(canvas, adj, p, offX, offY, w, h, opts) {
   var skipAfterVignette = !!opts.skipAfterVignette;
   var glowBeforeSharpen = !!opts.glowBeforeSharpen;
   var skipDuotone       = !!opts.skipDuotone;
+  var bloomFn           = opts.bloomFn           || null;
   if (p && p.curve)                                        applyCurveLUTs(canvas, p.curve, offX, offY, w, h);
   if (glowBeforeSharpen) {
     if ((adj.glow        || 0) > 0.01)                     applyGlow(canvas, adj.glow, offX, offY, w, h);
@@ -18990,7 +18968,8 @@ function applyEffectChain(canvas, adj, p, offX, offY, w, h, opts) {
     if ((adj.mist        || 0) > 0.01)                     applyMist(canvas, adj.mist, offX, offY, w, h);
   }
   if ((adj.halation      || 0) > 0.01)                     applyHalation(canvas, adj.halation, adj.halation_hue || 0, offX, offY, w, h);
-  if (adj.halationBloom)                                   applyHalationBloom(canvas, adj.halationBloom, offX, offY, w, h);
+  if (bloomFn)                                             bloomFn(canvas);
+  else if (adj.halationBloom)                              applyHalationBloom(canvas, adj.halationBloom, offX, offY, w, h);
   if (p && p.bleeds)                                       applyBleeds(canvas, p.bleeds, offX, offY, w, h);
   if (adj.scanLines)                                       applyScanLines(canvas, adj.scanLines, offX, offY, w, h);
   if (adj.chromaticAberration)                             applyChromaticAberration(canvas, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, offX, offY, w, h);

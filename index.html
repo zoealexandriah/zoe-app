@@ -18235,6 +18235,8 @@ function galleryOpenInEditor(idx) {
   Object.keys(sliderState).forEach(function(k){ sliderState[k] = {}; });
   evActivePreset = null; activePreset = null;
   if (typeof fxState !== 'undefined') { fxState.texture = { variant: null, intensity: 100 }; if (typeof fxUpdateCatDot === 'function') fxUpdateCatDot('texture'); }
+  blemishSpots = []; _blemishHistory = []; _blemishFuture = []; _blemishPreEdit = null;
+  try { localStorage.removeItem('zoe_blemish'); } catch(e){}
   // Temporarily set userImage = entry.img so evInit shows the canvas (not the import screen).
   // It will be nulled before evInit's rAF fires to prevent stacking effects on the thumbnail.
   userImage = entry.img;

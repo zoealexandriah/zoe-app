@@ -16884,6 +16884,7 @@ function _evDoSave() {
       if (_fxTv2) adj.textureOverlay = { file: _fxTv2.assetFile, blend: 'screen', opacity: (fxState.texture.intensity!=null?fxState.texture.intensity:100)/100 };
     }
     if (p.border)       adj.border       = p.border;
+    adj.halationBloom = p.halationBloom || null;
     // Grain is applied post-upscale at export resolution, not on the 800px proxy.
     var _exportGrain = adj.grain || 0;
     adj.grain = 0;
@@ -16897,33 +16898,11 @@ function _evDoSave() {
     function _afterPixels(processed) {
       // Write processed pixels back to proxy canvas
       pCtx.putImageData(new ImageData(processed, pw, ph), 0, 0);
-      // Run all canvas effects on 800px proxy — fast on any device
-      if (p.curve)                          applyCurveLUTs(proxy, p.curve, 0, 0, pw, ph);
-      if ((adj.glow        || 0) > 0.01)   applyGlow(proxy, adj.glow, 0, 0, pw, ph);
-      if ((adj.mist        || 0) > 0.01)   applyMist(proxy, adj.mist, 0, 0, pw, ph);
-      if ((adj.sharpen     || 0) > 0.01)   applySharpness(proxy, adj.sharpen, 0, 0, pw, ph);
-      if (Math.abs(adj.clarity||0) > 0.005) applyClarity(proxy, adj.clarity, 0, 0, pw, ph);
-      if ((adj.blur        || 0) > 0.01)   applyBlur(proxy, adj.blur, 0, 0, pw, ph);
-      if ((adj.vignette_blur||0) > 0.01)   applyVignetteBlur(proxy, adj.vignette_blur, 0, 0, pw, ph);
-      if ((adj.motion_blur  ||0) > 0.01)   applyMotionBlur(proxy, adj.motion_blur, 0, 0, pw, ph);
-      if ((adj.radial_blur  ||0) > 0.01)   applyRadialBlur(proxy, adj.radial_blur, 0, 0, pw, ph);
-      if (p.splitTone)                 adj.split_tone     = p.splitTone;
-      if (p.halationHue !== undefined) adj.halation_hue   = p.halationHue;
-      if (p.shadowTint)                adj.shadow_tint    = p.shadowTint;
-      if (p.highlightTint)             adj.highlight_tint = p.highlightTint;
-      if (p.duotone) { adj.duotone_a = p.duotone.a; adj.duotone_b = p.duotone.b; adj.duotone_strength = p.duotone.strength || 0.7; }
-      if ((adj.halation    || 0) > 0.01)   applyHalation(proxy, adj.halation, adj.halation_hue||0, 0, 0, pw, ph);
-      if (p.halationBloom)                  applyHalationBloom(proxy, p.halationBloom, 0, 0, pw, ph);
-      if (p.bleeds)                         applyBleeds(proxy, p.bleeds, 0, 0, pw, ph);
-      if (adj.scanLines)                    applyScanLines(proxy, adj.scanLines, 0, 0, pw, ph);
-      if (adj.chromaticAberration)          applyChromaticAberration(proxy, adj.chromaticAberration.amount ?? adj.chromaticAberration.intensity ?? 1, adj.chromaticAberration.falloff ?? 0.85, 0, 0, pw, ph);
-      if (adj.vhsBleed)                     applyVHSBleed(proxy, adj.vhsBleed.intensity || 8, 0, 0, pw, ph);
-      if ((adj.diffusion   || 0) > 0.01)   applyDiffusion(proxy, adj.diffusion, 0, 0, pw, ph);
-      if (adj.duotone_a && adj.duotone_b && (adj.duotone_strength||0) > 0.01)
-                                            applyDuotone(proxy, adj.duotone_a, adj.duotone_b, adj.duotone_strength, 0, 0, pw, ph);
-      if ((adj.vignette    || 0) > 0.01)   applyVignette(proxy, adj.vignette, 0, 0, pw, ph);
-      if (typeof blemishSpots !== 'undefined' && blemishSpots && blemishSpots.length > 0)
-                                            applyBlemishHeal(proxy, blemishSpots, 0, 0, pw, ph);
+      applyEffectChain(proxy, adj, p, 0, 0, pw, ph, {
+        glowBeforeSharpen: true,
+        skipBlemish:       false,
+        skipAfterVignette: true,
+      });
 
       // Upscale to export resolution FIRST, then grain, then hand the grained
       // full-res canvas to whichever export branch runs. All three branches read

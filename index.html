@@ -18722,7 +18722,7 @@ function evSaveAndReturn() {
       ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
       if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) adj.textureOverlay = null;
       applyEffectChain(off, adj, p, 0, 0, iw, ih, {
-        skipBlemish: true,
+        skipBlemish: false,
         grainAmount: _fgGrain * intensity,
         grainSize:   p.grainSize || 1,
       });
@@ -18814,7 +18814,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       var _savedFxTexBT = entry.editState && entry.editState.fxState && entry.editState.fxState.texture && entry.editState.fxState.texture.variant;
       if (_savedFxTexBT && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { for(var _tiBT=0;_tiBT<FX_VARIANTS.texture.length;_tiBT++){if(FX_VARIANTS.texture[_tiBT].id===_savedFxTexBT){adj.textureOverlay={file:FX_VARIANTS.texture[_tiBT].assetFile,blend:'screen',opacity:(entry.editState.fxState.texture.intensity!=null?fxState.texture.intensity:100)/100};break;}} }
       applyEffectChain(off, adj, p, 0, 0, w, h, {
-        skipBlemish: true,
+        skipBlemish: false,
         skipDuotone: true,
         grainAmount: _fgGrain * intensity,
         grainSize:   p.grainSize || 1,
@@ -19051,7 +19051,7 @@ function _exportEntry(entry, onDone) {
       }
       ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
       applyEffectChain(off, adj, p, 0, 0, iw, ih, {
-        skipBlemish: true,
+        skipBlemish: false,
         grainAmount: _fgGrain * intensity,
         grainSize:   p.grainSize || 1,
       });

@@ -1,4 +1,5 @@
 node_modules/
 www/
 test/baseline-*/
+test/crop-baseline-*/
 test/debug_probe.js

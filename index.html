@@ -10878,7 +10878,7 @@ function _cropTeardownVisuals(clearState) {
 }
 
 function evAdjustSubTab(name) {
-  if (name !== 'optical' && typeof _cropPerspFlush === 'function') _cropPerspFlush();
+  if (name !== 'optical' && typeof _cropPerspDiscard === 'function') _cropPerspDiscard();
   if (name !== 'crop') _cropTeardownVisuals(false);
   if (name !== 'blemish' && typeof blemishExit === 'function') blemishExit();
   var panelMap = {
@@ -15595,13 +15595,6 @@ window.toolsCropApply = function() {
   globalHistoryPush();
   _origToolsCropApply();
 };
-const _origToolsFlipApply = window.toolsFlipApply;
-window.toolsFlipApply = function(dir) {
-  if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
-  var _edVF = document.getElementById('editor-view');
-  if (_edVF && _edVF.classList.contains('active')) { evHistoryPush(); } else { globalHistoryPush(); }
-  _origToolsFlipApply(dir);
-};
 const _origToolsStraightenApply = window.toolsStraightenApply;
 window.toolsStraightenApply = function() {
   globalHistoryPush();
@@ -19737,7 +19730,7 @@ window.toolsFlipApply = function(dir) {
     }
   }
 
-  if (typeof _cropPerspFlush === 'function') { _cropPerspFlush(_doFlip); } else { _doFlip(); }
+  if (typeof _cropPerspDiscard === 'function') { _cropPerspDiscard(_doFlip); } else { _doFlip(); }
 };
 
 // Restore _preCropState.userImage on flip undo so RATIO re-adjust stays in sync
@@ -19970,7 +19963,7 @@ window.toolsCropApply = function() {
   // Flush any active perspective warp — _cropPerspFlush bakes full-res into userImage async.
   var _hadPerspImg = userImage;
   var _hadPersp = !!_etPerspOrigImg;
-  if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
+  if (typeof _cropPerspDiscard === 'function') _cropPerspDiscard();
   var hc = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
   if (!hc) { toolsCropCancel(); return; }
   if (_hadPersp) {
@@ -20232,7 +20225,7 @@ function _cropExitMode() {
   }
   if (typeof _cropBakeStraighten === 'function') _cropBakeStraighten();
   if (_sw) _sw.remove();
-  if (typeof _cropPerspFlush === 'function') _cropPerspFlush(); var _pw = document.getElementById('crop-perspective-work'); if (_pw) _pw.remove();
+  if (typeof _cropPerspDiscard === 'function') _cropPerspDiscard(); var _pw = document.getElementById('crop-perspective-work'); if (_pw) _pw.remove();
   if (typeof _cropStraightenOrig !== 'undefined') _cropStraightenOrig = null;
   if (typeof _cropStraightenRafId !== 'undefined' && _cropStraightenRafId) {
     cancelAnimationFrame(_cropStraightenRafId); _cropStraightenRafId = null;
@@ -20657,7 +20650,7 @@ function cropSelectSubTab(btn, tab) {
   }
   // Clean up perspective work canvas when leaving transform; pass rebuild callback so
   // OPTICAL→STRAIGHTEN rebuilds after the bake, not before.
-  if (typeof _cropPerspFlush === 'function') _cropPerspFlush(_doStRebuild); else _doStRebuild();
+  if (typeof _cropPerspDiscard === 'function') _cropPerspDiscard(_doStRebuild); else _doStRebuild();
   // Don't remove the work canvas if _cropPerspFlush already started an async render
   // (it keeps the warp visible until the new userImage is ready)
   if (!(typeof _cropPerspFlushPending !== 'undefined' && _cropPerspFlushPending)) {
@@ -21053,8 +21046,8 @@ function cropRotate90(dir) {
     });
   }
 
-  if (typeof _cropPerspFlush === 'function') {
-    _cropPerspFlush(_doRotate);
+  if (typeof _cropPerspDiscard === 'function') {
+    _cropPerspDiscard(_doRotate);
   } else { _doRotate(); }
 }
 
@@ -21099,9 +21092,35 @@ function _cropPerspFlush(onFlush) {
   });
 }
 
+function _cropPerspDiscard(onDiscard) {
+  var _pw = document.getElementById('crop-perspective-work');
+  var _hasReAdj = typeof _cropOptReAdjTransform !== 'undefined' && _cropOptReAdjTransform;
+  if (!_pw && !_hasReAdj) {
+    if (onDiscard) onDiscard();
+    return;
+  }
+  if (_pw) _pw.remove();
+  var _ac = typeof getActiveCanvas === 'function' ? getActiveCanvas() : document.getElementById('ev-canvas');
+  if (_ac) _ac.style.opacity = '1';
+  if (_hasReAdj) {
+    _cropTransforms.push(_cropOptReAdjTransform);
+    _cropOptReAdjTransform = null;
+  }
+  if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
+  if (typeof _etPerspActiveAxis !== 'undefined') _etPerspActiveAxis = null;
+  if (typeof _cropPerspAxisEntry !== 'undefined') _cropPerspAxisEntry = null;
+  if (typeof _cropRenderFromSource === 'function') {
+    _cropRenderFromSource(function() {
+      if (onDiscard) onDiscard();
+    });
+  } else {
+    if (onDiscard) onDiscard();
+  }
+}
+
 function cropPerspActivate(axis) {
   // Flush any existing perspective preview before starting a new one
-  _cropPerspFlush();
+  _cropPerspDiscard();
   _cropPerspAxis = axis;
   var label = document.getElementById('crop-persp-label');
   if (label) label.textContent = axis === 'v' ? 'VERT PERSPECTIVE' : 'HORIZ PERSPECTIVE';

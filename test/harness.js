@@ -311,6 +311,11 @@ async function renderCombo(page, photoId, presetId, pathId, seed, fxTexture, pro
         fxState.texture = fxTexture; // null or { variant, intensity }
       }
 
+      // ── mirror fxState into entry.editState (matches autoSaveEdit pattern) ──
+      entry.editState.fxState = (typeof fxState !== 'undefined')
+        ? JSON.parse(JSON.stringify(fxState))
+        : null;
+
       // ── proof mode: intercept applyTextureOverlay to render without texture ──
       if (probeOpts && probeOpts.nullPresetTexture) {
         _origApplyTextureOverlay = window.applyTextureOverlay;

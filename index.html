@@ -18812,7 +18812,7 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       }
       ctx.putImageData(new ImageData(processed, w, h), 0, 0);
       var _savedFxTexBT = entry.editState && entry.editState.fxState && entry.editState.fxState.texture && entry.editState.fxState.texture.variant;
-      if (_savedFxTexBT && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { for(var _tiBT=0;_tiBT<FX_VARIANTS.texture.length;_tiBT++){if(FX_VARIANTS.texture[_tiBT].id===_savedFxTexBT){adj.textureOverlay={file:FX_VARIANTS.texture[_tiBT].assetFile,blend:'screen',opacity:(entry.editState.fxState.texture.intensity!=null?fxState.texture.intensity:100)/100};break;}} }
+      if (_savedFxTexBT && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { for(var _tiBT=0;_tiBT<FX_VARIANTS.texture.length;_tiBT++){if(FX_VARIANTS.texture[_tiBT].id===_savedFxTexBT){adj.textureOverlay={file:FX_VARIANTS.texture[_tiBT].assetFile,blend:'screen',opacity:(entry.editState.fxState.texture.intensity!=null?entry.editState.fxState.texture.intensity:100)/100};break;}} }
       applyEffectChain(off, adj, p, 0, 0, w, h, {
         skipBlemish: false,
         skipDuotone: true,
@@ -19035,7 +19035,8 @@ function _exportEntry(entry, onDone) {
       if (p.scanLines) { const _slEE = sliders && sliders['SCANLINES'] !== undefined ? sliders['SCANLINES'] : 0; adj.scanLines = { spacing: p.scanLines.spacing || 2, opacity: Math.max(0, p.scanLines.opacity + _slEE) }; }
       if (p.vhsBleed)            adj.vhsBleed            = p.vhsBleed;
       if (p.textureOverlay)      adj.textureOverlay      = p.textureOverlay;
-      if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvEE = null; if (FX_VARIANTS.texture) { for (var _tiEE=0;_tiEE<FX_VARIANTS.texture.length;_tiEE++) { if (FX_VARIANTS.texture[_tiEE].id===fxState.texture.variant) { _fxTvEE=FX_VARIANTS.texture[_tiEE]; break; } } } if (_fxTvEE) adj.textureOverlay = { file: _fxTvEE.assetFile, blend: 'screen', opacity: (fxState.texture.intensity!=null?fxState.texture.intensity:100)/100 }; }
+      var _entFxTexEE = entry.editState && entry.editState.fxState && entry.editState.fxState.texture;
+      if (_entFxTexEE && _entFxTexEE.variant && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { var _fxTvEE = null; for (var _tiEE=0;_tiEE<FX_VARIANTS.texture.length;_tiEE++) { if (FX_VARIANTS.texture[_tiEE].id===_entFxTexEE.variant) { _fxTvEE=FX_VARIANTS.texture[_tiEE]; break; } } if (_fxTvEE) adj.textureOverlay = { file: _fxTvEE.assetFile, blend: 'screen', opacity: (_entFxTexEE.intensity!=null?_entFxTexEE.intensity:100)/100 }; }
       if (p.border)              adj.border              = p.border;
       const _fgGrain = adj.grain || 0;
       adj.grain = 0;

@@ -18246,6 +18246,9 @@ function galleryOpenInEditor(idx) {
   if (typeof _cropTransforms !== 'undefined') _cropTransforms = [];
   if (typeof _cropReAdjTransform !== 'undefined') _cropReAdjTransform = null; // clear crop state from previous photo
   if (typeof _cropOptReAdjTransform !== 'undefined') _cropOptReAdjTransform = null;
+  if (typeof _cropStReAdjTransform !== 'undefined') _cropStReAdjTransform = null;
+  if (typeof _cropFisheyeReAdjTransform !== 'undefined') _cropFisheyeReAdjTransform = null;
+  if (typeof _cropFisheyeVal !== 'undefined') _cropFisheyeVal = 0;
   if (typeof _cropPerspFlushPending !== 'undefined') _cropPerspFlushPending = false;
   _clearPresetThumbCaches(); // new image — invalidate all cached thumbnails
   evHistory.length = 0;
@@ -20580,7 +20583,10 @@ function _cropRefreshStraightenLabel() {
   b.style.letterSpacing = hasAngle ? '0.05em' : '';
 }
 function _cropBakeStraighten(onDone) {
-  if (typeof _cropStraightenVal === 'undefined' || Math.abs(_cropStraightenVal || 0) <= 0.01) return false;
+  if (typeof _cropStraightenVal === 'undefined' || Math.abs(_cropStraightenVal || 0) <= 0.01) {
+    if (typeof _cropStReAdjTransform !== 'undefined') _cropStReAdjTransform = null;
+    return false;
+  }
   if (typeof _cropStRestoredVal !== 'undefined') _cropStRestoredVal = 0;
   if (typeof evHistoryPush === 'function') evHistoryPush();
   _cropTransforms.push({ op: 'straighten', angle: _cropStraightenVal });

@@ -20929,7 +20929,7 @@ function _cropApplyOne(t, srcImg, cb) {
     // Barrel/pincushion remap: positive = barrel (fisheye), negative = correct barrel.
     // Inverse map: for each output pixel find its source via rd*(1+k*rd^2) where rd is
     // normalised distance from centre. Full-res at commit; preview uses a capped canvas.
-    var _fk = (t.strength || 0) / 150;
+    var _fk = (t.strength || 0) / 100;
     tmp.width = iw; tmp.height = ih;
     ctx = tmp.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(srcImg, 0, 0, iw, ih);
@@ -20949,7 +20949,11 @@ function _cropApplyOne(t, srcImg, cb) {
         var _fx1 = _fx0 + 1, _fy1 = _fy0 + 1;
         var _foi = (_foy * iw + _fox) * 4;
         if (_fx0 < 0 || _fx1 >= iw || _fy0 < 0 || _fy1 >= ih) {
-          _fOutPx[_foi] = 0; _fOutPx[_foi+1] = 0; _fOutPx[_foi+2] = 0; _fOutPx[_foi+3] = 255;
+          var _fcx2 = Math.max(0, Math.min(iw - 1, Math.round(_fsx)));
+          var _fcy2 = Math.max(0, Math.min(ih - 1, Math.round(_fsy)));
+          var _fsi2 = (_fcy2 * iw + _fcx2) * 4;
+          _fOutPx[_foi] = _fSrc[_fsi2]; _fOutPx[_foi+1] = _fSrc[_fsi2+1];
+          _fOutPx[_foi+2] = _fSrc[_fsi2+2]; _fOutPx[_foi+3] = 255;
         } else {
           var _ffx = _fsx - _fx0, _ffy = _fsy - _fy0;
           var _fw00 = (1-_ffx)*(1-_ffy), _fw10 = _ffx*(1-_ffy), _fw01 = (1-_ffx)*_ffy, _fw11 = _ffx*_ffy;
@@ -21174,7 +21178,7 @@ function _cropFisheyePreview(val) {
     var _fctx = sc.getContext('2d', {willReadFrequently:true});
     var _foutD = _fctx.createImageData(_frW, _frH);
     var _foutPx = _foutD.data;
-    var _ffk = _fv / 150;
+    var _ffk = _fv / 100;
     var _fcx = _frW * 0.5, _fcy = _frH * 0.5;
     var _frmax = Math.sqrt(_fcx * _fcx + _fcy * _fcy);
     for (var _foy = 0; _foy < _frH; _foy++) {
@@ -21188,7 +21192,11 @@ function _cropFisheyePreview(val) {
         var _fx1 = _fx0 + 1, _fy1 = _fy0 + 1;
         var _foi = (_foy * _frW + _fox) * 4;
         if (_fx0 < 0 || _fx1 >= _frW || _fy0 < 0 || _fy1 >= _frH) {
-          _foutPx[_foi]=0; _foutPx[_foi+1]=0; _foutPx[_foi+2]=0; _foutPx[_foi+3]=255;
+          var _fcx2 = Math.max(0, Math.min(_frW-1, Math.round(_fsx)));
+          var _fcy2 = Math.max(0, Math.min(_frH-1, Math.round(_fsy)));
+          var _fsi2 = (_fcy2 * _frW + _fcx2) * 4;
+          _foutPx[_foi]=_fsrcData[_fsi2]; _foutPx[_foi+1]=_fsrcData[_fsi2+1];
+          _foutPx[_foi+2]=_fsrcData[_fsi2+2]; _foutPx[_foi+3]=255;
         } else {
           var _ffx = _fsx - _fx0, _ffy = _fsy - _fy0;
           var _fw00=(1-_ffx)*(1-_ffy),_fw10=_ffx*(1-_ffy),_fw01=(1-_ffx)*_ffy,_fw11=_ffx*_ffy;

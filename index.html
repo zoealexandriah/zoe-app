@@ -10993,14 +10993,8 @@ function evAdjustSubTab(name) {
           var _rb = document.querySelector('.crop-subtab[onclick*="ratio"]');
           if (_rb) _rb.click();
         } else {
-          // Explicitly enforce the correct sub-tab visibility after render
-          ['straighten','ratio','transform','optical'].forEach(function(id) {
-            var el = document.getElementById('crop-sub-' + id);
-            if (el) el.style.display = id === _cropInitTab ? '' : 'none';
-          });
-          document.querySelectorAll('.crop-subtab').forEach(function(b){ b.classList.remove('active'); });
           var _ab = document.querySelector('.crop-subtab[onclick*="' + _cropInitTab + '"]');
-          if (_ab) _ab.classList.add('active');
+          if (_ab) _ab.click();
         }
       }, 80);
     }

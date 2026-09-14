@@ -10345,8 +10345,10 @@ function buildOpticalPanel() {
   var hVal = (typeof _perspBaseH !== 'undefined') ? _perspBaseH : 0;
   var perspVSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><polygon points="3,5 21,5 17.5,19 6.5,19"/><rect x="11.25" y="5" width="1.5" height="14" fill="rgba(5,3,14,0.85)"/></svg>';
   var perspHSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><polygon points="5,3 19,6.5 19,17.5 5,21"/><rect x="5" y="11.25" width="14" height="1.5" fill="rgba(5,3,14,0.85)"/></svg>';
+  var fisheyeVal = (typeof _cropFisheyeVal !== 'undefined') ? (_cropFisheyeVal || 0) : 0;
+  var fisheyeSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="5" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/></svg>';
   container.innerHTML =
-    '<div class="crop-transform-icons" style="width:100%;padding:12px 8px 8px;justify-content:center;">' +
+    '<div class="crop-transform-icons" style="width:100%;padding:12px 8px 8px;justify-content:center;" id="persp-mode-buttons">' +
       '<div class="crop-transform-icon-btn" id="persp-v-btn" onclick="cropPerspSelectAxis(\'v\')">' +
         '<div class="crop-transform-icon-box" id="persp-v-box">' + perspVSvg + '</div>' +
         '<span class="crop-transform-icon-label" id="persp-v-lbl">' + (vVal !== 0 ? Math.round(vVal) : 'VERT') + '</span>' +
@@ -10354,6 +10356,10 @@ function buildOpticalPanel() {
       '<div class="crop-transform-icon-btn" id="persp-h-btn" onclick="cropPerspSelectAxis(\'h\')">' +
         '<div class="crop-transform-icon-box" id="persp-h-box">' + perspHSvg + '</div>' +
         '<span class="crop-transform-icon-label" id="persp-h-lbl">' + (hVal !== 0 ? Math.round(hVal) : 'HORIZ') + '</span>' +
+      '</div>' +
+      '<div class="crop-transform-icon-btn" id="fisheye-btn" onclick="cropFisheyeSelectAxis()">' +
+        '<div class="crop-transform-icon-box" id="fisheye-box">' + fisheyeSvg + '</div>' +
+        '<span class="crop-transform-icon-label" id="fisheye-lbl">' + (fisheyeVal !== 0 ? Math.round(fisheyeVal) : 'LENS') + '</span>' +
       '</div>' +
     '</div>' +
     '<div id="crop-persp-slider-row" style="display:none;padding:6px 8px 2px;">' +
@@ -10370,6 +10376,13 @@ function buildOpticalPanel() {
           '<span class="crop-sub-val" id="crop-persp-h-val">' + (hVal !== 0 ? Math.round(hVal) : 0) + '</span>' +
         '</div>' +
         '<input type="range" class="tc-range" id="crop-persp-h-slider" min="-100" max="100" step="1" value="' + hVal + '" oninput="etPerspUpdate()">' +
+      '</div>' +
+      '<div id="crop-fisheye-section" style="display:none;">' +
+        '<div class="crop-sub-row" style="margin-bottom:4px;">' +
+          '<span class="crop-sub-label">LENS</span>' +
+          '<span class="crop-sub-val" id="crop-fisheye-val">' + Math.round(fisheyeVal) + '</span>' +
+        '</div>' +
+        '<input type="range" class="tc-range" id="crop-fisheye-slider" min="-100" max="100" step="1" value="' + fisheyeVal + '" oninput="_cropFisheyePreview(this.value)">' +
       '</div>' +
     '</div>';
 }
@@ -16088,6 +16101,7 @@ function etCropHTML() {
 
   const vVal = (typeof _perspBaseV !== 'undefined') ? _perspBaseV : 0;
   const hVal = (typeof _perspBaseH !== 'undefined') ? _perspBaseH : 0;
+  const fisheyeVal = (typeof _cropFisheyeVal !== 'undefined') ? (_cropFisheyeVal || 0) : 0;
   const _st = _etCropDefaultTab || 'straighten'; _etCropDefaultTab = 'straighten';
   return `<div class="crop-ui">
     <div class="crop-subtabs" id="crop-subtabs-bar">
@@ -16142,6 +16156,10 @@ function etCropHTML() {
           <div class="crop-transform-icon-box" id="persp-h-box">${perspHSvg}</div>
           <span class="crop-transform-icon-label" id="persp-h-lbl">${hVal !== 0 ? Math.round(hVal) : 'HORIZ'}</span>
         </div>
+        <div class="crop-transform-icon-btn" id="fisheye-btn" onclick="cropFisheyeSelectAxis()">
+          <div class="crop-transform-icon-box" id="fisheye-box"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="5" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div>
+          <span class="crop-transform-icon-label" id="fisheye-lbl">${fisheyeVal !== 0 ? Math.round(fisheyeVal) : 'LENS'}</span>
+        </div>
       </div>
       <div id="crop-persp-slider-row" style="display:none;padding:6px 8px 2px;">
         <div id="crop-persp-v-section" style="display:none;">
@@ -16157,6 +16175,13 @@ function etCropHTML() {
             <span class="crop-sub-val" id="crop-persp-h-val">${hVal !== 0 ? Math.round(hVal) : 0}</span>
           </div>
           <input type="range" class="tc-range" id="crop-persp-h-slider" min="-100" max="100" step="1" value="${hVal}" oninput="etPerspUpdate()">
+        </div>
+        <div id="crop-fisheye-section" style="display:none;">
+          <div class="crop-sub-row" style="margin-bottom:4px;">
+            <span class="crop-sub-label">LENS</span>
+            <span class="crop-sub-val" id="crop-fisheye-val">${Math.round(fisheyeVal)}</span>
+          </div>
+          <input type="range" class="tc-range" id="crop-fisheye-slider" min="-100" max="100" step="1" value="${fisheyeVal}" oninput="_cropFisheyePreview(this.value)">
         </div>
       </div>
     </div>
@@ -20334,18 +20359,26 @@ function cropSubTabCollapse(confirm) {
   var activeTab = activeSt ? (activeSt.getAttribute('data-tab') || activeSt.textContent.trim()) : '';
   // Slider-level X/✓ inside OPTICAL — return to buttons view, keep bar expanded
   if (activeTab === 'OPTICAL' && typeof _etPerspActiveAxis !== 'undefined' && _etPerspActiveAxis) {
-    if (!confirm && typeof _cropPerspAxisEntry !== 'undefined' && _cropPerspAxisEntry) {
-      _etPerspVVal = _cropPerspAxisEntry.v; _etPerspHVal = _cropPerspAxisEntry.h;
-      var _xvs = document.getElementById('crop-persp-v-slider'); if (_xvs) _xvs.value = _etPerspVVal;
-      var _xhs = document.getElementById('crop-persp-h-slider'); if (_xhs) _xhs.value = _etPerspHVal;
-      var _xvv = document.getElementById('crop-persp-v-val'); if (_xvv) _xvv.textContent = Math.round(_etPerspVVal);
-      var _xhv = document.getElementById('crop-persp-h-val'); if (_xhv) _xhv.textContent = Math.round(_etPerspHVal);
-      if (typeof etPerspUpdate === 'function') etPerspUpdate();
+    if (!confirm) {
+      if (_etPerspActiveAxis === 'fisheye') {
+        if (typeof _cropFisheyeEntryVal !== 'undefined') {
+          _cropFisheyeVal = _cropFisheyeEntryVal;
+          if (typeof _cropFisheyePreview === 'function') _cropFisheyePreview(_cropFisheyeVal);
+        }
+      } else if (typeof _cropPerspAxisEntry !== 'undefined' && _cropPerspAxisEntry) {
+        _etPerspVVal = _cropPerspAxisEntry.v; _etPerspHVal = _cropPerspAxisEntry.h;
+        var _xvs = document.getElementById('crop-persp-v-slider'); if (_xvs) _xvs.value = _etPerspVVal;
+        var _xhs = document.getElementById('crop-persp-h-slider'); if (_xhs) _xhs.value = _etPerspHVal;
+        var _xvv = document.getElementById('crop-persp-v-val'); if (_xvv) _xvv.textContent = Math.round(_etPerspVVal);
+        var _xhv = document.getElementById('crop-persp-h-val'); if (_xhv) _xhv.textContent = Math.round(_etPerspHVal);
+        if (typeof etPerspUpdate === 'function') etPerspUpdate();
+      }
     }
     _etPerspActiveAxis = null; _cropPerspAxisEntry = null;
     var _xrow = document.getElementById('crop-persp-slider-row'); if (_xrow) _xrow.style.display = 'none';
     var _xvs2 = document.getElementById('crop-persp-v-section'); if (_xvs2) _xvs2.style.display = 'none';
     var _xhs2 = document.getElementById('crop-persp-h-section'); if (_xhs2) _xhs2.style.display = 'none';
+    var _xfs2 = document.getElementById('crop-fisheye-section'); if (_xfs2) _xfs2.style.display = 'none';
     var _xmb = document.getElementById('persp-mode-buttons'); if (_xmb) _xmb.style.display = '';
     return; // stay in OPTICAL expanded bar
   }
@@ -20357,6 +20390,7 @@ function cropSubTabCollapse(confirm) {
       _cropRatioConfirm();
     } else if (activeTab === 'OPTICAL') {
       if (typeof _cropOptReAdjTransform !== 'undefined') _cropOptReAdjTransform = null;
+      if (typeof _cropFisheyeReAdjTransform !== 'undefined') _cropFisheyeReAdjTransform = null;
       if (typeof _cropPerspFlush === 'function') _cropPerspFlush();
     }
     if (activeTab === 'STRAIGHTEN') {
@@ -20439,13 +20473,16 @@ function cropSubTabCollapse(confirm) {
       }
     } else if (activeTab === 'OPTICAL') {
       var _pw = document.getElementById('crop-perspective-work'); if (_pw) _pw.remove();
+      var _fwc = document.getElementById('crop-fisheye-work'); if (_fwc) _fwc.remove();
       var _rstAcO = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : null; if (_rstAcO) _rstAcO.style.opacity = '1';
       if (typeof _cropOpticalEntryState !== 'undefined' && _cropOpticalEntryState) {
         _perspBaseURL = _cropOpticalEntryState.url;
         _perspBaseV   = _cropOpticalEntryState.v;
         _perspBaseH   = _cropOpticalEntryState.h;
+        if (typeof _cropFisheyeVal !== 'undefined') _cropFisheyeVal = _cropOpticalEntryState.fisheyeVal || 0;
         _cropOpticalEntryState = null;
       }
+      if (typeof _cropFisheyeOrig !== 'undefined') _cropFisheyeOrig = null;
       if (typeof _etPerspVVal !== 'undefined') _etPerspVVal = _perspBaseV;
       if (typeof _etPerspHVal !== 'undefined') _etPerspHVal = _perspBaseH;
       var _vs = document.getElementById('crop-persp-v-slider'); if (_vs) _vs.value = _perspBaseV;
@@ -20454,10 +20491,12 @@ function cropSubTabCollapse(confirm) {
       var _hv = document.getElementById('crop-persp-h-val'); if (_hv) _hv.textContent = Math.round(_perspBaseH);
       var _vl = document.getElementById('persp-v-lbl'); if (_vl) _vl.textContent = _perspBaseV !== 0 ? Math.round(_perspBaseV) : 'VERT';
       var _hl = document.getElementById('persp-h-lbl'); if (_hl) _hl.textContent = _perspBaseH !== 0 ? Math.round(_perspBaseH) : 'HORIZ';
-      // Re-adjust cancel: restore the spliced perspective transform
-      if (typeof _cropOptReAdjTransform !== 'undefined' && _cropOptReAdjTransform) {
-        _cropTransforms.push(_cropOptReAdjTransform);
-        _cropOptReAdjTransform = null;
+      // Re-adjust cancel: restore spliced perspective and/or fisheye transforms
+      var _hasReAdj = typeof _cropOptReAdjTransform !== 'undefined' && _cropOptReAdjTransform;
+      var _hasFishReAdj = typeof _cropFisheyeReAdjTransform !== 'undefined' && _cropFisheyeReAdjTransform;
+      if (_hasReAdj) { _cropTransforms.push(_cropOptReAdjTransform); _cropOptReAdjTransform = null; }
+      if (_hasFishReAdj) { _cropTransforms.push(_cropFisheyeReAdjTransform); _cropFisheyeReAdjTransform = null; }
+      if (_hasReAdj || _hasFishReAdj) {
         _cropRenderFromSource();
       } else {
         var _ev4 = document.getElementById('editor-view');
@@ -20476,6 +20515,12 @@ var _cropOptReAdjTransform = null;
 var _cropPerspFlushPending = false;
 var _cropStReAdjTransform = null;
 var _cropStRestoredVal = 0;
+var _cropFisheyeVal = 0;
+var _cropFisheyeOrig = null;
+var _cropFisheyeReAdjTransform = null;
+var _cropFisheyeEntryVal = 0;
+var _cropFisheyeRafId = null;
+var _cropFisheyePending = null;
 function cropSubTabExpandStraighten() {
   var sl = document.getElementById('crop-straighten-slider');
   if (!sl) return;
@@ -20577,26 +20622,36 @@ function cropSelectSubTab(btn, tab) {
     }
   } else if (tab === 'optical') {
     _cropOpticalEntryState = {
-      url: (typeof _perspBaseURL !== 'undefined') ? _perspBaseURL : null,
-      v:   (typeof _perspBaseV   !== 'undefined') ? _perspBaseV   : 0,
-      h:   (typeof _perspBaseH   !== 'undefined') ? _perspBaseH   : 0
+      url:        (typeof _perspBaseURL    !== 'undefined') ? _perspBaseURL    : null,
+      v:          (typeof _perspBaseV      !== 'undefined') ? _perspBaseV      : 0,
+      h:          (typeof _perspBaseH      !== 'undefined') ? _perspBaseH      : 0,
+      fisheyeVal: (typeof _cropFisheyeVal  !== 'undefined') ? _cropFisheyeVal  : 0
     };
     // Preload warp origin so first slider move renders instantly without async flicker
     if (typeof _perspBaseURL !== 'undefined' && _perspBaseURL && typeof _etPerspOrigImg !== 'undefined' && !_etPerspOrigImg) {
       var _preImg = new Image(); _preImg.onload = function() { _etPerspOrigImg = _preImg; }; _preImg.src = _perspBaseURL;
     }
-    // Re-adjust mode: splice out last perspective transform so user can re-edit from pre-warp state
-    if (typeof _cropOptReAdjTransform !== 'undefined' && !_cropOptReAdjTransform) {
+    // Re-adjust mode: splice out last perspective and/or fisheye transforms so user can re-edit
+    var _canReAdj = typeof _cropOptReAdjTransform !== 'undefined' && !_cropOptReAdjTransform
+                 && typeof _cropFisheyeReAdjTransform !== 'undefined' && !_cropFisheyeReAdjTransform;
+    if (_canReAdj) {
       var _lpIdx = -1;
       for (var _li = _cropTransforms.length - 1; _li >= 0; _li--) {
         if (_cropTransforms[_li].op === 'perspective') { _lpIdx = _li; break; }
       }
-      if (_lpIdx >= 0) {
-        _cropOptReAdjTransform = _cropTransforms.splice(_lpIdx, 1)[0];
+      if (_lpIdx >= 0) _cropOptReAdjTransform = _cropTransforms.splice(_lpIdx, 1)[0];
+      var _lfIdx = -1;
+      for (var _lfi = _cropTransforms.length - 1; _lfi >= 0; _lfi--) {
+        if (_cropTransforms[_lfi].op === 'fisheye') { _lfIdx = _lfi; break; }
+      }
+      if (_lfIdx >= 0) _cropFisheyeReAdjTransform = _cropTransforms.splice(_lfIdx, 1)[0];
+      if (_lpIdx >= 0 || _lfIdx >= 0) {
         var _reAdjT = _cropOptReAdjTransform;
+        var _reAdjF = _cropFisheyeReAdjTransform;
         _cropRenderFromSource(function() {
-          // userImage is now the pre-warp state — set it as warp origin
-          _perspBaseV = _reAdjT.v; _perspBaseH = _reAdjT.h;
+          // userImage is now pre-warp state — set as warp origin
+          var _rv = _reAdjT ? _reAdjT.v : 0, _rh = _reAdjT ? _reAdjT.h : 0;
+          _perspBaseV = _rv; _perspBaseH = _rh;
           if (userImage.src && userImage.src.startsWith('data:')) {
             _perspBaseURL = userImage.src;
           } else {
@@ -20605,15 +20660,22 @@ function cropSelectSubTab(btn, tab) {
             _c.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0);
             _perspBaseURL = _c.toDataURL('image/jpeg', 0.95);
           }
-          var _rvs = document.getElementById('crop-persp-v-slider'); if (_rvs) _rvs.value = _reAdjT.v;
-          var _rhs = document.getElementById('crop-persp-h-slider'); if (_rhs) _rhs.value = _reAdjT.h;
-          var _rvv = document.getElementById('crop-persp-v-val'); if (_rvv) _rvv.textContent = Math.round(_reAdjT.v);
-          var _rhv = document.getElementById('crop-persp-h-val'); if (_rhv) _rhv.textContent = Math.round(_reAdjT.h);
-          var _rvl = document.getElementById('persp-v-lbl'); if (_rvl) _rvl.textContent = _reAdjT.v !== 0 ? Math.round(_reAdjT.v) : 'VERT';
-          var _rhl = document.getElementById('persp-h-lbl'); if (_rhl) _rhl.textContent = _reAdjT.h !== 0 ? Math.round(_reAdjT.h) : 'HORIZ';
-          if (typeof _etPerspVVal !== 'undefined') _etPerspVVal = _reAdjT.v;
-          if (typeof _etPerspHVal !== 'undefined') _etPerspHVal = _reAdjT.h;
-          if (typeof etPerspUpdate === 'function') etPerspUpdate();
+          var _rvs = document.getElementById('crop-persp-v-slider'); if (_rvs) _rvs.value = _rv;
+          var _rhs = document.getElementById('crop-persp-h-slider'); if (_rhs) _rhs.value = _rh;
+          var _rvv = document.getElementById('crop-persp-v-val'); if (_rvv) _rvv.textContent = Math.round(_rv);
+          var _rhv = document.getElementById('crop-persp-h-val'); if (_rhv) _rhv.textContent = Math.round(_rh);
+          var _rvl = document.getElementById('persp-v-lbl'); if (_rvl) _rvl.textContent = _rv !== 0 ? Math.round(_rv) : 'VERT';
+          var _rhl = document.getElementById('persp-h-lbl'); if (_rhl) _rhl.textContent = _rh !== 0 ? Math.round(_rh) : 'HORIZ';
+          if (typeof _etPerspVVal !== 'undefined') _etPerspVVal = _rv;
+          if (typeof _etPerspHVal !== 'undefined') _etPerspHVal = _rh;
+          if (_reAdjT && typeof etPerspUpdate === 'function') etPerspUpdate();
+          if (_reAdjF && typeof _cropFisheyeVal !== 'undefined') {
+            _cropFisheyeVal = _reAdjF.strength || 0;
+            var _fll = document.getElementById('fisheye-lbl');
+            if (_fll) _fll.textContent = _cropFisheyeVal !== 0 ? Math.round(_cropFisheyeVal) : 'LENS';
+            var _fslR = document.getElementById('crop-fisheye-slider'); if (_fslR) _fslR.value = _cropFisheyeVal;
+            var _fvlR = document.getElementById('crop-fisheye-val'); if (_fvlR) _fvlR.textContent = Math.round(_cropFisheyeVal);
+          }
         });
       }
     }
@@ -20650,7 +20712,20 @@ function cropSelectSubTab(btn, tab) {
   }
   // Clean up perspective work canvas when leaving transform; pass rebuild callback so
   // OPTICAL→STRAIGHTEN rebuilds after the bake, not before.
+  // When ENTERING optical for re-adjust, the splice already ran above and set the re-adj vars.
+  // Temporarily null them so _cropPerspDiscard does not push them back (it only restores on
+  // actual discard/leave, not on re-entry). Restore them immediately after the call.
+  var _dscSaveOpt  = (tab === 'optical' && typeof _cropOptReAdjTransform !== 'undefined')  ? _cropOptReAdjTransform  : undefined;
+  var _dscSaveFish = (tab === 'optical' && typeof _cropFisheyeReAdjTransform !== 'undefined') ? _cropFisheyeReAdjTransform : undefined;
+  if (tab === 'optical') {
+    if (typeof _cropOptReAdjTransform  !== 'undefined') _cropOptReAdjTransform  = null;
+    if (typeof _cropFisheyeReAdjTransform !== 'undefined') _cropFisheyeReAdjTransform = null;
+  }
   if (typeof _cropPerspDiscard === 'function') _cropPerspDiscard(_doStRebuild); else _doStRebuild();
+  if (tab === 'optical') {
+    if (_dscSaveOpt  !== undefined) _cropOptReAdjTransform  = _dscSaveOpt;
+    if (_dscSaveFish !== undefined) _cropFisheyeReAdjTransform = _dscSaveFish;
+  }
   // Don't remove the work canvas if _cropPerspFlush already started an async render
   // (it keeps the warp visible until the new userImage is ready)
   if (!(typeof _cropPerspFlushPending !== 'undefined' && _cropPerspFlushPending)) {
@@ -20849,6 +20924,49 @@ function _cropApplyOne(t, srcImg, cb) {
     _pni.onload = function() { cb(_pni); };
     _pcv.toBlob(function(_b) { _pni.src = URL.createObjectURL(_b); }, 'image/jpeg', 0.95);
     return;
+
+  } else if (t.op === 'fisheye') {
+    // Barrel/pincushion remap: positive = barrel (fisheye), negative = correct barrel.
+    // Inverse map: for each output pixel find its source via rd*(1+k*rd^2) where rd is
+    // normalised distance from centre. Full-res at commit; preview uses a capped canvas.
+    var _fk = (t.strength || 0) / 100;
+    tmp.width = iw; tmp.height = ih;
+    ctx = tmp.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(srcImg, 0, 0, iw, ih);
+    var _fSrc = ctx.getImageData(0, 0, iw, ih).data;
+    var _fOut = ctx.createImageData(iw, ih);
+    var _fOutPx = _fOut.data;
+    var _fcx = iw * 0.5, _fcy = ih * 0.5;
+    var _frmax = Math.sqrt(_fcx * _fcx + _fcy * _fcy);
+    for (var _foy = 0; _foy < ih; _foy++) {
+      for (var _fox = 0; _fox < iw; _fox++) {
+        var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
+        var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
+        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _fk * _frd * _frd);
+        var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
+        var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
+        var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);
+        var _fx1 = _fx0 + 1, _fy1 = _fy0 + 1;
+        var _foi = (_foy * iw + _fox) * 4;
+        if (_fx0 < 0 || _fx1 >= iw || _fy0 < 0 || _fy1 >= ih) {
+          var _fcx2 = Math.max(0, Math.min(iw - 1, Math.round(_fsx)));
+          var _fcy2 = Math.max(0, Math.min(ih - 1, Math.round(_fsy)));
+          var _fsi2 = (_fcy2 * iw + _fcx2) * 4;
+          _fOutPx[_foi] = _fSrc[_fsi2]; _fOutPx[_foi+1] = _fSrc[_fsi2+1];
+          _fOutPx[_foi+2] = _fSrc[_fsi2+2]; _fOutPx[_foi+3] = 255;
+        } else {
+          var _ffx = _fsx - _fx0, _ffy = _fsy - _fy0;
+          var _fw00 = (1-_ffx)*(1-_ffy), _fw10 = _ffx*(1-_ffy), _fw01 = (1-_ffx)*_ffy, _fw11 = _ffx*_ffy;
+          var _fsi00 = (_fy0*iw+_fx0)*4, _fsi10 = (_fy0*iw+_fx1)*4;
+          var _fsi01 = (_fy1*iw+_fx0)*4, _fsi11 = (_fy1*iw+_fx1)*4;
+          _fOutPx[_foi]   = _fw00*_fSrc[_fsi00]  +_fw10*_fSrc[_fsi10]  +_fw01*_fSrc[_fsi01]  +_fw11*_fSrc[_fsi11];
+          _fOutPx[_foi+1] = _fw00*_fSrc[_fsi00+1]+_fw10*_fSrc[_fsi10+1]+_fw01*_fSrc[_fsi01+1]+_fw11*_fSrc[_fsi11+1];
+          _fOutPx[_foi+2] = _fw00*_fSrc[_fsi00+2]+_fw10*_fSrc[_fsi10+2]+_fw01*_fSrc[_fsi01+2]+_fw11*_fSrc[_fsi11+2];
+          _fOutPx[_foi+3] = 255;
+        }
+      }
+    }
+    ctx.putImageData(_fOut, 0, 0);
   }
 
   var _ni = new Image();
@@ -21013,6 +21131,88 @@ function cropStraightenAutoApply(onDone) {
   newImg.src = tmp.toDataURL();
 }
 
+function _cropFisheyePreview(val) {
+  val = parseFloat(val) || 0;
+  _cropFisheyeVal = val;
+  var _fvEl = document.getElementById('crop-fisheye-val');
+  if (_fvEl) _fvEl.textContent = Math.round(val);
+  var _fll = document.getElementById('fisheye-lbl');
+  if (_fll) _fll.textContent = val !== 0 ? Math.round(val) : 'LENS';
+  if (!_cropFisheyeOrig) return;
+  _cropFisheyePending = val;
+  if (_cropFisheyeRafId) return;
+  _cropFisheyeRafId = requestAnimationFrame(function() {
+    _cropFisheyeRafId = null;
+    var _fv = _cropFisheyePending !== null ? _cropFisheyePending : _cropFisheyeVal;
+    _cropFisheyePending = null;
+    var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
+    if (!ac) return;
+    _cropFisheyeVal = _fv;
+    if (Math.abs(_fv) < 0.5) {
+      var _sc0 = document.getElementById('crop-fisheye-work');
+      if (_sc0) _sc0.remove();
+      ac.style.opacity = '';
+      return;
+    }
+    var sc = document.getElementById('crop-fisheye-work');
+    if (!sc) {
+      sc = document.createElement('canvas');
+      sc.id = 'crop-fisheye-work';
+      sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none';
+      ac.parentElement.appendChild(sc);
+    }
+    // Low-res remap: cap source at 400px per side to stay under one frame.
+    var _fsrcW = _cropFisheyeOrig.naturalWidth, _fsrcH = _cropFisheyeOrig.naturalHeight;
+    var _fscale = Math.min(400 / _fsrcW, 400 / _fsrcH, 1);
+    var _frW = Math.round(_fsrcW * _fscale), _frH = Math.round(_fsrcH * _fscale);
+    var _ftmp = document.createElement('canvas');
+    _ftmp.width = _frW; _ftmp.height = _frH;
+    _ftmp.getContext('2d').drawImage(_cropFisheyeOrig, 0, 0, _frW, _frH);
+    var _fsrcData = _ftmp.getContext('2d', {willReadFrequently:true}).getImageData(0, 0, _frW, _frH).data;
+    sc.width = _frW; sc.height = _frH;
+    var _facW = ac.clientWidth, _facH = ac.clientHeight;
+    var _farW = ac.parentElement.clientWidth, _farH = ac.parentElement.clientHeight;
+    sc.style.width  = _facW + 'px'; sc.style.height = _facH + 'px';
+    sc.style.left   = Math.round((_farW - _facW) / 2) + 'px';
+    sc.style.top    = Math.round((_farH - _facH) / 2) + 'px';
+    var _fctx = sc.getContext('2d', {willReadFrequently:true});
+    var _foutD = _fctx.createImageData(_frW, _frH);
+    var _foutPx = _foutD.data;
+    var _ffk = _fv / 100;
+    var _fcx = _frW * 0.5, _fcy = _frH * 0.5;
+    var _frmax = Math.sqrt(_fcx * _fcx + _fcy * _fcy);
+    for (var _foy = 0; _foy < _frH; _foy++) {
+      for (var _fox = 0; _fox < _frW; _fox++) {
+        var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
+        var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
+        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _ffk * _frd * _frd);
+        var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
+        var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
+        var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);
+        var _fx1 = _fx0 + 1, _fy1 = _fy0 + 1;
+        var _foi = (_foy * _frW + _fox) * 4;
+        if (_fx0 < 0 || _fx1 >= _frW || _fy0 < 0 || _fy1 >= _frH) {
+          var _fcx2 = Math.max(0, Math.min(_frW-1, Math.round(_fsx)));
+          var _fcy2 = Math.max(0, Math.min(_frH-1, Math.round(_fsy)));
+          var _fsi2 = (_fcy2 * _frW + _fcx2) * 4;
+          _foutPx[_foi]=_fsrcData[_fsi2]; _foutPx[_foi+1]=_fsrcData[_fsi2+1];
+          _foutPx[_foi+2]=_fsrcData[_fsi2+2]; _foutPx[_foi+3]=255;
+        } else {
+          var _ffx = _fsx - _fx0, _ffy = _fsy - _fy0;
+          var _fw00=(1-_ffx)*(1-_ffy),_fw10=_ffx*(1-_ffy),_fw01=(1-_ffx)*_ffy,_fw11=_ffx*_ffy;
+          var _fsi00=(_fy0*_frW+_fx0)*4,_fsi10=(_fy0*_frW+_fx1)*4;
+          var _fsi01=(_fy1*_frW+_fx0)*4,_fsi11=(_fy1*_frW+_fx1)*4;
+          _foutPx[_foi]  =_fw00*_fsrcData[_fsi00]  +_fw10*_fsrcData[_fsi10]  +_fw01*_fsrcData[_fsi01]  +_fw11*_fsrcData[_fsi11];
+          _foutPx[_foi+1]=_fw00*_fsrcData[_fsi00+1]+_fw10*_fsrcData[_fsi10+1]+_fw01*_fsrcData[_fsi01+1]+_fw11*_fsrcData[_fsi11+1];
+          _foutPx[_foi+2]=_fw00*_fsrcData[_fsi00+2]+_fw10*_fsrcData[_fsi10+2]+_fw01*_fsrcData[_fsi01+2]+_fw11*_fsrcData[_fsi11+2];
+          _foutPx[_foi+3]=255;
+        }
+      }
+    }
+    _fctx.putImageData(_foutD, 0, 0);
+    ac.style.opacity = '0';
+  });
+}
 function cropRotate90(dir) {
   evHistoryPush();
   // Commit any pending straighten before rotating
@@ -21065,7 +21265,9 @@ function _cropPerspFlush(onFlush) {
     return;
   }
   var sc = document.getElementById('crop-perspective-work');
-  if (!sc || !sc.width) { if (onFlush) onFlush(); return; }
+  var _fwVal = (typeof _cropFisheyeVal !== 'undefined') ? (_cropFisheyeVal || 0) : 0;
+  var _fwHas = Math.abs(_fwVal) > 0.5;
+  if ((!sc || !sc.width) && !_fwHas) { if (onFlush) onFlush(); return; }
   var _slV = document.getElementById('crop-persp-v-slider');
   var _slH = document.getElementById('crop-persp-h-slider');
   var _rawV = _slV ? parseFloat(_slV.value) : 0;
@@ -21073,9 +21275,15 @@ function _cropPerspFlush(onFlush) {
   // Keep the work canvas visible during the async render so the user sees no flash
   var _ov = document.getElementById('crop-overlay-canvas');
   if (_ov) _ov.style.display = 'none';
-  _cropTransforms.push({ op: 'perspective', v: _rawV, h: _rawH });
+  if (sc && sc.width) _cropTransforms.push({ op: 'perspective', v: _rawV, h: _rawH });
+  if (_fwHas) _cropTransforms.push({ op: 'fisheye', strength: _fwVal });
   _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
   if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
+  var _fsw = document.getElementById('crop-fisheye-work');
+  if (_fsw) _fsw.remove();
+  if (typeof _cropFisheyeVal !== 'undefined') _cropFisheyeVal = 0;
+  if (typeof _cropFisheyeOrig !== 'undefined') _cropFisheyeOrig = null;
+  if (typeof _cropFisheyeReAdjTransform !== 'undefined') _cropFisheyeReAdjTransform = null;
   if (typeof _cropPerspFlushPending !== 'undefined') _cropPerspFlushPending = true;
   _cropRenderFromSource(function() {
     if (typeof _cropPerspFlushPending !== 'undefined') _cropPerspFlushPending = false;
@@ -21094,18 +21302,27 @@ function _cropPerspFlush(onFlush) {
 
 function _cropPerspDiscard(onDiscard) {
   var _pw = document.getElementById('crop-perspective-work');
+  var _fw = document.getElementById('crop-fisheye-work');
   var _hasReAdj = typeof _cropOptReAdjTransform !== 'undefined' && _cropOptReAdjTransform;
-  if (!_pw && !_hasReAdj) {
+  var _hasFishReAdj = typeof _cropFisheyeReAdjTransform !== 'undefined' && _cropFisheyeReAdjTransform;
+  if (!_pw && !_fw && !_hasReAdj && !_hasFishReAdj) {
     if (onDiscard) onDiscard();
     return;
   }
   if (_pw) _pw.remove();
+  if (_fw) _fw.remove();
   var _ac = typeof getActiveCanvas === 'function' ? getActiveCanvas() : document.getElementById('ev-canvas');
   if (_ac) _ac.style.opacity = '1';
   if (_hasReAdj) {
     _cropTransforms.push(_cropOptReAdjTransform);
     _cropOptReAdjTransform = null;
   }
+  if (_hasFishReAdj) {
+    _cropTransforms.push(_cropFisheyeReAdjTransform);
+    _cropFisheyeReAdjTransform = null;
+  }
+  if (typeof _cropFisheyeVal !== 'undefined') _cropFisheyeVal = 0;
+  if (typeof _cropFisheyeOrig !== 'undefined') _cropFisheyeOrig = null;
   if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
   if (typeof _etPerspActiveAxis !== 'undefined') _etPerspActiveAxis = null;
   if (typeof _cropPerspAxisEntry !== 'undefined') _cropPerspAxisEntry = null;
@@ -21297,8 +21514,26 @@ function cropPerspSelectAxis(axis) {
   if (row) row.style.display = '';
   var vs = document.getElementById('crop-persp-v-section');
   var hs = document.getElementById('crop-persp-h-section');
+  var fs = document.getElementById('crop-fisheye-section');
   if (vs) vs.style.display = axis === 'v' ? '' : 'none';
   if (hs) hs.style.display = axis === 'h' ? '' : 'none';
+  if (fs) fs.style.display = 'none';
+}
+function cropFisheyeSelectAxis() {
+  _etPerspActiveAxis = 'fisheye';
+  _cropPerspAxisEntry = null;
+  _cropFisheyeEntryVal = _cropFisheyeVal;
+  if (!_cropFisheyeOrig) _cropFisheyeOrig = userImage;
+  var mb = document.getElementById('persp-mode-buttons');
+  if (mb) mb.style.display = 'none';
+  var row = document.getElementById('crop-persp-slider-row');
+  if (row) row.style.display = '';
+  var vs = document.getElementById('crop-persp-v-section');
+  var hs = document.getElementById('crop-persp-h-section');
+  var fs = document.getElementById('crop-fisheye-section');
+  if (vs) vs.style.display = 'none';
+  if (hs) hs.style.display = 'none';
+  if (fs) fs.style.display = '';
 }
 
 function _evBuildCurAdj() {

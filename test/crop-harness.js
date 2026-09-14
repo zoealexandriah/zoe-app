@@ -57,6 +57,25 @@ const SEQUENCES = [
       { op: 'perspective', v: 30, h: 0 },
     ],
     note: 'all five ops stacked' },
+  { id: 'fisheye_60',
+    transforms: [{ op: 'fisheye', strength: 60 }],
+    note: 'single fisheye strength=60' },
+  { id: 'fisheye_then_straighten',
+    transforms: [{ op: 'fisheye', strength: 40 }, { op: 'straighten', angle: 10 }],
+    note: 'fisheye → straighten' },
+  { id: 'fisheye_then_crop',
+    transforms: [{ op: 'fisheye', strength: 40 }, { op: 'crop', rx: 0.05, ry: 0.05, rw: 0.85, rh: 0.85 }],
+    note: 'fisheye → crop' },
+  { id: 'all_six',
+    transforms: [
+      { op: 'straighten', angle: 12 },
+      { op: 'rotate', dir: 'cw' },
+      { op: 'flip', dir: 'v' },
+      { op: 'crop', rx: 0.08, ry: 0.08, rw: 0.8, rh: 0.8 },
+      { op: 'perspective', v: 30, h: 0 },
+      { op: 'fisheye', strength: 30 },
+    ],
+    note: 'all six ops stacked' },
 ];
 
 // ── synthetic photo generators (identical to harness.js) ──────────────────────

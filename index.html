@@ -20929,7 +20929,7 @@ function _cropApplyOne(t, srcImg, cb) {
     // Barrel/pincushion remap: positive = barrel (fisheye), negative = correct barrel.
     // Inverse map: for each output pixel find its source via rd*(1+k*rd^2) where rd is
     // normalised distance from centre. Full-res at commit; preview uses a capped canvas.
-    var _fk = (t.strength || 0) / 100;
+    var _fk = (t.strength || 0) / 150;
     tmp.width = iw; tmp.height = ih;
     ctx = tmp.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(srcImg, 0, 0, iw, ih);
@@ -20942,8 +20942,7 @@ function _cropApplyOne(t, srcImg, cb) {
       for (var _fox = 0; _fox < iw; _fox++) {
         var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
         var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
-        var _frd2 = _frd * _frd;
-        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _fk * _frd2 * _frd2);
+        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _fk * _frd * _frd);
         var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
         var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
         var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);
@@ -21179,15 +21178,14 @@ function _cropFisheyePreview(val) {
     var _fctx = sc.getContext('2d', {willReadFrequently:true});
     var _foutD = _fctx.createImageData(_frW, _frH);
     var _foutPx = _foutD.data;
-    var _ffk = _fv / 100;
+    var _ffk = _fv / 150;
     var _fcx = _frW * 0.5, _fcy = _frH * 0.5;
     var _frmax = Math.sqrt(_fcx * _fcx + _fcy * _fcy);
     for (var _foy = 0; _foy < _frH; _foy++) {
       for (var _fox = 0; _fox < _frW; _fox++) {
         var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
         var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
-        var _frd2 = _frd * _frd;
-        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _ffk * _frd2 * _frd2);
+        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _ffk * _frd * _frd);
         var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
         var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
         var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);

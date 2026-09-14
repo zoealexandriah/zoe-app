@@ -18304,13 +18304,22 @@ function galleryOpenInEditor(idx) {
       _perspBaseV   = es.perspState.v || 0;
       _perspBaseH   = es.perspState.h || 0;
     }
-    // If a crop/straighten was applied, editedDataURL is the post-crop image and
-    // originalDataURL is the full pre-crop original. Load the post-crop image as
-    // userImage so the editor opens at the cropped state, then asynchronously
-    // restore _preCropState so the RATIO tab can still offer re-adjustment.
-    var _hasCrop = !es.perspState && es.editedDataURL && es.originalDataURL
+    // Restore committed crop transforms (priority 2 — only when no in-flight perspState).
+    // perspState handles mid-adjustment exits; cropTransforms handles committed-then-closed.
+    // Mutual exclusion: a committed perspective always has perspState:null, so the two
+    // conditions below can never both be true for the same entry.
+    var _hasCropTransforms = !es.perspState
+      && es.cropTransforms && es.cropTransforms.version === 1
+      && Array.isArray(es.cropTransforms.ops) && es.cropTransforms.ops.length > 0;
+    if (_hasCropTransforms && typeof _cropTransforms !== 'undefined') {
+      _cropTransforms = JSON.parse(JSON.stringify(es.cropTransforms.ops));
+    }
+    // _hasCrop: old-format entries (no cropTransforms record) where editedDataURL is baked.
+    var _hasCrop = !es.perspState && !_hasCropTransforms && es.editedDataURL && es.originalDataURL
       && es.editedDataURL !== es.originalDataURL;
+    // Source image priority: in-flight perspState → replay original → baked editedDataURL → plain original
     var _origSrc = (es.perspState && es.perspState.baseURL ? es.perspState.baseURL : null)
+      || (_hasCropTransforms ? (es.originalDataURL || null) : null)
       || (_hasCrop ? es.editedDataURL : null)
       || es.originalDataURL
       || (entry.id ? (localStorage.getItem('zoe_edit_' + entry.id + '_original') || null) : null)
@@ -18320,46 +18329,58 @@ function galleryOpenInEditor(idx) {
     if (_origSrc) {
       var origImg = new Image();
       origImg.onload = function() {
-        userImage = origImg;
-        // Restore _preCropState so RATIO tab re-adjust mode works on reopen
-        if (_hasCrop && es.originalDataURL) {
-          var _preOrigImg = new Image();
-          _preOrigImg.onload = function() {
-            var _preW = _preOrigImg.naturalWidth, _preH = _preOrigImg.naturalHeight;
-            _preCropState = { userImage: _preOrigImg, origPixels: null, origOffX: 0, origOffY: 0, origW: _preW, origH: _preH };
-            _savedCropRect = { x: 0, y: 0, w: _preW, h: _preH };
-          };
-          _preOrigImg.src = es.originalDataURL;
-        }
-        // Sync slider UI with restored state — fires after evInit's rAF
-        if (activePreset) {
-          buildEditorSliders(activePreset);
-        } else if (sliderState[_evNoLookPreset.id] && Object.keys(sliderState[_evNoLookPreset.id]).length > 0) {
-          buildEditorSliders(_evNoLookPreset);
-        }
-        if (es.fxState && typeof fxState !== 'undefined') {
-          Object.assign(fxState, JSON.parse(JSON.stringify(es.fxState)));
-        }
-        if (typeof evRenderCanvas === 'function') evRenderCanvas();
-        if (_perspBaseURL) {
-          var _preWarpImg = new Image();
-          _preWarpImg.onload = function() {
-            evHistory.push({
-              presetId:    es.presetId || null,
-              sliders:     JSON.parse(JSON.stringify(es.sliders || {})),
-              intensity:   typeof es.intensity === 'number' ? es.intensity : 1.0,
-              _userImage:  _preWarpImg,
-              _perspState: null,
-              _fxState:    (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null
-            });
+        function _afterImageReady() {
+          // Restore _preCropState so RATIO tab re-adjust mode works on reopen (old-format entries)
+          if (_hasCrop && es.originalDataURL) {
+            var _preOrigImg = new Image();
+            _preOrigImg.onload = function() {
+              var _preW = _preOrigImg.naturalWidth, _preH = _preOrigImg.naturalHeight;
+              _preCropState = { userImage: _preOrigImg, origPixels: null, origOffX: 0, origOffY: 0, origW: _preW, origH: _preH };
+              _savedCropRect = { x: 0, y: 0, w: _preW, h: _preH };
+            };
+            _preOrigImg.src = es.originalDataURL;
+          }
+          // Sync slider UI with restored state — fires after evInit's rAF
+          if (activePreset) {
+            buildEditorSliders(activePreset);
+          } else if (sliderState[_evNoLookPreset.id] && Object.keys(sliderState[_evNoLookPreset.id]).length > 0) {
+            buildEditorSliders(_evNoLookPreset);
+          }
+          if (es.fxState && typeof fxState !== 'undefined') {
+            Object.assign(fxState, JSON.parse(JSON.stringify(es.fxState)));
+          }
+          if (typeof evRenderCanvas === 'function') evRenderCanvas();
+          if (_perspBaseURL) {
+            var _preWarpImg = new Image();
+            _preWarpImg.onload = function() {
+              evHistory.push({
+                presetId:    es.presetId || null,
+                sliders:     JSON.parse(JSON.stringify(es.sliders || {})),
+                intensity:   typeof es.intensity === 'number' ? es.intensity : 1.0,
+                _userImage:  _preWarpImg,
+                _perspState: null,
+                _fxState:    (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null
+              });
+              if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+            };
+            _preWarpImg.src = _perspBaseURL;
+          } else {
+            evHistory.push({ presetId: es.presetId || null, sliders: JSON.parse(JSON.stringify(es.sliders || {})), intensity: typeof es.intensity === 'number' ? es.intensity : 1.0, _perspState: null, _fxState: (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null });
             if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
-          };
-          _preWarpImg.src = _perspBaseURL;
-        } else {
-          evHistory.push({ presetId: es.presetId || null, sliders: JSON.parse(JSON.stringify(es.sliders || {})), intensity: typeof es.intensity === 'number' ? es.intensity : 1.0, _perspState: null, _fxState: (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null });
-          if (typeof _evUpdateUndoRedoBtns === 'function') _evUpdateUndoRedoBtns();
+          }
+          setTimeout(function() { evRenderPresets(); }, 60);
         }
-        setTimeout(function() { evRenderPresets(); }, 60);
+        if (_hasCropTransforms) {
+          // Pin origImg as the replay source — _cropTransforms already restored above.
+          // _cropRenderFromSource sets userImage = replayed result then calls _afterImageReady.
+          // _cropSourceImage stays set for the full duration of the async canvas op; nothing
+          // in _afterImageReady nulls it, so the callback always has a valid source.
+          _cropSourceImage = origImg;
+          _cropRenderFromSource(_afterImageReady);
+        } else {
+          userImage = origImg;
+          _afterImageReady();
+        }
       };
       origImg.src = _origSrc;
     } else {
@@ -18627,7 +18648,10 @@ function autoSaveEdit() {
       }
       return { baseURL: _perspBaseURL, v: _psV, h: _psH, version: 2 };
     })(),
-    fxState: (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null
+    fxState: (typeof fxState !== 'undefined') ? JSON.parse(JSON.stringify(fxState)) : null,
+    cropTransforms: (typeof _cropTransforms !== 'undefined' && _cropTransforms.length > 0)
+      ? { version: 1, ops: JSON.parse(JSON.stringify(_cropTransforms)) }
+      : null
   };
   libSaveToStorage();
 }

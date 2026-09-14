@@ -20926,47 +20926,51 @@ function _cropApplyOne(t, srcImg, cb) {
     return;
 
   } else if (t.op === 'fisheye') {
-    // Barrel/pincushion remap: positive = barrel (fisheye), negative = correct barrel.
-    // Inverse map: for each output pixel find its source via rd*(1+k*rd^2) where rd is
-    // normalised distance from centre. Full-res at commit; preview uses a capped canvas.
+    // Inverse remap: positive k = barrel (centre magnified, lines bow outward),
+    // negative k = pincushion (lines bow inward). rs = rd*(1-k*rd^2)*scale.
+    // For pincushion (k<0), rs at rd=1 would be 1+|k|>1; scale=1/(1-k) keeps it in-bounds.
+    // Barrel (k>0) always stays in-bounds (rs<=1-k<1), scale stays 1.
     var _fk = (t.strength || 0) / 100;
     tmp.width = iw; tmp.height = ih;
     ctx = tmp.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(srcImg, 0, 0, iw, ih);
-    var _fSrc = ctx.getImageData(0, 0, iw, ih).data;
-    var _fOut = ctx.createImageData(iw, ih);
-    var _fOutPx = _fOut.data;
-    var _fcx = iw * 0.5, _fcy = ih * 0.5;
-    var _frmax = Math.sqrt(_fcx * _fcx + _fcy * _fcy);
-    for (var _foy = 0; _foy < ih; _foy++) {
-      for (var _fox = 0; _fox < iw; _fox++) {
-        var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
-        var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
-        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _fk * _frd * _frd);
-        var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
-        var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
-        var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);
-        var _fx1 = _fx0 + 1, _fy1 = _fy0 + 1;
-        var _foi = (_foy * iw + _fox) * 4;
-        if (_fx0 < 0 || _fx1 >= iw || _fy0 < 0 || _fy1 >= ih) {
-          var _fcx2 = Math.max(0, Math.min(iw - 1, Math.round(_fsx)));
-          var _fcy2 = Math.max(0, Math.min(ih - 1, Math.round(_fsy)));
-          var _fsi2 = (_fcy2 * iw + _fcx2) * 4;
-          _fOutPx[_foi] = _fSrc[_fsi2]; _fOutPx[_foi+1] = _fSrc[_fsi2+1];
-          _fOutPx[_foi+2] = _fSrc[_fsi2+2]; _fOutPx[_foi+3] = 255;
-        } else {
-          var _ffx = _fsx - _fx0, _ffy = _fsy - _fy0;
-          var _fw00 = (1-_ffx)*(1-_ffy), _fw10 = _ffx*(1-_ffy), _fw01 = (1-_ffx)*_ffy, _fw11 = _ffx*_ffy;
-          var _fsi00 = (_fy0*iw+_fx0)*4, _fsi10 = (_fy0*iw+_fx1)*4;
-          var _fsi01 = (_fy1*iw+_fx0)*4, _fsi11 = (_fy1*iw+_fx1)*4;
-          _fOutPx[_foi]   = _fw00*_fSrc[_fsi00]  +_fw10*_fSrc[_fsi10]  +_fw01*_fSrc[_fsi01]  +_fw11*_fSrc[_fsi11];
-          _fOutPx[_foi+1] = _fw00*_fSrc[_fsi00+1]+_fw10*_fSrc[_fsi10+1]+_fw01*_fSrc[_fsi01+1]+_fw11*_fSrc[_fsi11+1];
-          _fOutPx[_foi+2] = _fw00*_fSrc[_fsi00+2]+_fw10*_fSrc[_fsi10+2]+_fw01*_fSrc[_fsi01+2]+_fw11*_fSrc[_fsi11+2];
-          _fOutPx[_foi+3] = 255;
+    if (Math.abs(_fk) >= 0.001) {
+      var _fScale = _fk < 0 ? 1.0 / (1.0 - _fk + 1e-6) : 1.0;
+      var _fSrc = ctx.getImageData(0, 0, iw, ih).data;
+      var _fOut = ctx.createImageData(iw, ih);
+      var _fOutPx = _fOut.data;
+      var _fcx = iw * 0.5, _fcy = ih * 0.5;
+      var _frmax = Math.sqrt(_fcx * _fcx + _fcy * _fcy);
+      for (var _foy = 0; _foy < ih; _foy++) {
+        for (var _fox = 0; _fox < iw; _fox++) {
+          var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
+          var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
+          var _frs = _frd < 0.0001 ? 0 : _frd * (1 - _fk * _frd * _frd) * _fScale;
+          var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
+          var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
+          var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);
+          var _fx1 = _fx0 + 1, _fy1 = _fy0 + 1;
+          var _foi = (_foy * iw + _fox) * 4;
+          if (_fx0 < 0 || _fx1 >= iw || _fy0 < 0 || _fy1 >= ih) {
+            var _fcx2 = Math.max(0, Math.min(iw - 1, Math.round(_fsx)));
+            var _fcy2 = Math.max(0, Math.min(ih - 1, Math.round(_fsy)));
+            var _fsi2 = (_fcy2 * iw + _fcx2) * 4;
+            _fOutPx[_foi] = _fSrc[_fsi2]; _fOutPx[_foi+1] = _fSrc[_fsi2+1];
+            _fOutPx[_foi+2] = _fSrc[_fsi2+2]; _fOutPx[_foi+3] = 255;
+          } else {
+            var _ffx = _fsx - _fx0, _ffy = _fsy - _fy0;
+            var _fw00 = (1-_ffx)*(1-_ffy), _fw10 = _ffx*(1-_ffy), _fw01 = (1-_ffx)*_ffy, _fw11 = _ffx*_ffy;
+            var _fsi00 = (_fy0*iw+_fx0)*4, _fsi10 = (_fy0*iw+_fx1)*4;
+            var _fsi01 = (_fy1*iw+_fx0)*4, _fsi11 = (_fy1*iw+_fx1)*4;
+            _fOutPx[_foi]   = _fw00*_fSrc[_fsi00]  +_fw10*_fSrc[_fsi10]  +_fw01*_fSrc[_fsi01]  +_fw11*_fSrc[_fsi11];
+            _fOutPx[_foi+1] = _fw00*_fSrc[_fsi00+1]+_fw10*_fSrc[_fsi10+1]+_fw01*_fSrc[_fsi01+1]+_fw11*_fSrc[_fsi11+1];
+            _fOutPx[_foi+2] = _fw00*_fSrc[_fsi00+2]+_fw10*_fSrc[_fsi10+2]+_fw01*_fSrc[_fsi01+2]+_fw11*_fSrc[_fsi11+2];
+            _fOutPx[_foi+3] = 255;
+          }
         }
       }
+      ctx.putImageData(_fOut, 0, 0);
     }
-    ctx.putImageData(_fOut, 0, 0);
   }
 
   var _ni = new Image();
@@ -21181,35 +21185,38 @@ function _cropFisheyePreview(val) {
     var _ffk = _fv / 100;
     var _fcx = _frW * 0.5, _fcy = _frH * 0.5;
     var _frmax = Math.sqrt(_fcx * _fcx + _fcy * _fcy);
-    for (var _foy = 0; _foy < _frH; _foy++) {
-      for (var _fox = 0; _fox < _frW; _fox++) {
-        var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
-        var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
-        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _ffk * _frd * _frd);
-        var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
-        var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
-        var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);
-        var _fx1 = _fx0 + 1, _fy1 = _fy0 + 1;
-        var _foi = (_foy * _frW + _fox) * 4;
-        if (_fx0 < 0 || _fx1 >= _frW || _fy0 < 0 || _fy1 >= _frH) {
-          var _fcx2 = Math.max(0, Math.min(_frW-1, Math.round(_fsx)));
-          var _fcy2 = Math.max(0, Math.min(_frH-1, Math.round(_fsy)));
-          var _fsi2 = (_fcy2 * _frW + _fcx2) * 4;
-          _foutPx[_foi]=_fsrcData[_fsi2]; _foutPx[_foi+1]=_fsrcData[_fsi2+1];
-          _foutPx[_foi+2]=_fsrcData[_fsi2+2]; _foutPx[_foi+3]=255;
-        } else {
-          var _ffx = _fsx - _fx0, _ffy = _fsy - _fy0;
-          var _fw00=(1-_ffx)*(1-_ffy),_fw10=_ffx*(1-_ffy),_fw01=(1-_ffx)*_ffy,_fw11=_ffx*_ffy;
-          var _fsi00=(_fy0*_frW+_fx0)*4,_fsi10=(_fy0*_frW+_fx1)*4;
-          var _fsi01=(_fy1*_frW+_fx0)*4,_fsi11=(_fy1*_frW+_fx1)*4;
-          _foutPx[_foi]  =_fw00*_fsrcData[_fsi00]  +_fw10*_fsrcData[_fsi10]  +_fw01*_fsrcData[_fsi01]  +_fw11*_fsrcData[_fsi11];
-          _foutPx[_foi+1]=_fw00*_fsrcData[_fsi00+1]+_fw10*_fsrcData[_fsi10+1]+_fw01*_fsrcData[_fsi01+1]+_fw11*_fsrcData[_fsi11+1];
-          _foutPx[_foi+2]=_fw00*_fsrcData[_fsi00+2]+_fw10*_fsrcData[_fsi10+2]+_fw01*_fsrcData[_fsi01+2]+_fw11*_fsrcData[_fsi11+2];
-          _foutPx[_foi+3]=255;
+    if (Math.abs(_ffk) >= 0.001) {
+      var _ffScale = _ffk < 0 ? 1.0 / (1.0 - _ffk + 1e-6) : 1.0;
+      for (var _foy = 0; _foy < _frH; _foy++) {
+        for (var _fox = 0; _fox < _frW; _fox++) {
+          var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
+          var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
+          var _frs = _frd < 0.0001 ? 0 : _frd * (1 - _ffk * _frd * _frd) * _ffScale;
+          var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
+          var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
+          var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);
+          var _fx1 = _fx0 + 1, _fy1 = _fy0 + 1;
+          var _foi = (_foy * _frW + _fox) * 4;
+          if (_fx0 < 0 || _fx1 >= _frW || _fy0 < 0 || _fy1 >= _frH) {
+            var _fcx2 = Math.max(0, Math.min(_frW-1, Math.round(_fsx)));
+            var _fcy2 = Math.max(0, Math.min(_frH-1, Math.round(_fsy)));
+            var _fsi2 = (_fcy2 * _frW + _fcx2) * 4;
+            _foutPx[_foi]=_fsrcData[_fsi2]; _foutPx[_foi+1]=_fsrcData[_fsi2+1];
+            _foutPx[_foi+2]=_fsrcData[_fsi2+2]; _foutPx[_foi+3]=255;
+          } else {
+            var _ffx = _fsx - _fx0, _ffy = _fsy - _fy0;
+            var _fw00=(1-_ffx)*(1-_ffy),_fw10=_ffx*(1-_ffy),_fw01=(1-_ffx)*_ffy,_fw11=_ffx*_ffy;
+            var _fsi00=(_fy0*_frW+_fx0)*4,_fsi10=(_fy0*_frW+_fx1)*4;
+            var _fsi01=(_fy1*_frW+_fx0)*4,_fsi11=(_fy1*_frW+_fx1)*4;
+            _foutPx[_foi]  =_fw00*_fsrcData[_fsi00]  +_fw10*_fsrcData[_fsi10]  +_fw01*_fsrcData[_fsi01]  +_fw11*_fsrcData[_fsi11];
+            _foutPx[_foi+1]=_fw00*_fsrcData[_fsi00+1]+_fw10*_fsrcData[_fsi10+1]+_fw01*_fsrcData[_fsi01+1]+_fw11*_fsrcData[_fsi11+1];
+            _foutPx[_foi+2]=_fw00*_fsrcData[_fsi00+2]+_fw10*_fsrcData[_fsi10+2]+_fw01*_fsrcData[_fsi01+2]+_fw11*_fsrcData[_fsi11+2];
+            _foutPx[_foi+3]=255;
+          }
         }
       }
+      _fctx.putImageData(_foutD, 0, 0);
     }
-    _fctx.putImageData(_foutD, 0, 0);
     ac.style.opacity = '0';
   });
 }

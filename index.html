@@ -20942,7 +20942,8 @@ function _cropApplyOne(t, srcImg, cb) {
       for (var _fox = 0; _fox < iw; _fox++) {
         var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
         var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
-        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _fk * _frd * _frd);
+        var _frd2 = _frd * _frd;
+        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _fk * _frd2 * _frd2);
         var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
         var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
         var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);
@@ -21185,7 +21186,8 @@ function _cropFisheyePreview(val) {
       for (var _fox = 0; _fox < _frW; _fox++) {
         var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
         var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
-        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _ffk * _frd * _frd);
+        var _frd2 = _frd * _frd;
+        var _frs = _frd < 0.0001 ? 0 : _frd * (1 + _ffk * _frd2 * _frd2);
         var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
         var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
         var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);

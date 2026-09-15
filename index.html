@@ -16831,6 +16831,16 @@ function _showSavedToast() {
 
 function _evDoSave() {
   if (!userImage) return;
+  // Commit any pending perspective/fisheye before saving.
+  // After ✓ checkmark both signals are already cleared (work canvas removed,
+  // _cropFisheyeVal reset to 0), so this guard is a no-op and save proceeds
+  // normally — no double-commit.
+  var _dsPersp = document.getElementById('crop-perspective-work');
+  var _dsFwVal = (typeof _cropFisheyeVal !== 'undefined') ? (_cropFisheyeVal || 0) : 0;
+  if (((_dsPersp && _dsPersp.width) || Math.abs(_dsFwVal) > 0.5) && typeof _cropPerspFlush === 'function') {
+    _cropPerspFlush(function() { _evDoSave(); });
+    return;
+  }
   // If the active preset has a texture overlay that hasn't decoded yet, wait for it first
   // so the exported image includes the texture rather than silently skipping it.
   var _p = activePreset;

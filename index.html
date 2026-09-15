@@ -10382,7 +10382,7 @@ function buildOpticalPanel() {
           '<span class="crop-sub-label">LENS</span>' +
           '<span class="crop-sub-val" id="crop-fisheye-val">' + Math.round(fisheyeVal) + '</span>' +
         '</div>' +
-        '<input type="range" class="tc-range" id="crop-fisheye-slider" min="-100" max="100" step="1" value="' + fisheyeVal + '" oninput="_cropFisheyePreview(this.value)">' +
+        '<input type="range" class="tc-range" id="crop-fisheye-slider" min="-100" max="100" step="1" value="' + fisheyeVal + '" oninput="_cropFisheyePreview(this.value)" onchange="_cropFisheyePreview(this.value,true)">' +
       '</div>' +
     '</div>';
 }
@@ -16181,7 +16181,7 @@ function etCropHTML() {
             <span class="crop-sub-label">LENS</span>
             <span class="crop-sub-val" id="crop-fisheye-val">${Math.round(fisheyeVal)}</span>
           </div>
-          <input type="range" class="tc-range" id="crop-fisheye-slider" min="-100" max="100" step="1" value="${fisheyeVal}" oninput="_cropFisheyePreview(this.value)">
+          <input type="range" class="tc-range" id="crop-fisheye-slider" min="-100" max="100" step="1" value="${fisheyeVal}" oninput="_cropFisheyePreview(this.value)" onchange="_cropFisheyePreview(this.value,true)">
         </div>
       </div>
     </div>
@@ -20611,6 +20611,7 @@ var _cropFisheyeReAdjTransform = null;
 var _cropFisheyeEntryVal = 0;
 var _cropFisheyeRafId = null;
 var _cropFisheyePending = null;
+var _cropFisheyeHiRes = false;
 function cropSubTabExpandStraighten() {
   var sl = document.getElementById('crop-straighten-slider');
   if (!sl) return;
@@ -21228,7 +21229,7 @@ function cropStraightenAutoApply(onDone) {
   newImg.src = tmp.toDataURL();
 }
 
-function _cropFisheyePreview(val) {
+function _cropFisheyePreview(val, hiRes) {
   val = parseFloat(val) || 0;
   _cropFisheyeVal = val;
   var _fvEl = document.getElementById('crop-fisheye-val');
@@ -21237,11 +21238,14 @@ function _cropFisheyePreview(val) {
   if (_fll) _fll.textContent = val !== 0 ? Math.round(val) : 'LENS';
   if (!_cropFisheyeOrig) return;
   _cropFisheyePending = val;
+  if (hiRes) _cropFisheyeHiRes = true; // set before guard so a pending RAF picks it up
   if (_cropFisheyeRafId) return;
   _cropFisheyeRafId = requestAnimationFrame(function() {
     _cropFisheyeRafId = null;
     var _fv = _cropFisheyePending !== null ? _cropFisheyePending : _cropFisheyeVal;
     _cropFisheyePending = null;
+    var _isHiRes = _cropFisheyeHiRes;
+    _cropFisheyeHiRes = false;
     var ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : document.getElementById('hero-canvas');
     if (!ac) return;
     _cropFisheyeVal = _fv;
@@ -21258,9 +21262,9 @@ function _cropFisheyePreview(val) {
       sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none';
       ac.parentElement.appendChild(sc);
     }
-    // Low-res remap: cap source at 400px per side to stay under one frame.
+    // Drag: cap at 400px (stays under one frame). Release: cap at 1200px for a sharp hi-res pass.
     var _fsrcW = _cropFisheyeOrig.naturalWidth, _fsrcH = _cropFisheyeOrig.naturalHeight;
-    var _fscale = Math.min(400 / _fsrcW, 400 / _fsrcH, 1);
+    var _fscale = _isHiRes ? Math.min(1200 / _fsrcW, 1200 / _fsrcH, 1) : Math.min(400 / _fsrcW, 400 / _fsrcH, 1);
     var _frW = Math.round(_fsrcW * _fscale), _frH = Math.round(_fsrcH * _fscale);
     var _ftmp = document.createElement('canvas');
     _ftmp.width = _frW; _ftmp.height = _frH;

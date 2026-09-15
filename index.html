@@ -17313,7 +17313,7 @@ function _evRenderCanvasImmediate() {
     }
     var origData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var _evGrain = adj.grain || 0;
-    adj.grain = 0;   // applied below at canvas resolution, matching export
+    adj.grain = 0;   // applied below at canvas resolution, scaled by intensity to match export
     var processed = applyPixelAdjustments(origData, adj);
     // Blend with original based on presetIntensity (0 = original, 1 = full effect)
     var intensity = (typeof presetIntensity !== 'undefined') ? presetIntensity : 1.0;
@@ -17374,7 +17374,7 @@ function _evRenderCanvasImmediate() {
   }
   // Grain last, before FX frames, so it lands on the photo and not the frame.
   if (typeof _evGrain !== 'undefined' && _evGrain > 0.005) {
-    applyFilmGrain(canvas, _evGrain, ((_evCurPreset && _evCurPreset.grainSize) || 1));
+    applyFilmGrain(canvas, _evGrain * intensity, ((_evCurPreset && _evCurPreset.grainSize) || 1));
   }
   if (typeof adj !== 'undefined' && adj && adj.textureOverlay) applyTextureOverlay(canvas, adj.textureOverlay, 0, 0, canvas.width, canvas.height);
   if (typeof adj !== 'undefined' && adj && adj.border) applyBorder(canvas, adj.border, 0, 0, canvas.width, canvas.height);

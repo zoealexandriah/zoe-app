@@ -14985,6 +14985,8 @@ function toolsCropSetRatio(r) {
 function toolsCropDraw() {
   const hc = document.getElementById('hero-canvas');
   if (!hc) return;
+  // cropRect must be in ev-canvas space; all readers (_cropApplyRatioInPlace etc.) scale by ac.width/height
+  const ac = (typeof getActiveCanvas === 'function') ? getActiveCanvas() : hc;
   let ov = document.getElementById('crop-overlay-canvas');
   if (!ov) {
     ov = document.createElement('canvas');
@@ -15004,16 +15006,20 @@ function toolsCropDraw() {
 
   if (!cropRect) {
     // Default: full canvas, respecting current ratio
-    let bw = hc.width, bh = hc.height;
+    let bw = ac.width, bh = ac.height;
     if (toolsCropRatio !== 'FREEFORM') {
       const [rw, rh] = toolsCropRatio.split(':').map(Number);
       bh = bw * rh / rw;
-      if (bh > hc.height) { bh = hc.height; bw = bh * rw / rh; }
+      if (bh > ac.height) { bh = ac.height; bw = bh * rw / rh; }
     }
-    cropRect = { x: (hc.width-bw)/2, y: (hc.height-bh)/2, w: bw, h: bh };
+    cropRect = { x: (ac.width-bw)/2, y: (ac.height-bh)/2, w: bw, h: bh };
   }
   toolsCropDrawRect(ov);
-  toolsCropBindDrag(ov, hc);
+  // Drag clamping must match cropRect space (ac), not hero-canvas.
+  // toolsCropDrawOnCanvas rebinds drag in its RAF but the first binding
+  // would allow cropRect coordinates outside the ac bounds otherwise.
+  // drag clamping must match cropRect space (ac), not hero-canvas
+  toolsCropBindDrag(ov, ac);
   // Overlay starts hidden — only cropSelectSubTab('ratio') makes it visible
   ov.style.display = 'none';
 }

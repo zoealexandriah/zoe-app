@@ -16841,6 +16841,11 @@ function _evDoSave() {
     _cropPerspFlush(function() { _evDoSave(); });
     return;
   }
+  // Commit any pending straighten (same pattern; no-op when _cropStraightenVal is 0).
+  if (typeof _cropBakeStraighten === 'function' && typeof _cropStraightenVal !== 'undefined' && Math.abs(_cropStraightenVal || 0) > 0.01) {
+    _cropBakeStraighten(function() { _evDoSave(); });
+    return;
+  }
   // If the active preset has a texture overlay that hasn't decoded yet, wait for it first
   // so the exported image includes the texture rather than silently skipping it.
   var _p = activePreset;

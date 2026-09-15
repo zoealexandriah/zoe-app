@@ -21011,16 +21011,16 @@ function _cropApplyOne(t, srcImg, cb) {
     return;
 
   } else if (t.op === 'fisheye') {
-    // Inverse remap: positive k = barrel (centre magnified, lines bow outward),
-    // negative k = pincushion (lines bow inward). rs = rd*(1-k*rd^2)*scale.
-    // For pincushion (k<0), rs at rd=1 would be 1+|k|>1; scale=1/(1-k) keeps it in-bounds.
-    // Barrel (k>0) always stays in-bounds (rs<=1-k<1), scale stays 1.
-    var _fk = Math.max(-0.95, Math.min(0.95, (t.strength || 0) / 100 * 0.55));
+    // positive = barrel rs=rd*(1+k*rd²)/(1+k) k∈[0,0.55]; negative = pincushion rs=rd*S/(1+k*rd²)
+    // S=1+k*min(W,H)²/(W²+H²) pins the short-edge midpoints exactly at the source boundary.
+    var _fv = t.strength || 0;
+    var _fIsBarrel = _fv > 0;
+    var _fk = _fIsBarrel ? (_fv / 100 * 0.55) : (Math.abs(_fv) / 100 * 0.39);
+    var _fS = _fIsBarrel ? (1 + _fk) : (1 + _fk * (Math.min(iw,ih)-4)*(Math.min(iw,ih)-4) / (iw*iw + ih*ih));
     tmp.width = iw; tmp.height = ih;
     ctx = tmp.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(srcImg, 0, 0, iw, ih);
-    if (Math.abs(_fk) >= 0.001) {
-      var _fScale = _fk < 0 ? 1.0 / (1.0 - _fk + 1e-6) : 1.0;
+    if (Math.abs(_fv) >= 0.5) {
       var _fSrc = ctx.getImageData(0, 0, iw, ih).data;
       var _fOut = ctx.createImageData(iw, ih);
       var _fOutPx = _fOut.data;
@@ -21030,7 +21030,7 @@ function _cropApplyOne(t, srcImg, cb) {
         for (var _fox = 0; _fox < iw; _fox++) {
           var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
           var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
-          var _frs = _frd < 0.0001 ? 0 : _frd * (1 - _fk * _frd * _frd) * _fScale;
+          var _frs = _frd < 0.0001 ? 0 : (_fIsBarrel ? _frd*(1+_fk*_frd*_frd)/_fS : _frd*_fS/(1+_fk*_frd*_frd));
           var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
           var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
           var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);
@@ -21267,16 +21267,17 @@ function _cropFisheyePreview(val) {
     var _fctx = sc.getContext('2d', {willReadFrequently:true});
     var _foutD = _fctx.createImageData(_frW, _frH);
     var _foutPx = _foutD.data;
-    var _ffk = Math.max(-0.95, Math.min(0.95, _fv / 100 * 0.55));
+    var _ffIsBarrel = _fv > 0;
+    var _ffk = _ffIsBarrel ? (_fv / 100 * 0.55) : (Math.abs(_fv) / 100 * 0.39);
+    var _ffS = _ffIsBarrel ? (1 + _ffk) : (1 + _ffk * (Math.min(_frW,_frH)-4)*(Math.min(_frW,_frH)-4) / (_frW*_frW + _frH*_frH));
     var _fcx = _frW * 0.5, _fcy = _frH * 0.5;
     var _frmax = Math.sqrt(_fcx * _fcx + _fcy * _fcy);
-    if (Math.abs(_ffk) >= 0.001) {
-      var _ffScale = _ffk < 0 ? 1.0 / (1.0 - _ffk + 1e-6) : 1.0;
+    if (Math.abs(_fv) >= 0.5) {
       for (var _foy = 0; _foy < _frH; _foy++) {
         for (var _fox = 0; _fox < _frW; _fox++) {
           var _fdx = (_fox - _fcx) / _frmax, _fdy = (_foy - _fcy) / _frmax;
           var _frd = Math.sqrt(_fdx * _fdx + _fdy * _fdy);
-          var _frs = _frd < 0.0001 ? 0 : _frd * (1 - _ffk * _frd * _frd) * _ffScale;
+          var _frs = _frd < 0.0001 ? 0 : (_ffIsBarrel ? _frd*(1+_ffk*_frd*_frd)/_ffS : _frd*_ffS/(1+_ffk*_frd*_frd));
           var _fsx = _frd < 0.0001 ? _fcx : _fcx + (_fdx / _frd) * _frs * _frmax;
           var _fsy = _frd < 0.0001 ? _fcy : _fcy + (_fdy / _frd) * _frs * _frmax;
           var _fx0 = Math.floor(_fsx), _fy0 = Math.floor(_fsy);

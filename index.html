@@ -19299,8 +19299,8 @@ function _bakePendingCropForSave() {
       _scaleX = _cropSrc.width / ac.width; _scaleY = _cropSrc.height / ac.height;
     }
     out = document.createElement('canvas');
-    out.width  = Math.round(cropRect.w);
-    out.height = Math.round(cropRect.h);
+    out.width  = Math.round(cropRect.w * _scaleX);
+    out.height = Math.round(cropRect.h * _scaleY);
     out.getContext('2d', { willReadFrequently: true }).drawImage(_cropSrc, cropRect.x * _scaleX, cropRect.y * _scaleY, cropRect.w * _scaleX, cropRect.h * _scaleY, 0, 0, out.width, out.height);
   } else if (src !== ac) {
     out = document.createElement('canvas');

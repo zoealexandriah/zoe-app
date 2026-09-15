@@ -16919,11 +16919,21 @@ function _evDoSave() {
     function _afterPixels(processed) {
       // Write processed pixels back to proxy canvas
       pCtx.putImageData(new ImageData(processed, pw, ph), 0, 0);
+      var _dsSnap = null;
+      if (intensity < 0.999) {
+        _dsSnap = document.createElement('canvas');
+        _dsSnap.width = pw; _dsSnap.height = ph;
+        _dsSnap.getContext('2d').drawImage(proxy, 0, 0);
+      }
       applyEffectChain(proxy, adj, p, 0, 0, pw, ph, {
         glowBeforeSharpen: true,
         skipBlemish:       false,
         skipAfterVignette: true,
       });
+      if (_dsSnap) {
+        pCtx.save(); pCtx.globalAlpha = 1 - intensity;
+        pCtx.drawImage(_dsSnap, 0, 0); pCtx.restore();
+      }
 
       // Upscale to export resolution FIRST, then grain, then hand the grained
       // full-res canvas to whichever export branch runs. All three branches read
@@ -18759,12 +18769,22 @@ function evSaveAndReturn() {
         }
       }
       ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+      var _srSnap = null;
+      if (intensity < 0.999) {
+        _srSnap = document.createElement('canvas');
+        _srSnap.width = iw; _srSnap.height = ih;
+        _srSnap.getContext('2d').drawImage(off, 0, 0);
+      }
       if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) adj.textureOverlay = null;
       applyEffectChain(off, adj, p, 0, 0, iw, ih, {
         skipBlemish: false,
         grainAmount: _fgGrain * intensity,
         grainSize:   p.grainSize || 1,
       });
+      if (_srSnap) {
+        ctx.save(); ctx.globalAlpha = 1 - intensity;
+        ctx.drawImage(_srSnap, 0, 0); ctx.restore();
+      }
     }
     // FX texture applied outside the preset block so it works even with no active look
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvSR=null; if (FX_VARIANTS.texture){for(var _tiSR=0;_tiSR<FX_VARIANTS.texture.length;_tiSR++){if(FX_VARIANTS.texture[_tiSR].id===fxState.texture.variant){_fxTvSR=FX_VARIANTS.texture[_tiSR];break;}}} if(_fxTvSR) { var _srTexAdj={file:_fxTvSR.assetFile,blend:'screen',opacity:(fxState.texture.intensity!=null?fxState.texture.intensity:100)/100}; loadTexture(_srTexAdj.file); applyTextureOverlay(off, _srTexAdj, 0, 0, iw, ih); } }
@@ -18850,6 +18870,12 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
         }
       }
       ctx.putImageData(new ImageData(processed, w, h), 0, 0);
+      var _btSnap = null;
+      if (intensity < 0.999) {
+        _btSnap = document.createElement('canvas');
+        _btSnap.width = w; _btSnap.height = h;
+        _btSnap.getContext('2d').drawImage(off, 0, 0);
+      }
       var _savedFxTexBT = entry.editState && entry.editState.fxState && entry.editState.fxState.texture && entry.editState.fxState.texture.variant;
       if (_savedFxTexBT && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { for(var _tiBT=0;_tiBT<FX_VARIANTS.texture.length;_tiBT++){if(FX_VARIANTS.texture[_tiBT].id===_savedFxTexBT){adj.textureOverlay={file:FX_VARIANTS.texture[_tiBT].assetFile,blend:'screen',opacity:(entry.editState.fxState.texture.intensity!=null?entry.editState.fxState.texture.intensity:100)/100};break;}} }
       applyEffectChain(off, adj, p, 0, 0, w, h, {
@@ -18858,6 +18884,11 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
         grainAmount: _fgGrain * intensity,
         grainSize:   p.grainSize || 1,
       });
+      if (_btSnap) {
+        var _btCtx = off.getContext('2d');
+        _btCtx.save(); _btCtx.globalAlpha = 1 - intensity;
+        _btCtx.drawImage(_btSnap, 0, 0); _btCtx.restore();
+      }
     }
     // Apply FX frame/letterbox from saved fxState
     var _savedFxSt = entry.editState && entry.editState.fxState;
@@ -19090,11 +19121,21 @@ function _exportEntry(entry, onDone) {
         }
       }
       ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+      var _eeSnap = null;
+      if (intensity < 0.999) {
+        _eeSnap = document.createElement('canvas');
+        _eeSnap.width = iw; _eeSnap.height = ih;
+        _eeSnap.getContext('2d').drawImage(off, 0, 0);
+      }
       applyEffectChain(off, adj, p, 0, 0, iw, ih, {
         skipBlemish: false,
         grainAmount: _fgGrain * intensity,
         grainSize:   p.grainSize || 1,
       });
+      if (_eeSnap) {
+        ctx.save(); ctx.globalAlpha = 1 - intensity;
+        ctx.drawImage(_eeSnap, 0, 0); ctx.restore();
+      }
     }
     const _expD = new Date();
     const _expDs = _expD.getFullYear().toString() + String(_expD.getMonth()+1).padStart(2,'0') + String(_expD.getDate()).padStart(2,'0');
@@ -19564,12 +19605,22 @@ self.onmessage = function(e) {
     URL.revokeObjectURL(workerURL);
     const processed = new Uint8ClampedArray(e.data.out);
     ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+    var _mdSnap = null;
+    if (intensity < 0.999) {
+      _mdSnap = document.createElement('canvas');
+      _mdSnap.width = iw; _mdSnap.height = ih;
+      _mdSnap.getContext('2d').drawImage(off, 0, 0);
+    }
     applyEffectChain(off, adj, p, 0, 0, iw, ih, {
       skipBlemish:     true,
       glowBeforeSharpen: true,
       grainAmount:     _modalGrain * intensity,
       grainSize:       p.grainSize || 1,
     });
+    if (_mdSnap) {
+      ctx.save(); ctx.globalAlpha = 1 - intensity;
+      ctx.drawImage(_mdSnap, 0, 0); ctx.restore();
+    }
     _finishExport();
   };
 
@@ -19587,12 +19638,22 @@ self.onmessage = function(e) {
       }
     }
     ctx.putImageData(new ImageData(processed, iw, ih), 0, 0);
+    var _mdSnap2 = null;
+    if (intensity < 0.999) {
+      _mdSnap2 = document.createElement('canvas');
+      _mdSnap2.width = iw; _mdSnap2.height = ih;
+      _mdSnap2.getContext('2d').drawImage(off, 0, 0);
+    }
     applyEffectChain(off, adj, p, 0, 0, iw, ih, {
       skipBlemish:     true,
       glowBeforeSharpen: true,
       grainAmount:     _modalGrain * intensity,
       grainSize:       p.grainSize || 1,
     });
+    if (_mdSnap2) {
+      ctx.save(); ctx.globalAlpha = 1 - intensity;
+      ctx.drawImage(_mdSnap2, 0, 0); ctx.restore();
+    }
     _finishExport();
   };
 };

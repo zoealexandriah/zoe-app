@@ -18879,16 +18879,18 @@ function _renderBatchThumbnail(entry, presetId, sliders, intensity, onDone) {
       var _savedFxTexBT = entry.editState && entry.editState.fxState && entry.editState.fxState.texture && entry.editState.fxState.texture.variant;
       if (_savedFxTexBT && typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture) { for(var _tiBT=0;_tiBT<FX_VARIANTS.texture.length;_tiBT++){if(FX_VARIANTS.texture[_tiBT].id===_savedFxTexBT){adj.textureOverlay={file:FX_VARIANTS.texture[_tiBT].assetFile,blend:'screen',opacity:(entry.editState.fxState.texture.intensity!=null?entry.editState.fxState.texture.intensity:100)/100};break;}} }
       applyEffectChain(off, adj, p, 0, 0, w, h, {
-        skipBlemish: false,
-        skipDuotone: true,
-        grainAmount: _fgGrain * intensity,
-        grainSize:   p.grainSize || 1,
+        skipBlemish:       false,
+        skipDuotone:       true,
+        skipAfterVignette: true,
       });
       if (_btSnap) {
         var _btCtx = off.getContext('2d');
         _btCtx.save(); _btCtx.globalAlpha = 1 - intensity;
         _btCtx.drawImage(_btSnap, 0, 0); _btCtx.restore();
       }
+      if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, p.grainSize || 1);
+      if (adj.textureOverlay) applyTextureOverlay(off, adj.textureOverlay, 0, 0, w, h);
+      if (adj.border) applyBorder(off, adj.border, 0, 0, w, h);
     }
     // Apply FX frame/letterbox from saved fxState
     var _savedFxSt = entry.editState && entry.editState.fxState;
@@ -19128,14 +19130,16 @@ function _exportEntry(entry, onDone) {
         _eeSnap.getContext('2d').drawImage(off, 0, 0);
       }
       applyEffectChain(off, adj, p, 0, 0, iw, ih, {
-        skipBlemish: false,
-        grainAmount: _fgGrain * intensity,
-        grainSize:   p.grainSize || 1,
+        skipBlemish:       false,
+        skipAfterVignette: true,
       });
       if (_eeSnap) {
         ctx.save(); ctx.globalAlpha = 1 - intensity;
         ctx.drawImage(_eeSnap, 0, 0); ctx.restore();
       }
+      if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, p.grainSize || 1);
+      if (adj.textureOverlay) applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
+      if (adj.border) applyBorder(off, adj.border, 0, 0, iw, ih);
     }
     const _expD = new Date();
     const _expDs = _expD.getFullYear().toString() + String(_expD.getMonth()+1).padStart(2,'0') + String(_expD.getDate()).padStart(2,'0');
@@ -19612,15 +19616,17 @@ self.onmessage = function(e) {
       _mdSnap.getContext('2d').drawImage(off, 0, 0);
     }
     applyEffectChain(off, adj, p, 0, 0, iw, ih, {
-      skipBlemish:     true,
+      skipBlemish:       true,
       glowBeforeSharpen: true,
-      grainAmount:     _modalGrain * intensity,
-      grainSize:       p.grainSize || 1,
+      skipAfterVignette: true,
     });
     if (_mdSnap) {
       ctx.save(); ctx.globalAlpha = 1 - intensity;
       ctx.drawImage(_mdSnap, 0, 0); ctx.restore();
     }
+    if (_modalGrain > 0.005) applyFilmGrain(off, _modalGrain * intensity, p.grainSize || 1);
+    if (adj.textureOverlay) applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
+    if (adj.border) applyBorder(off, adj.border, 0, 0, iw, ih);
     _finishExport();
   };
 
@@ -19645,15 +19651,17 @@ self.onmessage = function(e) {
       _mdSnap2.getContext('2d').drawImage(off, 0, 0);
     }
     applyEffectChain(off, adj, p, 0, 0, iw, ih, {
-      skipBlemish:     true,
+      skipBlemish:       true,
       glowBeforeSharpen: true,
-      grainAmount:     _modalGrain * intensity,
-      grainSize:       p.grainSize || 1,
+      skipAfterVignette: true,
     });
     if (_mdSnap2) {
       ctx.save(); ctx.globalAlpha = 1 - intensity;
       ctx.drawImage(_mdSnap2, 0, 0); ctx.restore();
     }
+    if (_modalGrain > 0.005) applyFilmGrain(off, _modalGrain * intensity, p.grainSize || 1);
+    if (adj.textureOverlay) applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
+    if (adj.border) applyBorder(off, adj.border, 0, 0, iw, ih);
     _finishExport();
   };
 };

@@ -19,7 +19,7 @@ function makeSrc(w, h) {
 }
 
 function applyFisheye(src, w, h, strength) {
-  const _fk = Math.max(-0.95, Math.min(0.95, strength / 100 * 0.25));
+  const _fk = Math.max(-0.95, Math.min(0.95, strength / 100 * 0.55));
   // Identity short-circuit (mirrors the |k|<0.001 guard in index.html)
   if (Math.abs(_fk) < 0.001) {
     return { out: Float32Array.from(src), clampFires: 0 };
@@ -87,14 +87,14 @@ function edgeSmear(out, w, h) {
 function signCheck(src, w, h) {
   const tx = Math.round(w * 0.75), ty = Math.round(h * 0.5);
   // At +70 (barrel): rs < rd → source closer to centre → source x < tx → source R < identity R
-  const k70 = Math.max(-0.95, Math.min(0.95, 0.7 * 0.25)), scale70 = 1.0;  // barrel: scale stays 1
+  const k70 = Math.max(-0.95, Math.min(0.95, 0.7 * 0.55)), scale70 = 1.0;  // barrel: scale stays 1
   const fcx = w*0.5, fcy = h*0.5, frmax = Math.sqrt(fcx*fcx+fcy*fcy);
   const fdx = (tx-fcx)/frmax, fdy = (ty-fcy)/frmax;
   const frd = Math.sqrt(fdx*fdx+fdy*fdy);
   const rs70 = frd*(1-k70*frd*frd)*scale70;
   const sx70 = fcx+(fdx/frd)*rs70*frmax;  // source x at output position tx
 
-  const k_n70 = Math.max(-0.95, Math.min(0.95, -0.7 * 0.25)), scale_n70 = 1.0/(1.0-k_n70+1e-6);
+  const k_n70 = Math.max(-0.95, Math.min(0.95, -0.7 * 0.55)), scale_n70 = 1.0/(1.0-k_n70+1e-6);
   const rs_n70 = frd*(1-k_n70*frd*frd)*scale_n70;
   const sx_n70 = fcx+(fdx/frd)*rs_n70*frmax;
 

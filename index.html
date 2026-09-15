@@ -20954,7 +20954,7 @@ function _cropApplyOne(t, srcImg, cb) {
     // negative k = pincushion (lines bow inward). rs = rd*(1-k*rd^2)*scale.
     // For pincushion (k<0), rs at rd=1 would be 1+|k|>1; scale=1/(1-k) keeps it in-bounds.
     // Barrel (k>0) always stays in-bounds (rs<=1-k<1), scale stays 1.
-    var _fk = Math.max(-0.95, Math.min(0.95, (t.strength || 0) / 100 * 0.25));
+    var _fk = Math.max(-0.95, Math.min(0.95, (t.strength || 0) / 100 * 0.55));
     tmp.width = iw; tmp.height = ih;
     ctx = tmp.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(srcImg, 0, 0, iw, ih);
@@ -21206,7 +21206,7 @@ function _cropFisheyePreview(val) {
     var _fctx = sc.getContext('2d', {willReadFrequently:true});
     var _foutD = _fctx.createImageData(_frW, _frH);
     var _foutPx = _foutD.data;
-    var _ffk = Math.max(-0.95, Math.min(0.95, _fv / 100 * 0.25));
+    var _ffk = Math.max(-0.95, Math.min(0.95, _fv / 100 * 0.55));
     var _fcx = _frW * 0.5, _fcy = _frH * 0.5;
     var _frmax = Math.sqrt(_fcx * _fcx + _fcy * _fcy);
     if (Math.abs(_ffk) >= 0.001) {

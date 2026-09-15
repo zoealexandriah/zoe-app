@@ -18775,16 +18775,19 @@ function evSaveAndReturn() {
         _srSnap.width = iw; _srSnap.height = ih;
         _srSnap.getContext('2d').drawImage(off, 0, 0);
       }
-      if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) adj.textureOverlay = null;
+      var _srHasFxTex = typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant;
+      if (_srHasFxTex) adj.textureOverlay = null;
       applyEffectChain(off, adj, p, 0, 0, iw, ih, {
-        skipBlemish: false,
-        grainAmount: _fgGrain * intensity,
-        grainSize:   p.grainSize || 1,
+        skipBlemish:       false,
+        skipAfterVignette: true,
       });
       if (_srSnap) {
         ctx.save(); ctx.globalAlpha = 1 - intensity;
         ctx.drawImage(_srSnap, 0, 0); ctx.restore();
       }
+      if (_fgGrain > 0.005) applyFilmGrain(off, _fgGrain * intensity, p.grainSize || 1);
+      if (adj.textureOverlay) applyTextureOverlay(off, adj.textureOverlay, 0, 0, iw, ih);
+      if (adj.border) applyBorder(off, adj.border, 0, 0, iw, ih);
     }
     // FX texture applied outside the preset block so it works even with no active look
     if (typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) { var _fxTvSR=null; if (FX_VARIANTS.texture){for(var _tiSR=0;_tiSR<FX_VARIANTS.texture.length;_tiSR++){if(FX_VARIANTS.texture[_tiSR].id===fxState.texture.variant){_fxTvSR=FX_VARIANTS.texture[_tiSR];break;}}} if(_fxTvSR) { var _srTexAdj={file:_fxTvSR.assetFile,blend:'screen',opacity:(fxState.texture.intensity!=null?fxState.texture.intensity:100)/100}; loadTexture(_srTexAdj.file); applyTextureOverlay(off, _srTexAdj, 0, 0, iw, ih); } }

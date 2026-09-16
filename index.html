@@ -23345,7 +23345,10 @@ function fxUpdateCatDot(cat) {
 function _evUpdateDirtyDots() {
   var pid = (typeof activePreset !== 'undefined' && activePreset) ? activePreset.id : null;
   var p   = (pid && typeof activePreset !== 'undefined') ? activePreset : null;
-  var st  = (pid && typeof sliderState !== 'undefined' && sliderState[pid]) ? sliderState[pid] : {};
+  var nlPid = (typeof _evNoLookPreset !== 'undefined' && _evNoLookPreset) ? _evNoLookPreset.id : null;
+  var st  = (pid && typeof sliderState !== 'undefined' && sliderState[pid]) ? sliderState[pid]
+          : (!pid && nlPid && typeof sliderState !== 'undefined' && sliderState[nlPid]) ? sliderState[nlPid]
+          : {};
   var baseline = (p && typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, {}) : {};
   var current  = (p && typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, st) : st;
   function paramDirty(k) {
@@ -23357,7 +23360,7 @@ function _evUpdateDirtyDots() {
   }
   function anyDirty(keys) { return keys.some(paramDirty); }
   var fxDirty = typeof fxState !== 'undefined' &&
-    Object.values(fxState).some(function(cat) { return cat && cat.intensity > 0; });
+    Object.values(fxState).some(function(cat) { return cat && cat.variant && cat.variant !== 'none' && cat.intensity > 0; });
   var LIGHT_P  = ['BRIGHTNESS','EXPOSURE','PUSH_PULL','CONTRAST','HIGHLIGHTS','SHADOWS','WHITES','BLACKS','DEHAZE'];
   var COLOR_P  = ['TEMPERATURE','TINT','VIBRANCE','SATURATION','SKIN_TONE'];
   var HSL_P    = ['HUE_SHIFT','SAT_REDS','SAT_ORANGES','SAT_YELLOWS','SAT_GREENS','SAT_BLUES','SAT_PURPLES',

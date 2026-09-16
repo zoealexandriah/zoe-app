@@ -16530,6 +16530,9 @@ function globalReset() {
   const _resetAc = document.getElementById('hero-canvas') || document.getElementById('ev-canvas');
   if (_resetAc) _resetAc.style.opacity = '1';
   cropRect = null;
+  if (typeof toolsCropRatio !== 'undefined') toolsCropRatio = 'FREEFORM';
+  if (typeof _cropFisheyeVal !== 'undefined') _cropFisheyeVal = 0;
+  if (typeof _cropSourceImage !== 'undefined') _cropSourceImage = null;
   toolsStraightenVal = 0;
   _straightenOrigImage = null;
   _flipPreState = null;
@@ -18266,6 +18269,8 @@ function galleryOpenInEditor(idx) {
   // Set up globals
   editingIdx = idx;
   _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0; // reset perspective re-edit state
+  if (typeof toolsCropRatio !== 'undefined') toolsCropRatio = 'FREEFORM';
+  if (typeof cropRect !== 'undefined') cropRect = null;
   _preCropState = null; _savedCropRect = null; _cropReAdjSaved = null; _cropReAdjOrigState = null;
   if (typeof _cropSourceImage !== 'undefined') _cropSourceImage = null;
   if (typeof _cropTransforms !== 'undefined') _cropTransforms = [];
@@ -21257,6 +21262,7 @@ function _cropFisheyePreview(val, hiRes) {
       ac.style.opacity = '';
       return;
     }
+    var _pwDel = document.getElementById('crop-perspective-work'); if (_pwDel) _pwDel.remove();
     var sc = document.getElementById('crop-fisheye-work');
     if (!sc) {
       sc = document.createElement('canvas');
@@ -21742,6 +21748,9 @@ function etPerspUpdate() {
     return;
   }
 
+  // Fisheye and perspective work canvases share z-index 4; whichever is active
+  // must be the only one, otherwise the stale canvas paints on top.
+  var _fwDel = document.getElementById('crop-fisheye-work'); if (_fwDel) _fwDel.remove();
   // Get/create overlay work canvas
   var sc = document.getElementById('crop-perspective-work');
   if (!sc) {

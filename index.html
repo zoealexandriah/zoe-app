@@ -23617,7 +23617,8 @@ function fxLbRulerSync() {
   var key = _fxLbActiveDial;
   var cfg = _fxLbCfg[key];
   if (!cfg) return;
-  if (canvas._rKey !== key) { _fxLbRulerDraw(canvas, cfg.min, cfg.max); canvas._rKey = key; }
+  var wrapH = wrap.clientHeight || 36;
+  if (canvas._rKey !== key || canvas.height < wrapH * 0.5) { _fxLbRulerDraw(canvas, cfg.min, cfg.max); canvas._rKey = key; }
   canvas.style.left = (cw / 2 - (cfg.getV() - cfg.min) * PX) + 'px';
 }
 

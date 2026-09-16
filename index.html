@@ -23566,10 +23566,12 @@ function fxOpenLbControls(label, backCat) {
     pv.id = 'fx-lb-controls';
     pv.style.cssText = 'display:none;flex-direction:column;overflow-y:auto;';
     pv.innerHTML =
-      '<div class="blemish-action-bar">' +
-        '<button class="blemish-act-btn blemish-act-cancel" onclick="fxLbControlsDiscard()">✕</button>' +
-        '<span class="blemish-act-label" id="fxlbc-label">LETTERBOX</span>' +
-        '<button class="blemish-act-btn blemish-act-confirm" onclick="fxCloseLbControls()">✓</button>' +
+      '<div class="crop-subtabs crop-expanded">' +
+        '<div class="crop-expanded-bar">' +
+          '<button class="crop-exp-btn crop-exp-cancel" onclick="fxLbControlsDiscard()">✕</button>' +
+          '<span class="crop-exp-name" id="fxlbc-label">LETTERBOX</span>' +
+          '<button class="crop-exp-btn crop-exp-confirm" onclick="fxCloseLbControls()">✓</button>' +
+        '</div>' +
       '</div>' +
       '<div class="crop-sub-content">' +
         '<div class="crop-sub-row" style="margin-top:10px;"><span class="crop-sub-label">Y</span><span class="crop-sub-val" id="fxlbcv-posY">0</span></div>' +

@@ -21269,13 +21269,38 @@ function _cropFisheyePreview(val, hiRes) {
       sc.style.cssText = 'position:absolute;z-index:4;pointer-events:none';
       ac.parentElement.appendChild(sc);
     }
+    // If perspective sliders are non-zero, chain perspective-warp+autocrop first so the
+    // fisheye preview matches the bake order (perspective → perspCropBounds → fisheye).
+    // _cropFisheyeOrig stays the un-warped original so returning to VERT has a clean source.
+    var _fpSlV = document.getElementById('crop-persp-v-slider');
+    var _fpSlH = document.getElementById('crop-persp-h-slider');
+    var _fpRawV = _fpSlV ? parseFloat(_fpSlV.value) : 0;
+    var _fpRawH = _fpSlH ? parseFloat(_fpSlH.value) : 0;
+    var _fpAmtV = (_fpRawV >= 0 ? 1 : -1) * Math.pow(Math.abs(_fpRawV) / 100, 2);
+    var _fpAmtH = (_fpRawH >= 0 ? 1 : -1) * Math.pow(Math.abs(_fpRawH) / 100, 2);
+    var _fFishSrc = _cropFisheyeOrig;
+    if (Math.abs(_fpAmtV) > 0.001 || Math.abs(_fpAmtH) > 0.001) {
+      var _fpNatW = _cropFisheyeOrig.naturalWidth, _fpNatH = _cropFisheyeOrig.naturalHeight;
+      var _fpWarpScl = Math.min(1200 / _fpNatW, 1200 / _fpNatH, 1);
+      var _fpWarpW = Math.round(_fpNatW * _fpWarpScl), _fpWarpH = Math.round(_fpNatH * _fpWarpScl);
+      var _fpWarpC = document.createElement('canvas');
+      _fpWarpC.width = _fpWarpW; _fpWarpC.height = _fpWarpH;
+      _etPerspTrapezoidWarp(_fpWarpC.getContext('2d', {willReadFrequently:true}), _cropFisheyeOrig, _fpAmtV, _fpAmtH, _fpWarpW, _fpWarpH);
+      var _fpBounds = _perspCropBounds(_fpAmtV * 0.35, _fpAmtH * 0.35, _fpWarpW, _fpWarpH);
+      var _fpCropW = Math.max(1, _fpBounds.mxX - _fpBounds.mnX + 1);
+      var _fpCropH = Math.max(1, _fpBounds.mxY - _fpBounds.mnY + 1);
+      var _fpCropC = document.createElement('canvas');
+      _fpCropC.width = _fpCropW; _fpCropC.height = _fpCropH;
+      _fpCropC.getContext('2d').drawImage(_fpWarpC, _fpBounds.mnX, _fpBounds.mnY, _fpCropW, _fpCropH, 0, 0, _fpCropW, _fpCropH);
+      _fFishSrc = _fpCropC;
+    }
     // Drag: cap at 400px (stays under one frame). Release: cap at 1200px for a sharp hi-res pass.
-    var _fsrcW = _cropFisheyeOrig.naturalWidth, _fsrcH = _cropFisheyeOrig.naturalHeight;
+    var _fsrcW = _fFishSrc.naturalWidth || _fFishSrc.width, _fsrcH = _fFishSrc.naturalHeight || _fFishSrc.height;
     var _fscale = _isHiRes ? Math.min(1200 / _fsrcW, 1200 / _fsrcH, 1) : Math.min(400 / _fsrcW, 400 / _fsrcH, 1);
     var _frW = Math.round(_fsrcW * _fscale), _frH = Math.round(_fsrcH * _fscale);
     var _ftmp = document.createElement('canvas');
     _ftmp.width = _frW; _ftmp.height = _frH;
-    _ftmp.getContext('2d').drawImage(_cropFisheyeOrig, 0, 0, _frW, _frH);
+    _ftmp.getContext('2d').drawImage(_fFishSrc, 0, 0, _frW, _frH);
     var _fsrcData = _ftmp.getContext('2d', {willReadFrequently:true}).getImageData(0, 0, _frW, _frH).data;
     sc.width = _frW; sc.height = _frH;
     var _facW = ac.clientWidth, _facH = ac.clientHeight;

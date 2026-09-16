@@ -3250,15 +3250,86 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 /* compact intensity bar — sits below the variant strip */
 #fx-intensity-view {
   display: none;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   flex-shrink: 0;
-  padding: 4px 0 8px;
+  padding: 8px 4px 18px;
+  gap: 0;
   border-top: 0.5px solid rgba(255,255,255,0.08);
 }
 #fx-intensity-view.active { display: flex; }
 #fx-intensity-header { display: none; }
 #fx-intensity-back  { display: none; }
 #fx-intensity-title { display: none; }
+#fx-intensity-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 8px;
+  gap: 6px;
+}
+#fx-intensity-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+#fx-intensity-name {
+  display: none;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 8.5px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.10em;
+}
+#fx-intensity-val {
+  font-family: var(--font-ui, sans-serif);
+  font-size: 8.5px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.10em;
+  padding-right: 6px;
+}
+#fx-intensity-slider {
+  width: calc(100% - 6px);
+  accent-color: var(--accent, #c9b8d4);
+  height: 2px;
+  cursor: pointer;
+}
+#fx-intensity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent, #c9b8d4);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+#fx-intensity-slider::-moz-range-thumb {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent, #c9b8d4);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+/* dissolve actions container so buttons become direct flex children of the row */
+#fx-intensity-actions {
+  display: contents;
+}
+/* ✕ cancel — left of body */
+#fx-intensity-view .fx-action-btn:not(#fx-intensity-confirm) {
+  order: -1;
+  color: rgba(255,255,255,0.35);
+  font-size: 13px;
+  padding: 4px 8px;
+}
+/* ✓ confirm — right of body, same size/weight as ✕ */
+#fx-intensity-view #fx-intensity-confirm {
+  order: 1;
+  font-size: 13px;
+  padding: 4px 8px;
+}
 .fx-action-btn {
   background: none;
   border: none;
@@ -5186,27 +5257,19 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
               <div id="fx-variant-strip"></div>
             </div>
 
-            <!-- Intensity dial (GLOSSY, SCAN LINES, VHS BLEED, TEXTURE, FRAME variants) -->
+            <!-- Intensity slider (GLOSSY, SCAN LINES, VHS BLEED) -->
             <div id="fx-intensity-view">
-              <div class="crop-subtabs crop-expanded">
-                <div class="crop-expanded-bar">
-                  <button class="crop-exp-btn crop-exp-cancel" onclick="fxIntensityCancel()">✕</button>
-                  <span class="crop-exp-name" id="fx-intensity-name">AMOUNT</span>
-                  <button class="crop-exp-btn crop-exp-confirm" onclick="fxIntensityConfirm()">✓</button>
+              <div id="fx-intensity-body">
+                <div id="fx-intensity-label-row">
+                  <span id="fx-intensity-name">GLOW</span>
+                  <span id="fx-intensity-val">0</span>
                 </div>
+                <input type="range" id="fx-intensity-slider" min="0" max="100" value="0" oninput="fxIntensityChange(this.value)">
               </div>
-              <div style="display:flex;justify-content:center;padding:10px 0 4px;">
-                <div class="ev-dial active" id="fx-intensity-dial">
-                  <div class="ev-dial-ring">
-                    <span class="ev-dial-val" id="fx-intensity-val" style="opacity:1;">0</span>
-                  </div>
-                </div>
+              <div id="fx-intensity-actions">
+                <button class="fx-action-btn" onclick="fxIntensityCancel()">✕</button>
+                <button class="fx-action-btn" id="fx-intensity-confirm" onclick="fxIntensityConfirm()">✓</button>
               </div>
-              <div class="ev-ruler-wrap" id="fx-intensity-ruler">
-                <canvas class="ev-ruler-canvas" id="fx-intensity-ruler-canvas"></canvas>
-                <div class="ev-ruler-center"></div>
-              </div>
-              <input type="range" id="fx-intensity-slider" min="0" max="100" value="0" style="display:none;">
             </div>
 
           </div>
@@ -22795,8 +22858,6 @@ function fxShowLevel(level) {
     /* for variant cats keep the strip visible above the intensity bar */
     var _isDirect = typeof FX_DIRECT !== 'undefined' && FX_DIRECT.indexOf(_fxActiveCat) !== -1;
     if (!_isDirect && v) { v.classList.add('active'); v.style.display = 'flex'; v.style.flex = '1'; v.style.overflow = 'hidden'; }
-    fxIntensityRulerInit();
-    setTimeout(fxIntensityRulerSync, 0);
   } else if (level === 4) {
     if (_fxActiveCat === 'glow'  && m)  m.classList.add('active');
     if (_fxActiveCat === 'paper' && p)  { p.classList.add('active'); p.style.display = 'flex'; }
@@ -23246,45 +23307,10 @@ function fxSelectVariant(cat, variantId) {
 function fxIntensityChange(val) {
   _fxPendingIntensity = parseInt(val, 10);
   document.getElementById('fx-intensity-val').textContent = _fxPendingIntensity;
-  fxIntensityRulerSync();
   if (_fxActiveCat === 'texture' && typeof fxState !== 'undefined' && fxState.texture && fxState.texture.variant) {
     fxState.texture.intensity = _fxPendingIntensity;
     if (typeof evRenderCanvas === 'function') evRenderCanvas();
   }
-}
-
-function fxIntensityRulerSync() {
-  var canvas = document.getElementById('fx-intensity-ruler-canvas');
-  var wrap = document.getElementById('fx-intensity-ruler');
-  if (!canvas || !wrap) return;
-  var PX = 8, cw = wrap.clientWidth || 0;
-  if (!cw) return;
-  if (!canvas._rDrawn) { _evRulerDraw(canvas, false); canvas._rDrawn = true; }
-  canvas.style.left = (cw / 2 - _fxPendingIntensity * PX) + 'px';
-}
-
-function fxIntensityRulerInit() {
-  var wrap = document.getElementById('fx-intensity-ruler');
-  if (!wrap || wrap._fxBound) return;
-  wrap._fxBound = true;
-  var _startX, _startVal;
-  function _onMove(clientX) {
-    var newVal = Math.max(0, Math.min(100, Math.round(_startVal + (clientX - _startX) / 8)));
-    document.getElementById('fx-intensity-slider').value = newVal;
-    fxIntensityChange(newVal);
-  }
-  wrap.addEventListener('touchstart', function(e) {
-    _startX = e.touches[0].clientX; _startVal = _fxPendingIntensity;
-    e.preventDefault();
-  }, {passive: false});
-  wrap.addEventListener('touchmove', function(e) { _onMove(e.touches[0].clientX); e.preventDefault(); }, {passive: false});
-  wrap.addEventListener('mousedown', function(e) {
-    _startX = e.clientX; _startVal = _fxPendingIntensity;
-    function mm(e2) { _onMove(e2.clientX); }
-    function mu() { document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); }
-    document.addEventListener('mousemove', mm);
-    document.addEventListener('mouseup', mu);
-  });
 }
 
 function fxIntensityConfirm() {

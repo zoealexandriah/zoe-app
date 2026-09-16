@@ -17179,11 +17179,11 @@ function evInit() {
   // strip is visible (takes its 152px) before _evResizeCanvas measures the
   // canvas area, so the very first draw uses the correct dimensions.
   requestAnimationFrame(function() {
-    evRenderPresets();
     evBuildSliders();
     evAdjustSubTab('atmosphere');
     _evResizeCanvas();
     evRenderCanvas();
+    evRenderPresets();
   });
 }
 

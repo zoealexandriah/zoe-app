@@ -20452,7 +20452,8 @@ function cropSubTabCollapse(confirm) {
   if (!bar) return;
   var activeSt = bar.querySelector('.crop-subtab.active');
   var activeTab = activeSt ? (activeSt.getAttribute('data-tab') || activeSt.textContent.trim()) : '';
-  // Slider-level X/✓ inside OPTICAL — return to buttons view, keep bar expanded
+  // Axis-level X inside OPTICAL: revert current dial, stay in bar (don't commit).
+  // Axis-level ✓: fall through — bar ✓ always commits via _cropPerspFlush.
   if (activeTab === 'OPTICAL' && typeof _etPerspActiveAxis !== 'undefined' && _etPerspActiveAxis) {
     if (!confirm) {
       if (_etPerspActiveAxis === 'fisheye') {
@@ -20468,14 +20469,19 @@ function cropSubTabCollapse(confirm) {
         var _xhv = document.getElementById('crop-persp-h-val'); if (_xhv) _xhv.textContent = Math.round(_etPerspHVal);
         if (typeof etPerspUpdate === 'function') etPerspUpdate();
       }
+      _etPerspActiveAxis = null; _cropPerspAxisEntry = null;
+      var _xrow = document.getElementById('crop-persp-slider-row'); if (_xrow) _xrow.style.display = 'none';
+      var _xvs2 = document.getElementById('crop-persp-v-section'); if (_xvs2) _xvs2.style.display = 'none';
+      var _xhs2 = document.getElementById('crop-persp-h-section'); if (_xhs2) _xhs2.style.display = 'none';
+      var _xfs2 = document.getElementById('crop-fisheye-section'); if (_xfs2) _xfs2.style.display = 'none';
+      return; // stay in OPTICAL, don't commit
     }
+    // confirm=true: close slider row, fall through to bar collapse + _cropPerspFlush
     _etPerspActiveAxis = null; _cropPerspAxisEntry = null;
     var _xrow = document.getElementById('crop-persp-slider-row'); if (_xrow) _xrow.style.display = 'none';
     var _xvs2 = document.getElementById('crop-persp-v-section'); if (_xvs2) _xvs2.style.display = 'none';
     var _xhs2 = document.getElementById('crop-persp-h-section'); if (_xhs2) _xhs2.style.display = 'none';
     var _xfs2 = document.getElementById('crop-fisheye-section'); if (_xfs2) _xfs2.style.display = 'none';
-    var _xmb = document.getElementById('persp-mode-buttons'); if (_xmb) _xmb.style.display = '';
-    return; // stay in OPTICAL expanded bar
   }
   bar.classList.remove('crop-expanded');
   var edV = document.getElementById('editor-view');
@@ -21373,15 +21379,18 @@ function _cropPerspFlush(onFlush) {
   var sc = document.getElementById('crop-perspective-work');
   var _fwVal = (typeof _cropFisheyeVal !== 'undefined') ? (_cropFisheyeVal || 0) : 0;
   var _fwHas = Math.abs(_fwVal) > 0.5;
-  if ((!sc || !sc.width) && !_fwHas) { if (onFlush) onFlush(); return; }
   var _slV = document.getElementById('crop-persp-v-slider');
   var _slH = document.getElementById('crop-persp-h-slider');
   var _rawV = _slV ? parseFloat(_slV.value) : 0;
   var _rawH = _slH ? parseFloat(_slH.value) : 0;
+  // Perspective is present if the work canvas exists OR sliders are non-zero
+  // (_cropFisheyePreview removes crop-perspective-work, so slider values are the fallback)
+  var _hasPersp = (sc && sc.width) || Math.abs(_rawV) > 0.01 || Math.abs(_rawH) > 0.01;
+  if (!_hasPersp && !_fwHas) { if (onFlush) onFlush(); return; }
   // Keep the work canvas visible during the async render so the user sees no flash
   var _ov = document.getElementById('crop-overlay-canvas');
   if (_ov) _ov.style.display = 'none';
-  if (sc && sc.width) _cropTransforms.push({ op: 'perspective', v: _rawV, h: _rawH });
+  if (_hasPersp) _cropTransforms.push({ op: 'perspective', v: _rawV, h: _rawH });
   if (_fwHas) _cropTransforms.push({ op: 'fisheye', strength: _fwVal });
   _perspBaseURL = null; _perspBaseV = 0; _perspBaseH = 0;
   if (typeof _etPerspOrigImg !== 'undefined') _etPerspOrigImg = null;
@@ -21611,11 +21620,13 @@ var _perspBaseV    = 0;    // raw V slider value at last flush
 var _perspBaseH    = 0;    // raw H slider value at last flush
 
 function cropPerspSelectAxis(axis) {
+  // Sync live slider values into state vars before snapshotting so X reverts correctly
+  var _svPre = document.getElementById('crop-persp-v-slider');
+  var _shPre = document.getElementById('crop-persp-h-slider');
+  if (typeof _etPerspVVal !== 'undefined' && _svPre) _etPerspVVal = parseFloat(_svPre.value) || 0;
+  if (typeof _etPerspHVal !== 'undefined' && _shPre) _etPerspHVal = parseFloat(_shPre.value) || 0;
   _etPerspActiveAxis = axis;
   _cropPerspAxisEntry = { v: (typeof _etPerspVVal !== 'undefined') ? _etPerspVVal : 0, h: (typeof _etPerspHVal !== 'undefined') ? _etPerspHVal : 0 };
-  // Hide mode buttons, show only the selected slider
-  var mb = document.getElementById('persp-mode-buttons');
-  if (mb) mb.style.display = 'none';
   var row = document.getElementById('crop-persp-slider-row');
   if (row) row.style.display = '';
   var vs = document.getElementById('crop-persp-v-section');
@@ -21630,8 +21641,6 @@ function cropFisheyeSelectAxis() {
   _cropPerspAxisEntry = null;
   _cropFisheyeEntryVal = _cropFisheyeVal;
   if (!_cropFisheyeOrig) _cropFisheyeOrig = userImage;
-  var mb = document.getElementById('persp-mode-buttons');
-  if (mb) mb.style.display = 'none';
   var row = document.getElementById('crop-persp-slider-row');
   if (row) row.style.display = '';
   var vs = document.getElementById('crop-persp-v-section');

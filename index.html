@@ -20769,6 +20769,8 @@ function cropSelectSubTab(btn, tab) {
             if (_fll) _fll.textContent = _cropFisheyeVal !== 0 ? Math.round(_cropFisheyeVal) : 'LENS';
             var _fslR = document.getElementById('crop-fisheye-slider'); if (_fslR) _fslR.value = _cropFisheyeVal;
             var _fvlR = document.getElementById('crop-fisheye-val'); if (_fvlR) _fvlR.textContent = Math.round(_cropFisheyeVal);
+            if (typeof _cropFisheyeOrig !== 'undefined') _cropFisheyeOrig = userImage;
+            if (typeof _cropFisheyePreview === 'function') _cropFisheyePreview(_cropFisheyeVal);
           }
         });
       }

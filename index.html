@@ -3116,21 +3116,8 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .fx-cat-btn.has-value .fx-cat-dot { display: block; }
 
-/* Modified-state dot on editor tabs and sub-tabs */
-.ev-tab-dot {
-  position: absolute;
-  top: 11px;
-  right: 18px;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--accent, #c9b8d4);
-  display: none;
-  pointer-events: none;
-  z-index: 1;
-}
-.ev-subnav-btn { position: relative; }
-.ev-subnav-btn.has-dirty .ev-tab-dot { display: block; }
+/* Modified-state: tint icon purple */
+.ev-subnav-btn.has-dirty svg { color: var(--accent, #c9b8d4) !important; }
 
 #fx-cat-strip {
   display: flex;
@@ -3400,7 +3387,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   }
   .ev-subnav-btn svg { transition: stroke 0.18s !important; width: 17px !important; height: 17px !important; }
   .ev-subnav-fx-btn svg { width: 33px !important; height: 22px !important; }
-  .ev-subnav-btn span:not(.ev-tab-dot) {
+  .ev-subnav-btn span {
     font-size: 7px !important;
     letter-spacing: 0.08em !important;
     font-family: var(--mono) !important;
@@ -3411,7 +3398,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     max-width: 100% !important;
     display: block !important;
   }
-  .ev-subnav-btn.active {
+  .ev-subnav-btn.active span {
     color: rgba(218,90,125,1) !important;
   }
   .ev-subnav-btn.active::after {
@@ -5124,37 +5111,30 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
             </div>
             <div class="ev-subnav-scroll">
               <button class="ev-subnav-btn" data-tab="fx" onclick="evAdjustSubTab('fx')">
-                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 44 30" width="36" height="24" fill="none"><text x="22" y="24" text-anchor="middle" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" font-size="26" font-style="italic" font-family="Georgia,'Times New Roman',serif">fx</text></svg>
                 <span>EFFECTS</span>
               </button>
               <button class="ev-subnav-btn" data-tab="light" onclick="evAdjustSubTab('light')">
-                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="3"/><line x1="10" y1="2.5" x2="10" y2="4.5"/><line x1="10" y1="15.5" x2="10" y2="17.5"/><line x1="2.5" y1="10" x2="4.5" y2="10"/><line x1="15.5" y1="10" x2="17.5" y2="10"/><line x1="4.4" y1="4.4" x2="5.8" y2="5.8"/><line x1="14.2" y1="14.2" x2="15.6" y2="15.6"/><line x1="15.6" y1="4.4" x2="14.2" y2="5.8"/><line x1="5.8" y1="14.2" x2="4.4" y2="15.6"/></svg>
                 <span>LIGHT</span>
               </button>
               <button class="ev-subnav-btn" data-tab="color" onclick="evAdjustSubTab('color')">
-                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7.7" cy="8.3" r="4.3"/><circle cx="12.3" cy="8.3" r="4.3"/><circle cx="10" cy="12.2" r="4.3"/></svg>
                 <span>COLOR</span>
               </button>
               <button class="ev-subnav-btn" data-tab="detail" onclick="evAdjustSubTab('detail')">
-                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="6"/><line x1="3" y1="10" x2="5.5" y2="10"/><line x1="14.5" y1="10" x2="17" y2="10"/><line x1="10" y1="3" x2="10" y2="5.5"/><line x1="10" y1="14.5" x2="10" y2="17"/></svg>
                 <span>DETAILS</span>
               </button>
               <button class="ev-subnav-btn" data-tab="blur" onclick="evAdjustSubTab('blur')">
-                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor"><rect x="2" y="2" width="16" height="16" rx="6" stroke-width="1.2" opacity="0.32"/><rect x="5" y="5" width="10" height="10" rx="4" stroke-width="1.35" opacity="0.62"/><rect x="8" y="8" width="4" height="4" rx="2" fill="currentColor" stroke="none"/></svg>
                 <span>BLUR</span>
               </button>
               <button class="ev-subnav-btn" data-tab="crop" onclick="evAdjustSubTab('crop')">
-                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 2.5 L5 15 L17.5 15"/><path d="M2.5 5 L15 5 L15 17.5"/></svg>
                 <span>CROP</span>
               </button>
               <button class="ev-subnav-btn" data-tab="blemish" onclick="evAdjustSubTab('blemish')">
-                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="6"/><circle cx="10" cy="10" r="1.8" fill="currentColor" stroke="none"/><line x1="10" y1="3.5" x2="10" y2="6.5"/><line x1="10" y1="13.5" x2="10" y2="16.5"/><line x1="3.5" y1="10" x2="6.5" y2="10"/><line x1="13.5" y1="10" x2="16.5" y2="10"/></svg>
                 <span>BLEMISH</span>
               </button>
@@ -5196,8 +5176,8 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <!-- COLOR panel: TEMPERATURE TINT VIBRANCE SATURATION + HSL subtab -->
           <div class="es-tab-panel" id="es-panel-color">
             <div class="crop-subtabs" id="ev-color-subtabs">
-              <button class="crop-subtab active" data-subtab="color" onclick="evColorSubTab(this,'color')"><span class="ev-tab-dot"></span>COLOR</button>
-              <button class="crop-subtab" data-subtab="hsl" onclick="evColorSubTab(this,'hsl')"><span class="ev-tab-dot"></span>HSL</button>
+              <button class="crop-subtab active" data-subtab="color" onclick="evColorSubTab(this,'color')">COLOR</button>
+              <button class="crop-subtab" data-subtab="hsl" onclick="evColorSubTab(this,'hsl')">HSL</button>
             </div>
             <div id="es-color-sliders"></div>
             <div id="es-hsl-sliders"></div>
@@ -5239,15 +5219,15 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
 
             <!-- Permanent FX subtab bar -->
             <div id="fx-subtab-bar" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:4px;padding:0 10px;height:32px;border-top:0.5px solid var(--border);border-bottom:0.5px solid rgba(200,168,232,0.07);">
-              <div class="ev-cat-btn active" onclick="fxOpenCat('texture')" data-fxstrip="texture"><span class="ev-tab-dot"></span>TEXTURE</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('stickers')" data-fxstrip="stickers"><span class="ev-tab-dot"></span>STICKERS</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('frames')" data-fxstrip="frames"><span class="ev-tab-dot"></span>FRAMES</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('glow')" data-fxstrip="glow"><span class="ev-tab-dot"></span>GLOW</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('glossy')" data-fxstrip="glossy"><span class="ev-tab-dot"></span>GLOSSY</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('scanlines')" data-fxstrip="scanlines"><span class="ev-tab-dot"></span>SCAN LINES</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('vhsbleed')" data-fxstrip="vhsbleed"><span class="ev-tab-dot"></span>VHS BLEED</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('paper')" data-fxstrip="paper"><span class="ev-tab-dot"></span>PAPER</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('bleeds')" data-fxstrip="bleeds"><span class="ev-tab-dot"></span>BLEEDS</div>
+              <div class="ev-cat-btn active" onclick="fxOpenCat('texture')" data-fxstrip="texture">TEXTURE</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('stickers')" data-fxstrip="stickers">STICKERS</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('frames')" data-fxstrip="frames">FRAMES</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('glow')" data-fxstrip="glow">GLOW</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('glossy')" data-fxstrip="glossy">GLOSSY</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('scanlines')" data-fxstrip="scanlines">SCAN LINES</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('vhsbleed')" data-fxstrip="vhsbleed">VHS BLEED</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('paper')" data-fxstrip="paper">PAPER</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('bleeds')" data-fxstrip="bleeds">BLEEDS</div>
             </div>
 
 
@@ -16137,10 +16117,10 @@ function etCropHTML() {
   const _st = _etCropDefaultTab || 'straighten'; _etCropDefaultTab = 'straighten';
   return `<div class="crop-ui">
     <div class="crop-subtabs" id="crop-subtabs-bar">
-      <button class="crop-subtab${_st==='ratio'?' active':''}" data-tab="RATIO" onclick="cropSelectSubTab(this,'ratio')"><span class="ev-tab-dot"></span>RATIO</button>
+      <button class="crop-subtab${_st==='ratio'?' active':''}" data-tab="RATIO" onclick="cropSelectSubTab(this,'ratio')">RATIO</button>
       <button class="crop-subtab${_st==='straighten'?' active':''}" id="crop-subtab-straighten" data-tab="STRAIGHTEN" style="${Math.abs(_cropCommittedAngle())>0.01?'font-size:7.5px;letter-spacing:0.05em':''}" onclick="cropSelectSubTab(this,'straighten')">${_cropStraightenLabel()}</button>
-      <button class="crop-subtab${_st==='transform'?' active':''}" data-tab="ROTATE" onclick="cropSelectSubTab(this,'transform')"><span class="ev-tab-dot"></span>ROTATE</button>
-      <button class="crop-subtab${_st==='optical'?' active':''}" data-tab="OPTICAL" onclick="cropSelectSubTab(this,'optical')"><span class="ev-tab-dot"></span>OPTICAL</button>
+      <button class="crop-subtab${_st==='transform'?' active':''}" data-tab="ROTATE" onclick="cropSelectSubTab(this,'transform')">ROTATE</button>
+      <button class="crop-subtab${_st==='optical'?' active':''}" data-tab="OPTICAL" onclick="cropSelectSubTab(this,'optical')">OPTICAL</button>
       <div class="crop-expanded-bar" id="crop-exp-bar">
         <button class="crop-exp-btn crop-exp-cancel" onclick="cropSubTabCollapse(false)">✕</button>
         <span class="crop-exp-name" id="crop-exp-name"></span>

@@ -21007,15 +21007,8 @@ function _cropApplyOne(t, srcImg, cb) {
     var amtH = (t.h >= 0 ? 1 : -1) * Math.pow(Math.abs(t.h) / 100, 2);
     tmp.width = iw; tmp.height = ih;
     _etPerspTrapezoidWarp(tmp.getContext('2d', { willReadFrequently: true }), srcImg, amtV, amtH, iw, ih);
-    var maxK = 0.35;
-    var kV = Math.abs(amtV) * maxK, kH = Math.abs(amtH) * maxK;
-    var scV = 1 / (1 - kV * 0.5), scH = 1 / (1 - kH * 0.5);
-    var xIV = Math.ceil(iw * 0.5 * (1 - 1 / scV)), xIH = Math.ceil(iw * 0.5 * (1 - 1 / scH));
-    var yIV = Math.ceil(ih * 0.5 * (1 - 1 / scV)), yIH = Math.ceil(ih * 0.5 * (1 - 1 / scH));
-    var mnX = Math.max(xIV, amtH < 0 ? xIH : 0);
-    var mxX = iw - 1 - Math.max(xIV, amtH > 0 ? xIH : 0);
-    var mnY = Math.max(yIH, amtV < 0 ? yIV : 0);
-    var mxY = ih - 1 - Math.max(yIH, amtV > 0 ? yIV : 0);
+    var _cbk = _perspCropBounds(amtV * 0.35, amtH * 0.35, iw, ih);
+    var mnX = _cbk.mnX, mxX = _cbk.mxX, mnY = _cbk.mnY, mxY = _cbk.mxY;
     var pW = mxX - mnX + 1, pH = mxY - mnY + 1;
     if (pW < 4 || pH < 4) { pW = iw; pH = ih; mnX = 0; mnY = 0; }
     var _pcv = document.createElement('canvas');
@@ -21817,19 +21810,9 @@ function etPerspUpdate() {
     _etPerspTrapezoidWarp(ctx, _etPerspOrigImg, _warpV, _warpH, sc.width, sc.height);
     // Live-preview autocrop: extract inscribed rect and stretch to fill, hiding transparent corners.
     // Shear geometry: both sides inset equally by shear * 0.5 * dimension.
-    var _pvMaxK = 0.35;
-    var _pvW = sc.width, _pvH = sc.height;
-    var _pvKV = Math.abs(_warpV) * _pvMaxK, _pvKH = Math.abs(_warpH) * _pvMaxK;
-    var _pvScaleVedge = 1 / (1 - _pvKV * 0.5);
-    var _pvScaleHedge = 1 / (1 - _pvKH * 0.5);
-    var _pvXInsetV = Math.ceil(_pvW * 0.5 * (1 - 1 / _pvScaleVedge));
-    var _pvXInsetH = Math.ceil(_pvW * 0.5 * (1 - 1 / _pvScaleHedge));
-    var _pvYInsetV = Math.ceil(_pvH * 0.5 * (1 - 1 / _pvScaleVedge));
-    var _pvYInsetH = Math.ceil(_pvH * 0.5 * (1 - 1 / _pvScaleHedge));
-    var _pvMinX = Math.max(_pvXInsetV, _warpH < 0 ? _pvXInsetH : 0);
-    var _pvMaxX = _pvW - 1 - Math.max(_pvXInsetV, _warpH > 0 ? _pvXInsetH : 0);
-    var _pvMinY = Math.max(_pvYInsetH, _warpV < 0 ? _pvYInsetV : 0);
-    var _pvMaxY = _pvH - 1 - Math.max(_pvYInsetH, _warpV > 0 ? _pvYInsetV : 0);
+    var _pvCB = _perspCropBounds(_warpV * 0.35, _warpH * 0.35, sc.width, sc.height);
+    var _pvMinX = _pvCB.mnX, _pvMaxX = _pvCB.mxX;
+    var _pvMinY = _pvCB.mnY, _pvMaxY = _pvCB.mxY;
     var _pvCropW = _pvMaxX - _pvMinX + 1, _pvCropH = _pvMaxY - _pvMinY + 1;
     var _pvTmp = document.createElement('canvas');
     _pvTmp.width = _pvCropW; _pvTmp.height = _pvCropH;
@@ -21846,6 +21829,24 @@ function etPerspUpdate() {
     ac.style.opacity = '1';
     sc.style.opacity = '0';
   }
+}
+
+// Largest axis-aligned rect fully covered by the trapezoid warp.
+// kV = amtV*maxK, kH = amtH*maxK (both signed). Solves the corner constraint
+// analytically: each edge is found by setting the worst-corner srcX/srcY to the
+// source boundary, accounting for both axes' scales simultaneously.
+function _perspCropBounds(kV, kH, W, H) {
+  var scVw = 1 / (1 - Math.abs(kV) * 0.5);
+  var scHw = 1 / (1 - Math.abs(kH) * 0.5);
+  var tuR = 0.5 / (scVw + 0.5 * kH);
+  var mxX = tuR >= 0.5 ? W - 1 : Math.floor((0.5 + tuR) * (W - 1));
+  var tuL = -0.5 / (scVw - 0.5 * kH);
+  var mnX = tuL <= -0.5 ? 0 : Math.ceil((0.5 + tuL) * (W - 1));
+  var tvB = 0.5 / (scHw + 0.5 * kV);
+  var mxY = tvB >= 0.5 ? H - 1 : Math.floor((0.5 + tvB) * (H - 1));
+  var tvT = -0.5 / (scHw - 0.5 * kV);
+  var mnY = tvT <= -0.5 ? 0 : Math.ceil((0.5 + tvT) * (H - 1));
+  return { mnX: mnX, mxX: mxX, mnY: mnY, mxY: mxY };
 }
 
 function _etPerspTrapezoidWarp(dstCtx, src, amtV, amtH, W, H) {

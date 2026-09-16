@@ -5121,7 +5121,6 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <div id="ev-adjust-subnav" style="display:none">
             <div class="ev-subnav-left">
               <button class="ev-subnav-btn active" data-tab="atmosphere" onclick="evAdjustSubTab('atmosphere')">
-                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor"><path d="M7.5 8.5L8.6 11.9L12 13L8.6 14.1L7.5 17.5L6.4 14.1L3 13L6.4 11.9Z"/><path d="M14.5 2.5L15.2 4.8L17.5 5.5L15.2 6.2L14.5 8.5L13.8 6.2L11.5 5.5L13.8 4.8Z"/><path d="M4.5 3L5 4.5L6.5 5L5 5.5L4.5 7L4 5.5L2.5 5L4 4.5Z"/><path d="M15.5 9.2L15.9 10.6L17.3 11L15.9 11.4L15.5 12.8L15.1 11.4L13.7 11L15.1 10.6Z"/></svg>
                 <span>ATMOSPHERE</span>
               </button>
@@ -23345,16 +23344,18 @@ function fxUpdateCatDot(cat) {
 
 function _evUpdateDirtyDots() {
   var pid = (typeof activePreset !== 'undefined' && activePreset) ? activePreset.id : null;
-  var st = (pid && typeof sliderState !== 'undefined' && sliderState[pid]) ? sliderState[pid] : {};
+  var p   = (pid && typeof activePreset !== 'undefined') ? activePreset : null;
+  var st  = (pid && typeof sliderState !== 'undefined' && sliderState[pid]) ? sliderState[pid] : {};
+  var baseline = (p && typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, {}) : {};
+  var current  = (p && typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, st) : st;
   function paramDirty(k) {
     var cfg = typeof sliderConfig !== 'undefined' ? sliderConfig[k] : null;
     var neutral = (cfg && cfg[3] === false) ? 0.0 : 0.5;
-    var v = st[k];
-    return v !== undefined && Math.abs(v - neutral) > 0.001;
+    var base = (baseline[k] !== undefined) ? baseline[k] : neutral;
+    var cur  = (current[k]  !== undefined) ? current[k]  : neutral;
+    return Math.abs(cur - base) > 0.001;
   }
   function anyDirty(keys) { return keys.some(paramDirty); }
-  var atmDirty = !!(pid && pid !== '__nolook__') ||
-    (typeof presetIntensity !== 'undefined' && presetIntensity < 0.999);
   var fxDirty = typeof fxState !== 'undefined' &&
     Object.values(fxState).some(function(cat) { return cat && cat.intensity > 0; });
   var LIGHT_P  = ['BRIGHTNESS','EXPOSURE','PUSH_PULL','CONTRAST','HIGHLIGHTS','SHADOWS','WHITES','BLACKS','DEHAZE'];
@@ -23382,7 +23383,7 @@ function _evUpdateDirtyDots() {
   var cropDirty = ratioDirty || rotateDirty || opticalDirty ||
     (typeof _cropCommittedAngle === 'function' && Math.abs(_cropCommittedAngle()) > 0.01);
   var blemishDirty = typeof blemishSpots !== 'undefined' && blemishSpots.length > 0;
-  var tabMap = { atmosphere: atmDirty, fx: fxDirty, light: lightDirty,
+  var tabMap = { fx: fxDirty, light: lightDirty,
     color: colorDirty, detail: detailDirty, blur: blurDirty,
     crop: cropDirty, blemish: blemishDirty };
   Object.keys(tabMap).forEach(function(tab) {

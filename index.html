@@ -3116,6 +3116,26 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 }
 .fx-cat-btn.has-value .fx-cat-dot { display: block; }
 
+/* Modified-state dot on editor tabs and sub-tabs */
+.ev-tab-dot {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent, #c9b8d4);
+  display: none;
+  pointer-events: none;
+  z-index: 1;
+}
+.ev-subnav-btn { position: relative; }
+.ev-subnav-btn.has-dirty .ev-tab-dot { display: block; }
+.crop-subtab { position: relative; }
+.crop-subtab.has-dirty .ev-tab-dot { display: block; }
+.ev-cat-btn { position: relative; }
+.ev-cat-btn.has-dirty .ev-tab-dot { display: block; }
+
 #fx-cat-strip {
   display: flex;
   flex-direction: row;
@@ -5101,6 +5121,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <div id="ev-adjust-subnav" style="display:none">
             <div class="ev-subnav-left">
               <button class="ev-subnav-btn active" data-tab="atmosphere" onclick="evAdjustSubTab('atmosphere')">
+                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor"><path d="M7.5 8.5L8.6 11.9L12 13L8.6 14.1L7.5 17.5L6.4 14.1L3 13L6.4 11.9Z"/><path d="M14.5 2.5L15.2 4.8L17.5 5.5L15.2 6.2L14.5 8.5L13.8 6.2L11.5 5.5L13.8 4.8Z"/><path d="M4.5 3L5 4.5L6.5 5L5 5.5L4.5 7L4 5.5L2.5 5L4 4.5Z"/><path d="M15.5 9.2L15.9 10.6L17.3 11L15.9 11.4L15.5 12.8L15.1 11.4L13.7 11L15.1 10.6Z"/></svg>
                 <span>ATMOSPHERE</span>
               </button>
@@ -5108,30 +5129,37 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
             </div>
             <div class="ev-subnav-scroll">
               <button class="ev-subnav-btn" data-tab="fx" onclick="evAdjustSubTab('fx')">
+                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 44 30" width="36" height="24" fill="none"><text x="22" y="24" text-anchor="middle" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" font-size="26" font-style="italic" font-family="Georgia,'Times New Roman',serif">fx</text></svg>
                 <span>EFFECTS</span>
               </button>
               <button class="ev-subnav-btn" data-tab="light" onclick="evAdjustSubTab('light')">
+                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="3"/><line x1="10" y1="2.5" x2="10" y2="4.5"/><line x1="10" y1="15.5" x2="10" y2="17.5"/><line x1="2.5" y1="10" x2="4.5" y2="10"/><line x1="15.5" y1="10" x2="17.5" y2="10"/><line x1="4.4" y1="4.4" x2="5.8" y2="5.8"/><line x1="14.2" y1="14.2" x2="15.6" y2="15.6"/><line x1="15.6" y1="4.4" x2="14.2" y2="5.8"/><line x1="5.8" y1="14.2" x2="4.4" y2="15.6"/></svg>
                 <span>LIGHT</span>
               </button>
               <button class="ev-subnav-btn" data-tab="color" onclick="evAdjustSubTab('color')">
+                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7.7" cy="8.3" r="4.3"/><circle cx="12.3" cy="8.3" r="4.3"/><circle cx="10" cy="12.2" r="4.3"/></svg>
                 <span>COLOR</span>
               </button>
               <button class="ev-subnav-btn" data-tab="detail" onclick="evAdjustSubTab('detail')">
+                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="6"/><line x1="3" y1="10" x2="5.5" y2="10"/><line x1="14.5" y1="10" x2="17" y2="10"/><line x1="10" y1="3" x2="10" y2="5.5"/><line x1="10" y1="14.5" x2="10" y2="17"/></svg>
                 <span>DETAILS</span>
               </button>
               <button class="ev-subnav-btn" data-tab="blur" onclick="evAdjustSubTab('blur')">
+                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor"><rect x="2" y="2" width="16" height="16" rx="6" stroke-width="1.2" opacity="0.32"/><rect x="5" y="5" width="10" height="10" rx="4" stroke-width="1.35" opacity="0.62"/><rect x="8" y="8" width="4" height="4" rx="2" fill="currentColor" stroke="none"/></svg>
                 <span>BLUR</span>
               </button>
               <button class="ev-subnav-btn" data-tab="crop" onclick="evAdjustSubTab('crop')">
+                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 2.5 L5 15 L17.5 15"/><path d="M2.5 5 L15 5 L15 17.5"/></svg>
                 <span>CROP</span>
               </button>
               <button class="ev-subnav-btn" data-tab="blemish" onclick="evAdjustSubTab('blemish')">
+                <span class="ev-tab-dot"></span>
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="6"/><circle cx="10" cy="10" r="1.8" fill="currentColor" stroke="none"/><line x1="10" y1="3.5" x2="10" y2="6.5"/><line x1="10" y1="13.5" x2="10" y2="16.5"/><line x1="3.5" y1="10" x2="6.5" y2="10"/><line x1="13.5" y1="10" x2="16.5" y2="10"/></svg>
                 <span>BLEMISH</span>
               </button>
@@ -5173,8 +5201,8 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <!-- COLOR panel: TEMPERATURE TINT VIBRANCE SATURATION + HSL subtab -->
           <div class="es-tab-panel" id="es-panel-color">
             <div class="crop-subtabs" id="ev-color-subtabs">
-              <button class="crop-subtab active" data-subtab="color" onclick="evColorSubTab(this,'color')">COLOR</button>
-              <button class="crop-subtab" data-subtab="hsl" onclick="evColorSubTab(this,'hsl')">HSL</button>
+              <button class="crop-subtab active" data-subtab="color" onclick="evColorSubTab(this,'color')"><span class="ev-tab-dot"></span>COLOR</button>
+              <button class="crop-subtab" data-subtab="hsl" onclick="evColorSubTab(this,'hsl')"><span class="ev-tab-dot"></span>HSL</button>
             </div>
             <div id="es-color-sliders"></div>
             <div id="es-hsl-sliders"></div>
@@ -5216,15 +5244,15 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
 
             <!-- Permanent FX subtab bar -->
             <div id="fx-subtab-bar" style="flex-shrink:0;display:flex;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:4px;padding:0 10px;height:32px;border-top:0.5px solid var(--border);border-bottom:0.5px solid rgba(200,168,232,0.07);">
-              <div class="ev-cat-btn active" onclick="fxOpenCat('texture')" data-fxstrip="texture">TEXTURE</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('stickers')" data-fxstrip="stickers">STICKERS</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('frames')" data-fxstrip="frames">FRAMES</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('glow')" data-fxstrip="glow">GLOW</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('glossy')" data-fxstrip="glossy">GLOSSY</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('scanlines')" data-fxstrip="scanlines">SCAN LINES</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('vhsbleed')" data-fxstrip="vhsbleed">VHS BLEED</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('paper')" data-fxstrip="paper">PAPER</div>
-              <div class="ev-cat-btn" onclick="fxOpenCat('bleeds')" data-fxstrip="bleeds">BLEEDS</div>
+              <div class="ev-cat-btn active" onclick="fxOpenCat('texture')" data-fxstrip="texture"><span class="ev-tab-dot"></span>TEXTURE</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('stickers')" data-fxstrip="stickers"><span class="ev-tab-dot"></span>STICKERS</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('frames')" data-fxstrip="frames"><span class="ev-tab-dot"></span>FRAMES</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('glow')" data-fxstrip="glow"><span class="ev-tab-dot"></span>GLOW</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('glossy')" data-fxstrip="glossy"><span class="ev-tab-dot"></span>GLOSSY</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('scanlines')" data-fxstrip="scanlines"><span class="ev-tab-dot"></span>SCAN LINES</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('vhsbleed')" data-fxstrip="vhsbleed"><span class="ev-tab-dot"></span>VHS BLEED</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('paper')" data-fxstrip="paper"><span class="ev-tab-dot"></span>PAPER</div>
+              <div class="ev-cat-btn" onclick="fxOpenCat('bleeds')" data-fxstrip="bleeds"><span class="ev-tab-dot"></span>BLEEDS</div>
             </div>
 
 
@@ -10117,6 +10145,7 @@ function selectLook(id){
   if (seriesEl) seriesEl.textContent = p.series;
   if (thumbCanvas) { thumbCanvas.width=36; thumbCanvas.height=46; renderPhoto(thumbCanvas, p.imgKey, p.tint, p.orbs, p.acc, p.warm, 'thumb'); }
   refreshEditor(p);
+  if (typeof _evUpdateDirtyDots === 'function') _evUpdateDirtyDots();
   showToast(p.name.toUpperCase()+' — SELECTED');
 }
 
@@ -10530,6 +10559,7 @@ function _slApplyDrag(e) {
   }
   _slDragPreset = pid;
   scheduleRender(pid);
+  if (typeof _evUpdateDirtyDots === 'function') _evUpdateDirtyDots();
 }
 function _slEndDrag() {
   if (_slDragTrack) _slDragTrack.classList.remove('dragging');
@@ -10543,6 +10573,7 @@ function _slEndDrag() {
     var _ev = document.getElementById('editor-view');
     if (_ev && _ev.classList.contains('active')) evRenderCanvas();
   }
+  if (typeof _evUpdateDirtyDots === 'function') _evUpdateDirtyDots();
 }
 document.addEventListener('mousemove', _slApplyDrag);
 document.addEventListener('touchmove', _slApplyDrag, {passive:true}); // touch-action:none on tracks handles scroll prevention
@@ -11815,6 +11846,7 @@ window.addEventListener('load',()=>{
       const adj = _intMerged ? buildAdjustments(_intMerged) : {};
       renderWithAdjustments(hc, adj);
     }
+    if (typeof _evUpdateDirtyDots === 'function') _evUpdateDirtyDots();
     if (typeof evRenderCanvas === 'function') evRenderCanvas();
   });
 
@@ -11951,6 +11983,7 @@ function applyLookToUserImage(presetId) {
   _applyAdj.colorGlow = p.colorGlow !== undefined ? p.colorGlow : 0;
   _applyAdj.skinLift = p.skinLift !== undefined ? p.skinLift : 0;
   renderHeroUser(_applyAdj);
+  if (typeof _evUpdateDirtyDots === 'function') _evUpdateDirtyDots();
   showToast(p.name.toUpperCase() + ' — APPLIED');
 }
 
@@ -14777,6 +14810,7 @@ function blemishUndo() {
   _blemishFuture.push(JSON.parse(JSON.stringify(blemishSpots)));
   blemishSpots = _blemishHistory.pop();
   _blemishUpdateUD();
+  if (typeof _evUpdateDirtyDots === 'function') _evUpdateDirtyDots();
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
@@ -14785,6 +14819,7 @@ function blemishRedo() {
   _blemishHistory.push(JSON.parse(JSON.stringify(blemishSpots)));
   blemishSpots = _blemishFuture.pop();
   _blemishUpdateUD();
+  if (typeof _evUpdateDirtyDots === 'function') _evUpdateDirtyDots();
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
@@ -14793,6 +14828,7 @@ function blemishClearAll() {
   _blemishPush();
   blemishSpots = [];
   _blemishSave();
+  if (typeof _evUpdateDirtyDots === 'function') _evUpdateDirtyDots();
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
@@ -14933,6 +14969,7 @@ function _blemishHandleTap(e) {
   cy = Math.max(0, Math.min(1, cy));
   _blemishPush();
   blemishSpots.push({ cx: cx, cy: cy, r: _blemishRadius });
+  if (typeof _evUpdateDirtyDots === 'function') _evUpdateDirtyDots();
   if (typeof evRenderCanvas === 'function') evRenderCanvas();
 }
 
@@ -16105,10 +16142,10 @@ function etCropHTML() {
   const _st = _etCropDefaultTab || 'straighten'; _etCropDefaultTab = 'straighten';
   return `<div class="crop-ui">
     <div class="crop-subtabs" id="crop-subtabs-bar">
-      <button class="crop-subtab${_st==='ratio'?' active':''}" data-tab="RATIO" onclick="cropSelectSubTab(this,'ratio')">RATIO</button>
+      <button class="crop-subtab${_st==='ratio'?' active':''}" data-tab="RATIO" onclick="cropSelectSubTab(this,'ratio')"><span class="ev-tab-dot"></span>RATIO</button>
       <button class="crop-subtab${_st==='straighten'?' active':''}" id="crop-subtab-straighten" data-tab="STRAIGHTEN" style="${Math.abs(_cropCommittedAngle())>0.01?'font-size:7.5px;letter-spacing:0.05em':''}" onclick="cropSelectSubTab(this,'straighten')">${_cropStraightenLabel()}</button>
-      <button class="crop-subtab${_st==='transform'?' active':''}" data-tab="ROTATE" onclick="cropSelectSubTab(this,'transform')">ROTATE</button>
-      <button class="crop-subtab${_st==='optical'?' active':''}" data-tab="OPTICAL" onclick="cropSelectSubTab(this,'optical')">OPTICAL</button>
+      <button class="crop-subtab${_st==='transform'?' active':''}" data-tab="ROTATE" onclick="cropSelectSubTab(this,'transform')"><span class="ev-tab-dot"></span>ROTATE</button>
+      <button class="crop-subtab${_st==='optical'?' active':''}" data-tab="OPTICAL" onclick="cropSelectSubTab(this,'optical')"><span class="ev-tab-dot"></span>OPTICAL</button>
       <div class="crop-expanded-bar" id="crop-exp-bar">
         <button class="crop-exp-btn crop-exp-cancel" onclick="cropSubTabCollapse(false)">✕</button>
         <span class="crop-exp-name" id="crop-exp-name"></span>
@@ -20608,6 +20645,7 @@ function cropSubTabCollapse(confirm) {
     var _stBtn = bar.querySelector('.crop-subtab[onclick*="straighten"]');
     if (_stBtn && typeof cropSelectSubTab === 'function') cropSelectSubTab(_stBtn, 'straighten');
   }
+  if (typeof _evUpdateDirtyDots === 'function') _evUpdateDirtyDots();
 }
 var _cropRotateEntryImg = null;
 var _cropOpticalEntryState = null;
@@ -23302,6 +23340,70 @@ function fxUpdateCatDot(cat) {
   if (!btn) return;
   var hasVal = fxState[cat].intensity > 0;
   btn.classList.toggle('has-value', hasVal);
+  _evUpdateDirtyDots();
+}
+
+function _evUpdateDirtyDots() {
+  var pid = (typeof activePreset !== 'undefined' && activePreset) ? activePreset.id : null;
+  var st = (pid && typeof sliderState !== 'undefined' && sliderState[pid]) ? sliderState[pid] : {};
+  function paramDirty(k) {
+    var cfg = typeof sliderConfig !== 'undefined' ? sliderConfig[k] : null;
+    var neutral = (cfg && cfg[3] === false) ? 0.0 : 0.5;
+    var v = st[k];
+    return v !== undefined && Math.abs(v - neutral) > 0.001;
+  }
+  function anyDirty(keys) { return keys.some(paramDirty); }
+  var atmDirty = !!(pid && pid !== '__nolook__') ||
+    (typeof presetIntensity !== 'undefined' && presetIntensity < 0.999);
+  var fxDirty = typeof fxState !== 'undefined' &&
+    Object.values(fxState).some(function(cat) { return cat && cat.intensity > 0; });
+  var LIGHT_P  = ['BRIGHTNESS','EXPOSURE','PUSH_PULL','CONTRAST','HIGHLIGHTS','SHADOWS','WHITES','BLACKS','DEHAZE'];
+  var COLOR_P  = ['TEMPERATURE','TINT','VIBRANCE','SATURATION','SKIN_TONE'];
+  var HSL_P    = ['HUE_SHIFT','SAT_REDS','SAT_ORANGES','SAT_YELLOWS','SAT_GREENS','SAT_BLUES','SAT_PURPLES',
+                  'LUM_REDS','LUM_ORANGES','LUM_YELLOWS','LUM_GREENS','LUM_BLUES','LUM_PURPLES'];
+  var DETAIL_P = ['SHARPEN','CLARITY','GRAIN','FADE','MATTE_LIFT'];
+  var BLUR_P   = ['BLUR','MOTION_BLUR','RADIAL_BLUR','GLOW','MIST','VIGNETTE_BLUR'];
+  var lightDirty    = anyDirty(LIGHT_P);
+  var colorColDirty = anyDirty(COLOR_P);
+  var colorHslDirty = anyDirty(HSL_P);
+  var colorDirty    = colorColDirty || colorHslDirty;
+  var detailDirty   = anyDirty(DETAIL_P);
+  var blurDirty     = anyDirty(BLUR_P);
+  var txf = typeof _cropTransforms !== 'undefined' ? _cropTransforms : [];
+  var ratioDirty   = txf.some(function(t) { return t.op === 'ratio' || t.op === 'crop'; });
+  var rotateDirty  = txf.some(function(t) { return ['rotate90cw','rotate90ccw','rotate180','flip_h','flip_v'].indexOf(t.op) !== -1; });
+  var opticalDirty = txf.some(function(t) { return t.op === 'perspective' || t.op === 'fisheye'; });
+  if (!opticalDirty) {
+    var vv = typeof _etPerspVVal !== 'undefined' ? _etPerspVVal : 0;
+    var hv = typeof _etPerspHVal !== 'undefined' ? _etPerspHVal : 0;
+    var fv = typeof _cropFisheyeVal !== 'undefined' ? (_cropFisheyeVal || 0) : 0;
+    opticalDirty = Math.abs(vv) > 0.5 || Math.abs(hv) > 0.5 || Math.abs(fv) > 0.5;
+  }
+  var cropDirty = ratioDirty || rotateDirty || opticalDirty ||
+    (typeof _cropCommittedAngle === 'function' && Math.abs(_cropCommittedAngle()) > 0.01);
+  var blemishDirty = typeof blemishSpots !== 'undefined' && blemishSpots.length > 0;
+  var tabMap = { atmosphere: atmDirty, fx: fxDirty, light: lightDirty,
+    color: colorDirty, detail: detailDirty, blur: blurDirty,
+    crop: cropDirty, blemish: blemishDirty };
+  Object.keys(tabMap).forEach(function(tab) {
+    var btn = document.querySelector('.ev-subnav-btn[data-tab="' + tab + '"]');
+    if (btn) btn.classList.toggle('has-dirty', !!tabMap[tab]);
+  });
+  var colColBtn = document.querySelector('.crop-subtab[data-subtab="color"]');
+  var colHslBtn = document.querySelector('.crop-subtab[data-subtab="hsl"]');
+  if (colColBtn) colColBtn.classList.toggle('has-dirty', colorColDirty);
+  if (colHslBtn) colHslBtn.classList.toggle('has-dirty', colorHslDirty);
+  var ratioBtn   = document.querySelector('.crop-subtab[data-tab="RATIO"]');
+  var rotateBtn  = document.querySelector('.crop-subtab[data-tab="ROTATE"]');
+  var opticalBtn = document.querySelector('.crop-subtab[data-tab="OPTICAL"]');
+  if (ratioBtn)   ratioBtn.classList.toggle('has-dirty', ratioDirty);
+  if (rotateBtn)  rotateBtn.classList.toggle('has-dirty', rotateDirty);
+  if (opticalBtn) opticalBtn.classList.toggle('has-dirty', opticalDirty);
+  document.querySelectorAll('#fx-subtab-bar [data-fxstrip]').forEach(function(btn) {
+    var cat = btn.dataset.fxstrip;
+    var dirty = typeof fxState !== 'undefined' && fxState[cat] && fxState[cat].intensity > 0;
+    btn.classList.toggle('has-dirty', !!dirty);
+  });
 }
 
 /* ── FRAME THUMB PREVIEW (canvas drawn) ─────────────── */

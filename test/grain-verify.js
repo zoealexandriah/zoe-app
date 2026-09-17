@@ -5,7 +5,11 @@ const fs   = require('fs');
 const path = require('path');
 const PORT = 3067;
 
-const EXPORT_SIZES = [1200, 2400, 4000];
+// 2400px = primary: _evDoSave + exportDownload cap (long edge)
+// 1800px = secondary: short edge of 4000x3000 save-button output, or small portrait sources
+// 4000px = uncapped: evSaveAndReturn + _exportEntry (batch)
+// 1200px = small social exports
+const EXPORT_SIZES = [1200, 1800, 2400, 4000];
 
 const srv = http.createServer((req, rsp) => {
   let fp = path.join('C:/Users/zoeal/zoe-app', req.url === '/' ? '/index.html' : req.url.split('?')[0]);

@@ -13869,7 +13869,7 @@ function applyScanLines(canvas, params, offX, offY, imgW, imgH) {
   if (!params || !params.opacity || params.opacity < 0.005) return;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const spacingBase = params.spacing || 2;
-  const spacing = Math.max(1, Math.round(spacingBase * Math.pow(imgH / 500, 0.5)));
+  const spacing = Math.max(1, Math.round(spacingBase * Math.pow(imgH / 500, 0.85)));
   const opacity = params.opacity || 0.08;
   ctx.save();
   ctx.globalAlpha = opacity;

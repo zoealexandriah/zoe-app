@@ -13722,9 +13722,10 @@ function applyVHSBleed(canvas, intensity, offX, offY, imgW, imgH) {
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
   const out = new Uint8ClampedArray(src.length);
-  const bleedR = Math.round(intensity * 1.2);
-  const bleedG = Math.round(intensity * 0.6);
-  const bleedB = Math.round(intensity * 0.9);
+  const _vhsScale = imgW / 375;
+  const bleedR = Math.max(1, Math.round(intensity * 1.2 * _vhsScale));
+  const bleedG = Math.max(1, Math.round(intensity * 0.6 * _vhsScale));
+  const bleedB = Math.max(1, Math.round(intensity * 0.9 * _vhsScale));
   for (let y = 0; y < imgH; y++) {
     for (let x = 0; x < imgW; x++) {
       const i = (y * imgW + x) * 4;
@@ -13867,7 +13868,8 @@ function _evBloomLayer(srcCanvas, params, imgW, imgH) {
 function applyScanLines(canvas, params, offX, offY, imgW, imgH) {
   if (!params || !params.opacity || params.opacity < 0.005) return;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  const spacing = params.spacing || 2;
+  const spacingBase = params.spacing || 2;
+  const spacing = Math.max(1, Math.round(spacingBase * imgH / 500));
   const opacity = params.opacity || 0.08;
   ctx.save();
   ctx.globalAlpha = opacity;

@@ -13722,7 +13722,7 @@ function applyVHSBleed(canvas, intensity, offX, offY, imgW, imgH) {
   const orig = ctx.getImageData(offX, offY, imgW, imgH);
   const src = orig.data;
   const out = new Uint8ClampedArray(src.length);
-  const _vhsScale = imgW / 375;
+  const _vhsScale = Math.pow(imgW / 375, 0.5);
   const bleedR = Math.max(1, Math.round(intensity * 1.2 * _vhsScale));
   const bleedG = Math.max(1, Math.round(intensity * 0.6 * _vhsScale));
   const bleedB = Math.max(1, Math.round(intensity * 0.9 * _vhsScale));
@@ -13869,7 +13869,7 @@ function applyScanLines(canvas, params, offX, offY, imgW, imgH) {
   if (!params || !params.opacity || params.opacity < 0.005) return;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const spacingBase = params.spacing || 2;
-  const spacing = Math.max(1, Math.round(spacingBase * Math.pow(imgH / 500, 0.85)));
+  const spacing = Math.max(1, Math.round(spacingBase * Math.pow(imgH / 500, 0.70)));
   const opacity = params.opacity || 0.08;
   ctx.save();
   ctx.globalAlpha = opacity;

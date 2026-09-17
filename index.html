@@ -18780,6 +18780,8 @@ function evSaveAndReturn() {
   if (evC && editingIdx !== undefined && editingIdx >= 0 && library[editingIdx]) {
     var entry = library[editingIdx];
     var iw = userImage.naturalWidth, ih = userImage.naturalHeight;
+    var _srScale = Math.min(1, 2400 / Math.max(iw, ih));
+    iw = Math.round(iw * _srScale); ih = Math.round(ih * _srScale);
     var off = document.createElement('canvas');
     off.width = iw; off.height = ih;
     var ctx = off.getContext('2d', { willReadFrequently: true });
@@ -19137,7 +19139,9 @@ function _exportEntry(entry, onDone) {
   const sliders   = entry.editState.sliders   || {};
   const src = new Image();
   src.onload = () => {
-    const iw = src.naturalWidth, ih = src.naturalHeight;
+    const nw = src.naturalWidth, nh = src.naturalHeight;
+    const _eeScale = Math.min(1, 2400 / Math.max(nw, nh));
+    const iw = Math.round(nw * _eeScale), ih = Math.round(nh * _eeScale);
     const off = document.createElement('canvas');
     off.width = iw; off.height = ih;
     const ctx = off.getContext('2d', { willReadFrequently: true });

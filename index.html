@@ -11231,6 +11231,7 @@ function buildAdjustments(state) {
     duotone_b:   null,
     duotone_strength: 0,
     skin_tone:   val('SKIN_TONE') * 1.5,
+    hsl_version: state._hsl_version || 1,
       };
 }
 
@@ -11442,103 +11443,6 @@ function renderPhotoAdjusted(canvas, imgKey, tint, orbs, acc, warm, size, adj) {
 
   if(!isHero) for(let y=0;y<h;y+=2){ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fillRect(0,y,w,1);}
 
-}
-
-// ── PER-CHANNEL HSL ──────────────────────────────────
-function applyPerChannelHSL(canvas, adj) {
-  const satReds    = adj.sat_reds    || 0;
-  const satOranges = adj.sat_oranges || 0;
-  const satGreens  = adj.sat_greens  || 0;
-  const satBlues   = adj.sat_blues   || 0;
-  const satPurples = adj.sat_purples || 0;
-  const hueShift   = adj.hue_shift   || 0;
-  if (!satReds && !satOranges && !satGreens && !satBlues && !satPurples && !hueShift) return;
-
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const d = imageData.data;
-
-  for (let i = 0; i < d.length; i += 4) {
-    const r = d[i] / 255;
-    const g = d[i+1] / 255;
-    const b = d[i+2] / 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const delta = max - min;
-    let h = 0, s = 0;
-    const l = (max + min) / 2;
-
-    if (delta > 0.001) {
-      s = delta / (1 - Math.abs(2 * l - 1));
-      if (max === r)      h = 60 * (((g - b) / delta) % 6);
-      else if (max === g) h = 60 * ((b - r) / delta + 2);
-      else                h = 60 * ((r - g) / delta + 4);
-      if (h < 0) h += 360;
-    } else {
-      // Achromatic — no hue, skip saturation changes
-      if (hueShift) continue; // hue shift does nothing on grey pixels
-      continue;
-    }
-
-    // Apply global hue shift BEFORE channel detection
-    if (hueShift) h = (h + hueShift + 360) % 360;
-
-    // Tight non-overlapping channel ranges with soft edges
-    // Each channel has a CENTER and a HARD WIDTH — outside that, weight = 0
-    function channelWeight(hue, center, hardWidth) {
-      let dist = Math.abs(hue - center);
-      if (dist > 180) dist = 360 - dist; // wrap around
-      if (dist >= hardWidth / 2) return 0; // hard cutoff — no bleed
-      // Smooth falloff only in inner 60% of the range
-      const soft = hardWidth * 0.3;
-      const hard = hardWidth / 2 - soft;
-      if (dist <= hard) return 1;
-      return 1 - (dist - hard) / soft;
-    }
-
-    // Non-overlapping ranges — each hue belongs primarily to ONE channel
-    // Reds:    345–15   (center 0,   width 30)
-    // Oranges: 15–45    (center 30,  width 30)
-    // Yellows: 45–75    (center 60,  width 30) — not exposed as slider yet
-    // Greens:  75–165   (center 120, width 90)
-    // Blues:   165–255  (center 210, width 90)
-    // Purples: 255–345  (center 300, width 90)
-
-    const wRed    = channelWeight(h, 0,   30);
-    const wOrange = channelWeight(h, 30,  30);
-    const wGreen  = channelWeight(h, 120, 90);
-    const wBlue   = channelWeight(h, 210, 90);
-    const wPurple = channelWeight(h, 300, 90);
-
-    const satAdj =
-      wRed    * satReds +
-      wOrange * satOranges +
-      wGreen  * satGreens +
-      wBlue   * satBlues +
-      wPurple * satPurples;
-
-    if (Math.abs(satAdj) < 0.001) continue; // nothing to do
-
-    const newS = Math.max(0, Math.min(1, s + satAdj * 0.9));
-    const c = (1 - Math.abs(2 * l - 1)) * newS;
-    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-    const m = l - c / 2;
-    let rr = 0, gg = 0, bb = 0;
-
-    if      (h < 60)  { rr=c; gg=x; bb=0; }
-    else if (h < 120) { rr=x; gg=c; bb=0; }
-    else if (h < 180) { rr=0; gg=c; bb=x; }
-    else if (h < 240) { rr=0; gg=x; bb=c; }
-    else if (h < 300) { rr=x; gg=0; bb=c; }
-    else              { rr=c; gg=0; bb=x; }
-
-    d[i]   = Math.round((rr + m) * 255);
-    d[i+1] = Math.round((gg + m) * 255);
-    d[i+2] = Math.round((bb + m) * 255);
-  }
-
-  ctx.putImageData(imageData, 0, 0);
 }
 
 function renderRaw(canvas, imgKey) {
@@ -12296,6 +12200,11 @@ function applyPixelAdjustments(srcData, adj, resScale) {
   }
 
   // Part 3: LUT for HSL channel Gaussian weight — f(norm, 0..8)
+  // hsl_version 1 = wide Gaussian (k=0.18, legacy — all 103 shipped presets).
+  // hsl_version 2 = isolated bands (k=2.803, weight ≤0.05 at adjacent band centre).
+  var _hslV = adj.hsl_version ||
+    (typeof activePreset !== 'undefined' && activePreset && activePreset.hslVersion) || 1;
+  var _gaussK = (_hslV >= 2) ? 2.803 : 0.18;
   var _weight_LUT = null;
   var _hasHSL = !!(adj.sat_reds || adj.sat_oranges || adj.sat_yellows || adj.sat_greens || adj.sat_blues || adj.sat_purples ||
                    adj.hue_reds || adj.hue_oranges || adj.hue_yellows || adj.hue_greens || adj.hue_blues || adj.hue_purples ||
@@ -12305,7 +12214,7 @@ function applyPixelAdjustments(srcData, adj, resScale) {
     _weight_LUT = new Float32Array(1024);
     for (var _k = 0; _k < 1024; _k++) {
       var _n = _k / 1023 * 8;
-      _weight_LUT[_k] = Math.exp(-_n * _n * 0.18);
+      _weight_LUT[_k] = Math.exp(-_n * _n * _gaussK);
     }
   }
 
@@ -23380,7 +23289,8 @@ function _evUpdateDirtyDots() {
   var LIGHT_P  = ['BRIGHTNESS','EXPOSURE','PUSH_PULL','CONTRAST','HIGHLIGHTS','SHADOWS','WHITES','BLACKS','DEHAZE'];
   var COLOR_P  = ['TEMPERATURE','TINT','VIBRANCE','SATURATION','SKIN_TONE'];
   var HSL_P    = ['HUE_SHIFT','SAT_REDS','SAT_ORANGES','SAT_YELLOWS','SAT_GREENS','SAT_BLUES','SAT_PURPLES',
-                  'LUM_REDS','LUM_ORANGES','LUM_YELLOWS','LUM_GREENS','LUM_BLUES','LUM_PURPLES'];
+                  'LUM_REDS','LUM_ORANGES','LUM_YELLOWS','LUM_GREENS','LUM_BLUES','LUM_PURPLES',
+                  'HUE_REDS','HUE_ORANGES','HUE_YELLOWS','HUE_GREENS','HUE_BLUES','HUE_PURPLES'];
   var DETAIL_P = ['SHARPEN','CLARITY','GRAIN','FADE','MATTE_LIFT'];
   var BLUR_P   = ['BLUR','MOTION_BLUR','RADIAL_BLUR','GLOW','MIST','VIGNETTE_BLUR'];
   var lightDirty    = anyDirty(LIGHT_P);

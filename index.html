@@ -16439,7 +16439,7 @@ function globalReset() {
     Math.abs(typeof _cropStraightenVal !== 'undefined' ? _cropStraightenVal : 0) > 0.01 ||
     !!(typeof _savedStraightenOrig !== 'undefined' && _savedStraightenOrig) ||
     !!document.getElementById('crop-straighten-work') || !!_perspBaseURL ||
-    blemishSpots.length > 0;
+    blemishSpots.length > 0 || _hasFxApplied();
   if (!_hasAnyEdits) { showToast('NOTHING TO RESET'); return; }
   // Clear blemish spots
   blemishSpots = []; _blemishHistory = []; _blemishFuture = []; _blemishPreEdit = null;
@@ -20721,6 +20721,16 @@ function _cropBakeStraighten(onDone) {
   return true;
 }
 function cropSelectSubTab(btn, tab) {
+  if (tab === 'ratio' && !window._evSkipCropFxWarn && _hasFxApplied()) {
+    showConfirmModal({
+      title: 'FX will be removed',
+      body: 'Your applied FX will be discarded when cropping. You will need to re-apply them after.',
+      ok: 'PROCEED',
+      cancel: 'GO BACK',
+      onConfirm: function() { window._evSkipCropFxWarn = true; cropSelectSubTab(btn, tab); window._evSkipCropFxWarn = false; }
+    });
+    return;
+  }
   // Commit any pending straighten angle to the non-destructive transform list.
   // Defer the rest of this function until the render completes so the ratio overlay
   // (and any other tab that reads canvas dimensions) sees the updated image.

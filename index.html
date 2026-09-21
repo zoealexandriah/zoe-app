@@ -22365,18 +22365,6 @@ function importSheetChoice(type) {
     var _prevSection = _curSection;
     _curSection = name;
     if (name === 'crop') {
-      /* Warn before suspending the frame — _zFrameSuspend clears the variant so check must run first */
-      if (!window._evSkipCropFxWarn && typeof _hasFxApplied === 'function' && _hasFxApplied()) {
-        showConfirmModal({
-          title: 'Frame will be removed',
-          body: 'Your applied FX frame will be discarded when cropping. You will need to re-apply it after.',
-          ok: 'PROCEED',
-          cancel: 'GO BACK',
-          onConfirm: function() { window._evSkipCropFxWarn = true; evAdjustSubTab('crop'); window._evSkipCropFxWarn = false; }
-        });
-        _curSection = _prevSection;
-        return;
-      }
       /* Entering crop: suspend FX frame so ev-canvas shows clean photo */
       if (typeof _zFrameSuspend === 'function') _zFrameSuspend();
     }

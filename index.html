@@ -3443,7 +3443,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     border-left: none !important;
     border-top: 0.5px solid rgba(255,255,255,0.06) !important;
     overflow: visible !important;
-    min-height: var(--sheet-max-h, 250px) !important;
     max-height: var(--sheet-max-h, 250px) !important;
     position: relative !important;
     background: rgba(13,13,14,0.85) !important;
@@ -3451,7 +3450,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
 
   #ev-sheet-handle { height: 0 !important; overflow: hidden !important; padding: 0 !important; }
   #ev-sheet-handle::after { display: none !important; }
-  #ev-editor-suite.sheet-collapsed { min-height: 0 !important; max-height: 0 !important; overflow: hidden !important; border-top: none !important; }
+  #ev-editor-suite.sheet-collapsed { max-height: 0 !important; overflow: hidden !important; border-top: none !important; }
   #ev-editor-suite.sheet-collapsed #ev-adjust-subnav { display: none !important; }
 
   /* Full-preview toggle button — anchored above subnav, moves as canvas resizes with sheet */
@@ -3545,7 +3544,6 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   #ev-editor-suite.open #es-panel-tools.active {
     height: auto !important;
     max-height: none !important;
-    min-height: 170px !important;
     flex: none !important;
     overflow: hidden !important;
     padding-top: 0 !important;

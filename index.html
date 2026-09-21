@@ -17194,7 +17194,7 @@ function _evRenderCanvasImmediate() {
       var _lbChkCssW = (_lbChkAw / _lbChkAh > _lbChkAR) ? Math.round(_lbChkAh * _lbChkAR) : _lbChkAw;
       var _lbChkCssH = (_lbChkAw / _lbChkAh > _lbChkAR) ? _lbChkAh : Math.round(_lbChkAw / _lbChkAR);
       var _lbChkZoom = window._slDragging ? 1 : zoomFactor;
-      var _lbChkPxW = Math.round(_lbChkCssW * dpr * _lbChkZoom), _lbChkPxH = Math.round(_lbChkCssH * dpr * _lbChkZoom);
+      var _lbChkPxW = Math.min(Math.round(_lbChkCssW * dpr * _lbChkZoom), iw), _lbChkPxH = Math.min(Math.round(_lbChkCssH * dpr * _lbChkZoom), ih);
       var _lbMinScale = Math.max(_lbChkPxW / iw, _lbChkPxH / ih);
       renderScale = Math.max(renderScale, _lbMinScale);
     }
@@ -17384,7 +17384,7 @@ function _evRenderCanvasImmediate() {
       } else { _lbCssW = canvas.width; _lbCssH = Math.round(canvas.width / _lbAR); }
       var _dpr2 = Math.min(window.devicePixelRatio || 1, 2);
       var _lbZoom = window._slDragging ? 1 : zoomFactor;
-      var _lbPxW = Math.round(_lbCssW * _dpr2 * _lbZoom), _lbPxH = Math.round(_lbCssH * _dpr2 * _lbZoom);
+      var _lbPxW = Math.min(Math.round(_lbCssW * _dpr2 * _lbZoom), iw), _lbPxH = Math.min(Math.round(_lbCssH * _dpr2 * _lbZoom), ih);
       canvas.width  = _lbPxW;
       canvas.height = _lbPxH;
       canvas.style.width  = _lbCssW + 'px';

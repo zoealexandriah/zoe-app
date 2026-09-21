@@ -1622,7 +1622,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   font-size: 8px; letter-spacing: 0.16em; color: rgba(255,255,255,0.55);
   font-family: var(--mono); cursor: pointer; transition: all 0.15s;
   white-space: nowrap; -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+  touch-action: manipulation; scroll-snap-align: center;
 }
 .ev-cat-btn:hover { color: rgba(220,210,240,0.80); }
 .ev-cat-btn.active {
@@ -1657,6 +1657,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   overflow-x: auto; overflow-y: hidden;
   -webkit-overflow-scrolling: touch; scrollbar-width: none;
   background: rgba(192,64,90,0.04);
+  scroll-snap-type: x mandatory; scroll-padding-inline: 50%;
 }
 .series-sub-row.visible { display: flex; }
 .series-sub-row::-webkit-scrollbar { display: none; }
@@ -1666,6 +1667,7 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
   font-size: 7px; letter-spacing: 0.18em; color: rgba(218,140,168,0.65);
   font-family: var(--mono); cursor: pointer; transition: all 0.15s;
   white-space: nowrap; -webkit-tap-highlight-color: transparent;
+  scroll-snap-align: center;
 }
 .series-sub-btn:hover { color: rgba(240,180,210,0.90); border-color: rgba(192,64,90,0.55); }
 .series-sub-btn.active {
@@ -3377,8 +3379,11 @@ button,.ctb-btn,.bn-item,.nav-item,.lib-btn,.batch-bar-btn,.es-tab,.lib-photo,.g
     scrollbar-width: none !important;
     -webkit-overflow-scrolling: touch !important;
     align-items: stretch !important;
+    scroll-snap-type: x mandatory !important;
+    scroll-padding-inline: 50% !important;
   }
   .ev-subnav-scroll::-webkit-scrollbar { display: none !important; }
+  .ev-subnav-scroll .ev-subnav-btn { scroll-snap-align: center !important; }
   .ev-subnav-btn {
     display: flex !important;
     flex-direction: column !important;
@@ -5069,7 +5074,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <div id="ev-preset-strip" style="height:137px;flex-shrink:0;border-top:0.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow-x:hidden;overflow-y:visible;">
             <!-- Category filter row -->
             <div style="position:relative;flex-shrink:0;display:flex;align-items:center;border-bottom:0.5px solid rgba(200,168,232,0.07);overflow:hidden;">
-              <div id="ev-cats" style="flex:1;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:44px;">
+              <div id="ev-cats" style="flex:1;display:flex;flex-direction:row;align-items:center;gap:4px;padding:0 10px;height:32px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-right:44px;scroll-snap-type:x mandatory;scroll-padding-inline:50%;">
                 <div class="ev-cat-btn" data-cat="SAVED" onclick="evFilterCat(this,'SAVED')">FORMULAS</div>
                 <div class="ev-cat-btn" onclick="evShowSeriesTab(this)">SERIES ↓</div>
                 <div class="ev-cat-btn active" data-cat="ALL" onclick="evFilterCat(this,'ALL')">ALL</div>
@@ -5103,7 +5108,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
               <div class="series-sub-btn" onclick="evFilterSeries(this,'POOLSIDE')">POOLSIDE</div>
             </div>
             <!-- Thumbnail scroll row -->
-            <div style="flex:1;display:flex;align-items:center;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;">
+            <div id="ev-preset-scroll-wrap" style="flex:1;display:flex;align-items:center;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;scroll-padding-inline:50%;">
               <div id="ev-preset-list" style="display:flex;flex-direction:row;width:max-content;gap:5px;padding:4px 6px;align-items:center;"></div>
             </div>
           </div>
@@ -17505,9 +17510,52 @@ function renderPresetThumb(canvas, p) {
   } catch(e) {}
 }
 
+function _initStripAutoSelect() {
+  function _attachScrollSelect(container, itemSelector, action) {
+    if (!container || container._autoSelectBound) return;
+    container._autoSelectBound = true;
+    var _timer;
+    function _selectCentered() {
+      var cr = container.getBoundingClientRect();
+      var cx = cr.left + cr.width / 2;
+      var items = container.querySelectorAll(itemSelector);
+      var best = null, bestDist = Infinity;
+      items.forEach(function(item) {
+        var ir = item.getBoundingClientRect();
+        var dist = Math.abs((ir.left + ir.width / 2) - cx);
+        if (dist < bestDist) { bestDist = dist; best = item; }
+      });
+      if (best) action(best);
+    }
+    container.addEventListener('scrollend', _selectCentered);
+    container.addEventListener('scroll', function() { clearTimeout(_timer); _timer = setTimeout(_selectCentered, 120); });
+  }
+  _attachScrollSelect(
+    document.getElementById('ev-cats'),
+    '.ev-cat-btn',
+    function(btn) { if (!btn.classList.contains('active')) btn.click(); }
+  );
+  _attachScrollSelect(
+    document.getElementById('ev-preset-scroll-wrap'),
+    '#ev-preset-list > div',
+    function(card) { card.click(); }
+  );
+  _attachScrollSelect(
+    document.querySelector('.ev-subnav-scroll'),
+    '.ev-subnav-btn',
+    function(btn) { if (!btn.classList.contains('active')) btn.click(); }
+  );
+  _attachScrollSelect(
+    document.getElementById('ev-series-sub-row'),
+    '.series-sub-btn',
+    function(btn) { if (!btn.classList.contains('active')) btn.click(); }
+  );
+}
+
 function evRenderPresets() {
   var list = document.getElementById('ev-preset-list');
   if (!list) return;
+  _initStripAutoSelect();
   list.innerHTML = '';
   list.scrollLeft = 0;
   var _catsEl = document.getElementById('ev-cats'); if (_catsEl) _catsEl.scrollLeft = 0;
@@ -17527,7 +17575,7 @@ function evRenderPresets() {
       var _fw = 78, _fh = 96;
       var fcard = document.createElement('div');
       var isActive = evActivePreset && evActivePreset.id === formula.id;
-      fcard.style.cssText = 'width:'+_fw+'px;height:'+_fh+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;transition:transform 0.2s;'
+      fcard.style.cssText = 'width:'+_fw+'px;height:'+_fh+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;transition:transform 0.2s;scroll-snap-align:center;'
         +(isActive ? 'box-shadow:0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)' : '');
       var thumbHTML = formula.thumbDataURL
         ? '<img src="'+formula.thumbDataURL+'" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block;">'
@@ -17556,7 +17604,7 @@ function evRenderPresets() {
   var noneActive = !evActivePreset;
   var noneCard = document.createElement('div');
   var _pcW = 78, _pcH = 96;
-  noneCard.style.cssText = 'width:'+_pcW+'px;height:'+_pcH+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;'+(noneActive?'box-shadow:0 0 0 1.5px rgba(201,184,212,0.75),0 0 12px rgba(150,120,200,0.28)':'');
+  noneCard.style.cssText = 'width:'+_pcW+'px;height:'+_pcH+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;scroll-snap-align:center;'+(noneActive?'box-shadow:0 0 0 1.5px rgba(201,184,212,0.75),0 0 12px rgba(150,120,200,0.28)':'');
   noneCard.innerHTML = '<canvas id="evt-none" width="'+(_pcW*_tdpr)+'" height="'+(_pcH*_tdpr)+'" style="position:absolute;top:0;left:0;width:'+_pcW+'px;height:'+_pcH+'px;display:block;"></canvas>'
     +'<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 5px 5px;background:linear-gradient(to top,rgba(5,3,14,0.80),transparent);pointer-events:none;z-index:1;">'
     +'<div style="font-size:7px;letter-spacing:0.10em;color:rgba(220,210,240,'+(noneActive?'0.96':'0.78')+');font-family:var(--mono);font-weight:500;">NONE</div>'
@@ -17626,7 +17674,7 @@ function evRenderPresets() {
     var card = document.createElement('div');
     var isActive = evActivePreset && evActivePreset.id===p.id;
     var _tdpr=Math.min(window.devicePixelRatio||1,2);
-    card.style.cssText = 'width:'+_pcW+'px;height:'+_pcH+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;transition:transform 0.2s;'+(isActive?'box-shadow:0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)':'');
+    card.style.cssText = 'width:'+_pcW+'px;height:'+_pcH+'px;flex-shrink:0;cursor:pointer;position:relative;overflow:hidden;border-radius:7px;transition:transform 0.2s;scroll-snap-align:center;'+(isActive?'box-shadow:0 0 0 1.5px rgba(218,90,125,0.80),0 0 14px rgba(180,50,80,0.36)':'');
     var isFav = evFavPresets.includes(p.id);
     card.innerHTML = '<canvas id="evt-'+p.id+'" width="'+(_pcW*_tdpr)+'" height="'+(_pcH*_tdpr)+'" style="position:absolute;top:0;left:0;width:'+_pcW+'px;height:'+_pcH+'px;display:block;transition:transform 0.5s cubic-bezier(0.22,1,0.36,1)"></canvas>'
       +(isFav ? '<div style="position:absolute;bottom:20px;left:5px;z-index:2;pointer-events:none;opacity:0.88;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));"><svg width="11" height="10" viewBox="0 0 24 22" fill="rgba(220,185,255,0.92)" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.6C12 21.6 1 13.8 1 7.2 1 3.7 3.9 1 7.5 1c2 0 3.8 1 4.5 2.4C12.7 2 14.5 1 16.5 1 20.1 1 23 3.7 23 7.2c0 6.6-11 14.4-11 14.4z"/></svg></div>' : '')

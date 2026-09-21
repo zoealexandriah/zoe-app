@@ -16698,7 +16698,7 @@ function exportModalOpen() {
   if (fn) {
     var _pSlugMod = (typeof activePreset !== 'undefined' && activePreset && activePreset.name)
       ? activePreset.name.replace(/[^a-zA-Z0-9]/g, '') : '';
-    fn.value = 'ZOE_' + (_pSlugMod ? _pSlugMod + '_' : '') + ds + '_' + ts;
+    fn.value = 'ZOE_' + (_pSlugMod ? _pSlugMod + '_' : '') + ds + ts;
   }
   expFmt = 'png';
   document.getElementById('exp-fmt-jpg').classList.remove('active');
@@ -16959,7 +16959,7 @@ function _evDoSave() {
       var ds = d.getFullYear().toString() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
       var ts = String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
       var _pSlug = p && p.name ? p.name.replace(/[^a-zA-Z0-9]/g, '') : '';
-      var filename = 'ZOE_' + (_pSlug ? _pSlug + '_' : '') + ds + '_' + ts + '.jpg';
+      var filename = 'ZOE_' + (_pSlug ? _pSlug + '_' : '') + ds + ts + '.jpg';
       var _isIOS = /iP(hone|ad|od)/i.test(navigator.userAgent);
       var _isFile = location.protocol === 'file:';
       if (_isFile) {
@@ -19122,7 +19122,7 @@ function _exportEntry(entry, onDone) {
     const _expDs = _expD.getFullYear().toString() + String(_expD.getMonth()+1).padStart(2,'0') + String(_expD.getDate()).padStart(2,'0');
     const _expTs = String(_expD.getHours()).padStart(2,'0') + String(_expD.getMinutes()).padStart(2,'0') + String(_expD.getSeconds()).padStart(2,'0');
     const _expPSlug = p && p.name ? p.name.replace(/[^a-zA-Z0-9]/g, '') : '';
-    const _expFilename = 'ZOE_' + (_expPSlug ? _expPSlug + '_' : '') + _expDs + '_' + _expTs + '.jpg';
+    const _expFilename = 'ZOE_' + (_expPSlug ? _expPSlug + '_' : '') + _expDs + _expTs + '.jpg';
     function _doExpDownload(canvas) { const a = document.createElement('a'); a.download = _expFilename; a.href = canvas.toDataURL('image/jpeg', 0.95); a.click(); setTimeout(onDone, 150); }
     const _expFxFrames = entry.editState && entry.editState.fxState && entry.editState.fxState.frames;
     const _expFrameVar = _expFxFrames ? _expFxFrames.variant : null;

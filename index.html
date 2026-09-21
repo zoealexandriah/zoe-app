@@ -17539,6 +17539,7 @@ function evRenderPresets() {
   list.scrollLeft = 0;
   var _catsEl = document.getElementById('ev-cats'); if (_catsEl) _catsEl.scrollLeft = 0;
   _evActiveCardEl = null; // reset on full re-render; will be set below as cards are built
+  _evIntArmedPresetId = null; // disarm: user must tap once in the new view before intensity can open
 
   // ── SAVED FORMULAS tab — render formula cards then return ──
   if (evCatFilter === 'SAVED') {
@@ -17670,8 +17671,14 @@ function evRenderPresets() {
     card.addEventListener('touchend',  function(){ clearTimeout(_lpTimer); }, {passive:true});
     card.addEventListener('touchmove', function(){ clearTimeout(_lpTimer); }, {passive:true});
     card.onclick = function(){
-      // Single-tap on already-active preset → open intensity overlay
-      if (evActivePreset && evActivePreset.id === p.id) { evShowIntensityOverlay(p); return; }
+      if (evActivePreset && evActivePreset.id === p.id) {
+        // Preset is already active: open intensity only if it was armed by a prior tap
+        if (_evIntArmedPresetId === p.id) { evShowIntensityOverlay(p); }
+        else { _evIntArmedPresetId = p.id; } // first tap on active preset → arm it
+        return;
+      }
+      // Switching to a different preset
+      _evIntArmedPresetId = p.id;
       // Push history before changing preset
       evHistoryPush();
       // Swap active highlight without rebuilding the whole list
@@ -17731,6 +17738,7 @@ var _evIntPrevIntensity = 1.0;
 var _evIntPrevSliders = {};
 var _evIntActivePreset = null;
 var _evIntActiveTool = 'filter';
+var _evIntArmedPresetId = null; // preset must be tapped once to arm before intensity can open
 
 var _evIntEffectDefs = [
   {key:'GRAIN',label:'GRAIN',neutral:0},
@@ -18270,10 +18278,11 @@ function galleryOpenInEditor(idx) {
   // Temporarily set userImage = entry.img so evInit shows the canvas (not the import screen).
   // It will be nulled before evInit's rAF fires to prevent stacking effects on the thumbnail.
   userImage = entry.img;
-  // Reset scroll positions so the new photo always opens from the beginning
+  // Reset scroll positions and arm state so the new photo always opens from the beginning
   var _psReset = document.getElementById('ev-preset-strip');
   if (_psReset) { _psReset.scrollLeft = 0; _psReset.scrollTop = 0; }
   document.querySelectorAll('.series-sub-row').forEach(function(r){ r.scrollLeft = 0; });
+  _evIntArmedPresetId = null;
   // Hide gallery, show editor
   _appConfirmDismiss();
   evResetDismiss();

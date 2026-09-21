@@ -20716,8 +20716,8 @@ function _cropBakeStraighten(onDone) {
 function cropSelectSubTab(btn, tab) {
   if (tab === 'ratio' && !window._evSkipCropFxWarn && _hasFxApplied()) {
     showConfirmModal({
-      title: 'FX will be removed',
-      body: 'Your applied FX will be discarded when cropping. You will need to re-apply them after.',
+      title: 'Frame will be removed',
+      body: 'Your applied FX frame will be discarded when cropping. You will need to re-apply it after.',
       ok: 'PROCEED',
       cancel: 'GO BACK',
       onConfirm: function() { window._evSkipCropFxWarn = true; cropSelectSubTab(btn, tab); window._evSkipCropFxWarn = false; }
@@ -22368,8 +22368,8 @@ function importSheetChoice(type) {
       /* Warn before suspending the frame — _zFrameSuspend clears the variant so check must run first */
       if (!window._evSkipCropFxWarn && typeof _hasFxApplied === 'function' && _hasFxApplied()) {
         showConfirmModal({
-          title: 'FX will be removed',
-          body: 'Your applied FX will be discarded when cropping. You will need to re-apply them after.',
+          title: 'Frame will be removed',
+          body: 'Your applied FX frame will be discarded when cropping. You will need to re-apply it after.',
           ok: 'PROCEED',
           cancel: 'GO BACK',
           onConfirm: function() { window._evSkipCropFxWarn = true; evAdjustSubTab('crop'); window._evSkipCropFxWarn = false; }

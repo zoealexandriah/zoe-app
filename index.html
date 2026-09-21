@@ -10690,6 +10690,32 @@ function attachDialListeners(p) {
       if (activeDial && strip) { var sr = strip.getBoundingClientRect(), er = activeDial.getBoundingClientRect(); strip.scrollLeft += (er.left + er.width/2) - (sr.left + sr.width/2); }
     }, 50);
 
+    // auto-select centered dial on swipe settle
+    var _asStrip = panel.querySelector('.ev-dial-strip');
+    if (_asStrip && !_asStrip._autoSelectBound) {
+      _asStrip._autoSelectBound = true;
+      var _asTimer;
+      function _autoSelectCentered() {
+        var sr = _asStrip.getBoundingClientRect();
+        var cx = sr.left + sr.width / 2;
+        var dials = panel.querySelectorAll('.ev-dial');
+        var best = null, bestDist = Infinity;
+        dials.forEach(function(d) {
+          var dr = d.getBoundingClientRect();
+          var dist = Math.abs((dr.left + dr.width / 2) - cx);
+          if (dist < bestDist) { bestDist = dist; best = d; }
+        });
+        if (best && !best.classList.contains('active')) {
+          panel.querySelectorAll('.ev-dial').forEach(function(d){ d.classList.remove('active'); });
+          best.classList.add('active');
+          var param = best.dataset.param;
+          if (param) { _evDialPid = p.id; _evDialParam = param; _evRulerUpdate(p.id, param); }
+        }
+      }
+      _asStrip.addEventListener('scrollend', _autoSelectCentered);
+      _asStrip.addEventListener('scroll', function() { clearTimeout(_asTimer); _asTimer = setTimeout(_autoSelectCentered, 120); });
+    }
+
     var wrap = panel.querySelector('.ev-ruler-wrap');
     if (!wrap || wrap._dialBound) return;
     wrap._dialBound = true;

@@ -10813,6 +10813,7 @@ function attachSliderListeners(p) {
       _slDragStartVal = (sliderState[track.dataset.preset] || {})[track.dataset.param];
       if (_slDragStartVal == null) _slDragStartVal = 0.5;
       _slDragTrack = track; _slDragPreset = track.dataset.preset;
+      fix2HistoryPush(track.dataset.preset); // pre-drag snapshot (one per gesture)
       window._slDragging = true;
       track.classList.add('dragging');
       e.preventDefault();
@@ -10843,6 +10844,7 @@ function attachSliderListeners(p) {
         // Horizontal drag confirmed — lock in and start slider
         _slTouchLocked = 'h';
         evHistoryPush();
+        fix2HistoryPush(track.dataset.preset); // pre-drag snapshot (one per gesture)
         window._slDragging = true;
         track.classList.add('dragging');
       }
@@ -11155,13 +11157,13 @@ function doRender(presetId) {
     if (isEditorActive) {
       // Editor view is active — _evRenderCanvasImmediate handles ev-canvas rendering
       // Do NOT call renderWithAdjustments here or effects will double-apply
-      fix2HistoryPush(presetId);
+      if (!window._slDragging) fix2HistoryPush(presetId); // skip during drag; pre-drag snapshot taken at drag start
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
       globalUndoRedoUpdate();
     } else {
       const hc = document.getElementById('hero-canvas');
       if (hc) {
-        fix2HistoryPush(presetId);
+        if (!window._slDragging) fix2HistoryPush(presetId); // skip during drag; pre-drag snapshot taken at drag start
         renderWithAdjustments(hc, adj);
         globalUndoRedoUpdate();
       }
@@ -17194,7 +17196,7 @@ function _evRenderCanvasImmediate() {
   // upscaling is what causes the blurry look mid-drag. A full 1200px quality
   // re-render still fires automatically on drag release.
   var zoomFactor = Math.max(evZoomLevel || 1, 1);
-  var MAX_SIDE = window._slDragging ? Math.min(Math.max(cssW, cssH), 1000) : Math.round(1200 * zoomFactor);
+  var MAX_SIDE = window._slDragging ? Math.min(Math.max(cssW, cssH), 500) : Math.round(1200 * zoomFactor);
   // No "1" cap here: capping at 1 means a small source (e.g. a previously-exported
   // 780px canvas) can't render at 2× DPR, so CSS has to stretch it → blurry.
   // We let it render up to baseScale*dpr (matching the physical display) or MAX_SIDE.
@@ -17333,14 +17335,19 @@ function _evRenderCanvasImmediate() {
       skipDuotone:       !!_dragging,
       bloomFn: activePreset && activePreset.halationBloom ? function(_c) {
         if (!_dragging && userImage) {
-          var _hbNw = userImage.naturalWidth, _hbNh = userImage.naturalHeight;
-          var _hbS  = Math.min(1, 1200 / _hbNw);
-          var _hbW  = Math.round(_hbNw * _hbS), _hbH = Math.round(_hbNh * _hbS);
-          var _hbSrc = document.createElement('canvas');
-          _hbSrc.width = _hbW; _hbSrc.height = _hbH;
-          _hbSrc.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0, _hbW, _hbH);
-          if (activePreset.curve) applyCurveLUTs(_hbSrc, activePreset.curve, 0, 0, _hbW, _hbH);
-          var _hbLayer = _evBloomLayer(_hbSrc, activePreset.halationBloom, _hbW, _hbH);
+          // Rebuild source only when image or preset changes; reuse across renders otherwise
+          if (!_evBloomSrcCache || _evBloomSrcCache.image !== userImage || _evBloomSrcCache.presetId !== activePreset.id) {
+            var _hbNw = userImage.naturalWidth, _hbNh = userImage.naturalHeight;
+            var _hbS  = Math.min(1, 1200 / _hbNw);
+            var _hbW  = Math.round(_hbNw * _hbS), _hbH = Math.round(_hbNh * _hbS);
+            var _hbSrc = document.createElement('canvas');
+            _hbSrc.width = _hbW; _hbSrc.height = _hbH;
+            _hbSrc.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0, _hbW, _hbH);
+            if (activePreset.curve) applyCurveLUTs(_hbSrc, activePreset.curve, 0, 0, _hbW, _hbH);
+            _evBloomSrcCache = { image: userImage, presetId: activePreset.id, canvas: _hbSrc };
+          }
+          var _bloomSrc = _evBloomSrcCache.canvas;
+          var _hbLayer = _evBloomLayer(_bloomSrc, activePreset.halationBloom, _bloomSrc.width, _bloomSrc.height);
           var _hbCtx = _c.getContext('2d', { willReadFrequently: true });
           _hbCtx.save(); _hbCtx.globalCompositeOperation = 'lighter';
           _hbCtx.drawImage(_hbLayer, 0, 0, _c.width, _c.height);
@@ -17734,6 +17741,7 @@ function evRenderPresets() {
   });
 }
 
+var _evBloomSrcCache = null; // { image, presetId, canvas } — cached curved source for halation bloom
 var _evIntPrevIntensity = 1.0;
 var _evIntPrevSliders = {};
 var _evIntActivePreset = null;

@@ -10948,16 +10948,7 @@ function _cropTeardownVisuals(clearState) {
 
 function _hasFxApplied() {
   if (typeof fxState === 'undefined') return false;
-  if (fxState.glow && (fxState.glow.glow || fxState.glow.diffusion || fxState.glow.halation)) return true;
-  if (fxState.glossy && fxState.glossy.variant) return true;
-  if (fxState.scanlines && fxState.scanlines.variant) return true;
-  if (fxState.vhsbleed && fxState.vhsbleed.variant) return true;
-  if (fxState.bleeds && fxState.bleeds.variant) return true;
-  if (fxState.paper && (fxState.paper.fold || fxState.paper.texture)) return true;
-  if (fxState.stickers && fxState.stickers.variant) return true;
-  if (fxState.frames && fxState.frames.variant && fxState.frames.variant !== 'none') return true;
-  if (fxState.texture && fxState.texture.variant) return true;
-  return false;
+  return !!(fxState.frames && fxState.frames.variant && fxState.frames.variant !== 'none');
 }
 
 function evAdjustSubTab(name) {

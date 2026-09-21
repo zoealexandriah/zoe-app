@@ -10813,7 +10813,6 @@ function attachSliderListeners(p) {
       _slDragStartVal = (sliderState[track.dataset.preset] || {})[track.dataset.param];
       if (_slDragStartVal == null) _slDragStartVal = 0.5;
       _slDragTrack = track; _slDragPreset = track.dataset.preset;
-      fix2HistoryPush(track.dataset.preset); // pre-drag snapshot (one per gesture)
       window._slDragging = true;
       track.classList.add('dragging');
       e.preventDefault();
@@ -10844,7 +10843,6 @@ function attachSliderListeners(p) {
         // Horizontal drag confirmed — lock in and start slider
         _slTouchLocked = 'h';
         evHistoryPush();
-        fix2HistoryPush(track.dataset.preset); // pre-drag snapshot (one per gesture)
         window._slDragging = true;
         track.classList.add('dragging');
       }
@@ -11157,13 +11155,11 @@ function doRender(presetId) {
     if (isEditorActive) {
       // Editor view is active — _evRenderCanvasImmediate handles ev-canvas rendering
       // Do NOT call renderWithAdjustments here or effects will double-apply
-      if (!window._slDragging) fix2HistoryPush(presetId); // skip during drag; pre-drag snapshot taken at drag start
       if (typeof evRenderCanvas === 'function') evRenderCanvas();
       globalUndoRedoUpdate();
     } else {
       const hc = document.getElementById('hero-canvas');
       if (hc) {
-        if (!window._slDragging) fix2HistoryPush(presetId); // skip during drag; pre-drag snapshot taken at drag start
         renderWithAdjustments(hc, adj);
         globalUndoRedoUpdate();
       }
@@ -16192,35 +16188,6 @@ window.toolsFlipApply = function(dir) {
 // Fix 1: TOOLS nav now scrolls to tools section in editor suite
 
 
-// ── Fix 2: History entries include slider state ───────────────────────────
-const fix2History = [];  // { canvasData, sliderState, presetId }
-const fix2Future  = [];
-const FIX2_MAX    = 20;
-let   fix2Throttle = false;
-
-function fix2HistoryPush(presetId) {
-  // Throttle: don't push on every tiny drag frame
-  if (fix2Throttle) return;
-  fix2Throttle = true;
-  setTimeout(() => { fix2Throttle = false; }, 50);
-
-  const hc = document.getElementById('hero-canvas');
-  if (!hc) return;
-  const canvasData  = hc.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, hc.width, hc.height);
-  const sliderSnap  = JSON.parse(JSON.stringify(sliderState[presetId] || {}));
-  fix2History.push({ canvasData, sliderSnap, presetId });
-  if (fix2History.length > FIX2_MAX) fix2History.shift();
-  fix2Future.length = 0;
-  fix2UpdateButtons();
-}
-
-function fix2UpdateButtons() {
-  const u = document.getElementById('ctb-undo');
-  const r = document.getElementById('ctb-redo');
-  if (u) u.classList.toggle('disabled', fix2History.length === 0);
-  if (r) r.classList.toggle('disabled', fix2Future.length === 0);
-  globalUndoRedoUpdate(); // also update the old global buttons if present
-}
 
 // ── Slider-state–based edit history (works for both hero-canvas and ev-canvas) ──
 const evHistory = [];  // { presetId, sliders, intensity }
@@ -16346,7 +16313,6 @@ function _evUpdateUndoRedoBtns() {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('disabled', _inBlemish ? _blemishFuture.length === 0 : evFuture.length === 0);
   });
-  fix2UpdateButtons();
 }
 
 window.globalUndo = function() {
@@ -17336,7 +17302,7 @@ function _evRenderCanvasImmediate() {
       bloomFn: activePreset && activePreset.halationBloom ? function(_c) {
         if (!_dragging && userImage) {
           // Rebuild source only when image or preset changes; reuse across renders otherwise
-          if (!_evBloomSrcCache || _evBloomSrcCache.image !== userImage || _evBloomSrcCache.presetId !== activePreset.id) {
+          if (!_evBloomSrcCache || _evBloomSrcCache.image !== userImage || _evBloomSrcCache.presetId !== activePreset.id || _evBloomSrcCache.curve !== activePreset.curve) {
             var _hbNw = userImage.naturalWidth, _hbNh = userImage.naturalHeight;
             var _hbS  = Math.min(1, 1200 / _hbNw);
             var _hbW  = Math.round(_hbNw * _hbS), _hbH = Math.round(_hbNh * _hbS);
@@ -17344,7 +17310,7 @@ function _evRenderCanvasImmediate() {
             _hbSrc.width = _hbW; _hbSrc.height = _hbH;
             _hbSrc.getContext('2d', { willReadFrequently: true }).drawImage(userImage, 0, 0, _hbW, _hbH);
             if (activePreset.curve) applyCurveLUTs(_hbSrc, activePreset.curve, 0, 0, _hbW, _hbH);
-            _evBloomSrcCache = { image: userImage, presetId: activePreset.id, canvas: _hbSrc };
+            _evBloomSrcCache = { image: userImage, presetId: activePreset.id, curve: activePreset.curve, canvas: _hbSrc };
           }
           var _bloomSrc = _evBloomSrcCache.canvas;
           var _hbLayer = _evBloomLayer(_bloomSrc, activePreset.halationBloom, _bloomSrc.width, _bloomSrc.height);
@@ -18132,8 +18098,8 @@ function evBuildSliders() {
 function evUpdateUndoRedo() {
   var u = document.getElementById('ev-undo');
   var r = document.getElementById('ev-redo');
-  if (u) u.classList.toggle('disabled', !fix2History || fix2History.length===0);
-  if (r) r.classList.toggle('disabled', !fix2Future  || fix2Future.length===0);
+  if (u) u.classList.toggle('disabled', evHistory.length === 0);
+  if (r) r.classList.toggle('disabled', evFuture.length === 0);
 }
 
 function evZoomIn()  { evZoomLevel=Math.min(4,evZoomLevel+0.25); evApplyZoom(); }

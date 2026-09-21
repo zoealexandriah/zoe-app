@@ -10948,20 +10948,13 @@ function _cropTeardownVisuals(clearState) {
 
 function _hasFxApplied() {
   if (typeof fxState === 'undefined') return false;
-  return !!(fxState.frames && fxState.frames.variant && fxState.frames.variant !== 'none');
+  var v = fxState.frames && fxState.frames.variant;
+  if (v && v !== 'none') return true;
+  if (typeof _zSuspendedFrame !== 'undefined' && _zSuspendedFrame && _zSuspendedFrame !== 'none') return true;
+  return false;
 }
 
 function evAdjustSubTab(name) {
-  if (name === 'crop' && !window._evSkipCropFxWarn && _hasFxApplied()) {
-    showConfirmModal({
-      title: 'FX will be removed',
-      body: 'Your applied FX will be discarded when cropping. You will need to re-apply them after.',
-      ok: 'PROCEED',
-      cancel: 'GO BACK',
-      onConfirm: function() { window._evSkipCropFxWarn = true; evAdjustSubTab('crop'); window._evSkipCropFxWarn = false; }
-    });
-    return;
-  }
   if (name !== 'optical' && typeof _cropPerspDiscard === 'function') _cropPerspDiscard();
   if (name !== 'crop') _cropTeardownVisuals(false);
   if (name !== 'blemish' && typeof blemishExit === 'function') blemishExit();
@@ -22369,8 +22362,21 @@ function importSheetChoice(type) {
   /* ── Wrap evAdjustSubTab ── */
   var _origSub = window.evAdjustSubTab;
   window.evAdjustSubTab = function(name) {
+    var _prevSection = _curSection;
     _curSection = name;
     if (name === 'crop') {
+      /* Warn before suspending the frame — _zFrameSuspend clears the variant so check must run first */
+      if (!window._evSkipCropFxWarn && typeof _hasFxApplied === 'function' && _hasFxApplied()) {
+        showConfirmModal({
+          title: 'FX will be removed',
+          body: 'Your applied FX will be discarded when cropping. You will need to re-apply them after.',
+          ok: 'PROCEED',
+          cancel: 'GO BACK',
+          onConfirm: function() { window._evSkipCropFxWarn = true; evAdjustSubTab('crop'); window._evSkipCropFxWarn = false; }
+        });
+        _curSection = _prevSection;
+        return;
+      }
       /* Entering crop: suspend FX frame so ev-canvas shows clean photo */
       if (typeof _zFrameSuspend === 'function') _zFrameSuspend();
     }

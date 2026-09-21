@@ -20714,16 +20714,6 @@ function _cropBakeStraighten(onDone) {
   return true;
 }
 function cropSelectSubTab(btn, tab) {
-  if (tab === 'ratio' && !window._evSkipCropFxWarn && _hasFxApplied()) {
-    showConfirmModal({
-      title: 'Frame will be removed',
-      body: 'Your applied FX frame will be discarded when cropping. You will need to re-apply it after.',
-      ok: 'PROCEED',
-      cancel: 'GO BACK',
-      onConfirm: function() { window._evSkipCropFxWarn = true; cropSelectSubTab(btn, tab); window._evSkipCropFxWarn = false; }
-    });
-    return;
-  }
   // Commit any pending straighten angle to the non-destructive transform list.
   // Defer the rest of this function until the render completes so the ratio overlay
   // (and any other tab that reads canvas dimensions) sees the updated image.

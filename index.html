@@ -17540,22 +17540,12 @@ function _initStripAutoSelect() {
       });
       if (best) action(best);
     }
-    container.addEventListener('scrollend', _selectCentered);
+    container.addEventListener('scrollend', function() { clearTimeout(_timer); _selectCentered(); });
     container.addEventListener('scroll', function() { clearTimeout(_timer); _timer = setTimeout(_selectCentered, 120); });
   }
   _attachScrollSelect(
     document.getElementById('ev-cats'),
     '.ev-cat-btn',
-    function(btn) { if (!btn.classList.contains('active')) btn.click(); }
-  );
-  _attachScrollSelect(
-    document.getElementById('ev-preset-scroll-wrap'),
-    '#ev-preset-list > div',
-    function(card) { card.click(); }
-  );
-  _attachScrollSelect(
-    document.querySelector('.ev-subnav-scroll'),
-    '.ev-subnav-btn',
     function(btn) { if (!btn.classList.contains('active')) btn.click(); }
   );
   _attachScrollSelect(

@@ -4374,7 +4374,7 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
     <span id="app-confirm-title" style="font-size:22px;letter-spacing:-0.01em;font-family:var(--font-serif,'serif');color:rgba(18,14,22,0.88);font-weight:400;text-align:center;line-height:1.2;"></span>
     <span id="app-confirm-body" style="font-size:10px;font-family:var(--font-ui);color:rgba(18,14,22,0.55);text-align:center;line-height:1.6;margin:4px 0 10px;"></span>
     <button id="app-confirm-ok" onclick="_appConfirmOk()" style="background:rgba(218,90,125,0.18);border:1px solid rgba(218,90,125,0.50);border-radius:50px;color:rgba(218,90,125,1);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;font-weight:500;text-transform:uppercase;">Delete</button>
-    <button onclick="_appConfirmDismiss()" style="background:rgba(18,14,22,0.06);border:1px solid rgba(18,14,22,0.14);border-radius:50px;color:rgba(18,14,22,0.52);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;text-transform:uppercase;margin-top:2px;">Cancel</button>
+    <button id="app-confirm-cancel" onclick="_appConfirmDismiss()" style="background:rgba(18,14,22,0.06);border:1px solid rgba(18,14,22,0.14);border-radius:50px;color:rgba(18,14,22,0.52);font-size:10px;padding:11px;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.16em;width:100%;text-transform:uppercase;margin-top:2px;">Cancel</button>
   </div>
 </div>
 
@@ -10946,7 +10946,31 @@ function _cropTeardownVisuals(clearState) {
   }
 }
 
+function _hasFxApplied() {
+  if (typeof fxState === 'undefined') return false;
+  if (fxState.glow && (fxState.glow.glow || fxState.glow.diffusion || fxState.glow.halation)) return true;
+  if (fxState.glossy && fxState.glossy.variant) return true;
+  if (fxState.scanlines && fxState.scanlines.variant) return true;
+  if (fxState.vhsbleed && fxState.vhsbleed.variant) return true;
+  if (fxState.bleeds && fxState.bleeds.variant) return true;
+  if (fxState.paper && (fxState.paper.fold || fxState.paper.texture)) return true;
+  if (fxState.stickers && fxState.stickers.variant) return true;
+  if (fxState.frames && fxState.frames.variant && fxState.frames.variant !== 'none') return true;
+  if (fxState.texture && fxState.texture.variant) return true;
+  return false;
+}
+
 function evAdjustSubTab(name) {
+  if (name === 'crop' && !window._evSkipCropFxWarn && _hasFxApplied()) {
+    showConfirmModal({
+      title: 'FX will be removed',
+      body: 'Your applied FX will be discarded when cropping. You will need to re-apply them after.',
+      ok: 'PROCEED',
+      cancel: 'GO BACK',
+      onConfirm: function() { window._evSkipCropFxWarn = true; evAdjustSubTab('crop'); window._evSkipCropFxWarn = false; }
+    });
+    return;
+  }
   if (name !== 'optical' && typeof _cropPerspDiscard === 'function') _cropPerspDiscard();
   if (name !== 'crop') _cropTeardownVisuals(false);
   if (name !== 'blemish' && typeof blemishExit === 'function') blemishExit();
@@ -16380,6 +16404,8 @@ function showConfirmModal(opts) {
   document.getElementById('app-confirm-title').textContent = opts.title || '';
   document.getElementById('app-confirm-body').textContent = opts.body || '';
   document.getElementById('app-confirm-ok').textContent = opts.ok || 'Delete';
+  var cancelBtn = document.getElementById('app-confirm-cancel');
+  if (cancelBtn) cancelBtn.textContent = opts.cancel || 'Cancel';
   _appConfirmCb = opts.onConfirm || null;
   el.style.display = 'flex';
 }

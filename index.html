@@ -18270,6 +18270,10 @@ function galleryOpenInEditor(idx) {
   // Temporarily set userImage = entry.img so evInit shows the canvas (not the import screen).
   // It will be nulled before evInit's rAF fires to prevent stacking effects on the thumbnail.
   userImage = entry.img;
+  // Reset scroll positions so the new photo always opens from the beginning
+  var _psReset = document.getElementById('ev-preset-strip');
+  if (_psReset) { _psReset.scrollLeft = 0; _psReset.scrollTop = 0; }
+  document.querySelectorAll('.series-sub-row').forEach(function(r){ r.scrollLeft = 0; });
   // Hide gallery, show editor
   _appConfirmDismiss();
   evResetDismiss();

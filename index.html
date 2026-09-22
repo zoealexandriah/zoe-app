@@ -19085,14 +19085,14 @@ function applyStarFlares(canvas, opts, offX, offY, w, h) {
   var d = imgData.data;
   var vnt    = opts.variant;
   var amount = Math.min(1, (opts.amount  || 50)  / 100);
-  var thresh = (opts.range != null ? opts.range : 220);
+  var thresh = (opts.range != null ? opts.range : 140);
   var scale  = opts.scale  || 1.0;
   var rotRad = ((opts.rotation || 0) * Math.PI / 180);
   var disp   = Math.min(1, (opts.dispersion || 0) / 100);
   var vCfg = vnt === 'stars-fine'  ? { base: 6,  maxN: 80,  suppR: 10 } :
              vnt === 'stars-flare' ? { base: 14, maxN: 8,   suppR: 28 } :
                                      { base: 9,  maxN: 25,  suppR: 16 };
-  var radius = Math.max(3, (Math.max(w, h) / 700) * scale * vCfg.base);
+  var maxRadius = Math.max(3, (Math.max(w, h) / 700) * scale * vCfg.base);
   var suppR  = Math.max(2, Math.round(vCfg.suppR * scale));
   var maxN   = Math.max(1, Math.round(vCfg.maxN * amount));
   var step   = Math.max(1, Math.round(suppR / 2));
@@ -19120,53 +19120,97 @@ function applyStarFlares(canvas, opts, offX, offY, w, h) {
   oc.width = w; oc.height = h;
   var oc2 = oc.getContext('2d');
   var baseAlpha = Math.min(1, amount * 1.8);
+  var lumaRange = 255 - thresh;
   for (var si = 0; si < stars.length; si++) {
-    var sx = stars[si][0], sy = stars[si][1];
-    var a0 = baseAlpha * (stars[si][2] / 255);
-    if (disp < 0.01) {
-      _drawStarShape(oc2, sx, sy, radius, rotRad, vnt, 'rgba(255,255,255,' + a0 + ')');
-    } else {
-      var ds = radius * disp * 1.5;
-      _drawStarShape(oc2, sx - ds, sy, radius,        rotRad, vnt, 'rgba(255,80,80,'   + (a0*0.85) + ')');
-      _drawStarShape(oc2, sx,      sy, radius * 0.85,  rotRad, vnt, 'rgba(255,255,180,' + (a0*0.7)  + ')');
-      _drawStarShape(oc2, sx + ds, sy, radius,        rotRad, vnt, 'rgba(80,160,255,'  + (a0*0.85) + ')');
-    }
+    var sx = stars[si][0], sy = stars[si][1], sl = stars[si][2];
+    var lumaNorm = lumaRange > 0 ? Math.min(1, (sl - thresh) / lumaRange) : 1;
+    var starRadius = maxRadius * (0.35 + 0.65 * lumaNorm);
+    var a0 = baseAlpha * (0.4 + 0.6 * lumaNorm);
+    var jitter = Math.sin(sx * 127.1 + sy * 311.7) * 0.175;
+    _drawStarShape(oc2, sx, sy, starRadius, rotRad + jitter, vnt, a0, disp);
   }
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   ctx.drawImage(oc, offX, offY);
   ctx.restore();
 }
-function _drawStarShape(ctx2d, cx, cy, radius, rotRad, vnt, color) {
-  ctx2d.save();
-  ctx2d.translate(cx, cy);
-  ctx2d.rotate(rotRad);
-  ctx2d.fillStyle = color;
-  var w0 = radius * 0.06;
+function _drawStarShape(ctx2d, cx, cy, radius, rotRad, vnt, a0, disp) {
+  var coreR = radius * 0.4;
+  var gCore = ctx2d.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+  gCore.addColorStop(0,   'rgba(255,255,255,' + (a0 * 0.95) + ')');
+  gCore.addColorStop(0.5, 'rgba(255,255,255,' + (a0 * 0.4)  + ')');
+  gCore.addColorStop(1,   'rgba(255,255,255,0)');
+  ctx2d.fillStyle = gCore;
+  ctx2d.beginPath();
+  ctx2d.arc(cx, cy, coreR, 0, Math.PI * 2);
+  ctx2d.fill();
   for (var arm = 0; arm < 4; arm++) {
     ctx2d.save();
-    ctx2d.rotate(arm * Math.PI * 0.5);
-    ctx2d.beginPath();
-    ctx2d.moveTo(0, 0);
-    ctx2d.quadraticCurveTo(-w0 * 5, radius * 0.28, 0, radius);
-    ctx2d.quadraticCurveTo( w0 * 5, radius * 0.28, 0, 0);
-    ctx2d.closePath();
-    ctx2d.fill();
+    ctx2d.translate(cx, cy);
+    ctx2d.rotate(rotRad + arm * Math.PI * 0.5);
+    if (disp < 0.01) {
+      var g = ctx2d.createLinearGradient(0, 0, 0, radius);
+      g.addColorStop(0,    'rgba(255,255,255,' + a0 + ')');
+      g.addColorStop(0.45, 'rgba(255,255,255,' + (a0 * 0.55) + ')');
+      g.addColorStop(1,    'rgba(255,255,255,0)');
+      _drawArmBezier(ctx2d, radius, g);
+    } else {
+      var gR = ctx2d.createLinearGradient(0, 0, 0, radius * 0.75);
+      gR.addColorStop(0,   'rgba(255,210,160,' + (a0 * disp * 0.6) + ')');
+      gR.addColorStop(0.6, 'rgba(255,150,80,'  + (a0 * disp * 0.2) + ')');
+      gR.addColorStop(1,   'rgba(255,100,40,0)');
+      _drawArmBezier(ctx2d, radius * 0.75, gR);
+      var gW = ctx2d.createLinearGradient(0, 0, 0, radius * 0.65);
+      gW.addColorStop(0,   'rgba(255,255,255,' + a0 + ')');
+      gW.addColorStop(0.5, 'rgba(255,255,255,' + (a0 * 0.5) + ')');
+      gW.addColorStop(1,   'rgba(255,255,255,0)');
+      _drawArmBezier(ctx2d, radius * 0.65, gW);
+      var gB = ctx2d.createLinearGradient(0, 0, 0, radius);
+      gB.addColorStop(0,    'rgba(160,200,255,' + (a0 * disp * 0.3)  + ')');
+      gB.addColorStop(0.35, 'rgba(100,160,255,' + (a0 * disp * 0.55) + ')');
+      gB.addColorStop(0.7,  'rgba(80,120,255,'  + (a0 * disp * 0.35) + ')');
+      gB.addColorStop(1,    'rgba(60,80,255,0)');
+      _drawArmBezier(ctx2d, radius, gB);
+    }
     ctx2d.restore();
   }
-  ctx2d.restore();
   if (vnt === 'stars-flare') {
     var streakW = radius * 5;
-    var streakH = Math.max(1, radius * 0.1);
-    var grad = ctx2d.createLinearGradient(cx - streakW, cy, cx + streakW, cy);
-    grad.addColorStop(0,   'rgba(255,255,255,0)');
-    grad.addColorStop(0.3, color);
-    grad.addColorStop(0.5, color);
-    grad.addColorStop(0.7, color);
-    grad.addColorStop(1,   'rgba(255,255,255,0)');
-    ctx2d.fillStyle = grad;
-    ctx2d.fillRect(cx - streakW, cy - streakH, streakW * 2, streakH * 2);
+    var streakH = Math.max(1.5, radius * 0.12);
+    ctx2d.save();
+    ctx2d.translate(cx, cy);
+    var sg;
+    if (disp < 0.01) {
+      sg = ctx2d.createLinearGradient(-streakW, 0, streakW, 0);
+      sg.addColorStop(0,    'rgba(255,255,255,0)');
+      sg.addColorStop(0.35, 'rgba(255,255,255,' + (a0 * 0.5) + ')');
+      sg.addColorStop(0.5,  'rgba(255,255,255,' + a0 + ')');
+      sg.addColorStop(0.65, 'rgba(255,255,255,' + (a0 * 0.5) + ')');
+      sg.addColorStop(1,    'rgba(255,255,255,0)');
+    } else {
+      sg = ctx2d.createLinearGradient(-streakW, 0, streakW, 0);
+      sg.addColorStop(0,    'rgba(60,80,255,0)');
+      sg.addColorStop(0.2,  'rgba(80,140,255,' + (a0 * disp * 0.5) + ')');
+      sg.addColorStop(0.4,  'rgba(200,220,255,' + (a0 * 0.6) + ')');
+      sg.addColorStop(0.5,  'rgba(255,255,255,' + a0 + ')');
+      sg.addColorStop(0.6,  'rgba(255,220,180,' + (a0 * 0.6) + ')');
+      sg.addColorStop(0.8,  'rgba(255,120,60,' + (a0 * disp * 0.5) + ')');
+      sg.addColorStop(1,    'rgba(255,60,0,0)');
+    }
+    ctx2d.fillStyle = sg;
+    ctx2d.fillRect(-streakW, -streakH / 2, streakW * 2, streakH);
+    ctx2d.restore();
   }
+}
+function _drawArmBezier(ctx2d, len, fillStyle) {
+  var w0 = len * 0.06;
+  ctx2d.fillStyle = fillStyle;
+  ctx2d.beginPath();
+  ctx2d.moveTo(0, 0);
+  ctx2d.quadraticCurveTo(-w0 * 5, len * 0.28, 0, len);
+  ctx2d.quadraticCurveTo( w0 * 5, len * 0.28, 0, 0);
+  ctx2d.closePath();
+  ctx2d.fill();
 }
 
 // opts:
@@ -23021,7 +23065,7 @@ function fxOpenCat(cat) {
       if (!document.getElementById('fx-multi-style')) {
         var s = document.createElement('style');
         s.id = 'fx-multi-style';
-        s.textContent = '.fx-msl-row{display:flex;align-items:center;gap:10px;}.fx-msl-label{font-family:var(--mono,monospace);font-size:8px;letter-spacing:0.08em;color:rgba(255,255,255,0.55);width:80px;flex-shrink:0;}.fx-msl-track{flex:1;accent-color:var(--accent,#c9b8d4);height:2px;cursor:pointer;}.fx-msl-val{font-family:var(--mono,monospace);font-size:8px;color:rgba(255,255,255,0.45);width:22px;text-align:right;flex-shrink:0;}';
+        s.textContent = '.fx-msl-row{display:flex;align-items:center;gap:10px;}.fx-msl-label{font-family:var(--mono,monospace);font-size:8px;letter-spacing:0.08em;color:rgba(255,255,255,0.55);width:80px;flex-shrink:0;}.fx-msl-track{flex:1;-webkit-appearance:none;appearance:none;height:2px;border-radius:1px;background:rgba(255,255,255,0.15);outline:none;cursor:pointer;}.fx-msl-track::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:11px;height:11px;border-radius:50%;background:var(--accent,#c9b8d4);cursor:pointer;margin-top:-4.5px;}.fx-msl-track::-webkit-slider-runnable-track{height:2px;border-radius:1px;background:rgba(255,255,255,0.15);}.fx-msl-val{font-family:var(--mono,monospace);font-size:8px;color:rgba(255,255,255,0.45);width:22px;text-align:right;flex-shrink:0;}';
         document.head.appendChild(s);
       }
     }

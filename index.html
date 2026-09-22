@@ -23155,10 +23155,15 @@ function fxOpenCat(cat) {
         var _el = document.createElement('div');
         _el.id = 'fx-sv-' + e[0];
         _el.setAttribute('onclick', 'fxStarsVariant(\'' + e[0] + '\')');
-        _el.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;cursor:pointer;border-radius:8px;border:1.5px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.7);transition:border 0.18s,background 0.18s;';
-        var _glyph = (typeof FX_GLYPHS !== 'undefined' && FX_GLYPHS[e[0]]) ? FX_GLYPHS[e[0]] : '';
-        _el.innerHTML = '<div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;opacity:0.85;">' + _glyph + '</div>' +
-          '<span style="font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;color:inherit;">' + e[1] + '</span>';
+        _el.style.cssText = 'flex:1;position:relative;overflow:hidden;cursor:pointer;border-radius:8px;border:1.5px solid rgba(255,255,255,0.12);background:#0d0a14;height:70px;transition:border 0.18s;';
+        var _cnv = document.createElement('canvas');
+        _cnv.id = 'fx-sv-thumb-' + e[0];
+        _cnv.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;display:block;';
+        var _lbl = document.createElement('div');
+        _lbl.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:3px 4px 5px;text-align:center;background:linear-gradient(transparent,rgba(13,10,20,0.72));pointer-events:none;';
+        _lbl.innerHTML = '<span style="font-family:var(--mono,monospace);font-size:7px;letter-spacing:0.08em;color:rgba(255,255,255,0.85);">' + e[1] + '</span>';
+        _el.appendChild(_cnv);
+        _el.appendChild(_lbl);
         _svRow.appendChild(_el);
       });
       if (!document.getElementById('fx-multi-style')) {
@@ -23185,6 +23190,7 @@ function fxOpenCat(cat) {
     _sv.classList.add('active');
     fxShowLevel(4);
     _sv.style.display = 'flex';
+    requestAnimationFrame(_fxStarsRenderThumbs);
     return;
   }
 
@@ -23686,9 +23692,41 @@ function _fxStarsUpdateVarCards() {
     var el = document.getElementById('fx-sv-' + id);
     if (!el) return;
     var active = fxState.stars.variant === id;
-    el.style.border     = active ? '1.5px solid rgba(255,255,255,0.9)' : '1.5px solid rgba(255,255,255,0.12)';
-    el.style.background = active ? 'rgba(255,255,255,0.18)'            : 'rgba(255,255,255,0.04)';
-    el.style.color      = active ? '#fff'                               : 'rgba(255,255,255,0.7)';
+    el.style.border = active ? '1.5px solid rgba(255,255,255,0.9)' : '1.5px solid rgba(255,255,255,0.12)';
+  });
+}
+function _fxStarsRenderThumbs() {
+  var img = (typeof userImage !== 'undefined' && userImage && userImage.naturalWidth > 0) ? userImage : null;
+  ['stars-fine','stars-flare','stars-cross'].forEach(function(id) {
+    var cnv = document.getElementById('fx-sv-thumb-' + id);
+    if (!cnv) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var rect = cnv.getBoundingClientRect();
+    var pw = Math.round((rect.width  || 80) * dpr);
+    var ph = Math.round((rect.height || 70) * dpr);
+    if (!pw || !ph) return;
+    if (cnv.width !== pw || cnv.height !== ph) { cnv.width = pw; cnv.height = ph; }
+    var ctx = cnv.getContext('2d');
+    ctx.clearRect(0, 0, pw, ph);
+    if (img) {
+      try {
+        var sc = Math.max(pw / img.naturalWidth, ph / img.naturalHeight);
+        var dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
+        ctx.drawImage(img, (pw - dw) / 2, (ph - dh) / 2, dw, dh);
+        applyStarFlares(cnv, { variant: id, amount: 100, range: 80, scale: 1.5, rotation: 0, dispersion: 0 }, 0, 0, pw, ph);
+      } catch(_e) {
+        ctx.fillStyle = '#0d0a14'; ctx.fillRect(0, 0, pw, ph);
+      }
+    } else {
+      var bg = ctx.createRadialGradient(pw * 0.5, ph * 0.38, 0, pw * 0.5, ph * 0.38, pw * 0.7);
+      bg.addColorStop(0, '#2a1a3e'); bg.addColorStop(1, '#0d0a14');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, pw, ph);
+      ctx.save(); ctx.globalCompositeOperation = 'screen';
+      var sp = ctx.createRadialGradient(pw * 0.5, ph * 0.38, 0, pw * 0.5, ph * 0.38, pw * 0.1);
+      sp.addColorStop(0, 'rgba(255,255,255,0.9)'); sp.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = sp; ctx.fillRect(0, 0, pw, ph); ctx.restore();
+      applyStarFlares(cnv, { variant: id, amount: 100, range: 50, scale: 1.5, rotation: 0, dispersion: 0 }, 0, 0, pw, ph);
+    }
   });
 }
 function fxStarsTab(tab) {

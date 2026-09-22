@@ -362,7 +362,7 @@ async function renderCombo(page, photoId, presetId, pathId, seed, fxTexture, pro
         showEditor();
         // Pin canvas-area size so canvas dimensions are stable across runs
         const area = document.getElementById('ev-canvas-area');
-        if (area) { area.style.width = '375px'; area.style.height = '600px'; }
+        if (area) { area.style.width = '375px'; area.style.height = '600px'; void area.offsetWidth; }
         _evRenderCanvasImmediate();
         return document.getElementById('ev-canvas').toDataURL('image/png');
 

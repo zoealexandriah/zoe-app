@@ -16449,7 +16449,7 @@ function globalReset() {
     fxState.stickers  = { variant: null };
     fxState.frames    = { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0, lbPosX: 0, lbPosY: 0, lbScale: 1.0 };
     fxState.texture   = { variant: null, intensity: 100 };
-    fxState.stars     = { variant: null, amount: 50, range: 220, scale: 1.0, rotation: 0, dispersion: 0 };
+    fxState.stars     = { variant: null, amount: 50, range: 180, scale: 1.0, rotation: 0, dispersion: 0 };
     ['glow','glossy','scanlines','vhsbleed','paper','stickers','frames','texture','stars'].forEach(function(cat) {
       if (typeof fxUpdateCatDot === 'function') fxUpdateCatDot(cat);
     });
@@ -18301,7 +18301,7 @@ function galleryOpenInEditor(idx) {
     fxState.stickers  = { variant: null };
     fxState.frames    = { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0, lbPosX: 0, lbPosY: 0, lbScale: 1.0 };
     fxState.texture   = { variant: null, intensity: 100 };
-    fxState.stars     = { variant: null, amount: 50, range: 220, scale: 1.0, rotation: 0, dispersion: 0 };
+    fxState.stars     = { variant: null, amount: 50, range: 180, scale: 1.0, rotation: 0, dispersion: 0 };
     if (typeof fxUpdateCatDot === 'function') { fxUpdateCatDot('texture'); fxUpdateCatDot('stars'); }
   }
   blemishSpots = []; _blemishHistory = []; _blemishFuture = []; _blemishPreEdit = null;
@@ -22624,7 +22624,7 @@ var fxState = {
   stickers:    { variant: null },
   frames:      { variant: 'none', intensity: 100, scale: 1.0, rotation: 0, mirror: false, flipV: false, positionY: 0, positionX: 0, lbPosX: 0, lbPosY: 0, lbScale: 1.0 },
   texture:     { variant: null, intensity: 100 },
-  stars:       { variant: null, amount: 50, range: 220, scale: 1.0, rotation: 0, dispersion: 0 }
+  stars:       { variant: null, amount: 50, range: 180, scale: 1.0, rotation: 0, dispersion: 0 }
 };
 
 var _fxActiveCat = null;
@@ -23094,7 +23094,7 @@ function fxOpenCat(cat) {
         '</div>' +
         '<div id="fx-stars-det-panel"  style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 20px;">' +
           '<div class="fx-msl-row"><span class="fx-msl-label">AMOUNT</span><input type="range" class="fx-msl-track" min="0" max="100" value="50" oninput="fxStarsSlide(\'amount\',this.value)"><span class="fx-msl-val" id="fxsv-amount">50</span></div>' +
-          '<div class="fx-msl-row"><span class="fx-msl-label">RANGE</span><input type="range" class="fx-msl-track" min="150" max="255" value="220" oninput="fxStarsSlide(\'range\',this.value)"><span class="fx-msl-val" id="fxsv-range">220</span></div>' +
+          '<div class="fx-msl-row"><span class="fx-msl-label">RANGE</span><input type="range" class="fx-msl-track" min="150" max="255" value="180" oninput="fxStarsSlide(\'range\',this.value)"><span class="fx-msl-val" id="fxsv-range">180</span></div>' +
         '</div>' +
         '<div id="fx-stars-size-panel" style="flex:1;display:none;flex-direction:column;justify-content:center;padding:0 20px;">' +
           '<div class="fx-msl-row"><span class="fx-msl-label">SCALE</span><input type="range" class="fx-msl-track" min="25" max="200" value="100" oninput="fxStarsSlide(\'scale\',this.value)"><span class="fx-msl-val" id="fxsv-scale">1.0</span></div>' +

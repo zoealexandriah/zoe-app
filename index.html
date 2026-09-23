@@ -19194,30 +19194,40 @@ function _drawStarShape(ctx2d, cx, cy, radius, rotRad, vnt, a0, disp) {
 
   // 4. FLARE – anamorphic horizontal streak
   if (vnt === 'stars-flare') {
-    var streakW = rayLen * 4.5;
-    var streakH = Math.max(1.2, rayLen * 0.10);
+    // 3.0× keeps the 0-alpha gradient endpoints near the canvas edge, giving visible falloff.
+    // 4.5× pushed them off-canvas so the visible section was always in the flat-bright middle.
+    var streakW    = rayLen * 3.0;
+    var streakSemiH = Math.max(2, rayLen * 0.07);   // ellipse semi-minor axis
+    var blurPx     = Math.max(1.5, rayLen * 0.055); // cross-width feather; negligible X spread
     ctx2d.save();
     ctx2d.translate(cx, cy);
+    ctx2d.filter = 'blur(' + blurPx.toFixed(1) + 'px)';
     var sg;
     if (disp < 0.01) {
       sg = ctx2d.createLinearGradient(-streakW, 0, streakW, 0);
       sg.addColorStop(0,    'rgba(255,255,255,0)');
-      sg.addColorStop(0.28, 'rgba(255,255,255,' + (a0 * 0.32) + ')');
-      sg.addColorStop(0.5,  'rgba(255,255,255,' + (a0 * 0.82) + ')');
-      sg.addColorStop(0.72, 'rgba(255,255,255,' + (a0 * 0.32) + ')');
+      sg.addColorStop(0.12, 'rgba(255,255,255,' + (a0 * 0.18) + ')');
+      sg.addColorStop(0.38, 'rgba(255,255,255,' + (a0 * 0.72) + ')');
+      sg.addColorStop(0.5,  'rgba(255,255,255,' + (a0 * 0.90) + ')');
+      sg.addColorStop(0.62, 'rgba(255,255,255,' + (a0 * 0.72) + ')');
+      sg.addColorStop(0.88, 'rgba(255,255,255,' + (a0 * 0.18) + ')');
       sg.addColorStop(1,    'rgba(255,255,255,0)');
     } else {
       sg = ctx2d.createLinearGradient(-streakW, 0, streakW, 0);
       sg.addColorStop(0,    'rgba(80,110,255,0)');
-      sg.addColorStop(0.18, 'rgba(110,155,255,' + (a0 * disp * 0.42) + ')');
-      sg.addColorStop(0.38, 'rgba(215,228,255,' + (a0 * 0.52) + ')');
-      sg.addColorStop(0.5,  'rgba(255,255,255,' + (a0 * 0.82) + ')');
-      sg.addColorStop(0.62, 'rgba(255,228,185,' + (a0 * 0.52) + ')');
-      sg.addColorStop(0.82, 'rgba(255,135,52,'  + (a0 * disp * 0.42) + ')');
+      sg.addColorStop(0.10, 'rgba(100,150,255,' + (a0 * disp * 0.44) + ')');
+      sg.addColorStop(0.32, 'rgba(210,225,255,' + (a0 * 0.60) + ')');
+      sg.addColorStop(0.5,  'rgba(255,255,255,' + (a0 * 0.90) + ')');
+      sg.addColorStop(0.68, 'rgba(255,228,185,' + (a0 * 0.60) + ')');
+      sg.addColorStop(0.90, 'rgba(255,130,50,'  + (a0 * disp * 0.44) + ')');
       sg.addColorStop(1,    'rgba(255,60,0,0)');
     }
     ctx2d.fillStyle = sg;
-    ctx2d.fillRect(-streakW, -streakH / 2, streakW * 2, streakH);
+    // Lens ellipse: widest at center (x=0), tapers to points at x=±streakW.
+    ctx2d.beginPath();
+    ctx2d.ellipse(0, 0, streakW, streakSemiH, 0, 0, Math.PI * 2);
+    ctx2d.fill();
+    ctx2d.filter = 'none';
     ctx2d.restore();
   }
 }

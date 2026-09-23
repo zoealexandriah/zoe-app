@@ -19093,7 +19093,7 @@ function applyStarFlares(canvas, opts, offX, offY, w, h) {
              vnt === 'stars-flare' ? { rayPct: 0.150, maxN: 8,   suppR: 28 } :
                                      { rayPct: 0.072, maxN: 25,  suppR: 16 };
   var maxRadius = Math.max(4, Math.max(w, h) * vCfg.rayPct * scale);
-  var suppR  = Math.min(Math.floor(Math.min(w, h) * 0.35) - 1, Math.max(2, Math.round(vCfg.suppR * scale)));
+  var suppR  = Math.min(Math.floor(Math.min(w, h) * 0.35) - 1, Math.max(2, Math.round(vCfg.suppR * scale * Math.max(w, h) / 500)));
   var maxN   = Math.max(1, Math.round(vCfg.maxN * amount));
   var step   = Math.max(1, Math.round(suppR / 2));
   var pts    = [];
@@ -19114,7 +19114,22 @@ function applyStarFlares(canvas, opts, offX, offY, w, h) {
     }
   }
   pts.sort(function(a,b){ return b[2]-a[2]; });
-  var stars = pts.slice(0, maxN);
+  var stars = [];
+  var _isFlare = (vnt === 'stars-flare');
+  for (var _pi = 0; _pi < pts.length && stars.length < maxN; _pi++) {
+    var _px = pts[_pi][0], _py = pts[_pi][1];
+    var _ok = true;
+    for (var _si = 0; _si < stars.length && _ok; _si++) {
+      var _adx = Math.abs(_px - stars[_si][0]);
+      var _ady = Math.abs(_py - stars[_si][1]);
+      if (_isFlare) {
+        if (_ady < maxRadius * 0.6 && _adx < maxRadius * 3) _ok = false;
+      } else {
+        if (Math.sqrt(_adx*_adx + _ady*_ady) < 2 * suppR) _ok = false;
+      }
+    }
+    if (_ok) stars.push(pts[_pi]);
+  }
   if (!stars.length) return;
   var oc  = document.createElement('canvas');
   oc.width = w; oc.height = h;
@@ -19202,26 +19217,16 @@ function _drawStarShape(ctx2d, cx, cy, radius, rotRad, vnt, a0, disp) {
     ctx2d.save();
     ctx2d.translate(cx, cy);
     ctx2d.filter = 'blur(' + blurPx.toFixed(1) + 'px)';
-    var sg;
-    if (disp < 0.01) {
-      sg = ctx2d.createLinearGradient(-streakW, 0, streakW, 0);
-      sg.addColorStop(0,    'rgba(255,255,255,0)');
-      sg.addColorStop(0.12, 'rgba(255,255,255,' + (a0 * 0.18) + ')');
-      sg.addColorStop(0.38, 'rgba(255,255,255,' + (a0 * 0.72) + ')');
-      sg.addColorStop(0.5,  'rgba(255,255,255,' + (a0 * 0.90) + ')');
-      sg.addColorStop(0.62, 'rgba(255,255,255,' + (a0 * 0.72) + ')');
-      sg.addColorStop(0.88, 'rgba(255,255,255,' + (a0 * 0.18) + ')');
-      sg.addColorStop(1,    'rgba(255,255,255,0)');
-    } else {
-      sg = ctx2d.createLinearGradient(-streakW, 0, streakW, 0);
-      sg.addColorStop(0,    'rgba(80,110,255,0)');
-      sg.addColorStop(0.10, 'rgba(100,150,255,' + (a0 * disp * 0.44) + ')');
-      sg.addColorStop(0.32, 'rgba(210,225,255,' + (a0 * 0.60) + ')');
-      sg.addColorStop(0.5,  'rgba(255,255,255,' + (a0 * 0.90) + ')');
-      sg.addColorStop(0.68, 'rgba(255,228,185,' + (a0 * 0.60) + ')');
-      sg.addColorStop(0.90, 'rgba(255,130,50,'  + (a0 * disp * 0.44) + ')');
-      sg.addColorStop(1,    'rgba(255,60,0,0)');
-    }
+    // Single gradient interpolated between white (t=0) and tint (t=1) tables — no branch discontinuity.
+    var t  = disp;
+    var sg = ctx2d.createLinearGradient(-streakW, 0, streakW, 0);
+    sg.addColorStop(0,                         'rgba(' + Math.round(255-175*t) + ',' + Math.round(255-145*t) + ',255,0)');
+    sg.addColorStop((0.12-0.02*t).toFixed(3),  'rgba(' + Math.round(255-155*t) + ',' + Math.round(255-105*t) + ',255,'  + (a0*(0.18+0.26*t)).toFixed(3) + ')');
+    sg.addColorStop((0.38-0.06*t).toFixed(3),  'rgba(' + Math.round(255- 45*t) + ',' + Math.round(255- 30*t) + ',255,'  + (a0*(0.72-0.12*t)).toFixed(3) + ')');
+    sg.addColorStop(0.5,                        'rgba(255,255,255,'                                                       + (a0*0.90)          .toFixed(3) + ')');
+    sg.addColorStop((0.62+0.06*t).toFixed(3),  'rgba(255,'                        + Math.round(255- 27*t) + ',' + Math.round(255- 70*t) + ',' + (a0*(0.72-0.12*t)).toFixed(3) + ')');
+    sg.addColorStop((0.88+0.02*t).toFixed(3),  'rgba(255,'                        + Math.round(255-125*t) + ',' + Math.round(255-205*t) + ',' + (a0*(0.18+0.26*t)).toFixed(3) + ')');
+    sg.addColorStop(1,                          'rgba(255,'                        + Math.round(255-195*t) + ',' + Math.round(255*(1-t)) + ',0)');
     ctx2d.fillStyle = sg;
     // Lens ellipse: widest at center (x=0), tapers to points at x=±streakW.
     ctx2d.beginPath();

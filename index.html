@@ -23713,7 +23713,7 @@ function _fxStarsRenderThumbs() {
         var sc = Math.max(pw / img.naturalWidth, ph / img.naturalHeight);
         var dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
         ctx.drawImage(img, (pw - dw) / 2, (ph - dh) / 2, dw, dh);
-        applyStarFlares(cnv, { variant: id, amount: 100, range: 80, scale: 4.0, rotation: 0, dispersion: 0 }, 0, 0, pw, ph);
+        applyStarFlares(cnv, { variant: id, amount: 100, range: 35, scale: 7.0, rotation: 0, dispersion: 0 }, 0, 0, pw, ph);
       } catch(_e) {
         ctx.fillStyle = '#0d0a14'; ctx.fillRect(0, 0, pw, ph);
       }
@@ -23725,7 +23725,7 @@ function _fxStarsRenderThumbs() {
       var sp = ctx.createRadialGradient(pw * 0.5, ph * 0.38, 0, pw * 0.5, ph * 0.38, pw * 0.1);
       sp.addColorStop(0, 'rgba(255,255,255,0.9)'); sp.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = sp; ctx.fillRect(0, 0, pw, ph); ctx.restore();
-      applyStarFlares(cnv, { variant: id, amount: 100, range: 50, scale: 4.0, rotation: 0, dispersion: 0 }, 0, 0, pw, ph);
+      applyStarFlares(cnv, { variant: id, amount: 100, range: 35, scale: 7.0, rotation: 0, dispersion: 0 }, 0, 0, pw, ph);
     }
   });
 }

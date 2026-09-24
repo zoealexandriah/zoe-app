@@ -55,12 +55,17 @@ const STARS_SEED = 0x5EED;
 
 // ── nolook edit scenarios ─────────────────────────────────────────────────────
 const NOLOOK_SEED  = 0xA710;
+// a–e: seed sliders via initSliderState + optional overrides
+// f–g: noInitSliders=true → sliderState['__nolook__'] stays empty so the fix's
+//       _edFxOn branch (not the sliderState length branch) is what activates hasPreset
 const NOLOOK_EDITS = [
-  { id: 'exposure', sliders: { EXPOSURE: 0.9 } },
-  { id: 'hsl',     sliders: { SAT_REDS: 1.0 } },
-  { id: 'grain',   sliders: { GRAIN:    0.85 } },
-  { id: 'texture', fx:      { texture: { variant: FX_TEX_VARIANT, intensity: 100 } } },
-  { id: 'stars',   fx:      { stars:   { variant: 'stars-flare', amount: 100, range: 140, scale: 1.0, rotation: 0, dispersion: 0 } } },
+  { id: 'exposure',      sliders: { EXPOSURE: 0.9 } },
+  { id: 'hsl',           sliders: { SAT_REDS: 1.0 } },
+  { id: 'grain',         sliders: { GRAIN:    0.85 } },
+  { id: 'texture',       fx:      { texture: { variant: FX_TEX_VARIANT, intensity: 100 } } },
+  { id: 'stars',         fx:      { stars:   { variant: 'stars-flare', amount: 100, range: 140, scale: 1.0, rotation: 0, dispersion: 0 } } },
+  { id: 'stars_only',    fx:      { stars:   { variant: 'stars-flare', amount: 100, range: 140, scale: 1.0, rotation: 0, dispersion: 0 } }, noInitSliders: true },
+  { id: 'texture_only',  fx:      { texture: { variant: FX_TEX_VARIANT, intensity: 100 } }, noInitSliders: true },
 ];
 
 // ── synthetic photo generators ────────────────────────────────────────────────
@@ -978,16 +983,19 @@ async function compareStars(baseDir) {
 }
 
 // ── nolook render ─────────────────────────────────────────────────────────────
-// editSpec: { sliders?: {KEY:val,...}, fx?: {texture?:{...}, stars?:{...}} }
+// editSpec: { sliders?, fx?, noInitSliders? }
+//   noInitSliders=true: skip initSliderState so sliderState stays empty — lets
+//   the test exercise the _edFxOn branch of hasPreset rather than the length check.
 // Empty editSpec ({}) = neutral nolook (unedited reference).
 async function renderNolookEdit(page, editSpec, pathId, seed) {
   const { W, H, px } = makePortrait();
   const photoURL    = pixelsToDataURL(W, H, px);
-  const sliderEdits = editSpec.sliders || null;
-  const fxEdits     = editSpec.fx     || null;
+  const sliderEdits = editSpec.sliders     || null;
+  const fxEdits     = editSpec.fx          || null;
+  const noInit      = !!editSpec.noInitSliders;
   const texVariant  = fxEdits && fxEdits.texture ? fxEdits.texture.variant : null;
 
-  return page.evaluate(async ([photoURL, pathId, seed, sliderEdits, fxEdits, texVariant]) => {
+  return page.evaluate(async ([photoURL, pathId, seed, sliderEdits, fxEdits, texVariant, noInit]) => {
     let _s = (seed >>> 0) || 1;
     const _origRandom = Math.random;
     Math.random = () => {
@@ -1002,10 +1010,10 @@ async function renderNolookEdit(page, editSpec, pathId, seed) {
       });
 
       const p = _evNoLookPreset;
-      initSliderState(p);
+      if (!noInit) initSliderState(p);
+      if (!sliderState[p.id]) sliderState[p.id] = {};
 
       if (sliderEdits) {
-        if (!sliderState[p.id]) sliderState[p.id] = {};
         for (const [k, v] of Object.entries(sliderEdits)) sliderState[p.id][k] = v;
       }
 
@@ -1120,29 +1128,50 @@ async function renderNolookEdit(page, editSpec, pathId, seed) {
           window.exportModalClose = origClose;
         }
         return result;
+
+      } else if (pathId === 'exportDownload') {
+        // Real UI nolook state: undo the harness's preset assignment before calling
+        activePreset   = null;
+        evActivePreset = null;
+        const origClose = window.exportModalClose;
+        window.exportModalClose = () => {};
+        expFmt = 'jpg';
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        let result;
+        try {
+          const cap = waitCapture();
+          exportDownload();
+          result = await cap;
+        } finally {
+          window.exportModalClose = origClose;
+        }
+        return result;
       }
 
       throw new Error('Unknown pathId: ' + pathId);
     } finally {
       Math.random = _origRandom;
     }
-  }, [photoURL, pathId, seed, sliderEdits, fxEdits, texVariant]);
+  }, [photoURL, pathId, seed, sliderEdits, fxEdits, texVariant, noInit]);
 }
 
 // ── nolook compare ────────────────────────────────────────────────────────────
-// For each edit (a-e), renders all 5 asserted paths and checks:
+// For each edit (a-g), renders all asserted paths and checks:
 //   cross-path: MAD vs evDoSave edited ≤ 0.05 (evSaveAndReturn+stars is KNOWN_BUGS)
 //   visibility: MAD vs evDoSave unedited > 0.5
+// h) unedited: both exportDownload and evDoSave must equal the raw source (STOP V)
 async function compareNolook() {
   const { browser, page } = await launchBrowser();
-  const ASSERT_PATHS = PATHS.filter(p => p !== 'evRenderCanvasImmediate');
+  // exportDownload = real UI nolook state (activePreset=null); distinct from applyCanvasEffects
+  const ASSERT_PATHS = [...PATHS.filter(p => p !== 'evRenderCanvasImmediate'), 'exportDownload'];
   const CROSS_THRESH = 0.05;
   const VIS_THRESH   = 0.5;
   let stopS = false;
   const rows = [];
 
+  let seed = NOLOOK_SEED;
   try {
-    let seed = NOLOOK_SEED;
+    // ── a–g: main NOLOOK_EDITS loop ──────────────────────────────────────────
     for (const edit of NOLOOK_EDITS) {
       // Reference: evDoSave edited
       await reloadPage(page);
@@ -1165,7 +1194,7 @@ async function compareNolook() {
           let dataURL;
           try { dataURL = await renderNolookEdit(page, edit, pathId, seed++); }
           catch (e) {
-            rows.push({ key, crossStr: 'RENDER ERR', visStr: 'RENDER ERR', crossFail: true, visFail: true, isKnownBug: false });
+            rows.push({ key, crossStr: 'RENDER ERR', visStr: 'RENDER ERR', crossFail: true, visFail: true, isKB: false });
             stopS = true; continue;
           }
           buf = Buffer.from(dataURL.replace('data:image/png;base64,', ''), 'base64');
@@ -1181,8 +1210,6 @@ async function compareNolook() {
         let crossFail  = false, visFail = false;
 
         if (isKB) {
-          // Expected: crossMAD > CROSS_THRESH (known double-apply bug)
-          // Fail (bug fixed) if crossMAD ≤ CROSS_THRESH
           if (crossMAD >= 0 && crossMAD <= CROSS_THRESH) { crossFail = true; stopS = true; }
         } else {
           if (crossMAD < 0 || crossMAD > CROSS_THRESH)  { crossFail = true; stopS = true; }
@@ -1192,26 +1219,81 @@ async function compareNolook() {
         rows.push({ key, crossStr, visStr, crossFail, visFail, isKB });
       }
     }
+
+    // ── Print a–g results ─────────────────────────────────────────────────────
+    const PAD = 48;
+    console.log('\n  NOLOOK cross-path assertions  (portrait / __nolook__)');
+    console.log(`  ${'─'.repeat(PAD + 44)}`);
+    console.log(`  ${'key'.padEnd(PAD)} cross vs evDoSave  vis vs unedited`);
+    console.log(`  ${'─'.repeat(PAD + 44)}`);
+    for (const r of rows) {
+      const crossTag = r.isKB
+        ? (r.crossFail ? '  ✗ KNOWN BUG FIXED — remove from KNOWN_BUGS' : '  KNOWN BUG (expected fail)')
+        : (r.crossFail ? '  ✗ STOP S' : '  ✓');
+      const visTag = r.visFail ? '  ✗ STOP S' : '  ✓';
+      console.log(`  ${r.key.padEnd(PAD)} ${r.crossStr.padEnd(18)} ${r.visStr}${visTag}${crossTag}`);
+    }
+    console.log(`  ${'─'.repeat(PAD + 44)}`);
+    if (stopS) { console.error('\n  ✗ STOP S triggered'); process.exit(1); }
+
+    // ── h) Unedited — STOP V check ────────────────────────────────────────────
+    const { W: uW, H: uH, px: uPx } = makePortrait();
+    const uneditedPNG  = encodePNG(uW, uH, uPx);
+    const UNEDITED_EDIT = { id: 'unedited', noInitSliders: true };
+    const STOP_V_PATHS  = ['exportDownload', 'evDoSave'];
+    let stopV = false;
+    const hRows = [];
+    for (const pathId of STOP_V_PATHS) {
+      await reloadPage(page);
+      let dataURL;
+      try { dataURL = await renderNolookEdit(page, UNEDITED_EDIT, pathId, seed++); }
+      catch (e) {
+        hRows.push({ pathId, madStr: `RENDER ERR: ${String(e.message).slice(0,50)}`, fail: true });
+        stopV = true; continue;
+      }
+      const buf = Buffer.from(dataURL.replace('data:image/png;base64,', ''), 'base64');
+      let mad;
+      try { mad = computeMAD(uneditedPNG, buf); } catch (e) { mad = -1; }
+      const fail = mad !== 0;
+      if (fail) stopV = true;
+      hRows.push({ pathId, madStr: mad < 0 ? 'SIZE-MISMATCH' : mad.toFixed(4), fail });
+    }
+    console.log('\n  h) Unedited — STOP V check (must be 0.0000 vs source):');
+    console.log(`  ${'─'.repeat(PAD + 10)}`);
+    for (const r of hRows)
+      console.log(`  ${'unedited__' + r.pathId.padEnd(PAD - 2)} ${r.madStr}${r.fail ? '  ✗ STOP V' : '  ✓'}`);
+    console.log(`  ${'─'.repeat(PAD + 10)}`);
+    if (stopV) { console.error('\n  ✗ STOP V triggered'); process.exit(2); }
+
+    // ── Informational: exportDownload vs evDoSave, preset mode ───────────────
+    console.log('\n  Informational — exportDownload (preset mode) vs evDoSave (null variant):');
+    const MAT_SEED = GRAIN_SEED + 3000;
+    const matRows = [];
+    let matSeed = MAT_SEED;
+    for (const photoId of PHOTOS) {
+      for (const presetId of PRESETS) {
+        await reloadPage(page);
+        const edURL = await renderCombo(page, photoId, presetId, 'applyCanvasEffects', matSeed, null);
+        await reloadPage(page);
+        const dsURL = await renderCombo(page, photoId, presetId, 'evDoSave',           matSeed, null);
+        matSeed++;
+        const edBuf = Buffer.from(edURL.replace('data:image/png;base64,', ''), 'base64');
+        const dsBuf = Buffer.from(dsURL.replace('data:image/png;base64,', ''), 'base64');
+        let mad;
+        try { mad = computeMAD(edBuf, dsBuf); } catch (e) { mad = -1; }
+        matRows.push({ key: `${photoId}/${presetId}`, madStr: mad < 0 ? 'SIZE-MISMATCH' : mad.toFixed(4) });
+      }
+    }
+    const PAD2 = 34;
+    console.log(`  ${'combo'.padEnd(PAD2)} exportDownload vs evDoSave`);
+    console.log(`  ${'─'.repeat(PAD2 + 26)}`);
+    for (const r of matRows) console.log(`  ${r.key.padEnd(PAD2)} ${r.madStr}`);
+    console.log(`  ${'─'.repeat(PAD2 + 26)}`);
+
+    return !stopS && !stopV;
   } finally {
     await browser.close();
   }
-
-  const PAD = 48;
-  console.log('\n  NOLOOK cross-path assertions  (portrait / __nolook__)');
-  console.log(`  ${'─'.repeat(PAD + 44)}`);
-  console.log(`  ${'key'.padEnd(PAD)} cross vs evDoSave  vis vs unedited`);
-  console.log(`  ${'─'.repeat(PAD + 44)}`);
-  for (const r of rows) {
-    const crossTag = r.isKB
-      ? (r.crossFail ? '  ✗ KNOWN BUG FIXED — remove from KNOWN_BUGS' : '  KNOWN BUG (expected fail)')
-      : (r.crossFail ? '  ✗ STOP S' : '  ✓');
-    const visTag = r.visFail ? '  ✗ STOP S' : '  ✓';
-    console.log(`  ${r.key.padEnd(PAD)} ${r.crossStr.padEnd(18)} ${r.visStr}${visTag}${crossTag}`);
-  }
-  console.log(`  ${'─'.repeat(PAD + 44)}`);
-
-  if (stopS) { console.error('\n  ✗ STOP S triggered'); process.exit(1); }
-  return !stopS;
 }
 
 // ── CLI ───────────────────────────────────────────────────────────────────────
@@ -1271,7 +1353,7 @@ if (cmd === 'capture') {
     .catch(e => { console.error(e); process.exit(1); });
 
 } else if (cmd === 'compare-nolook') {
-  console.log('NOLOOK assertion suite — portrait / __nolook__ / 5 edits / 5 asserted paths');
+  console.log('NOLOOK assertion suite — portrait / __nolook__ / 7 edits (a–g) / 6 asserted paths + h) STOP V');
   const t0 = Date.now();
   compareNolook()
     .then(ok => { console.log(`Done in ${((Date.now() - t0) / 1000).toFixed(1)}s`); process.exit(ok ? 0 : 1); })

@@ -19736,12 +19736,28 @@ window.exportDownload = function() {
   if (expFmt === 'jpg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, iw, ih); }
   ctx.drawImage(userImage, 0, 0, iw, ih);
 
-  const p = activePreset || evActivePreset;
-  const hasPreset = p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0;
+  const _edAsp = activePreset || evActivePreset;
+  const p = _edAsp || _evNoLookPreset;
+  const _edFxOn = (typeof fxState !== 'undefined') && (
+    (fxState.stars && fxState.stars.variant && (fxState.stars.amount||0) > 0) ||
+    (fxState.texture && fxState.texture.variant) ||
+    (fxState.frames && fxState.frames.variant && fxState.frames.variant !== 'none') ||
+    (fxState.glow && ((fxState.glow.glow||0) > 0 || (fxState.glow.diffusion||0) > 0 || (fxState.glow.halation||0) > 0)) ||
+    (fxState.glossy && fxState.glossy.variant && (fxState.glossy.intensity||0) > 0) ||
+    (fxState.scanlines && fxState.scanlines.variant && (fxState.scanlines.intensity||0) > 0) ||
+    (fxState.vhsbleed && fxState.vhsbleed.variant && (fxState.vhsbleed.intensity||0) > 0) ||
+    (fxState.bleeds && fxState.bleeds.variant && (fxState.bleeds.intensity||0) > 0) ||
+    (fxState.stickers && fxState.stickers.variant) ||
+    (fxState.paper && ((fxState.paper.fold||0) > 0 || (fxState.paper.texture||0) > 0))
+  );
+  const hasPreset = !!p && (
+    (sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) ||
+    (p === _evNoLookPreset && _edFxOn)
+  );
 
   var origData = null, adj = null;
   if (hasPreset) {
-    adj = buildAdjustments(_evMergeAdjState ? _evMergeAdjState(p, sliderState[p.id]) : sliderState[p.id]);
+    adj = buildAdjustments(_evMergeAdjState ? _evMergeAdjState(p, sliderState[p.id] || {}) : (sliderState[p.id] || {}));
     if (p.hueTempZones)              adj.hueTempZones    = p.hueTempZones;
     if (p.colorGlow  !== undefined)  adj.colorGlow       = p.colorGlow;
     if (p.skinLift   !== undefined)  adj.skinLift        = p.skinLift;

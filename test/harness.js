@@ -38,11 +38,10 @@ const RENDER_VARIANTS = [
   { id: 'fxtex', fxTexture: { variant: FX_TEX_VARIANT, intensity: 100 } },
 ];
 
-// ── stars case constants ───────────────────────────────────────────────────────
-// _exportEntry has no __nolook__ fallback — remove when fixed
+// ── stars + nolook known bugs ─────────────────────────────────────────────────
+// evSaveAndReturn double-applies stars on __nolook__ — remove when fixed
 const KNOWN_BUGS = new Set([
-  'stars__portrait__flare_d100_nopre__exportEntry',
-  'stars__highlights__flare_d100_nopre__exportEntry',
+  'nolook__stars__evSaveAndReturn',
 ]);
 
 const STARS_PHOTOS  = ['portrait', 'highlights'];
@@ -53,6 +52,16 @@ const STARS_CONFIGS = [
 ];
 const STARS_OFF  = { variant: null, amount: 0, range: 140, scale: 1.0, rotation: 0, dispersion: 0 };
 const STARS_SEED = 0x5EED;
+
+// ── nolook edit scenarios ─────────────────────────────────────────────────────
+const NOLOOK_SEED  = 0xA710;
+const NOLOOK_EDITS = [
+  { id: 'exposure', sliders: { EXPOSURE: 0.9 } },
+  { id: 'hsl',     sliders: { SAT_REDS: 1.0 } },
+  { id: 'grain',   sliders: { GRAIN:    0.85 } },
+  { id: 'texture', fx:      { texture: { variant: FX_TEX_VARIANT, intensity: 100 } } },
+  { id: 'stars',   fx:      { stars:   { variant: 'stars-flare', amount: 100, range: 140, scale: 1.0, rotation: 0, dispersion: 0 } } },
+];
 
 // ── synthetic photo generators ────────────────────────────────────────────────
 // Both photos are 100 % algorithmic — no files, fully reproducible.
@@ -968,6 +977,243 @@ async function compareStars(baseDir) {
   return failures === 0;
 }
 
+// ── nolook render ─────────────────────────────────────────────────────────────
+// editSpec: { sliders?: {KEY:val,...}, fx?: {texture?:{...}, stars?:{...}} }
+// Empty editSpec ({}) = neutral nolook (unedited reference).
+async function renderNolookEdit(page, editSpec, pathId, seed) {
+  const { W, H, px } = makePortrait();
+  const photoURL    = pixelsToDataURL(W, H, px);
+  const sliderEdits = editSpec.sliders || null;
+  const fxEdits     = editSpec.fx     || null;
+  const texVariant  = fxEdits && fxEdits.texture ? fxEdits.texture.variant : null;
+
+  return page.evaluate(async ([photoURL, pathId, seed, sliderEdits, fxEdits, texVariant]) => {
+    let _s = (seed >>> 0) || 1;
+    const _origRandom = Math.random;
+    Math.random = () => {
+      _s ^= _s << 13; _s ^= _s >>> 17; _s ^= _s << 5;
+      return (_s >>> 0) / 4294967296;
+    };
+
+    try {
+      const img = await new Promise((res, rej) => {
+        const im = new Image(); im.onload = () => res(im); im.onerror = rej;
+        im.src = photoURL;
+      });
+
+      const p = _evNoLookPreset;
+      initSliderState(p);
+
+      if (sliderEdits) {
+        if (!sliderState[p.id]) sliderState[p.id] = {};
+        for (const [k, v] of Object.entries(sliderEdits)) sliderState[p.id][k] = v;
+      }
+
+      userImage       = img;
+      activePreset    = p;
+      evActivePreset  = p;
+      presetIntensity = 1.0;
+      window.blemishSpots = [];
+      window._slDragging  = false;
+      if (typeof fxState !== 'undefined') { fxState.frames = null; fxState.texture = null; fxState.stars = null; }
+
+      if (fxEdits && typeof fxState !== 'undefined') {
+        for (const [k, v] of Object.entries(fxEdits))
+          fxState[k] = v ? JSON.parse(JSON.stringify(v)) : null;
+      }
+
+      library.length = 0;
+      const entry = {
+        id: 'harness', dataURL: photoURL,
+        editState: {
+          presetId: p.id,
+          sliders:  sliderState[p.id] || {},
+          intensity: 1.0,
+          fxState: typeof fxState !== 'undefined' ? JSON.parse(JSON.stringify(fxState)) : null
+        }
+      };
+      library.push(entry);
+      editingIdx = 0;
+
+      if (texVariant) {
+        const fxV = (typeof FX_VARIANTS !== 'undefined' && FX_VARIANTS.texture || [])
+          .find(t => t.id === texVariant);
+        if (fxV && fxV.assetFile) {
+          const tx = loadTexture(fxV.assetFile);
+          if (!tx.complete || !tx.naturalWidth)
+            await new Promise(res => { const orig = tx.onload; tx.onload = () => { tx.onload = orig; res(); }; tx.onerror = res; });
+        }
+      }
+
+      const waitCapture = () => new Promise((res, rej) => {
+        const t = setTimeout(() => rej(new Error('Capture timeout: ' + pathId)), 15000);
+        window.addEventListener('harness-capture', () => { clearTimeout(t); res(window.__HARNESS_CAPTURE); }, { once: true });
+      });
+
+      const showEditor = () => {
+        const gv = document.getElementById('gallery-view');
+        const ev = document.getElementById('editor-view');
+        if (gv) gv.style.display = 'none';
+        if (ev) ev.style.display = 'flex';
+      };
+
+      if (pathId === 'evRenderCanvasImmediate') {
+        showEditor();
+        const area = document.getElementById('ev-canvas-area');
+        if (area) { area.style.width = '375px'; area.style.height = '600px'; void area.offsetWidth; }
+        _evRenderCanvasImmediate();
+        return document.getElementById('ev-canvas').toDataURL('image/png');
+
+      } else if (pathId === 'evDoSave') {
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        const cap = waitCapture();
+        _evDoSave();
+        return await cap;
+
+      } else if (pathId === 'evSaveAndReturn') {
+        showEditor();
+        const origBack     = window.editorBackToGallery;
+        const origSave     = window.libSaveToStorage;
+        const origRender   = window.renderLibrary;
+        const origAutoSave = window.autoSaveEdit;
+        window.editorBackToGallery = () => {};
+        window.libSaveToStorage    = () => {};
+        window.renderLibrary       = () => {};
+        window.autoSaveEdit        = () => {};
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        let result;
+        try {
+          const cap = waitCapture();
+          evSaveAndReturn();
+          result = await cap;
+        } finally {
+          window.editorBackToGallery = origBack;
+          window.libSaveToStorage    = origSave;
+          window.renderLibrary       = origRender;
+          window.autoSaveEdit        = origAutoSave;
+        }
+        return result;
+
+      } else if (pathId === 'renderBatchThumbnail') {
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        const cap = waitCapture();
+        _renderBatchThumbnail(entry, p.id, sliderState[p.id] || {}, 1.0, () => {});
+        return await cap;
+
+      } else if (pathId === 'exportEntry') {
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        const cap = waitCapture();
+        _exportEntry(entry, () => {});
+        return await cap;
+
+      } else if (pathId === 'applyCanvasEffects') {
+        const origClose = window.exportModalClose;
+        window.exportModalClose = () => {};
+        expFmt = 'jpg';
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        let result;
+        try {
+          const cap = waitCapture();
+          exportDownload();
+          result = await cap;
+        } finally {
+          window.exportModalClose = origClose;
+        }
+        return result;
+      }
+
+      throw new Error('Unknown pathId: ' + pathId);
+    } finally {
+      Math.random = _origRandom;
+    }
+  }, [photoURL, pathId, seed, sliderEdits, fxEdits, texVariant]);
+}
+
+// ── nolook compare ────────────────────────────────────────────────────────────
+// For each edit (a-e), renders all 5 asserted paths and checks:
+//   cross-path: MAD vs evDoSave edited ≤ 0.05 (evSaveAndReturn+stars is KNOWN_BUGS)
+//   visibility: MAD vs evDoSave unedited > 0.5
+async function compareNolook() {
+  const { browser, page } = await launchBrowser();
+  const ASSERT_PATHS = PATHS.filter(p => p !== 'evRenderCanvasImmediate');
+  const CROSS_THRESH = 0.05;
+  const VIS_THRESH   = 0.5;
+  let stopS = false;
+  const rows = [];
+
+  try {
+    let seed = NOLOOK_SEED;
+    for (const edit of NOLOOK_EDITS) {
+      // Reference: evDoSave edited
+      await reloadPage(page);
+      const refDataURL = await renderNolookEdit(page, edit, 'evDoSave', seed++);
+      const refBuf = Buffer.from(refDataURL.replace('data:image/png;base64,', ''), 'base64');
+
+      // Unedited reference: evDoSave neutral nolook
+      await reloadPage(page);
+      const unDataURL = await renderNolookEdit(page, {}, 'evDoSave', seed++);
+      const unBuf = Buffer.from(unDataURL.replace('data:image/png;base64,', ''), 'base64');
+
+      for (const pathId of ASSERT_PATHS) {
+        const key = `nolook__${edit.id}__${pathId}`;
+        let buf;
+
+        if (pathId === 'evDoSave') {
+          buf = refBuf; // self-comparison: crossMAD = 0
+        } else {
+          await reloadPage(page);
+          let dataURL;
+          try { dataURL = await renderNolookEdit(page, edit, pathId, seed++); }
+          catch (e) {
+            rows.push({ key, crossStr: 'RENDER ERR', visStr: 'RENDER ERR', crossFail: true, visFail: true, isKnownBug: false });
+            stopS = true; continue;
+          }
+          buf = Buffer.from(dataURL.replace('data:image/png;base64,', ''), 'base64');
+        }
+
+        let crossMAD, visMAD;
+        try { crossMAD = pathId === 'evDoSave' ? 0 : computeMAD(refBuf, buf); } catch (e) { crossMAD = -1; }
+        try { visMAD   = computeMAD(unBuf, buf); }                              catch (e) { visMAD   = -1; }
+
+        const crossStr = crossMAD < 0 ? 'SIZE-MISMATCH' : crossMAD.toFixed(4);
+        const visStr   = visMAD   < 0 ? 'SIZE-MISMATCH' : visMAD.toFixed(4);
+        const isKB     = KNOWN_BUGS.has(key);
+        let crossFail  = false, visFail = false;
+
+        if (isKB) {
+          // Expected: crossMAD > CROSS_THRESH (known double-apply bug)
+          // Fail (bug fixed) if crossMAD ≤ CROSS_THRESH
+          if (crossMAD >= 0 && crossMAD <= CROSS_THRESH) { crossFail = true; stopS = true; }
+        } else {
+          if (crossMAD < 0 || crossMAD > CROSS_THRESH)  { crossFail = true; stopS = true; }
+        }
+        if (visMAD < 0 || visMAD <= VIS_THRESH)          { visFail  = true; stopS = true; }
+
+        rows.push({ key, crossStr, visStr, crossFail, visFail, isKB });
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+
+  const PAD = 48;
+  console.log('\n  NOLOOK cross-path assertions  (portrait / __nolook__)');
+  console.log(`  ${'─'.repeat(PAD + 44)}`);
+  console.log(`  ${'key'.padEnd(PAD)} cross vs evDoSave  vis vs unedited`);
+  console.log(`  ${'─'.repeat(PAD + 44)}`);
+  for (const r of rows) {
+    const crossTag = r.isKB
+      ? (r.crossFail ? '  ✗ KNOWN BUG FIXED — remove from KNOWN_BUGS' : '  KNOWN BUG (expected fail)')
+      : (r.crossFail ? '  ✗ STOP S' : '  ✓');
+    const visTag = r.visFail ? '  ✗ STOP S' : '  ✓';
+    console.log(`  ${r.key.padEnd(PAD)} ${r.crossStr.padEnd(18)} ${r.visStr}${visTag}${crossTag}`);
+  }
+  console.log(`  ${'─'.repeat(PAD + 44)}`);
+
+  if (stopS) { console.error('\n  ✗ STOP S triggered'); process.exit(1); }
+  return !stopS;
+}
+
 // ── CLI ───────────────────────────────────────────────────────────────────────
 const [,, cmd, ...argv] = process.argv;
 const flags = Object.fromEntries(
@@ -1024,11 +1270,19 @@ if (cmd === 'capture') {
     .then(ok => { console.log(`Done in ${((Date.now() - t0) / 1000).toFixed(1)}s`); process.exit(ok ? 0 : 1); })
     .catch(e => { console.error(e); process.exit(1); });
 
+} else if (cmd === 'compare-nolook') {
+  console.log('NOLOOK assertion suite — portrait / __nolook__ / 5 edits / 5 asserted paths');
+  const t0 = Date.now();
+  compareNolook()
+    .then(ok => { console.log(`Done in ${((Date.now() - t0) / 1000).toFixed(1)}s`); process.exit(ok ? 0 : 1); })
+    .catch(e => { console.error(e); process.exit(1); });
+
 } else {
   console.log('Usage:');
   console.log('  node test/harness.js capture [--dir=NAME]');
   console.log('  node test/harness.js compare --baseline=NAME [--threshold=0] [--mutate]');
   console.log('  node test/harness.js capture-stars [--dir=NAME]');
   console.log('  node test/harness.js compare-stars --baseline=NAME');
+  console.log('  node test/harness.js compare-nolook');
   process.exit(1);
 }

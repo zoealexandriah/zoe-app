@@ -38,6 +38,22 @@ const RENDER_VARIANTS = [
   { id: 'fxtex', fxTexture: { variant: FX_TEX_VARIANT, intensity: 100 } },
 ];
 
+// ── stars case constants ───────────────────────────────────────────────────────
+// _exportEntry has no __nolook__ fallback — remove when fixed
+const KNOWN_BUGS = new Set([
+  'stars__portrait__flare_d100_nopre__exportEntry',
+  'stars__highlights__flare_d100_nopre__exportEntry',
+]);
+
+const STARS_PHOTOS  = ['portrait', 'highlights'];
+const STARS_CONFIGS = [
+  { id: 'flare_d0_preset',  presetId: 'velvetroom', stars: { variant: 'stars-flare', amount: 100, range: 140, scale: 2.0, rotation: 0, dispersion:   0 } },
+  { id: 'flare_d100_nopre', presetId: '__nolook__', stars: { variant: 'stars-flare', amount: 100, range: 140, scale: 2.0, rotation: 0, dispersion: 100 } },
+  { id: 'std_preset',       presetId: 'velvetroom', stars: { variant: 'stars',       amount: 100, range: 140, scale: 1.0, rotation: 0, dispersion:   0 } },
+];
+const STARS_OFF  = { variant: null, amount: 0, range: 140, scale: 1.0, rotation: 0, dispersion: 0 };
+const STARS_SEED = 0x5EED;
+
 // ── synthetic photo generators ────────────────────────────────────────────────
 // Both photos are 100 % algorithmic — no files, fully reproducible.
 
@@ -90,6 +106,35 @@ function makeLandscape() {
         px[i]   = Math.min(255, Math.round((40  + 140 * fx) * (1 - 0.3 * t)));
         px[i+1] = Math.min(255, Math.round((60  + 100 * fx) * (1 - 0.2 * t)));
         px[i+2] = Math.max(0,   Math.round((20  + 60  * fx) * (1 - 0.6 * t)));
+      }
+    }
+  }
+  return { W, H, px };
+}
+
+function makeHighlights() {
+  // 640×480: near-black background (luma≈9), 6 small bright discs at fixed well-separated
+  // positions (≥113 px apart so NMS at suppR=28×scale=2.0 detects each independently),
+  // plus one larger disc (r=30, luma=255) that extends to the image edge.
+  const W = 640, H = 480;
+  const px = new Uint8Array(W * H * 3);
+  for (let i = 0; i < W * H * 3; i += 3) { px[i] = 8; px[i + 1] = 10; px[i + 2] = 6; }
+  // [cx, cy, radius, R, G, B] — luma(R,G,B) > 230 for all bright discs
+  const DISCS = [
+    [ 80,  60,  8, 245, 240, 230],
+    [240,  80,  7, 238, 242, 230],
+    [440,  70,  9, 248, 246, 240],
+    [120, 280,  6, 235, 240, 228],
+    [340, 320, 10, 242, 238, 234],
+    [520, 380,  8, 244, 240, 240],
+    [310, 200, 30, 255, 255, 255],  // large disc, clipped at image boundary
+  ];
+  for (const [cx, cy, r, R, G, B] of DISCS) {
+    for (let y = Math.max(0, cy - r); y <= Math.min(H - 1, cy + r); y++) {
+      for (let x = Math.max(0, cx - r); x <= Math.min(W - 1, cx + r); x++) {
+        if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= r * r) {
+          const i = (y * W + x) * 3; px[i] = R; px[i + 1] = G; px[i + 2] = B;
+        }
       }
     }
   }
@@ -587,6 +632,342 @@ async function compare(baseDir, threshold, mutate) {
   return failures === 0 && diffRows.every(r => !r.zero);
 }
 
+// ── stars render ─────────────────────────────────────────────────────────────
+async function renderStarsCombo(page, photoId, cfg, pathId, seed, starsOn) {
+  const { W, H, px } = photoId === 'portrait' ? makePortrait() : makeHighlights();
+  const photoURL = pixelsToDataURL(W, H, px);
+  const presetId = cfg.presetId;
+  const starsCfg = starsOn ? cfg.stars : STARS_OFF;
+
+  return page.evaluate(async ([photoURL, presetId, pathId, seed, starsCfg]) => {
+    let _s = (seed >>> 0) || 1;
+    const _origRandom = Math.random;
+    Math.random = () => {
+      _s ^= _s << 13; _s ^= _s >>> 17; _s ^= _s << 5;
+      return (_s >>> 0) / 4294967296;
+    };
+
+    try {
+      const img = await new Promise((res, rej) => {
+        const im = new Image(); im.onload = () => res(im); im.onerror = rej;
+        im.src = photoURL;
+      });
+
+      const isNolook = presetId === '__nolook__';
+      const p = isNolook ? _evNoLookPreset : presets.find(x => x.id === presetId);
+      if (!p) throw new Error('Preset not found: ' + presetId);
+      initSliderState(p);
+
+      userImage       = img;
+      activePreset    = p;
+      evActivePreset  = p;
+      presetIntensity = 1.0;
+      window.blemishSpots = [];
+      window._slDragging  = false;
+      if (typeof fxState !== 'undefined') { fxState.frames = null; fxState.texture = null; }
+
+      if (typeof fxState !== 'undefined') {
+        fxState.stars = JSON.parse(JSON.stringify(starsCfg));
+      }
+
+      library.length = 0;
+      const entry = {
+        id: 'harness', dataURL: photoURL,
+        editState: {
+          presetId,
+          sliders: sliderState[presetId] || {},
+          intensity: 1.0,
+          fxState: typeof fxState !== 'undefined' ? JSON.parse(JSON.stringify(fxState)) : null
+        }
+      };
+      library.push(entry);
+      editingIdx = 0;
+
+      if (!isNolook && p.textureOverlay && p.textureOverlay.file) {
+        const texImg = loadTexture(p.textureOverlay.file);
+        if (!texImg.complete || !texImg.naturalWidth) {
+          await new Promise(res => {
+            const orig = texImg.onload;
+            texImg.onload = () => { texImg.onload = orig; res(); };
+            texImg.onerror = res;
+          });
+        }
+      }
+
+      // Instrument applyStarFlares to capture call count and star positions
+      const callLog = [];
+      const _origApplyStarFlares = window.applyStarFlares;
+      const _origDrawStar        = window._drawStarShape;
+      window.applyStarFlares = function(canvas, opts, offX, offY, w, h) {
+        const positions = [];
+        window._drawStarShape = function(ctx, cx, cy, ...rest) {
+          positions.push({ cx, cy });
+          return _origDrawStar ? _origDrawStar.call(this, ctx, cx, cy, ...rest) : undefined;
+        };
+        const result = _origApplyStarFlares.call(this, canvas, opts, offX, offY, w, h);
+        window._drawStarShape = _origDrawStar;
+        callLog.push({ w: canvas.width, h: canvas.height, variant: opts && opts.variant,
+          nStars: positions.length, positions: positions.slice() });
+        return result;
+      };
+
+      const waitCapture = () => new Promise((res, rej) => {
+        const t = setTimeout(() => rej(new Error('Capture timeout: ' + pathId)), 15000);
+        window.addEventListener('harness-capture', () => { clearTimeout(t); res(window.__HARNESS_CAPTURE); }, { once: true });
+      });
+
+      const showEditor = () => {
+        const gv = document.getElementById('gallery-view');
+        const ev = document.getElementById('editor-view');
+        if (gv) gv.style.display = 'none';
+        if (ev) ev.style.display = 'flex';
+      };
+
+      let dataURL;
+      if (pathId === 'evRenderCanvasImmediate') {
+        showEditor();
+        const area = document.getElementById('ev-canvas-area');
+        if (area) { area.style.width = '375px'; area.style.height = '600px'; void area.offsetWidth; }
+        _evRenderCanvasImmediate();
+        dataURL = document.getElementById('ev-canvas').toDataURL('image/png');
+
+      } else if (pathId === 'evDoSave') {
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        const cap = waitCapture();
+        _evDoSave();
+        dataURL = await cap;
+
+      } else if (pathId === 'evSaveAndReturn') {
+        showEditor();
+        const origBack     = window.editorBackToGallery;
+        const origSave     = window.libSaveToStorage;
+        const origRender   = window.renderLibrary;
+        const origAutoSave = window.autoSaveEdit;
+        window.editorBackToGallery = () => {};
+        window.libSaveToStorage    = () => {};
+        window.renderLibrary       = () => {};
+        window.autoSaveEdit        = () => {};
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        try {
+          const cap = waitCapture();
+          evSaveAndReturn();
+          dataURL = await cap;
+        } finally {
+          window.editorBackToGallery = origBack;
+          window.libSaveToStorage    = origSave;
+          window.renderLibrary       = origRender;
+          window.autoSaveEdit        = origAutoSave;
+        }
+
+      } else if (pathId === 'renderBatchThumbnail') {
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        const cap = waitCapture();
+        _renderBatchThumbnail(entry, presetId, sliderState[presetId] || {}, 1.0, () => {});
+        dataURL = await cap;
+
+      } else if (pathId === 'exportEntry') {
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        const cap = waitCapture();
+        _exportEntry(entry, () => {});
+        dataURL = await cap;
+
+      } else if (pathId === 'applyCanvasEffects') {
+        const origClose = window.exportModalClose;
+        window.exportModalClose = () => {};
+        expFmt = 'jpg';
+        window.__HARNESS_CAPTURE_ACTIVE = true;
+        try {
+          const cap = waitCapture();
+          exportDownload();
+          dataURL = await cap;
+        } finally {
+          window.exportModalClose = origClose;
+        }
+
+      } else {
+        throw new Error('Unknown pathId: ' + pathId);
+      }
+
+      window.applyStarFlares = _origApplyStarFlares;
+      window._drawStarShape  = _origDrawStar;
+      return { dataURL, callLog };
+
+    } finally {
+      Math.random = _origRandom;
+    }
+  }, [photoURL, presetId, pathId, seed, starsCfg]);
+}
+
+// ── stars capture ─────────────────────────────────────────────────────────────
+async function captureStars(outDir) {
+  const { browser, page } = await launchBrowser();
+  const CASES = [];
+  for (const photoId of STARS_PHOTOS)
+    for (const cfg of STARS_CONFIGS)
+      for (const pathId of PATHS)
+        CASES.push({ photoId, cfg, pathId });
+  const total = CASES.length;
+  let count = 0, totalBytes = 0;
+  const coverage  = [];
+  const crossPath = {};
+
+  try {
+    let seed = STARS_SEED;
+    for (const { photoId, cfg, pathId } of CASES) {
+      const name   = `stars__${photoId}__${cfg.id}__${pathId}`;
+      const onSeed = seed++;
+
+      await reloadPage(page);
+      let onResult;
+      try {
+        onResult = await renderStarsCombo(page, photoId, cfg, pathId, onSeed, true);
+      } catch (e) {
+        console.error(`\n  RENDER ERROR (on) ${name}: ${e.message}`);
+        coverage.push({ name, madCov: -1, callCount: 0, callLog: [] });
+        count++; continue;
+      }
+
+      await reloadPage(page);
+      let offResult;
+      try {
+        offResult = await renderStarsCombo(page, photoId, cfg, pathId, onSeed, false);
+      } catch (e) {
+        console.error(`\n  RENDER ERROR (off) ${name}: ${e.message}`);
+        coverage.push({ name, madCov: -1, callCount: 0, callLog: [] });
+        count++; continue;
+      }
+
+      const onBuf  = Buffer.from(onResult.dataURL.replace('data:image/png;base64,', ''), 'base64');
+      const offBuf = Buffer.from(offResult.dataURL.replace('data:image/png;base64,', ''), 'base64');
+
+      let madCov;
+      try { madCov = computeMAD(onBuf, offBuf); } catch (e) { madCov = -1; }
+
+      const callCount = onResult.callLog.length;
+      coverage.push({ name, madCov, callCount, callLog: onResult.callLog });
+
+      fs.writeFileSync(path.join(outDir, name + '.png'), onBuf);
+      totalBytes += onBuf.length;
+
+      const cpKey = `${photoId}__${cfg.id}`;
+      if (!crossPath[cpKey]) crossPath[cpKey] = {};
+      crossPath[cpKey][pathId] = onBuf;
+
+      count++;
+      process.stdout.write(`\r  [${count}/${total}] ${name}             `);
+    }
+  } finally {
+    await browser.close();
+  }
+
+  console.log(`\n  wrote ${count} files · ${(totalBytes / 1024).toFixed(0)} KB total`);
+
+  const PAD = 66;
+  console.log(`\n  Stars coverage proof (stars-on MAD vs stars-off — all must be > 0):`);
+  console.log(`  ${'─'.repeat(PAD + 22)}`);
+  let stopQ = false;
+  for (const r of coverage) {
+    const madStr = r.madCov < 0 ? 'SIZE-MISMATCH' : r.madCov.toFixed(4);
+    if (KNOWN_BUGS.has(r.name)) {
+      if (r.madCov === 0) {
+        console.log(`  ${r.name.padEnd(PAD)} ${madStr}  KNOWN BUG (expected 0)`);
+      } else {
+        console.error(`  ${r.name.padEnd(PAD)} ${madStr}  ✗ KNOWN BUG FIXED — remove from KNOWN_BUGS`);
+        stopQ = true;
+      }
+    } else {
+      const fail = r.madCov === 0;
+      if (fail) stopQ = true;
+      console.log(`  ${r.name.padEnd(PAD)} ${madStr}${fail ? '  ✗ STOP Q' : '  ✓'}`);
+    }
+  }
+  console.log(`  ${'─'.repeat(PAD + 22)}`);
+
+  console.log(`\n  Cross-path MAD matrix (each path vs evDoSave — informational):`);
+  for (const [cpKey, byPath] of Object.entries(crossPath)) {
+    const ref = byPath['evDoSave'];
+    console.log(`\n  ${cpKey}:`);
+    for (const pathId of PATHS) {
+      const buf = byPath[pathId];
+      if (!buf || !ref) { console.log(`    ${pathId.padEnd(30)} --`); continue; }
+      let mad;
+      try { mad = computeMAD(ref, buf); } catch (e) { mad = -1; }
+      const madStr = mad < 0 ? 'SIZE-MISMATCH' : mad.toFixed(4);
+      console.log(`    ${pathId.padEnd(30)} MAD vs evDoSave: ${madStr}`);
+    }
+  }
+
+  console.log(`\n  applyStarFlares call count + star positions (highlights photo):`);
+  for (const r of coverage) {
+    if (!r.name.startsWith('stars__highlights__')) continue;
+    console.log(`\n  ${r.name}:`);
+    console.log(`    calls: ${r.callCount}`);
+    for (let i = 0; i < r.callLog.length; i++) {
+      const c = r.callLog[i];
+      const posStr = c.positions.map(p => `(${(p.cx / c.w).toFixed(3)},${(p.cy / c.h).toFixed(3)})`).join(' ');
+      console.log(`    call[${i}]: ${c.w}×${c.h} variant=${c.variant} nStars=${c.nStars}${posStr ? ' pos=' + posStr : ''}`);
+    }
+  }
+
+  if (stopQ) {
+    console.error('\n  ✗ STOP Q / STOP R: unexpected coverage failure — see marked rows above');
+    process.exit(1);
+  }
+}
+
+// ── stars compare ─────────────────────────────────────────────────────────────
+async function compareStars(baseDir) {
+  const { browser, page } = await launchBrowser();
+  const rows = [];
+  let failures = 0, maxMAD = 0;
+  try {
+    let seed = STARS_SEED;
+    for (const photoId of STARS_PHOTOS) {
+      for (const cfg of STARS_CONFIGS) {
+        await reloadPage(page);
+        for (const pathId of PATHS) {
+          const name     = `stars__${photoId}__${cfg.id}__${pathId}`;
+          const baseFile = path.join(baseDir, name + '.png');
+          if (!fs.existsSync(baseFile)) {
+            rows.push({ name, madStr: 'MISSING BASELINE', fail: true }); seed++; failures++; continue;
+          }
+          let result;
+          try {
+            result = await renderStarsCombo(page, photoId, cfg, pathId, seed++, true);
+          } catch (e) {
+            rows.push({ name, madStr: `RENDER ERR: ${String(e.message).slice(0, 50)}`, fail: true });
+            failures++; continue;
+          }
+          const cur  = Buffer.from(result.dataURL.replace('data:image/png;base64,', ''), 'base64');
+          const base = fs.readFileSync(baseFile);
+          let mad;
+          try { mad = computeMAD(base, cur); }
+          catch (e) {
+            rows.push({ name, madStr: `DECODE ERR: ${String(e.message).slice(0, 50)}`, fail: true });
+            failures++; continue;
+          }
+          const fail = mad > 0;
+          if (fail) failures++;
+          maxMAD = Math.max(maxMAD, mad);
+          rows.push({ name, madStr: mad.toFixed(4), fail });
+        }
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+
+  const PAD = 66;
+  console.log(`\n  ${'combo'.padEnd(PAD)} MAD`);
+  console.log(`  ${'─'.repeat(PAD + 10)}`);
+  for (const r of rows)
+    console.log(`  ${r.name.padEnd(PAD)} ${r.madStr}${r.fail ? '  ✗ FAIL' : ''}`);
+  console.log(`  ${'─'.repeat(PAD + 10)}`);
+  console.log(`  max MAD: ${maxMAD.toFixed(4)}   failures: ${failures}\n`);
+
+  return failures === 0;
+}
+
 // ── CLI ───────────────────────────────────────────────────────────────────────
 const [,, cmd, ...argv] = process.argv;
 const flags = Object.fromEntries(
@@ -620,9 +1001,34 @@ if (cmd === 'capture') {
     .then(ok => { console.log(`Done in ${((Date.now() - t0) / 1000).toFixed(1)}s`); process.exit(ok ? 0 : 1); })
     .catch(e => { console.error(e); process.exit(1); });
 
+} else if (cmd === 'capture-stars') {
+  const stamp   = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const dirName = flags.dir || `baseline-stars-${stamp}`;
+  const outDir  = path.resolve(TEST_DIR, dirName);
+  fs.mkdirSync(outDir, { recursive: true });
+  const total = STARS_PHOTOS.length * STARS_CONFIGS.length * PATHS.length;
+  console.log(`Capturing ${total} stars combinations → ${outDir}`);
+  const t0 = Date.now();
+  captureStars(outDir)
+    .then(() => console.log(`Done in ${((Date.now() - t0) / 1000).toFixed(1)}s`))
+    .then(() => process.exit(0))
+    .catch(e => { console.error(e); process.exit(1); });
+
+} else if (cmd === 'compare-stars') {
+  const base = flags.baseline;
+  if (!base) { console.error('Usage: node test/harness.js compare-stars --baseline=<dir>'); process.exit(1); }
+  const baseDir = path.resolve(TEST_DIR, base);
+  console.log(`Comparing stars against ${baseDir}`);
+  const t0 = Date.now();
+  compareStars(baseDir)
+    .then(ok => { console.log(`Done in ${((Date.now() - t0) / 1000).toFixed(1)}s`); process.exit(ok ? 0 : 1); })
+    .catch(e => { console.error(e); process.exit(1); });
+
 } else {
   console.log('Usage:');
   console.log('  node test/harness.js capture [--dir=NAME]');
   console.log('  node test/harness.js compare --baseline=NAME [--threshold=0] [--mutate]');
+  console.log('  node test/harness.js capture-stars [--dir=NAME]');
+  console.log('  node test/harness.js compare-stars --baseline=NAME');
   process.exit(1);
 }

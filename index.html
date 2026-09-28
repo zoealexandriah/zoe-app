@@ -10240,6 +10240,30 @@ var _evNoLookPreset = {
   }
 };
 
+// Returns the active preset, falling back to the no-look sentinel so callers
+// never need to handle a null preset.
+function _evLivePreset() {
+  return activePreset || evActivePreset || _evNoLookPreset;
+}
+
+// Returns true when any fxState category is visibly active.
+// Derived from fxState's own keys — covers new categories automatically.
+//   variant-based category (has 'variant' key): active when variant is truthy,
+//     not 'none', and intensity (if present) > 0.
+//   numeric category (no 'variant' key, e.g. glow, paper): active when any
+//     numeric value > 0.
+function _evAnyFxActive() {
+  if (typeof fxState === 'undefined') return false;
+  return Object.values(fxState).some(function(cat) {
+    if (!cat || typeof cat !== 'object') return false;
+    if ('variant' in cat) {
+      return !!cat.variant && cat.variant !== 'none' &&
+             (!('intensity' in cat) || cat.intensity > 0);
+    }
+    return Object.values(cat).some(function(v) { return typeof v === 'number' && v > 0; });
+  });
+}
+
 function initSliderState(p) {
   if (!sliderState[p.id]) sliderState[p.id] = {};
   const state = sliderState[p.id];
@@ -16839,8 +16863,8 @@ function _evDoSave() {
   if (!pCtx) { showToast('Export failed — image too large'); return; }
   pCtx.drawImage(userImage, 0, 0, pw, ph);
 
-  var p = activePreset;
-  if (p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) {
+  var p = _evLivePreset();
+  if (p && Object.keys(sliderState[p.id] || {}).length > 0) {
     var _tintMap = { purple:{r:130,g:72,b:195}, pink:{r:195,g:55,b:135}, blue:{r:35,g:72,b:195}, warm:{r:175,g:95,b:35} };
     var _t = _tintMap[p.tint];
     if (_t) {
@@ -16858,7 +16882,7 @@ function _evDoSave() {
       pCtx.fillRect(0,0,pw,ph); pCtx.globalCompositeOperation='source-over';
     });
 
-    var adj = buildAdjustments(_evMergeAdjState(p, sliderState[p.id]));
+    var adj = buildAdjustments(_evMergeAdjState(p, sliderState[p.id] || {}));
     if (!adj.halation && p.defaults && p.defaults.HALATION) adj.halation = p.defaults.HALATION;
     adj.hueTempZones = p.hueTempZones || null;
     adj.colorGlow    = p.colorGlow !== undefined ? p.colorGlow : 0;
@@ -18779,8 +18803,8 @@ function evSaveAndReturn() {
     off.width = iw; off.height = ih;
     var ctx = off.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(userImage, 0, 0, iw, ih);
-    var p = activePreset || evActivePreset;
-    if (p && sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) {
+    var p = _evLivePreset();
+    if (p && Object.keys(sliderState[p.id] || {}).length > 0) {
       var _evSaveSliders = sliderState[p.id];
       var _evSaveMerged = (typeof _evMergeAdjState === 'function') ? _evMergeAdjState(p, _evSaveSliders) : _evSaveSliders;
       var adj = buildAdjustments(_evSaveMerged);
@@ -19553,23 +19577,10 @@ window.exportDownload = function() {
   if (expFmt === 'jpg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, iw, ih); }
   ctx.drawImage(userImage, 0, 0, iw, ih);
 
-  const _edAsp = activePreset || evActivePreset;
-  const p = _edAsp || _evNoLookPreset;
-  const _edFxOn = (typeof fxState !== 'undefined') && (
-    (fxState.stars && fxState.stars.variant && (fxState.stars.amount||0) > 0) ||
-    (fxState.texture && fxState.texture.variant) ||
-    (fxState.frames && fxState.frames.variant && fxState.frames.variant !== 'none') ||
-    (fxState.glow && ((fxState.glow.glow||0) > 0 || (fxState.glow.diffusion||0) > 0 || (fxState.glow.halation||0) > 0)) ||
-    (fxState.glossy && fxState.glossy.variant && (fxState.glossy.intensity||0) > 0) ||
-    (fxState.scanlines && fxState.scanlines.variant && (fxState.scanlines.intensity||0) > 0) ||
-    (fxState.vhsbleed && fxState.vhsbleed.variant && (fxState.vhsbleed.intensity||0) > 0) ||
-    (fxState.bleeds && fxState.bleeds.variant && (fxState.bleeds.intensity||0) > 0) ||
-    (fxState.stickers && fxState.stickers.variant) ||
-    (fxState.paper && ((fxState.paper.fold||0) > 0 || (fxState.paper.texture||0) > 0))
-  );
+  const p = _evLivePreset();
   const hasPreset = !!p && (
-    (sliderState[p.id] && Object.keys(sliderState[p.id]).length > 0) ||
-    (p === _evNoLookPreset && _edFxOn)
+    Object.keys(sliderState[p.id] || {}).length > 0 ||
+    (p === _evNoLookPreset && _evAnyFxActive())
   );
 
   var origData = null, adj = null;

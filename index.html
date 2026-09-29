@@ -16482,8 +16482,6 @@ function globalReset() {
     if (_fxPnR) _fxPnR.classList.remove('fx-expanded');
   }
   const hc = document.getElementById('hero-canvas') || document.getElementById('ev-canvas');
-  // Push current state to history (reset is undoable)
-  if (hc && activePreset) fix2HistoryPush(activePreset.id);
 
   // Cancel any pending render that was queued before this reset
   if (typeof renderTimer !== 'undefined' && renderTimer) {
@@ -16663,7 +16661,7 @@ function globalReset() {
   }
 
   showToast('RESET — ALL EDITS CLEARED');
-  fix2UpdateButtons();
+  _evUpdateUndoRedoBtns();
 }
 
 

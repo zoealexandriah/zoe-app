@@ -13948,43 +13948,22 @@ function applyFilmGrain(canvas, amount, grainSize) {
   var ctx = canvas.getContext('2d', { willReadFrequently: true });
   var img;
   try { img = ctx.getImageData(0, 0, w, h); } catch (e) { return; }
-  var d = img.data;                       // Uint8ClampedArray — clamps on assign
-  var cell = Math.max(1, (Math.max(w, h) / ZGRAIN.cellRef) * (grainSize || 1));
-  var gw = Math.ceil(w / cell) + 2, gh = Math.ceil(h / cell) + 2;
-  var seed = 20260823;                    // fixed — grain is fixed in the negative,
-  var fB = _zgField(gw, gh, seed);        // it must not crawl between renders
-  var fC = _zgField(gw, gh, seed + 7919);
-  // Second, finer octave. A single octave is ~78% low-frequency energy, which
-  // reads as haze when amplitude is raised. The fine octave puts energy near
-  // Nyquist so more grain reads as grit instead of softness.
-  var fw    = ZGRAIN.fineWeight || 0;
-  var cell2 = Math.max(1, cell / (ZGRAIN.fine || 3.5));
-  var gw2   = Math.ceil(w / cell2) + 2, gh2 = Math.ceil(h / cell2) + 2;
-  var fB2   = fw > 0 ? _zgField(gw2, gh2, seed + 4177) : null;
-  var fC2   = fw > 0 ? _zgField(gw2, gh2, seed + 9311) : null;
-  var wCo   = Math.sqrt(1 - fw * fw);   // keeps total RMS constant as fw changes
-  var wLUT = new Float32Array(256);       // luminance weight LUT (avoids per-pixel pow)
+  var d = img.data;
+  var seed  = 20260823;
+  var seedC = seed + 7919;
+  var wLUT = new Float32Array(256);
   for (var L = 0; L < 256; L++) {
     var v = 1 - Math.pow(Math.abs(L - 118) / 160, 1.4);
     wLUT[L] = v < ZGRAIN.shadowFloor ? ZGRAIN.shadowFloor : v;
   }
-  var strength = amount * ZGRAIN.amount * Math.pow(Math.max(w, h) / 500, 0.40);
+  var strength = amount * ZGRAIN.amount * (grainSize || 1);
   var i = 0;
   for (var y = 0; y < h; y++) {
-    var fy = y / cell;
     for (var x = 0; x < w; x++, i += 4) {
       var r = d[i], g = d[i + 1], b = d[i + 2];
       var amp  = strength * wLUT[(0.299 * r + 0.587 * g + 0.114 * b) | 0];
-      var fx   = x / cell;
-      var base = _zgSample(fB, gw, fx, fy) * wCo;
-      var chr  = _zgSample(fC, gw, fx, fy) * wCo;
-      if (fB2) {
-        var fx2 = x / cell2, fy2 = y / cell2;
-        base += _zgSample(fB2, gw2, fx2, fy2) * fw;
-        chr  += _zgSample(fC2, gw2, fx2, fy2) * fw;
-      }
-      base *= amp;
-      chr  *= amp * ZGRAIN.chroma;
+      var base = _zgHash(x, y, seed)  * amp;
+      var chr  = _zgHash(x, y, seedC) * amp * ZGRAIN.chroma;
       d[i]     = r + base + chr;
       d[i + 1] = g + base;
       d[i + 2] = b + base - chr;

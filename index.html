@@ -13968,7 +13968,9 @@ function applyFilmGrain(canvas, amount, grainSize) {
     var v = 1 - Math.pow(Math.abs(L - 118) / 160, 1.4);
     wLUT[L] = v < ZGRAIN.shadowFloor ? ZGRAIN.shadowFloor : v;
   }
-  var strength = amount * ZGRAIN.amount * Math.pow(Math.max(w, h) / 500, 0.40);
+  // Constant amplitude at all export sizes — d22f7a5 deliberately removed the
+  // resBoost that scaled amplitude with resolution. Do not re-add it.
+  var strength = amount * ZGRAIN.amount;
   var i = 0;
   for (var y = 0; y < h; y++) {
     var fy = y / cell;

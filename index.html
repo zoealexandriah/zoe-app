@@ -13951,9 +13951,9 @@ function applyFilmGrain(canvas, amount, grainSize) {
   var d = img.data;
   var seed  = 20260823;
   var seedC = seed + 7919;
-  // cell: 1px at cellRef long-edge, scales with image size.
-  // grainSize multiplies cell — wider cells = coarser grain.
-  var cell = Math.max(1, (Math.max(w, h) / ZGRAIN.cellRef) * (grainSize || 1));
+  // cell: scales with image size. Floor at 3px so editor preview
+  // and export have the same grain character (3-4px features).
+  var cell = Math.max(3, (Math.max(w, h) / ZGRAIN.cellRef) * (grainSize || 1));
   var gw = Math.ceil(w / cell) + 2, gh = Math.ceil(h / cell) + 2;
   var fB = _zgField(gw, gh, seed);
   var fC = _zgField(gw, gh, seedC);

@@ -1,0 +1,11 @@
+# ZOË app — standing rules
+- Single-file app: index.html (~24k lines), GitHub Pages, Capacitor iOS shell. build.js stages assets into www/. Test with `npx serve www`.
+- Do not modify, refactor, or delete existing code unless explicitly instructed. Output only the exact code blocks that changed, no explanations.
+- End every task with: git add index.html && git commit -m "description" && git push
+- Analysis-only tasks must say so and commit nothing.
+- Never modify locked presets CRIMSON, MONA, D'AZUR, VIOLETTE, MIDNIGHT. The 103 shipped presets must render identically unless I approve a change. New presets: hslVersion 2, next num = max+1, tint:'none', orbs:[]. Never add a matteFade field.
+- Export: all save paths cap at 2400px; the 800px mobile proxy stays. Spatial effects (grain, scanlines, vhsBleed) must scale with output size.
+- Check for functions defined twice (later one wins) before editing any named function.
+- Reset per-photo state in galleryOpenInEditor. Preview-vs-export divergence has recurred; check the save paths first.
+- Verify by measuring (rendered pixels, sampled values, the effect and crop harnesses), not by reading code. Cite line numbers against the enclosing function.
+- Shell status: Phases 1-4 done. Phase 5 (account, subscription, settings, support, about, legal screens) is next, then Phase 6 gating via a single array of preset and FX IDs.

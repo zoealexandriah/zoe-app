@@ -3939,6 +3939,72 @@ body:has(#z-paywall-view.z-active) .bottomnav { display: none !important; }
 }
 /* ── /Paywall ── */
 
+/* ── Info screens (support, about, legal) ── */
+.zi-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px 48px;
+  text-align: center;
+}
+.zi-wordmark {
+  font-family: var(--font-serif);
+  font-size: 44px;
+  font-weight: 500;
+  color: var(--text-bright);
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+.zi-heading {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--text-bright);
+  margin: 0 0 12px;
+}
+.zi-text {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-mid);
+  max-width: 300px;
+  margin: 0 0 28px;
+}
+.zi-btn {
+  width: 100%;
+  max-width: 320px;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--rose);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+.zi-btn:active { opacity: 0.6; }
+.zi-placeholder {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--rose);
+  border: 1px dashed var(--rose-border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 20px;
+}
+.zi-version {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+/* ── /Info screens ── */
+
 /* ── /ZOë account-area screen shell ── */
 
 /* Hero */
@@ -4689,7 +4755,13 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <span class="z-screen-title" style="font-family:var(--mono);">SUPPORT</span>
           <span class="z-screen-hdr-right"></span>
         </div>
-        <div class="z-screen-body"></div>
+        <div class="z-screen-body zi-body">
+          <h2 class="zi-heading">Support</h2>
+          <p class="zi-text">Questions, bugs, or feedback? Send us a message and we'll get back to you.</p>
+          <button class="zi-btn" data-zcfg-action="supportEmail" onclick="zCfgOpen('supportEmail')">EMAIL SUPPORT</button>
+          <div class="zi-placeholder" data-zcfg-placeholder="supportEmail">PLACEHOLDER — NOT SET</div>
+          <div class="zi-version" data-zcfg-version></div>
+        </div>
       </div>
 
       <div id="z-about-view"     class="z-screen" style="display:none;">
@@ -4698,7 +4770,11 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <span class="z-screen-title" style="font-family:var(--mono);">ABOUT</span>
           <span class="z-screen-hdr-right"></span>
         </div>
-        <div class="z-screen-body"></div>
+        <div class="z-screen-body zi-body">
+          <div class="zi-wordmark">ZOË</div>
+          <div class="zi-version" data-zcfg-version style="margin-bottom:24px;"></div>
+          <p class="zi-text">A photo editor inspired by cinema &amp; fashion. Every light. Every skin tone.</p>
+        </div>
       </div>
 
       <div id="z-paywall-view"   class="z-screen" style="display:none;">
@@ -4758,7 +4834,12 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <span class="z-screen-title" style="font-family:var(--mono);">PRIVACY POLICY</span>
           <span class="z-screen-hdr-right"></span>
         </div>
-        <div class="z-screen-body"></div>
+        <div class="z-screen-body zi-body">
+          <h2 class="zi-heading">Privacy Policy</h2>
+          <p class="zi-text">How ZOË handles your data. Your photos stay on your device.</p>
+          <button class="zi-btn" data-zcfg-action="privacyUrl" onclick="zCfgOpen('privacyUrl')">OPEN IN BROWSER</button>
+          <div class="zi-placeholder" data-zcfg-placeholder="privacyUrl">PLACEHOLDER — NOT SET</div>
+        </div>
       </div>
 
       <div id="z-legal-terms-view" class="z-screen" style="display:none;">
@@ -4767,7 +4848,12 @@ body.empty-gallery .app { grid-template-rows: 0px 1fr 0px !important; }
           <span class="z-screen-title" style="font-family:var(--mono);">TERMS OF USE</span>
           <span class="z-screen-hdr-right"></span>
         </div>
-        <div class="z-screen-body"></div>
+        <div class="z-screen-body zi-body">
+          <h2 class="zi-heading">Terms of Use</h2>
+          <p class="zi-text">The terms that apply when you use ZOË and ZOË Pro.</p>
+          <button class="zi-btn" data-zcfg-action="termsUrl" onclick="zCfgOpen('termsUrl')">OPEN IN BROWSER</button>
+          <div class="zi-placeholder" data-zcfg-placeholder="termsUrl">PLACEHOLDER — NOT SET</div>
+        </div>
       </div>
 
       <div id="z-onboarding-view" class="z-screen" style="display:none;">
@@ -14163,6 +14249,40 @@ async function loadImageToCanvas(canvas, img) {
   await captureOriginal(canvas, img);
   renderWithAdjustments(canvas, {});
 }
+
+// ══════════════════════════════════════════════════════
+// ZCONFIG  (Phase 5a) — single source for links, contact, version
+// ══════════════════════════════════════════════════════
+var ZCONFIG = {
+  privacyUrl:   '',
+  termsUrl:     '',
+  supportEmail: '',
+  appVersion:   '1.0.0'
+};
+
+// Opens the ZCONFIG target for a key. Empty value → no-op (placeholder is shown instead).
+function zCfgOpen(key) {
+  var v = ZCONFIG[key];
+  if (!v) return;
+  if (key === 'supportEmail') { window.location.href = 'mailto:' + v; return; }
+  window.open(v, '_blank');
+}
+
+// Syncs support/about/legal screens with ZCONFIG: version text, and
+// button vs "PLACEHOLDER — NOT SET" label depending on whether each value is set.
+function zCfgRender() {
+  document.querySelectorAll('[data-zcfg-version]').forEach(function(el) {
+    el.textContent = 'VERSION ' + ZCONFIG.appVersion;
+  });
+  document.querySelectorAll('[data-zcfg-action]').forEach(function(el) {
+    el.style.display = ZCONFIG[el.getAttribute('data-zcfg-action')] ? '' : 'none';
+  });
+  document.querySelectorAll('[data-zcfg-placeholder]').forEach(function(el) {
+    el.style.display = ZCONFIG[el.getAttribute('data-zcfg-placeholder')] ? 'none' : '';
+  });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', zCfgRender);
+else zCfgRender();
 
 // ══════════════════════════════════════════════════════
 // SUBSCRIPTION SERVICE  (Phase 3)
